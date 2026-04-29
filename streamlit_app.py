@@ -150,10 +150,10 @@ st.markdown("""
 #    font-size: 14px;
 #    color: #9CA3AF;
 #}
-.kpi-value {
-    font-size: 28px;
-    font-weight: bold;
-}
+#.kpi-value {
+#    font-size: 28px;
+#    font-weight: bold;
+#}
 </style>
 """, unsafe_allow_html=True)
 st.markdown("---")
