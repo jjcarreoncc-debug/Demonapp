@@ -127,15 +127,15 @@ fig = px.line(
     # -------------------------
     # RENTABILIDAD
     # -------------------------
-    st.markdown("---")
-    st.subheader("💰 Rentabilidad")
+st.markdown("---")
+st.subheader("💰 Rentabilidad")
 
     df_group["Margen %"] = df_group.apply(
         lambda x: (x["Ganancia"] / x["Ventas"] * 100) if x["Ventas"] != 0 else 0,
         axis=1
     )
 
-    st.line_chart(df_group.set_index("Periodo")["Margen %"])
+st.line_chart(df_group.set_index("Periodo")["Margen %"])
 
     # -------------------------
     # PRODUCTO
