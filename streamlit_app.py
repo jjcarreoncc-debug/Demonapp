@@ -24,7 +24,7 @@ if archivo is not None:
     df = pd.read_excel(archivo)
 
     df.columns = df.columns.str.strip()
-    df["Fecha"] = pd.to_datetime(df["Fecha1"], errors="coerce")
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
