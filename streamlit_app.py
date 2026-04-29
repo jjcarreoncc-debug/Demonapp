@@ -6,6 +6,14 @@ st.set_page_config(page_title="Dashboard BI", layout="wide")
 st.title("📊 Dashboard de Ventas")
 
 # -------------------------
+# version nueva 
+# -------------------------
+
+st.markdown("### 📊 Análisis de Ventas y Rentabilidad")
+st.caption("Dashboard interactivo para análisis comercial")
+st.markdown("---")
+
+# -------------------------
 # Cargar archivo
 # -------------------------
 archivo = st.file_uploader("📁 Sube tu Excel", type=["xlsx", "csv"])
@@ -79,6 +87,8 @@ df_group["Crecimiento %"] = df_group["Ventas"].pct_change() * 100
 # -------------------------
 # KPIs
 # -------------------------
+st.markdown("---")
+
 st.subheader("📊 KPIs")
 
 col1, col2, col3, col4 = st.columns(4)
@@ -87,6 +97,12 @@ col1.metric("💰 Ventas", round(df_group["Ventas"].sum(), 2))
 col2.metric("💸 Costos", round(df_group["Costos"].sum(), 2))
 col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
 col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
+
+# -------------------------
+# nuevos cambios
+# -------------------------
+
+st.markdown("---")
 
 # KPI con delta
 if len(df_group) > 1:
@@ -112,13 +128,30 @@ if len(df_group) > 1:
 # -------------------------
 # GRÁFICAS
 # -------------------------
-st.subheader("📈 Tendencia")
-st.line_chart(
-    df_group.set_index("Periodo")[["Ventas", "Costos", "Ganancia"]]
-)
+# -------------------------
+# cambios nuevos
+# -------------------------
 
-st.subheader("📊 Ventas por periodo")
-st.bar_chart(df_group.set_index("Periodo")["Ventas"])
+st.markdown("---")
+st.subheader("📈 Análisis Visual")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("Tendencia")
+    st.line_chart(df_group.set_index("Periodo")[["Ventas", "Ganancia"]])
+
+with col2:
+    st.write("Ventas")
+    st.bar_chart(df_group.set_index("Periodo")["Ventas"])
+
+#st.subheader("📈 Tendencia")
+#st.line_chart(
+#    df_group.set_index("Periodo")[["Ventas", "Costos", "Ganancia"]]
+#)
+
+#st.subheader("📊 Ventas por periodo")
+#st.bar_chart(df_group.set_index("Periodo")["Ventas"])
 
 # -------------------------
 # VENTAS POR PRODUCTO
