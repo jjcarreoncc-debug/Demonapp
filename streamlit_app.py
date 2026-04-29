@@ -165,19 +165,20 @@ fig = px.line(
     title="Tendencia dinámica"
 )
 
-st.plotly_chart(fig, use_container_width=True)    
-    st.markdown("---")
-    st.subheader("📈 Análisis Visual ")
+st.plotly_chart(fig, use_container_width=True)
 
-    fig = px.line(
-        df_group,
-        x="Periodo",
-        y=["Ventas", "Ganancia"],
-        markers=True,
-        title="Tendencia"
-    )
+st.markdown("---")
+st.subheader("📈 Análisis Visual")
 
-    st.plotly_chart(fig, use_container_width=True)
+fig = px.line(
+    df_group,
+    x="Periodo",
+    y=["Ventas", "Ganancia"],
+    markers=True,
+    title="Tendencia"
+)
+
+st.plotly_chart(fig, use_container_width=True)
 
     fig_bar = px.bar(
         df_group,
