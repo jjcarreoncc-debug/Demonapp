@@ -16,14 +16,36 @@ if archivo is None:
 # -------------------------
 # Leer datos
 # -------------------------
-if archivo.name.endswith(".csv"):
-    df = pd.read_csv(archivo)
-else:
-    df = pd.read_excel(archivo)
+@st.cache_data
+def cargar_datos(archivo):
+    if archivo.name.endswith(".csv"):
+        return pd.read_csv(archivo)
+    else:
+        return pd.read_excel(archivo)
+
+df = cargar_datos(archivo)
 
 # 🔥 optimización
-df = df.head(500)
-df = df[["Fecha", "Ventas", "Costos"]]
+df = df.head(200)
+
+# -------------------------
+# FILTROS
+# -------------------------
+st.sidebar.header("🎛️ Filtros")
+
+if "Producto" in df.columns:
+    productos = st.sidebar.multiselect(
+        "Producto", df["Producto"].dropna().unique()
+    )
+    if productos:
+        df = df[df["Producto"].isin(productos)]
+
+if "Región" in df.columns:
+    regiones = st.sidebar.multiselect(
+        "Región", df["Región"].dropna().unique()
+    )
+    if regiones:
+        df = df[df["Región"].isin(regiones)]
 
 # -------------------------
 # Procesar
@@ -47,6 +69,7 @@ df_group = df_group.sort_values("Periodo")
 # -------------------------
 df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
 df_group["Margen %"] = (df_group["Ganancia"] / df_group["Ventas"]) * 100
+df_group["Crecimiento %"] = df_group["Ventas"].pct_change() * 100
 
 # -------------------------
 # KPIs
@@ -59,28 +82,65 @@ col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
 col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
 
 # -------------------------
-# Gráfica
+# ALERTA DE CRECIMIENTO
+# -------------------------
+if len(df_group) > 1:
+    crecimiento = df_group["Crecimiento %"].iloc[-1]
+
+    if crecimiento > 0:
+        st.success(f"📈 Crecimiento: {round(crecimiento,2)}%")
+    else:
+        st.error(f"📉 Caída: {round(crecimiento,2)}%")
+
+# -------------------------
+# COMPARACIÓN
+# -------------------------
+if len(df_group) > 1:
+    actual = df_group["Ventas"].iloc[-1]
+    anterior = df_group["Ventas"].iloc[-2]
+
+    st.write(f"Ventas actuales: {round(actual,2)}")
+    st.write(f"Ventas periodo anterior: {round(anterior,2)}")
+
+# -------------------------
+# GRÁFICA PRINCIPAL
 # -------------------------
 st.subheader("📈 Tendencia")
 
 st.line_chart(
-    df_group.set_index("Periodo")[["Ventas", "Costos", "Ganancia"]]
+    df_group.set_index("Periodo")[["Ventas", "Ganancia"]]
 )
 
 # -------------------------
-# Tabla
+# TOP PRODUCTOS
+# -------------------------
+if "Producto" in df.columns:
+    st.subheader("🏆 Top 5 Productos")
+
+    top = (
+        df.groupby("Producto")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(5)
+        .reset_index()
+    )
+
+    st.dataframe(top)
+
+# -------------------------
+# TABLA
 # -------------------------
 st.subheader("📊 Datos")
 st.dataframe(df_group)
 
 # -------------------------
-# DESCARGA 🔥
+# DESCARGA
 # -------------------------
 csv = df_group.to_csv(index=False).encode("utf-8")
 
 st.download_button(
-    label="📥 Descargar resultados",
-    data=csv,
-    file_name="dashboard_resultados.csv",
-    mime="text/csv"
+    "📥 Descargar resultados",
+    csv,
+    "dashboard_resultados.csv",
+    "text/csv"
 )
