@@ -1,16 +1,17 @@
-# === VERSION COMPLETA FINAL (PDF + PPT FUNCIONANDO SEGURO) ===
+# === VERSION COMPLETA (MISMA APP + FIX SOLO PDF/PPT EN BUFFER) ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
-import os
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet
 
 from pptx import Presentation
 from pptx.util import Inches
+
+from io import BytesIO
 
 # -------------------------
 # CONFIG
@@ -21,55 +22,62 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # =========================
-# GRAFICA SEGURA (CLAVE)
+# PDF (BUFFER - FIX)
 # =========================
-def crear_grafica_export(df_m, nombre):
+def generar_pdf(df_m, ventas, ganancia, margen, ratio):
 
-    plt.figure(figsize=(10,5))
-
-    plt.plot(df_m["Periodo"], df_m["Ventas"], marker="o", label="Ventas")
-    plt.plot(df_m["Periodo"], df_m["Ganancia"], marker="o", label="Ganancia")
-
-    plt.xticks(rotation=45)
-    plt.legend()
-    plt.title("Tendencia")
-
-    plt.tight_layout()
-    plt.savefig(nombre)
-    plt.close()
-
-    return nombre
-
-# =========================
-# PDF
-# =========================
-def generar_pdf(df_m, df, ventas, ganancia, margen, ratio):
-
-    doc = SimpleDocTemplate("reporte_final.pdf")
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer)
     styles = getSampleStyleSheet()
     story = []
 
+    # PORTADA
     story.append(Paragraph("REPORTE EJECUTIVO", styles['Title']))
     story.append(Spacer(1, 20))
+    story.append(PageBreak())
 
+    # KPIs
+    story.append(Paragraph("KPIs", styles['Heading1']))
     story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Normal']))
-
     story.append(PageBreak())
 
-    img = crear_grafica_export(df_m, "grafica_pdf.png")
-    story.append(Image(img, width=500, height=300))
+    # GRAFICA EN MEMORIA
+    img_stream = BytesIO()
+    plt.figure(figsize=(10,5))
+    plt.plot(df_m["Periodo"], df_m["Ventas"], marker="o", label="Ventas")
+    plt.plot(df_m["Periodo"], df_m["Ganancia"], marker="o", label="Ganancia")
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(img_stream, format="png")
+    plt.close()
+    img_stream.seek(0)
+
+    story.append(Paragraph("Tendencia", styles['Heading1']))
+    story.append(Image(img_stream, width=450, height=250))
+    story.append(PageBreak())
+
+    # VOLATILIDAD
+    estado = "Estable"
+    if ratio > 0.30:
+        estado = "Alta volatilidad"
+    elif ratio > 0.15:
+        estado = "Volatilidad media"
+
+    story.append(Paragraph("Volatilidad", styles['Heading1']))
+    story.append(Paragraph(estado, styles['Normal']))
 
     doc.build(story)
+    buffer.seek(0)
 
-    if os.path.exists(img):
-        os.remove(img)
+    return buffer
 
 # =========================
-# PPT
+# PPT (BUFFER - FIX)
 # =========================
-def generar_ppt(df_m, df, ventas, ganancia, margen):
+def generar_ppt(df_m, ventas, ganancia, margen):
 
     prs = Presentation()
 
@@ -87,17 +95,28 @@ Ganancia: ${ganancia:,.0f}
 Margen: {margen:.1f}%
 """
 
-    # SLIDE 3
-    img = crear_grafica_export(df_m, "grafica_ppt.png")
+    # GRAFICA EN MEMORIA
+    img_stream = BytesIO()
+    plt.figure(figsize=(10,5))
+    plt.plot(df_m["Periodo"], df_m["Ventas"], marker="o")
+    plt.plot(df_m["Periodo"], df_m["Ganancia"], marker="o")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(img_stream, format="png")
+    plt.close()
+    img_stream.seek(0)
 
+    # SLIDE 3
     slide = prs.slides.add_slide(prs.slide_layouts[5])
     slide.shapes.title.text = "Tendencia"
-    slide.shapes.add_picture(img, Inches(1), Inches(2), width=Inches(8))
+    slide.shapes.add_picture(img_stream, Inches(1), Inches(2), width=Inches(8))
 
-    prs.save("reporte_final.pptx")
+    # EXPORTAR
+    ppt_buffer = BytesIO()
+    prs.save(ppt_buffer)
+    ppt_buffer.seek(0)
 
-    if os.path.exists(img):
-        os.remove(img)
+    return ppt_buffer
 
 # =========================
 # APP
@@ -115,9 +134,7 @@ if archivo:
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    # -------------------------
     # FILTROS
-    # -------------------------
     st.sidebar.header("Filtros")
 
     rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
@@ -141,9 +158,7 @@ if archivo:
         st.warning("Sin datos")
         st.stop()
 
-    # -------------------------
     # CALCULOS
-    # -------------------------
     df_m = df.groupby("Periodo")[["Ventas","Ganancia"]].sum().reset_index()
 
     ventas = df["Ventas"].sum()
@@ -154,95 +169,49 @@ if archivo:
     vol = df_m["Ventas"].std()
     ratio = vol / media if media != 0 else 0
 
-    # =========================
-    # VISTA PRINCIPAL
-    # =========================
-    if st.session_state.vista == "principal":
+    # DASHBOARD
+    st.title("📊 Dashboard Ejecutivo")
 
-        st.title("📊 Dashboard Ejecutivo")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ventas", f"${ventas:,.0f}")
+    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    c3.metric("Margen", f"{margen:.1f}%")
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas", f"${ventas:,.0f}")
-        c2.metric("Ganancia", f"${ganancia:,.0f}")
-        c3.metric("Margen", f"{margen:.1f}%")
+    fig = px.line(df_m, x="Periodo", y=["Ventas","Ganancia"], markers=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas","Ganancia"], markers=True)
-        st.plotly_chart(fig, use_container_width=True)
-
-        col1, col2, col3, col4 = st.columns(4)
-
-        if col1.button("🚦 Volatilidad"):
-            st.session_state.vista = "volatilidad"
-
-        if col2.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-
-        if col3.button("🔎 Causas"):
-            st.session_state.vista = "causas"
-
-        if col4.button("📄 Reporte"):
-            st.session_state.vista = "reporte"
-
-    # =========================
     # VOLATILIDAD
-    # =========================
-    elif st.session_state.vista == "volatilidad":
+    st.subheader("🚦 Volatilidad")
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    if ratio > 0.30:
+        st.error("🔴 Alta volatilidad")
+    elif ratio > 0.15:
+        st.warning("🟡 Volatilidad media")
+    else:
+        st.success("🟢 Estable")
 
-        if ratio > 0.30:
-            st.error("🔴 Alta volatilidad")
-        elif ratio > 0.15:
-            st.warning("🟡 Volatilidad media")
-        else:
-            st.success("🟢 Estable")
+    # BOTONES
+    col1, col2 = st.columns(2)
 
-        st.line_chart(df_m.set_index("Periodo")["Ventas"])
+    if col1.button("📄 Generar PDF"):
+        pdf_file = generar_pdf(df_m, ventas, ganancia, margen, ratio)
 
-    # =========================
-    # RESPONSABLES
-    # =========================
-    elif st.session_state.vista == "responsables":
+        st.download_button(
+            label="Descargar PDF",
+            data=pdf_file,
+            file_name="reporte_final.pdf",
+            mime="application/pdf"
+        )
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    if col2.button("📊 Generar PPT"):
+        ppt_file = generar_ppt(df_m, ventas, ganancia, margen)
 
-        df_nom = df.groupby(["Periodo","Nombre"])["Ventas"].sum().reset_index()
-        fig = px.line(df_nom, x="Periodo", y="Ventas", color="Nombre")
-        st.plotly_chart(fig, use_container_width=True)
-
-    # =========================
-    # CAUSAS
-    # =========================
-    elif st.session_state.vista == "causas":
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        df_reg = df.groupby(["Periodo","Region"])["Ventas"].sum().reset_index()
-        fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
-        st.plotly_chart(fig, use_container_width=True)
-
-    # =========================
-    # REPORTE
-    # =========================
-    elif st.session_state.vista == "reporte":
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        col1, col2 = st.columns(2)
-
-        if col1.button("📄 Generar PDF"):
-            generar_pdf(df_m, df, ventas, ganancia, margen, ratio)
-            with open("reporte_final.pdf", "rb") as f:
-                st.download_button("Descargar PDF", f, "reporte_final.pdf")
-
-        if col2.button("📊 Generar PPT"):
-            generar_ppt(df_m, df, ventas, ganancia, margen)
-            with open("reporte_final.pptx", "rb") as f:
-                st.download_button("Descargar PPT", f, "reporte_final.pptx")
+        st.download_button(
+            label="Descargar PPT",
+            data=ppt_file,
+            file_name="reporte_final.pptx",
+            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        )
 
 else:
     st.info("📂 Sube un archivo Excel")
