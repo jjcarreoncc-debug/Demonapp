@@ -98,7 +98,9 @@ df_group["Crecimiento %"] = df_group["Ventas"].pct_change() * 100
 # KPIs CAMBIOS VERSION 2
 # -------------------------
 
-kpi-card {
+st.markdown("""
+<style>
+.kpi-card {
     background-color: #111827;
     padding: 20px;
     border-radius: 15px;
@@ -106,6 +108,20 @@ kpi-card {
     color: white;
     box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
 }
+.kpi-title {
+    font-size: 14px;
+    color: #9CA3AF;
+}
+.kpi-value {
+    font-size: 28px;
+    font-weight: bold;
+}
+.kpi-card:hover {
+    transform: scale(1.05);
+    transition: 0.3s;
+}
+</style>
+""", unsafe_allow_html=True)
 .kpi-title {
     font-size: 14px;
     color: #9CA3AF;
