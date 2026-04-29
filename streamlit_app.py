@@ -159,6 +159,21 @@ if "Producto" in df.columns:
 # adiccion 2
 # -------------------------
 
+
+f "Producto" in df.columns:
+    st.subheader("📦 Ventas por Producto")
+
+    ventas_prod = (
+        df.groupby("Producto")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+    )
+
+    st.bar_chart(ventas_prod)
+# -------------------------
+# adiccion 3
+# -------------------------
+
 pivot = df.pivot_table(
     values="Ventas",
     index=df["Fecha"].dt.month,
