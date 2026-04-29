@@ -20,7 +20,7 @@ def cargar_datos(archivo):
     return df
 
 # -------------------------
-# FUNCIONES
+# VALIDACIÓN + PREPARACIÓN
 # -------------------------
 def validar(df):
     for col in ["Fecha", "Ventas", "Costos"]:
@@ -64,9 +64,7 @@ if archivo:
     reg_sel = st.sidebar.multiselect("Región", regiones, default=regiones)
     prod_sel = st.sidebar.multiselect("Producto", productos, default=productos)
 
-    # -------------------------
-    # APLICAR FILTROS
-    # -------------------------
+    # Aplicar filtros
     if isinstance(rango, list) and len(rango) == 2:
         df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
                 (df["Fecha"] <= pd.to_datetime(rango[1]))]
@@ -91,8 +89,7 @@ if archivo:
     ganancia = df["Ganancia"].sum()
     margen = 0 if ventas == 0 else (ganancia / ventas) * 100
 
-    # Variación mensual
-    df_m = df.groupby("Periodo")["Ventas"].sum().reset_index().sort_values("Periodo")
+    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index().sort_values("Periodo")
 
     if len(df_m) > 1:
         var = ((df_m.iloc[-1]["Ventas"] - df_m.iloc[-2]["Ventas"]) /
@@ -123,48 +120,61 @@ if archivo:
     c4.plotly_chart(fig_g, use_container_width=True)
 
     # -------------------------
-    # INSIGHT
-    # -------------------------
-    st.markdown("### 🧠 Insight Ejecutivo")
-
-    if var > 0:
-        st.success(f"Ventas creciendo {var:.1f}% vs periodo anterior")
-    else:
-        st.error(f"Ventas cayendo {abs(var):.1f}% vs periodo anterior")
-
-    # -------------------------
-    # RANKING PAÍS
+    # TOP PAÍSES (TARJETAS)
     # -------------------------
     if "Pais" in df.columns:
-        st.markdown("### 🌍 Ventas por País")
+        st.markdown("### 🏆 Top Países")
 
-        df_p = df.groupby("Pais")["Ventas"].sum().reset_index().sort_values("Ventas")
+        df_top = df.groupby("Pais")["Ventas"].sum().sort_values(ascending=False).head(5).reset_index()
 
-        fig_p = px.bar(df_p, x="Ventas", y="Pais", orientation="h", text="Ventas")
-        fig_p.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
-
-        st.plotly_chart(fig_p, use_container_width=True)
+        cols = st.columns(len(df_top))
+        for i, row in df_top.iterrows():
+            cols[i].metric(row["Pais"], f"${row['Ventas']:,.0f}")
 
     # -------------------------
-    # RANKING REGIÓN
+    # DONUT REGIÓN
     # -------------------------
     if "Region" in df.columns:
-        st.markdown("### 🗺️ Ventas por Región")
+        st.markdown("### 🌍 Distribución por Región")
 
-        df_r = df.groupby("Region")["Ventas"].sum().reset_index().sort_values("Ventas")
+        df_region = df.groupby("Region")["Ventas"].sum().reset_index()
 
-        fig_r = px.bar(df_r, x="Ventas", y="Region", orientation="h", text="Ventas")
-        fig_r.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
+        fig_donut = px.pie(df_region, names="Region", values="Ventas", hole=0.6)
+        fig_donut.update_traces(textinfo="percent+label")
 
-        st.plotly_chart(fig_r, use_container_width=True)
+        st.plotly_chart(fig_donut, use_container_width=True)
 
     # -------------------------
     # TENDENCIA
     # -------------------------
-    st.markdown("### 📈 Tendencia")
+    st.markdown("### 📈 Tendencia de Negocio")
 
-    fig_t = px.line(df_m, x="Periodo", y="Ventas", markers=True)
-    st.plotly_chart(fig_t, use_container_width=True)
+    fig_line = px.line(
+        df_m,
+        x="Periodo",
+        y=["Ventas", "Ganancia"],
+        markers=True
+    )
+
+    fig_line.update_layout(
+        hovermode="x unified",
+        plot_bgcolor="white"
+    )
+
+    st.plotly_chart(fig_line, use_container_width=True)
+
+    # -------------------------
+    # INSIGHTS
+    # -------------------------
+    st.markdown("### 🧠 Insight Ejecutivo")
+
+    if len(df_m) > 2:
+        crecimiento = df_m["Ventas"].pct_change().mean() * 100
+
+        if crecimiento > 0:
+            st.success(f"Crecimiento promedio mensual: {crecimiento:.1f}%")
+        else:
+            st.error(f"Tendencia negativa: {crecimiento:.1f}%")
 
     # -------------------------
     # DATOS
