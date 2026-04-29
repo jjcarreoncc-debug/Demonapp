@@ -154,8 +154,8 @@ st.markdown("""
 #    font-size: 28px;
 #    font-weight: bold;
 #}
-</style>
-""", unsafe_allow_html=True)
+#</style>
+#""", unsafe_allow_html=True)
 st.markdown("---")
 
 st.subheader("📊 KPIs")
