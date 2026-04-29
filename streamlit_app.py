@@ -43,8 +43,8 @@ tipo = st.sidebar.radio(
     ["Línea", "Área"]
 )	
 
-	fecha_min = df["Fecha1"].min()
-    fecha_max = df["Fecha"].max()
+	 fecha_min = df["Fecha"].min()
+   fecha_max = df["Fecha"].max()
 
     rango_fecha = st.sidebar.date_input(
         "Rango de Fecha",
