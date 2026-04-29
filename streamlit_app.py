@@ -43,23 +43,22 @@ tipo = st.sidebar.radio(
     ["Línea", "Área"]
 )	
 
-   fecha_min = df["Fecha"].min()
-   fecha_max = df["Fecha"].max()
+fecha_min = df["Fecha"].min()
+fecha_max = df["Fecha"].max()
 
-    rango_fecha = st.sidebar.date_input(
-        "Rango de Fecha",
-        [fecha_min, fecha_max]
+rango_fecha = st.sidebar.date_input(
+    "Rango de Fecha",
+    [fecha_min, fecha_max]
+)
+
+if "Producto" in df.columns:
+    productos = st.sidebar.multiselect(
+        "Producto",
+        df["Producto"].unique(),
+        default=df["Producto"].unique()
     )
-
-    if "Producto" in df.columns:
-        productos = st.sidebar.multiselect(
-            "Producto",
-            df["Producto"].unique(),
-            default=df["Producto"].unique()
-        )
-    else:
-        productos = None
-
+else:
+    productos = None  
     if "Nombre" in df.columns:
         clientes = st.sidebar.multiselect(
             "Cliente",
