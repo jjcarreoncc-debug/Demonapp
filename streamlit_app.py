@@ -113,13 +113,41 @@ st.markdown("---")
 
 st.subheader("📊 KPIs")
 
+#col1, col2, col3, col4 = st.columns(4)
+
+#col1.metric("💰 Ventas", round(df_group["Ventas"].sum(), 2))
+#col2.metric("💸 Costos", round(df_group["Costos"].sum(), 2))
+#col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
+#col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("💰 Ventas", round(df_group["Ventas"].sum(), 2))
-col2.metric("💸 Costos", round(df_group["Costos"].sum(), 2))
-col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
-col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
+col1.markdown(f"""
+<div class="kpi-card">
+<div class="kpi-title">Ventas</div>
+<div class="kpi-value">{round(ventas_total,2)}</div>
+</div>
+""", unsafe_allow_html=True)
 
+col2.markdown(f"""
+<div class="kpi-card">
+<div class="kpi-title">Costos</div>
+<div class="kpi-value">{round(costos_total,2)}</div>
+</div>
+""", unsafe_allow_html=True)
+
+col3.markdown(f"""
+<div class="kpi-card">
+<div class="kpi-title">Ganancia</div>
+<div class="kpi-value">{round(ganancia_total,2)}</div>
+</div>
+""", unsafe_allow_html=True)
+
+col4.markdown(f"""
+<div class="kpi-card">
+<div class="kpi-title">Margen %</div>
+<div class="kpi-value">{round(margen,2)}%</div>
+</div>
+""", unsafe_allow_html=True)
 # -------------------------
 # nuevos cambios
 # -------------------------
