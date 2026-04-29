@@ -5,6 +5,30 @@ st.set_page_config(page_title="Dashboard BI", layout="wide")
 
 st.markdown("""
 <style>
+.kpi-card {
+    background-color: #111827;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.4);
+}
+.kpi-title {
+    font-size: 14px;
+    color: #9CA3AF;
+}
+.kpi-value {
+    font-size: 28px;
+    font-weight: bold;
+}
+.kpi-card:hover {
+    transform: scale(1.05);
+    transition: 0.3s;
+}
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<style>
 body {
     background-color: #0E1117;
 }
