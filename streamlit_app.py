@@ -163,14 +163,14 @@ if "Producto" in df.columns:
 if "Producto" in df.columns:
     st.subheader("📦 Ventas por Producto")
 
-    ventas_prod = (
-        df.groupby("Producto")["Ventas"]
-        .sum()
-        .sort_values(ascending=False)
-    )
+    ventas_prod = df.groupby("Producto")["Ventas"].sum()
+    ventas_prod = ventas_prod.sort_values(ascending=False)
 
     st.bar_chart(ventas_prod)
-# -------------------------
+else:
+    st.warning("No existe la columna 'Producto'")
+
+-----------------------------------
 # adiccion 3
 # -------------------------
 
