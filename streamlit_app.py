@@ -144,12 +144,12 @@ st.markdown("""
     transform: scale(1.05);
     transition: 0.3s;
 }
-</style>
-""", unsafe_allow_html=True)
-.kpi-title {
-    font-size: 14px;
-    color: #9CA3AF;
-}
+#</style>
+#""", unsafe_allow_html=True)
+#kpi-title {
+#    font-size: 14px;
+#    color: #9CA3AF;
+#}
 .kpi-value {
     font-size: 28px;
     font-weight: bold;
