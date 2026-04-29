@@ -1,18 +1,18 @@
-# === DASHBOARD PRO MODO CONSULTORA FINAL ===
+# === DASHBOARD PRO NIVEL DIRECTOR FINAL ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
-import os
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
 
 # -------------------------
 # CONFIG
 # -------------------------
-st.set_page_config(page_title="Dashboard Ejecutivo PRO", layout="wide")
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # -------------------------
 # NAV
@@ -21,73 +21,87 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF MODO CONSULTORA
+# PDF NIVEL DIRECTOR
 # -------------------------
 def generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio):
 
     styles = getSampleStyleSheet()
-    doc = SimpleDocTemplate("reporte_consultora.pdf")
+
+    titulo = ParagraphStyle(
+        'titulo', parent=styles['Heading1'],
+        fontSize=22, textColor=colors.black, spaceAfter=20
+    )
+
+    subtitulo = ParagraphStyle(
+        'subtitulo', parent=styles['Normal'],
+        fontSize=14, textColor=colors.grey
+    )
+
+    texto = ParagraphStyle(
+        'texto', parent=styles['Normal'],
+        fontSize=12, spaceAfter=10
+    )
+
+    doc = SimpleDocTemplate("reporte_director.pdf")
     story = []
 
     # PORTADA
-    story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
-    story.append(Spacer(1, 30))
-    story.append(Paragraph("Análisis estratégico de ventas", styles['Normal']))
+    story.append(Paragraph("REPORTE EJECUTIVO", titulo))
+    story.append(Paragraph("Análisis estratégico del negocio", subtitulo))
+    story.append(Spacer(1, 40))
+    story.append(Paragraph("Confidencial", texto))
+    story.append(PageBreak())
+
+    # MENSAJE CLAVE
+    story.append(Paragraph("Mensaje Clave", titulo))
+
+    if ratio > 0.30:
+        mensaje = "Alta volatilidad en el negocio, riesgo operativo elevado."
+    elif margen < 30:
+        mensaje = "Rentabilidad limitada, presión en costos."
+    else:
+        mensaje = "Negocio estable con oportunidades de crecimiento."
+
+    story.append(Paragraph(mensaje, texto))
     story.append(PageBreak())
 
     # KPIs
-    story.append(Paragraph("Resumen Ejecutivo", styles['Heading1']))
-    story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Heading2']))
-    story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Heading2']))
-    story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Heading2']))
-    story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Heading2']))
+    story.append(Paragraph("Indicadores Clave", titulo))
+    story.append(Paragraph(f"Ventas: ${ventas:,.0f}", texto))
+    story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", texto))
+    story.append(Paragraph(f"Margen: {margen:.1f}%", texto))
+    story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", texto))
     story.append(PageBreak())
 
     # TENDENCIA
     plt.figure(figsize=(10,5))
-    plt.plot(df_m["Periodo"], df_m["Ventas"], marker='o', label="Ventas")
-    plt.plot(df_m["Periodo"], df_m["Ganancia"], marker='o', label="Ganancia")
-    plt.xticks(rotation=45)
+    plt.plot(df_m["Periodo"], df_m["Ventas"], label="Ventas")
+    plt.plot(df_m["Periodo"], df_m["Ganancia"], label="Ganancia")
     plt.legend()
-    plt.title("Tendencia Ventas vs Ganancia")
+    plt.xticks(rotation=45)
+    plt.title("Tendencia del negocio")
     plt.tight_layout()
     plt.savefig("tendencia.png")
     plt.close()
 
-    story.append(Paragraph("Tendencia General", styles['Heading1']))
+    story.append(Paragraph("Evolución del negocio", titulo))
     story.append(Image("tendencia.png", width=520, height=300))
-    story.append(PageBreak())
-
-    # CRECIMIENTO
-    df_m["Crecimiento"] = df_m["Ventas"].pct_change()
-
-    plt.figure(figsize=(10,4))
-    plt.plot(df_m["Periodo"], df_m["Crecimiento"], marker='o')
-    plt.axhline(0)
-    plt.xticks(rotation=45)
-    plt.title("Variación de Crecimiento")
-    plt.tight_layout()
-    plt.savefig("crecimiento.png")
-    plt.close()
-
-    story.append(Paragraph("Crecimiento", styles['Heading1']))
-    story.append(Image("crecimiento.png", width=520, height=300))
     story.append(PageBreak())
 
     # RESPONSABLES
     if "Nombre" in df.columns:
-        df_nom = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False).head(10)
+        df_nom = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False).head(5)
 
         plt.figure(figsize=(10,5))
         df_nom.plot(kind='bar')
         plt.xticks(rotation=45)
-        plt.title("Top Responsables")
+        plt.title("Top responsables")
         plt.tight_layout()
-        plt.savefig("responsables.png")
+        plt.savefig("resp.png")
         plt.close()
 
-        story.append(Paragraph("Responsables Clave", styles['Heading1']))
-        story.append(Image("responsables.png", width=520, height=300))
+        story.append(Paragraph("Responsables Clave", titulo))
+        story.append(Image("resp.png", width=520, height=300))
         story.append(PageBreak())
 
     # REGIONES
@@ -97,66 +111,39 @@ def generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio):
         plt.figure(figsize=(10,5))
         df_reg.plot(kind='bar')
         plt.xticks(rotation=45)
-        plt.title("Impacto por Región")
+        plt.title("Impacto por región")
         plt.tight_layout()
-        plt.savefig("regiones.png")
+        plt.savefig("reg.png")
         plt.close()
 
-        story.append(Paragraph("Impacto por Región", styles['Heading1']))
-        story.append(Image("regiones.png", width=520, height=300))
+        story.append(Paragraph("Distribución Geográfica", titulo))
+        story.append(Image("reg.png", width=520, height=300))
         story.append(PageBreak())
 
-    # VOLATILIDAD
-    plt.figure(figsize=(10,4))
-    plt.plot(df_m["Periodo"], df_m["Ventas"])
-    plt.xticks(rotation=45)
-    plt.title("Volatilidad")
-    plt.tight_layout()
-    plt.savefig("volatilidad.png")
-    plt.close()
-
-    story.append(Paragraph("Volatilidad", styles['Heading1']))
-    story.append(Image("volatilidad.png", width=520, height=300))
+    # RIESGO
+    story.append(Paragraph("Riesgo del Negocio", titulo))
 
     if ratio > 0.30:
-        estado = "Alta inestabilidad"
+        riesgo = "Alto riesgo por inestabilidad."
     elif ratio > 0.15:
-        estado = "Variabilidad moderada"
+        riesgo = "Riesgo moderado."
     else:
-        estado = "Estable"
+        riesgo = "Riesgo controlado."
 
-    story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
+    story.append(Paragraph(riesgo, texto))
     story.append(PageBreak())
 
-    # INSIGHTS
-    story.append(Paragraph("Insights Automáticos", styles['Heading1']))
-
-    insights = []
-    if ratio > 0.30:
-        insights.append("Alta volatilidad detectada")
-    if margen < 30:
-        insights.append("Margen bajo")
-    if crecimiento < 0:
-        insights.append("Crecimiento negativo")
-    if not insights:
-        insights.append("Comportamiento estable")
-
-    for i in insights:
-        story.append(Paragraph(f"- {i}", styles['Normal']))
-
-    story.append(PageBreak())
-
-    # CONCLUSIÓN
-    story.append(Paragraph("Conclusión", styles['Heading1']))
+    # RECOMENDACIÓN
+    story.append(Paragraph("Recomendación Estratégica", titulo))
 
     if ratio > 0.30:
-        conclusion = "Se requiere estabilización inmediata."
+        rec = "Implementar control inmediato y seguimiento semanal."
     elif margen < 30:
-        conclusion = "Optimizar costos."
+        rec = "Optimizar estructura de costos."
     else:
-        conclusion = "Negocio saludable."
+        rec = "Escalar estrategia actual."
 
-    story.append(Paragraph(conclusion, styles['Normal']))
+    story.append(Paragraph(rec, texto))
 
     doc.build(story)
 
@@ -177,7 +164,7 @@ if archivo:
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     # FILTROS
-    st.sidebar.header("🔎 Filtros")
+    st.sidebar.header("Filtros")
 
     if "Pais" in df.columns:
         pais = st.sidebar.multiselect("País", df["Pais"].unique(), default=df["Pais"].unique())
@@ -200,7 +187,7 @@ if archivo:
     # PRINCIPAL
     if st.session_state.vista == "principal":
 
-        st.title("📊 Dashboard Ejecutivo")
+        st.title("Dashboard Ejecutivo")
 
         ventas = df["Ventas"].sum()
         ganancia = df["Ganancia"].sum()
@@ -216,20 +203,20 @@ if archivo:
 
         col1, col2, col3, col4 = st.columns(4)
 
-        if col1.button("🚦 Volatilidad"):
+        if col1.button("Volatilidad"):
             st.session_state.vista = "volatilidad"
-        if col2.button("👤 Responsables"):
+        if col2.button("Responsables"):
             st.session_state.vista = "responsables"
-        if col3.button("🔎 Causas"):
+        if col3.button("Causas"):
             st.session_state.vista = "causas"
-        if col4.button("📄 Reporte"):
+        if col4.button("Reporte"):
             st.session_state.vista = "reporte"
 
     elif st.session_state.vista == "volatilidad":
 
-        st.title("🚦 Volatilidad")
+        st.title("Volatilidad")
 
-        if st.button("⬅️ Volver"):
+        if st.button("Volver"):
             st.session_state.vista = "principal"
 
         media = df_m["Ventas"].mean()
@@ -247,9 +234,9 @@ if archivo:
 
     elif st.session_state.vista == "responsables":
 
-        st.title("👤 Responsables")
+        st.title("Responsables")
 
-        if st.button("⬅️ Volver"):
+        if st.button("Volver"):
             st.session_state.vista = "principal"
 
         df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
@@ -258,9 +245,9 @@ if archivo:
 
     elif st.session_state.vista == "causas":
 
-        st.title("🔎 Causas")
+        st.title("Causas")
 
-        if st.button("⬅️ Volver"):
+        if st.button("Volver"):
             st.session_state.vista = "principal"
 
         df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
@@ -269,9 +256,9 @@ if archivo:
 
     elif st.session_state.vista == "reporte":
 
-        st.title("📄 Reporte Ejecutivo")
+        st.title("Reporte Ejecutivo")
 
-        if st.button("⬅️ Volver"):
+        if st.button("Volver"):
             st.session_state.vista = "principal"
 
         ventas = df["Ventas"].sum()
@@ -279,7 +266,7 @@ if archivo:
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
         crecimiento = df_m["Ventas"].pct_change().mean() * 100
 
-        if st.button("📄 Descargar PDF Consultora"):
+        if st.button("Descargar PDF"):
 
             media = df_m["Ventas"].mean()
             vol = df_m["Ventas"].std()
@@ -287,8 +274,8 @@ if archivo:
 
             generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio)
 
-            with open("reporte_consultora.pdf", "rb") as f:
-                st.download_button("Descargar", f, "reporte_consultora.pdf")
+            with open("reporte_director.pdf", "rb") as f:
+                st.download_button("Descargar reporte", f, "reporte_director.pdf")
 
 else:
     st.info("Sube archivo Excel")
