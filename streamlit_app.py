@@ -1,13 +1,17 @@
-# === DASHBOARD PRO FULL + PDF ESTABLE ===
+# === DASHBOARD PRO FINAL (PDF SEGURO CON GRÁFICAS) ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import matplotlib.pyplot as plt
 import os
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet
 
+# -------------------------
+# CONFIG
+# -------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo PRO", layout="wide")
 
 # -------------------------
@@ -17,26 +21,34 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF
+# PDF (SIN KALEIDO - SEGURO)
 # -------------------------
-def generar_pdf(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
+def generar_pdf(df_m, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
 
     styles = getSampleStyleSheet()
     doc = SimpleDocTemplate("reporte.pdf")
     story = []
 
-    # Intentar guardar gráfica
-    try:
-        fig.write_image("grafica.png")
-        imagen_ok = True
-    except:
-        imagen_ok = False
+    # -------------------------
+    # GRÁFICA CON MATPLOTLIB
+    # -------------------------
+    plt.figure()
+    plt.plot(df_m["Periodo"], df_m["Ventas"], marker='o')
+    plt.xticks(rotation=45)
+    plt.title("Ventas en el tiempo")
+    plt.tight_layout()
+    plt.savefig("grafica.png")
+    plt.close()
 
+    # -------------------------
     # PORTADA
+    # -------------------------
     story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
     story.append(PageBreak())
 
+    # -------------------------
     # RESUMEN
+    # -------------------------
     story.append(Paragraph("Resumen Ejecutivo", styles['Heading1']))
     story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
@@ -44,14 +56,19 @@ def generar_pdf(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ra
     story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
     story.append(Spacer(1, 20))
 
-    if imagen_ok and os.path.exists("grafica.png"):
+    # -------------------------
+    # INSERTAR GRÁFICA
+    # -------------------------
+    if os.path.exists("grafica.png"):
         story.append(Image("grafica.png", width=500, height=300))
     else:
-        story.append(Paragraph("Gráfica no disponible", styles['Normal']))
+        story.append(Paragraph("No se pudo generar la gráfica", styles['Normal']))
 
     story.append(PageBreak())
 
+    # -------------------------
     # VOLATILIDAD
+    # -------------------------
     story.append(Paragraph("Volatilidad", styles['Heading1']))
 
     if ratio > 0.30:
@@ -64,7 +81,9 @@ def generar_pdf(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ra
     story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
     story.append(PageBreak())
 
+    # -------------------------
     # CONCLUSIÓN
+    # -------------------------
     story.append(Paragraph("Conclusión", styles['Heading1']))
     story.append(Paragraph("Enfocar acciones en áreas con mayor variabilidad.", styles['Normal']))
 
@@ -217,8 +236,6 @@ if archivo:
         max_mes = df_m.loc[df_m["Ventas"].idxmax()]
         min_mes = df_m.loc[df_m["Ventas"].idxmin()]
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-
         if st.button("📄 Descargar PDF"):
 
             media = df_m["Ventas"].mean()
@@ -226,7 +243,7 @@ if archivo:
             ratio = vol / media if media != 0 else 0
 
             generar_pdf(
-                fig,
+                df_m,
                 ventas,
                 ganancia,
                 margen,
@@ -237,4 +254,7 @@ if archivo:
             )
 
             with open("reporte.pdf", "rb") as f:
-                st.download_button("Descargar", f, "reporte.pdf")
+                st.download_button("Descargar reporte", f, "reporte.pdf")
+
+else:
+    st.info("Sube archivo Excel")
