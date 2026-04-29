@@ -1,4 +1,4 @@
-# === VERSION FINAL COMPLETA (PDF + PPT + FILTROS + MODULOS) ===
+# === VERSION COMPLETA FINAL (FUNCIONAL + PDF OK + MODULOS) ===
 
 import streamlit as st
 import pandas as pd
@@ -9,9 +9,6 @@ import os
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet
 
-from pptx import Presentation
-from pptx.util import Inches
-
 # -------------------------
 # CONFIG
 # -------------------------
@@ -20,82 +17,85 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-# =========================
-# PDF (ESTABLE)
-# =========================
-def generar_pdf(df_m, ventas, ganancia, margen, ratio):
+# -------------------------
+# FUNCION PDF (ESTABLE)
+# -------------------------
+def generar_pdf(df_m, df, ventas, ganancia, margen, ratio):
 
+    doc = SimpleDocTemplate("reporte_final.pdf")
     styles = getSampleStyleSheet()
-    doc = SimpleDocTemplate("reporte_ok.pdf")
     story = []
 
-    story.append(Paragraph("REPORTE EJECUTIVO", styles['Title']))
-    story.append(Spacer(1, 20))
+    def grafica(nombre, plot_func):
+        plt.figure(figsize=(8,4))
+        plot_func()
+        plt.tight_layout()
+        plt.savefig(nombre)
+        plt.close()
+        return nombre
 
+    # PORTADA
+    story.append(Paragraph("REPORTE EJECUTIVO", styles['Title']))
+    story.append(Spacer(1, 30))
+    story.append(Paragraph("Análisis del negocio", styles['Normal']))
+    story.append(PageBreak())
+
+    # KPIs
+    story.append(Paragraph("KPIs", styles['Heading1']))
     story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Normal']))
     story.append(PageBreak())
 
-    # GRAFICA
-    plt.figure()
-    plt.plot(df_m["Periodo"], df_m["Ventas"], label="Ventas")
-    plt.plot(df_m["Periodo"], df_m["Ganancia"], label="Ganancia")
-    plt.legend()
-    plt.xticks(rotation=45)
+    # TENDENCIA
+    img1 = grafica("tend.png", lambda: (
+        plt.plot(df_m["Periodo"], df_m["Ventas"]),
+        plt.plot(df_m["Periodo"], df_m["Ganancia"])
+    ))
 
-    img = "grafica_pdf.png"
-    plt.savefig(img)
-    plt.close()
+    story.append(Paragraph("Tendencia", styles['Heading1']))
+    story.append(Image(img1, width=450, height=250))
+    story.append(PageBreak())
 
-    story.append(Image(img, width=500, height=300))
+    # RESPONSABLES
+    if "Nombre" in df.columns:
+        df_nom = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False).head(5)
+
+        img2 = grafica("resp.png", lambda: df_nom.plot(kind='bar'))
+
+        story.append(Paragraph("Responsables", styles['Heading1']))
+        story.append(Image(img2, width=450, height=250))
+        story.append(PageBreak())
+
+    # REGIONES
+    if "Region" in df.columns:
+        df_reg = df.groupby("Region")["Ventas"].sum()
+
+        img3 = grafica("reg.png", lambda: df_reg.plot(kind='bar'))
+
+        story.append(Paragraph("Regiones", styles['Heading1']))
+        story.append(Image(img3, width=450, height=250))
+        story.append(PageBreak())
+
+    # VOLATILIDAD
+    estado = "Estable"
+    if ratio > 0.30:
+        estado = "Alta volatilidad"
+    elif ratio > 0.15:
+        estado = "Media volatilidad"
+
+    story.append(Paragraph("Volatilidad", styles['Heading1']))
+    story.append(Paragraph(estado, styles['Normal']))
+
     doc.build(story)
 
-    if os.path.exists(img):
-        os.remove(img)
+    for f in ["tend.png", "resp.png", "reg.png"]:
+        if os.path.exists(f):
+            os.remove(f)
 
-# =========================
-# PPT (ESTABLE)
-# =========================
-def generar_ppt(df_m, ventas, ganancia, margen):
-
-    prs = Presentation()
-
-    # PORTADA
-    slide = prs.slides.add_slide(prs.slide_layouts[0])
-    slide.shapes.title.text = "Reporte Ejecutivo"
-    slide.placeholders[1].text = "Análisis del negocio"
-
-    # KPIs
-    slide = prs.slides.add_slide(prs.slide_layouts[1])
-    slide.shapes.title.text = "KPIs"
-    slide.placeholders[1].text = f"""
-Ventas: ${ventas:,.0f}
-Ganancia: ${ganancia:,.0f}
-Margen: {margen:.1f}%
-"""
-
-    # GRAFICA
-    plt.figure()
-    plt.plot(df_m["Periodo"], df_m["Ventas"])
-    plt.plot(df_m["Periodo"], df_m["Ganancia"])
-
-    img = "grafica_ppt.png"
-    plt.savefig(img)
-    plt.close()
-
-    slide = prs.slides.add_slide(prs.slide_layouts[5])
-    slide.shapes.title.text = "Tendencia"
-    slide.shapes.add_picture(img, Inches(1), Inches(2), width=Inches(8))
-
-    prs.save("reporte_ok.pptx")
-
-    if os.path.exists(img):
-        os.remove(img)
-
-# =========================
+# -------------------------
 # APP
-# =========================
+# -------------------------
 archivo = st.file_uploader("Sube tu Excel", type=["xlsx"])
 
 if archivo:
@@ -115,6 +115,7 @@ if archivo:
     st.sidebar.header("Filtros")
 
     rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
+
     if len(rango) == 2:
         df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
                 (df["Fecha"] <= pd.to_datetime(rango[1]))]
@@ -135,14 +136,21 @@ if archivo:
         st.warning("Sin datos")
         st.stop()
 
+    # -------------------------
+    # CALCULOS
+    # -------------------------
     df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
     ventas = df["Ventas"].sum()
     ganancia = df["Ganancia"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
+    media = df_m["Ventas"].mean()
+    vol = df_m["Ventas"].std()
+    ratio = vol / media if media != 0 else 0
+
     # =========================
-    # VISTAS
+    # PRINCIPAL
     # =========================
     if st.session_state.vista == "principal":
 
@@ -177,10 +185,6 @@ if archivo:
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
-
-        media = df_m["Ventas"].mean()
-        vol = df_m["Ventas"].std()
-        ratio = vol / media if media != 0 else 0
 
         if ratio > 0.30:
             st.error("🔴 Alta volatilidad")
@@ -223,19 +227,11 @@ if archivo:
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
-        media = df_m["Ventas"].mean()
-        vol = df_m["Ventas"].std()
-        ratio = vol / media if media != 0 else 0
-
         if st.button("📄 Generar PDF"):
-            generar_pdf(df_m, ventas, ganancia, margen, ratio)
-            with open("reporte_ok.pdf", "rb") as f:
-                st.download_button("Descargar PDF", f, "reporte_ok.pdf")
+            generar_pdf(df_m, df, ventas, ganancia, margen, ratio)
 
-        if st.button("📊 Generar PPT"):
-            generar_ppt(df_m, ventas, ganancia, margen)
-            with open("reporte_ok.pptx", "rb") as f:
-                st.download_button("Descargar PPT", f, "reporte_ok.pptx")
+            with open("reporte_final.pdf", "rb") as f:
+                st.download_button("Descargar PDF", f, "reporte_final.pdf")
 
 else:
     st.info("📂 Sube un archivo Excel")
