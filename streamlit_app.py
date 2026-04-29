@@ -35,11 +35,19 @@ df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 # -------------------------
 # Elegir columna numérica
 # -------------------------
+# -------------------------
+# Selección de métricas
+# -------------------------
 col_valores = st.sidebar.multiselect(
     "Selecciona métricas",
     ["Ventas", "Costos"],
     default=["Ventas", "Costos"]
+)
 
+# Validar selección
+if len(col_valores) == 0:
+    st.warning("Selecciona al menos una métrica")
+    st.stop()
 # -------------------------
 # Selección tipo fecha
 # -------------------------
