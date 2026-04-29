@@ -24,14 +24,8 @@ def cargar_datos(archivo):
     return df
 
 # -------------------------
-# VALIDACIÓN
+# PREPARAR
 # -------------------------
-def validar(df):
-    for col in ["Fecha", "Ventas", "Costos"]:
-        if col not in df.columns:
-            st.error(f"Falta columna: {col}")
-            st.stop()
-
 def preparar(df):
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
@@ -48,7 +42,6 @@ archivo = st.file_uploader("Sube tu Excel", type=["xlsx"])
 if archivo:
 
     df = cargar_datos(archivo)
-    validar(df)
     df = preparar(df)
 
     # -------------------------
@@ -56,30 +49,21 @@ if archivo:
     # -------------------------
     st.sidebar.header("🔎 Filtros")
 
-    df_filtrado = df.copy()
+    df_f = df.copy()
 
-    # País
     if "Pais" in df.columns:
-        paises = sorted(df["Pais"].dropna().unique())
-        pais_sel = st.sidebar.multiselect("País", paises, default=paises)
-        if pais_sel:
-            df_filtrado = df_filtrado[df_filtrado["Pais"].isin(pais_sel)]
+        pais = st.sidebar.multiselect("País", df["Pais"].unique(), default=df["Pais"].unique())
+        df_f = df_f[df_f["Pais"].isin(pais)]
 
-    # Región dependiente
     if "Region" in df.columns:
-        regiones = sorted(df_filtrado["Region"].dropna().unique())
-        reg_sel = st.sidebar.multiselect("Región", regiones, default=regiones)
-        if reg_sel:
-            df_filtrado = df_filtrado[df_filtrado["Region"].isin(reg_sel)]
+        reg = st.sidebar.multiselect("Región", df_f["Region"].unique(), default=df_f["Region"].unique())
+        df_f = df_f[df_f["Region"].isin(reg)]
 
-    # Nombre dependiente
     if "Nombre" in df.columns:
-        nombres = sorted(df_filtrado["Nombre"].dropna().unique())
-        nom_sel = st.sidebar.multiselect("Nombre", nombres, default=nombres)
-        if nom_sel:
-            df_filtrado = df_filtrado[df_filtrado["Nombre"].isin(nom_sel)]
+        nom = st.sidebar.multiselect("Nombre", df_f["Nombre"].unique(), default=df_f["Nombre"].unique())
+        df_f = df_f[df_f["Nombre"].isin(nom)]
 
-    df = df_filtrado
+    df = df_f
 
     if df.empty:
         st.warning("Sin datos")
@@ -88,52 +72,30 @@ if archivo:
     # -------------------------
     # AGRUPACIÓN
     # -------------------------
-    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index().sort_values("Periodo")
+    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-    # -------------------------
-    # PANTALLA PRINCIPAL
-    # -------------------------
+    # =========================
+    # 🏠 PRINCIPAL
+    # =========================
     if st.session_state.vista == "principal":
 
-        # KPIs
+        st.subheader("Resumen Ejecutivo")
+
         ventas = df["Ventas"].sum()
         ganancia = df["Ganancia"].sum()
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-        if len(df_m) > 1:
-            var = ((df_m.iloc[-1]["Ventas"] - df_m.iloc[-2]["Ventas"]) /
-                   df_m.iloc[-2]["Ventas"]) * 100
-        else:
-            var = 0
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        c1.metric("Ventas", f"${ventas:,.0f}", f"{var:.1f}%")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Ventas", f"${ventas:,.0f}")
         c2.metric("Ganancia", f"${ganancia:,.0f}")
         c3.metric("Margen", f"{margen:.1f}%")
 
-        fig_g = go.Figure(go.Indicator(
-            mode="gauge+number",
-            value=margen,
-            title={'text': "Margen %"},
-            gauge={
-                'axis': {'range': [0, 100]},
-                'steps': [
-                    {'range': [0, 30], 'color': "#e74c3c"},
-                    {'range': [30, 60], 'color': "#f1c40f"},
-                    {'range': [60, 100], 'color': "#2ecc71"}
-                ]
-            }
-        ))
-        c4.plotly_chart(fig_g, use_container_width=True)
-
         # Tendencia
-        st.markdown("### 📈 Tendencia")
-        fig_line = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        st.plotly_chart(fig_line, use_container_width=True)
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        st.plotly_chart(fig, use_container_width=True)
 
         # Navegación
-        st.markdown("## 📊 Análisis Avanzado")
+        st.markdown("## 📊 Análisis")
 
         col1, col2, col3 = st.columns(3)
 
@@ -146,12 +108,12 @@ if archivo:
         if col3.button("🔎 Causas"):
             st.session_state.vista = "causas"
 
-    # -------------------------
-    # PANTALLA VOLATILIDAD
-    # -------------------------
+    # =========================
+    # 🚦 VOLATILIDAD
+    # =========================
     elif st.session_state.vista == "volatilidad":
 
-        st.title("🚦 Volatilidad")
+        st.title("🚦 Volatilidad del Negocio")
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
@@ -160,42 +122,103 @@ if archivo:
         vol = df_m["Ventas"].std()
         ratio = vol / media if media != 0 else 0
 
+        # SEMÁFORO
         if ratio > 0.30:
-            st.error("Alta inestabilidad")
+            st.error(f"🔴 Alta inestabilidad ({ratio:.2f})")
         elif ratio > 0.15:
-            st.warning("Variabilidad moderada")
+            st.warning(f"🟡 Variabilidad moderada ({ratio:.2f})")
         else:
-            st.success("Ventas estables")
+            st.success(f"🟢 Estable ({ratio:.2f})")
 
-        st.line_chart(df_m.set_index("Periodo")["Ventas"])
+        # GRÁFICA
+        fig = px.line(df_m, x="Periodo", y="Ventas", markers=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-    # -------------------------
-    # PANTALLA RESPONSABLES
-    # -------------------------
+    # =========================
+    # 👤 RESPONSABLES
+    # =========================
     elif st.session_state.vista == "responsables":
 
-        st.title("👤 Responsables")
+        st.title("👤 Responsables de la Variabilidad")
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         if "Nombre" in df.columns:
-            df_nom = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False).head(10)
-            st.dataframe(df_nom)
 
-    # -------------------------
-    # PANTALLA CAUSAS
-    # -------------------------
+            df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
+
+            impacto = []
+
+            for n in df_nom["Nombre"].unique():
+                df_n = df_nom[df_nom["Nombre"] == n]
+
+                if len(df_n) > 1:
+                    vol = df_n["Ventas"].std()
+                    impacto.append((n, vol))
+
+            df_imp = pd.DataFrame(impacto, columns=["Nombre", "Volatilidad"])
+
+            total = df_imp["Volatilidad"].sum()
+            df_imp["Impacto %"] = (df_imp["Volatilidad"] / total) * 100
+            df_imp = df_imp.sort_values("Impacto %", ascending=False).head(10)
+
+            # SEMÁFORO + TEXTO
+            for _, row in df_imp.iterrows():
+
+                if row["Impacto %"] > 30:
+                    st.error(f"{row['Nombre']} → {row['Impacto %']:.1f}%")
+                elif row["Impacto %"] > 15:
+                    st.warning(f"{row['Nombre']} → {row['Impacto %']:.1f}%")
+                else:
+                    st.success(f"{row['Nombre']} → {row['Impacto %']:.1f}%")
+
+            # GRÁFICA
+            fig = px.line(df_nom, x="Periodo", y="Ventas", color="Nombre")
+            st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # 🔎 CAUSAS
+    # =========================
     elif st.session_state.vista == "causas":
 
-        st.title("🔎 Causas")
+        st.title("🔎 Causas de la Volatilidad")
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         if "Region" in df.columns:
-            df_reg = df.groupby("Region")["Ventas"].sum().sort_values(ascending=False)
-            st.dataframe(df_reg)
+
+            df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
+
+            impacto = []
+
+            for r in df_reg["Region"].unique():
+                df_r = df_reg[df_reg["Region"] == r]
+
+                if len(df_r) > 1:
+                    vol = df_r["Ventas"].std()
+                    impacto.append((r, vol))
+
+            df_imp = pd.DataFrame(impacto, columns=["Region", "Volatilidad"])
+
+            total = df_imp["Volatilidad"].sum()
+            df_imp["Impacto %"] = (df_imp["Volatilidad"] / total) * 100
+            df_imp = df_imp.sort_values("Impacto %", ascending=False)
+
+            # SEMÁFORO
+            for _, row in df_imp.iterrows():
+
+                if row["Impacto %"] > 40:
+                    st.error(f"{row['Region']} → {row['Impacto %']:.1f}%")
+                elif row["Impacto %"] > 20:
+                    st.warning(f"{row['Region']} → {row['Impacto %']:.1f}%")
+                else:
+                    st.success(f"{row['Region']} → {row['Impacto %']:.1f}%")
+
+            # GRÁFICA
+            fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
+            st.plotly_chart(fig, use_container_width=True)
 
 else:
-    st.info("Sube archivo Excel")
+    st.info("Sube archivo Excel
