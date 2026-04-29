@@ -1,14 +1,14 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Dashboard con Agrupaciones", layout="wide")
+st.set_page_config(page_title="Dashboard con Fechas", layout="wide")
 
-st.title("📊 Dashboard con Agrupaciones")
+st.title("📊 Dashboard con Análisis por Fecha")
 
 # -------------------------
 # Cargar archivo
 # -------------------------
-archivo = st.file_uploader("📁 Sube tu archivo Excel", type=["xlsx", "csv"])
+archivo = st.file_uploader("📁 Sube tu Excel", type=["xlsx", "csv"])
 
 if archivo is not None:
     if archivo.name.endswith(".csv"):
@@ -16,87 +16,66 @@ if archivo is not None:
     else:
         df = pd.read_excel(archivo)
 else:
-    st.warning("⚠️ Sube un archivo para continuar")
+    st.warning("⚠️ Sube un archivo")
     st.stop()
 
+# -------------------------
+# Validar columna Fecha
+# -------------------------
+if "Fecha" not in df.columns:
+    st.error("❌ El archivo debe tener una columna llamada 'Fecha'")
+    st.stop()
 
 # -------------------------
-# PROCESAR FECHA 👇
+# Convertir a fecha
 # -------------------------
-if "Fecha" in df.columns:
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-
-    tipo_fecha = st.sidebar.selectbox(
-        "Agrupar por fecha",
-        ["Día", "Mes", "Año"]
-    )
-
-    if tipo_fecha == "Día":
-        df["Periodo"] = df["Fecha"].dt.date
-    elif tipo_fecha == "Mes":
-        df["Periodo"] = df["Fecha"].dt.strftime("%Y-%m")
-    else:
-        df["Periodo"] = df["Fecha"].dt.year
-# -------------------------
-# Mostrar datos
-# -------------------------
-st.subheader("📋 Datos originales")
-st.dataframe(df)
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
 # -------------------------
-# Sidebar configuración
+# Selección de columna numérica
 # -------------------------
-st.sidebar.header("⚙️ Configuración")
+col_valor = st.selectbox("Selecciona columna numérica", df.columns)
 
-columna_grupo = st.sidebar.selectbox("Agrupar por", df.columns)
-columna_valor = st.sidebar.selectbox("Valor a analizar", df.columns)
+# Asegurar que sea numérica
+df[col_valor] = pd.to_numeric(df[col_valor], errors="coerce")
 
-tipo_agrupacion = st.sidebar.selectbox(
-    "Tipo de agrupación",
-    ["Suma", "Promedio", "Conteo"]
+# -------------------------
+# Tipo de agrupación por fecha
+# -------------------------
+tipo_fecha = st.sidebar.selectbox(
+    "Agrupar por",
+    ["Día", "Mes", "Año"]
 )
+
+# -------------------------
+# Crear Periodo
+# -------------------------
+if tipo_fecha == "Día":
+    df["Periodo"] = df["Fecha"].dt.date
+elif tipo_fecha == "Mes":
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+else:
+    df["Periodo"] = df["Fecha"].dt.year
 
 # -------------------------
 # Agrupación
 # -------------------------
-if tipo_agrupacion == "Suma":
-    df_group = df.groupby(columna_grupo)[columna_valor].sum()
-elif tipo_agrupacion == "Promedio":
-    df_group = df.groupby(columna_grupo)[columna_valor].mean()
-else:
-    df_group = df.groupby(columna_grupo)[columna_valor].count()
-
-df_group = df_group.reset_index()
+df_group = df.groupby("Periodo")[col_valor].sum().reset_index()
 
 # -------------------------
-# Mostrar resultado
+# ORDENAR (CLAVE 🔥)
+# -------------------------
+df_group = df_group.sort_values("Periodo")
+
+# -------------------------
+# Mostrar datos
 # -------------------------
 st.subheader("📊 Datos agrupados")
 st.dataframe(df_group)
-
-# -------------------------
-# Métrica principal
-# -------------------------
-if pd.api.types.is_numeric_dtype(df_group[columna_valor]):
-    st.metric("Valor total", round(df_group[columna_valor].sum(), 2))
 
 # -------------------------
 # Gráfica
 # -------------------------
 st.subheader("📈 Gráfica")
 
-try:
-    df_plot = df_group.set_index(columna_grupo)
-    st.bar_chart(df_plot)
-except:
-    st.error("No se pudo generar la gráfica")
-
-# -------------------------
-# Descargar
-# -------------------------
-st.download_button(
-    "📥 Descargar datos agrupados",
-    df_group.to_csv(index=False),
-    "datos_agrupados.csv",
-    "text/csv"
-)
+st.line_chart(df_group.set_index("Periodo"))
