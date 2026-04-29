@@ -171,9 +171,9 @@ col1, col2, col3, col4 = st.columns(4)
 col1.markdown(f"""
 <div class="kpi-card">
 <div class="kpi-title">Ventas</div>
-<div class="kpi-value">{round(ventas_total,2)}</div>
-</div>
-""", unsafe_allow_html=True)
+#<div class="kpi-value">{round(ventas_total,2)}</div>
+#</div>
+#""", unsafe_allow_html=True)
 
 col2.markdown(f"""
 <div class="kpi-card">
