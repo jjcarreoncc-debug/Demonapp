@@ -160,7 +160,7 @@ if "Producto" in df.columns:
 # -------------------------
 
 
-f "Producto" in df.columns:
+if "Producto" in df.columns:
     st.subheader("📦 Ventas por Producto")
 
     ventas_prod = (
