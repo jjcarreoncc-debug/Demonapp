@@ -1,13 +1,11 @@
-import streamlit as st
 import pandas as pd
 
-# Configuración
-st.set_page_config(page_title="Dashboard Excel", layout="wide")
+st.set_page_config(page_title="Dashboard con Agrupaciones", layout="wide")
 
-st.title("📊 Dashboard desde Excel")
+st.title("📊 Dashboard con Agrupaciones")
 
 # -------------------------
-# Subir archivo
+# Cargar archivo
 # -------------------------
 archivo = st.file_uploader("📁 Sube tu archivo Excel", type=["xlsx", "csv"])
 
@@ -23,22 +21,45 @@ else:
 # -------------------------
 # Mostrar datos
 # -------------------------
-st.subheader("📋 Datos")
+st.subheader("📋 Datos originales")
 st.dataframe(df)
 
 # -------------------------
-# Selección de columnas
+# Sidebar configuración
 # -------------------------
 st.sidebar.header("⚙️ Configuración")
 
-columna_x = st.sidebar.selectbox("Selecciona eje X", df.columns)
-columna_y = st.sidebar.selectbox("Selecciona eje Y", df.columns)
+columna_grupo = st.sidebar.selectbox("Agrupar por", df.columns)
+columna_valor = st.sidebar.selectbox("Valor a analizar", df.columns)
+
+tipo_agrupacion = st.sidebar.selectbox(
+    "Tipo de agrupación",
+    ["Suma", "Promedio", "Conteo"]
+)
 
 # -------------------------
-# Métricas
+# Agrupación
 # -------------------------
-if pd.api.types.is_numeric_dtype(df[columna_y]):
-    st.metric("Promedio", round(df[columna_y].mean(), 2))
+if tipo_agrupacion == "Suma":
+    df_group = df.groupby(columna_grupo)[columna_valor].sum()
+elif tipo_agrupacion == "Promedio":
+    df_group = df.groupby(columna_grupo)[columna_valor].mean()
+else:
+    df_group = df.groupby(columna_grupo)[columna_valor].count()
+
+df_group = df_group.reset_index()
+
+# -------------------------
+# Mostrar resultado
+# -------------------------
+st.subheader("📊 Datos agrupados")
+st.dataframe(df_group)
+
+# -------------------------
+# Métrica principal
+# -------------------------
+if pd.api.types.is_numeric_dtype(df_group[columna_valor]):
+    st.metric("Valor total", round(df_group[columna_valor].sum(), 2))
 
 # -------------------------
 # Gráfica
@@ -46,20 +67,17 @@ if pd.api.types.is_numeric_dtype(df[columna_y]):
 st.subheader("📈 Gráfica")
 
 try:
-    df_plot = df[[columna_x, columna_y]].dropna()
-    df_plot = df_plot.set_index(columna_x)
-    st.line_chart(df_plot)
+    df_plot = df_group.set_index(columna_grupo)
+    st.bar_chart(df_plot)
 except:
     st.error("No se pudo generar la gráfica")
+
 # -------------------------
-# Filtro opcional
+# Descargar
 # -------------------------
-st.subheader("🔎 Filtro")
-
-if pd.api.types.is_numeric_dtype(df[columna_y]):
-    min_val = float(df[columna_y].min())
-    max_val = float(df[columna_y].max())
-
-    rango = st.slider("Filtrar valores", min_val, max_val, (min_val, max_val))
-
-    df
+st.download_button(
+    "📥 Descargar datos agrupados",
+    df_group.to_csv(index=False),
+    "datos_agrupados.csv",
+    "text/csv"
+)
