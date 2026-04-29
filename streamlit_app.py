@@ -46,6 +46,16 @@ if "Región" in df.columns:
     )
     if regiones:
         df = df[df["Región"].isin(regiones)]
+# -------------------------
+# Filtros POR NOMBRE 
+# -------------------------
+
+if "Nombre" in df.columns:
+    nombres = st.sidebar.multiselect(
+        "Cliente", df["Nombre"].dropna().unique()
+    )
+    if nombres:
+        df = df[df["Nombre"].isin(nombres)]
 
 # -------------------------
 # Procesamiento
