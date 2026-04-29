@@ -35,9 +35,10 @@ df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 # -------------------------
 # Elegir columna numérica
 # -------------------------
-col_valor = st.selectbox("Columna a analizar", df.columns)
-
-df[col_valor] = pd.to_numeric(df[col_valor], errors="coerce")
+col_valores = st.sidebar.multiselect(
+    "Selecciona métricas",
+    ["Ventas", "Costos"],
+    default=["Ventas", "Costos"]
 
 # -------------------------
 # Selección tipo fecha
@@ -54,10 +55,16 @@ elif tipo == "Mes":
 else:
     df["Periodo"] = df["Fecha"].dt.to_period("Y").dt.to_timestamp()
 
+
+
+df["Ventas"] = pd.to_numeric(df["Ventas"], errors="coerce")
+df["Costos"] = pd.to_numeric(df["Costos"], errors="coerce")
+
 # -------------------------
 # Agrupar
 # -------------------------
-df_group = df.groupby("Periodo")[col_valor].sum().reset_index()
+df_group = df.groupby("Periodo")[col_valores].sum().reset_index()
+df_group = df_group.sort_values("Periodo")
 
 # -------------------------
 # Ordenar correctamente
