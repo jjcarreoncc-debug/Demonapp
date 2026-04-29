@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Dashboard", layout="wide")
+st.set_page_config(page_title="Dashboard PRO", layout="wide")
 
-st.title("📊 Dashboard rápido")
+st.title("📊 Dashboard de Ventas PRO")
 
 # -------------------------
 # Cargar archivo
@@ -14,17 +14,15 @@ if archivo is None:
     st.stop()
 
 # -------------------------
-# Leer datos (optimizado)
+# Leer datos
 # -------------------------
 if archivo.name.endswith(".csv"):
     df = pd.read_csv(archivo)
 else:
     df = pd.read_excel(archivo)
 
-# 🔥 limitar datos (clave)
+# 🔥 optimización
 df = df.head(500)
-
-# 🔥 reducir columnas
 df = df[["Fecha", "Ventas", "Costos"]]
 
 # -------------------------
@@ -32,7 +30,7 @@ df = df[["Fecha", "Ventas", "Costos"]]
 # -------------------------
 df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
-tipo = st.sidebar.selectbox("Agrupar por", ["Día", "Mes", "Año"])
+tipo = st.sidebar.selectbox("📅 Agrupar por", ["Día", "Mes", "Año"])
 
 if tipo == "Día":
     df["Periodo"] = df["Fecha"]
@@ -45,24 +43,44 @@ df_group = df.groupby("Periodo")[["Ventas", "Costos"]].sum().reset_index()
 df_group = df_group.sort_values("Periodo")
 
 # -------------------------
-# KPIs
+# Cálculos
 # -------------------------
 df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
+df_group["Margen %"] = (df_group["Ganancia"] / df_group["Ventas"]) * 100
 
-col1, col2, col3 = st.columns(3)
+# -------------------------
+# KPIs
+# -------------------------
+col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Ventas", round(df_group["Ventas"].sum(), 2))
-col2.metric("Costos", round(df_group["Costos"].sum(), 2))
-col3.metric("Ganancia", round(df_group["Ganancia"].sum(), 2))
+col1.metric("💰 Ventas", round(df_group["Ventas"].sum(), 2))
+col2.metric("💸 Costos", round(df_group["Costos"].sum(), 2))
+col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
+col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
 
 # -------------------------
 # Gráfica
 # -------------------------
 st.subheader("📈 Tendencia")
-st.line_chart(df_group.set_index("Periodo")[["Ventas", "Costos"]])
+
+st.line_chart(
+    df_group.set_index("Periodo")[["Ventas", "Costos", "Ganancia"]]
+)
 
 # -------------------------
-# Datos
+# Tabla
 # -------------------------
 st.subheader("📊 Datos")
 st.dataframe(df_group)
+
+# -------------------------
+# DESCARGA 🔥
+# -------------------------
+csv = df_group.to_csv(index=False).encode("utf-8")
+
+st.download_button(
+    label="📥 Descargar resultados",
+    data=csv,
+    file_name="dashboard_resultados.csv",
+    mime="text/csv"
+)
