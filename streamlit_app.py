@@ -144,6 +144,20 @@ if "Producto" in df.columns:
     part_pct = (part / part.sum()) * 100
 
     st.dataframe(part_pct.round(2))
+
+# -------------------------
+# adiccion 2
+# -------------------------
+
+pivot = df.pivot_table(
+    values="Ventas",
+    index=df["Fecha"].dt.month,
+    aggfunc="sum"
+)
+
+st.subheader("🔥 Ventas por Mes")
+st.dataframe(pivot)
+
 # -------------------------
 # TOP PRODUCTOS
 # -------------------------
