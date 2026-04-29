@@ -113,7 +113,24 @@ if len(df_group) > 1:
         round(df_group["Ventas"].iloc[-1], 2),
         delta=round(delta, 2)
     )
+# -------------------------
+# nuevos cambios INSIGHT
+# -------------------------
+st.markdown("---")
+st.subheader("🧠 Insights automáticos")
 
+st.markdown("---")
+st.subheader("📈 Análisis Visual")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.write("Tendencia")
+    st.line_chart(df_group.set_index("Periodo")[["Ventas", "Ganancia"]])
+
+with col2:
+    st.write("Ventas")
+    st.bar_chart(df_group.set_index("Periodo")["Ventas"])
 # -------------------------
 # ALERTA
 # -------------------------
