@@ -1,4 +1,4 @@
-# === DASHBOARD PRO + PDF CON GRÁFICAS ===
+# === DASHBOARD PRO FINAL FUNCIONAL ===
 
 import streamlit as st
 import pandas as pd
@@ -13,45 +13,26 @@ from reportlab.lib.styles import getSampleStyleSheet
 st.set_page_config(page_title="Dashboard Ejecutivo PRO", layout="wide")
 
 # -------------------------
-# ESTILO
-# -------------------------
-st.markdown("""
-<style>
-body {background-color: #f7f9fb;}
-.block-container {padding-top: 1.5rem;}
-div[data-testid="stMetric"] {
-    background-color: white;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
-}
-</style>
-""", unsafe_allow_html=True)
-
-# -------------------------
 # NAV
 # -------------------------
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF CON GRÁFICAS
+# PDF CON GRÁFICA
 # -------------------------
 def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
 
-    # Guardar gráfica
     fig.write_image("grafica.png")
 
     doc = SimpleDocTemplate("reporte_presentacion.pdf")
     styles = getSampleStyleSheet()
     story = []
 
-    # PORTADA
     story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
     story.append(Spacer(1, 20))
     story.append(PageBreak())
 
-    # RESUMEN
     story.append(Paragraph("Resumen Ejecutivo", styles['Heading1']))
     story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
@@ -59,11 +40,9 @@ def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes
     story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
     story.append(Spacer(1, 20))
 
-    # GRÁFICA
     story.append(Image("grafica.png", width=500, height=300))
     story.append(PageBreak())
 
-    # VOLATILIDAD
     story.append(Paragraph("Volatilidad", styles['Heading1']))
 
     if ratio > 0.30:
@@ -76,9 +55,8 @@ def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes
     story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
     story.append(PageBreak())
 
-    # CONCLUSIÓN
     story.append(Paragraph("Conclusión", styles['Heading1']))
-    story.append(Paragraph("Se recomienda estabilizar las áreas críticas.", styles['Normal']))
+    story.append(Paragraph("Se recomienda estabilizar áreas críticas.", styles['Normal']))
 
     doc.build(story)
 
@@ -97,7 +75,9 @@ if archivo:
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
+    # -------------------------
     # FILTROS
+    # -------------------------
     st.sidebar.header("🔎 Filtros")
 
     df_f = df.copy()
@@ -133,7 +113,6 @@ if archivo:
         ganancia = df["Ganancia"].sum()
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-        st.markdown("### 📌 Indicadores")
         c1, c2, c3 = st.columns(3)
         c1.metric("Ventas", f"${ventas:,.0f}")
         c2.metric("Ganancia", f"${ganancia:,.0f}")
@@ -141,6 +120,7 @@ if archivo:
 
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         fig.update_layout(plot_bgcolor="white", paper_bgcolor="white")
+
         st.plotly_chart(fig, use_container_width=True)
 
         col1, col2, col3, col4 = st.columns(4)
@@ -148,13 +128,7 @@ if archivo:
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
 
-        if col2.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-
-        if col3.button("🔎 Causas"):
-            st.session_state.vista = "causas"
-
-        if col4.button("📄 Reporte"):
+        if col2.button("📄 Reporte"):
             st.session_state.vista = "reporte"
 
     # =========================
@@ -197,6 +171,10 @@ if archivo:
 
         max_mes = df_m.loc[df_m["Ventas"].idxmax()]
         min_mes = df_m.loc[df_m["Ventas"].idxmin()]
+
+        # 🔥 AQUÍ SE CORRIGE EL ERROR
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        fig.update_layout(plot_bgcolor="white", paper_bgcolor="white")
 
         st.write("Reporte listo para exportar")
 
