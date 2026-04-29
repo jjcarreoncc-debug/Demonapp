@@ -116,6 +116,19 @@ st.line_chart(
 st.subheader("📊 Ventas por periodo")
 
 st.bar_chart(df_group.set_index("Periodo")["Ventas"])
+# -------------------------
+# adiccion 1
+# -------------------------
+
+
+st.subheader("📊 Comparación Mes a Mes")
+
+df_group["Mes"] = df_group["Periodo"].dt.month
+
+comparacion = df_group.groupby("Mes")["Ventas"].sum()
+
+st.bar_chart(comparacion)
+
 
 # -------------------------
 # TOP PRODUCTOS
