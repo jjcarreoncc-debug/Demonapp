@@ -30,9 +30,9 @@ if archivo is not None:
     # -------------------------
     # FILTROS
     # -------------------------
-	st.sidebar.header("🔎 Filtros")
-	st.sidebar.markdown("---")
-	st.sidebar.subheader("🎛️ Visualización")
+st.sidebar.header("🔎 Filtros")
+st.sidebar.markdown("---")
+st.sidebar.subheader("🎛️ Visualización")
 	
 	vista = st.sidebar.radio(
 	"Métrica",
