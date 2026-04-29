@@ -124,7 +124,7 @@ fig = px.line(
     markers=True,
     color_discrete_sequence=["#60A5FA", "#34D399"]
 )
-# -------------------------
+    # -------------------------
     # RENTABILIDAD
     # -------------------------
     st.markdown("---")
