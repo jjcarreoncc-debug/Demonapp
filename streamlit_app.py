@@ -145,7 +145,7 @@ if archivo is not None:
     # -------------------------
     # GRAFICAS
     # -------------------------
- vista = st.selectbox(
+vista = st.selectbox(
     "📊 Selecciona vista",
     ["Ventas", "Ganancia", "Ambos"]
 )
@@ -157,7 +157,6 @@ elif vista == "Ganancia":
 else:
     y_data = ["Ventas", "Ganancia"]
 
-
 fig = px.line(
     df_group,
     x="Periodo",
@@ -165,7 +164,10 @@ fig = px.line(
     markers=True,
     title="Tendencia dinámica"
 )
+
 st.plotly_chart(fig, use_container_width=True)
+
+
 
 st.markdown("---")
 st.subheader("📈 Análisis Visual")
