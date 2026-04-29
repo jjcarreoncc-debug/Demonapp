@@ -1,4 +1,4 @@
-# === DASHBOARD PRO FINAL (PDF SEGURO CON GRÁFICAS) ===
+# === DASHBOARD PRO FULL FINAL + PDF PRO ===
 
 import streamlit as st
 import pandas as pd
@@ -21,54 +21,86 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF (SIN KALEIDO - SEGURO)
+# PDF FULL PRO
 # -------------------------
-def generar_pdf(df_m, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
+def generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio):
 
     styles = getSampleStyleSheet()
-    doc = SimpleDocTemplate("reporte.pdf")
+    doc = SimpleDocTemplate("reporte_full.pdf")
     story = []
 
-    # -------------------------
-    # GRÁFICA CON MATPLOTLIB
-    # -------------------------
-    plt.figure()
-    plt.plot(df_m["Periodo"], df_m["Ventas"], marker='o')
-    plt.xticks(rotation=45)
-    plt.title("Ventas en el tiempo")
-    plt.tight_layout()
-    plt.savefig("grafica.png")
-    plt.close()
-
-    # -------------------------
+    # =========================
     # PORTADA
-    # -------------------------
-    story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
+    # =========================
+    story.append(Paragraph("Reporte Ejecutivo PRO", styles['Title']))
+    story.append(Spacer(1, 20))
+    story.append(Paragraph("Análisis de desempeño", styles['Normal']))
     story.append(PageBreak())
 
-    # -------------------------
-    # RESUMEN
-    # -------------------------
+    # =========================
+    # KPIs
+    # =========================
     story.append(Paragraph("Resumen Ejecutivo", styles['Heading1']))
     story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Normal']))
     story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
-    story.append(Spacer(1, 20))
-
-    # -------------------------
-    # INSERTAR GRÁFICA
-    # -------------------------
-    if os.path.exists("grafica.png"):
-        story.append(Image("grafica.png", width=500, height=300))
-    else:
-        story.append(Paragraph("No se pudo generar la gráfica", styles['Normal']))
-
     story.append(PageBreak())
 
-    # -------------------------
+    # =========================
+    # VENTAS
+    # =========================
+    plt.figure()
+    plt.plot(df_m["Periodo"], df_m["Ventas"], marker='o')
+    plt.xticks(rotation=45)
+    plt.title("Ventas en el tiempo")
+    plt.tight_layout()
+    plt.savefig("ventas.png")
+    plt.close()
+
+    story.append(Paragraph("Tendencia de Ventas", styles['Heading1']))
+    story.append(Image("ventas.png", width=500, height=300))
+    story.append(PageBreak())
+
+    # =========================
+    # RESPONSABLES
+    # =========================
+    if "Nombre" in df.columns:
+        df_nom = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False)
+
+        plt.figure()
+        df_nom.head(5).plot(kind='bar')
+        plt.xticks(rotation=45)
+        plt.title("Top Responsables")
+        plt.tight_layout()
+        plt.savefig("responsables.png")
+        plt.close()
+
+        story.append(Paragraph("Responsables", styles['Heading1']))
+        story.append(Image("responsables.png", width=500, height=300))
+        story.append(PageBreak())
+
+    # =========================
+    # REGIONES
+    # =========================
+    if "Region" in df.columns:
+        df_reg = df.groupby("Region")["Ventas"].sum().sort_values(ascending=False)
+
+        plt.figure()
+        df_reg.plot(kind='bar')
+        plt.xticks(rotation=45)
+        plt.title("Ventas por Región")
+        plt.tight_layout()
+        plt.savefig("regiones.png")
+        plt.close()
+
+        story.append(Paragraph("Causas (Regiones)", styles['Heading1']))
+        story.append(Image("regiones.png", width=500, height=300))
+        story.append(PageBreak())
+
+    # =========================
     # VOLATILIDAD
-    # -------------------------
+    # =========================
     story.append(Paragraph("Volatilidad", styles['Heading1']))
 
     if ratio > 0.30:
@@ -81,11 +113,19 @@ def generar_pdf(df_m, ventas, ganancia, margen, crecimiento, max_mes, min_mes, r
     story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
     story.append(PageBreak())
 
-    # -------------------------
+    # =========================
     # CONCLUSIÓN
-    # -------------------------
+    # =========================
     story.append(Paragraph("Conclusión", styles['Heading1']))
-    story.append(Paragraph("Enfocar acciones en áreas con mayor variabilidad.", styles['Normal']))
+
+    if ratio > 0.30:
+        conclusion = "Alta volatilidad. Se requiere intervención."
+    elif margen < 30:
+        conclusion = "Margen bajo. Revisar costos."
+    else:
+        conclusion = "Desempeño estable con oportunidad de mejora."
+
+    story.append(Paragraph(conclusion, styles['Normal']))
 
     doc.build(story)
 
@@ -233,10 +273,7 @@ if archivo:
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
         crecimiento = df_m["Ventas"].pct_change().mean() * 100
 
-        max_mes = df_m.loc[df_m["Ventas"].idxmax()]
-        min_mes = df_m.loc[df_m["Ventas"].idxmin()]
-
-        if st.button("📄 Descargar PDF"):
+        if st.button("📄 Descargar PDF PRO"):
 
             media = df_m["Ventas"].mean()
             vol = df_m["Ventas"].std()
@@ -244,17 +281,16 @@ if archivo:
 
             generar_pdf(
                 df_m,
+                df,
                 ventas,
                 ganancia,
                 margen,
                 crecimiento,
-                max_mes,
-                min_mes,
                 ratio
             )
 
-            with open("reporte.pdf", "rb") as f:
-                st.download_button("Descargar reporte", f, "reporte.pdf")
+            with open("reporte_full.pdf", "rb") as f:
+                st.download_button("Descargar reporte", f, "reporte_full.pdf")
 
 else:
     st.info("Sube archivo Excel")
