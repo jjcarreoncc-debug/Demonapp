@@ -119,3 +119,4 @@ st.download_button(
     df_group.to_csv(index=False),
     "resultado.csv",
     "text/csv"
+)
