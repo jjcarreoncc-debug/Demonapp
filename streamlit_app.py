@@ -19,6 +19,24 @@ else:
     st.warning("⚠️ Sube un archivo para continuar")
     st.stop()
 
+
+# -------------------------
+# PROCESAR FECHA 👇
+# -------------------------
+if "Fecha" in df.columns:
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+
+    tipo_fecha = st.sidebar.selectbox(
+        "Agrupar por fecha",
+        ["Día", "Mes", "Año"]
+    )
+
+    if tipo_fecha == "Día":
+        df["Periodo"] = df["Fecha"].dt.date
+    elif tipo_fecha == "Mes":
+        df["Periodo"] = df["Fecha"].dt.strftime("%Y-%m")
+    else:
+        df["Periodo"] = df["Fecha"].dt.year
 # -------------------------
 # Mostrar datos
 # -------------------------
