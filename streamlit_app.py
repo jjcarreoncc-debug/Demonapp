@@ -33,15 +33,16 @@ if archivo is not None:
 st.sidebar.header("🔎 Filtros")
 st.sidebar.markdown("---")
 st.sidebar.subheader("🎛️ Visualización")
-	
-	vista = st.sidebar.radio(
-	"Métrica",
-	["Ventas", "Ganancia", "Ambos"]
-	)
-   tipo = st.sidebar.radio(
+vista = st.sidebar.radio(
+    "Métrica",
+    ["Ventas", "Ganancia", "Ambos"]
+)
+
+tipo = st.sidebar.radio(
     "Tipo de gráfica",
     ["Línea", "Área"]
-)
+)	
+
 	fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
