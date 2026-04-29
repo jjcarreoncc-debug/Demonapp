@@ -183,92 +183,92 @@ fig = px.line(
     # -------------------------
     # BARRAS
     # -------------------------
-    fig_bar = px.bar(
-        df_group,
-        x="Periodo",
-        y="Ventas",
-        title="Ventas por Periodo",
-        text_auto=True
-    )
+fig_bar = px.bar(
+	df_group,
+	x="Periodo",
+	y="Ventas",
+	title="Ventas por Periodo",
+	text_auto=True
+)
 
-    st.plotly_chart(fig_bar, use_container_width=True)
+st.plotly_chart(fig_bar, use_container_width=True)
 
-    # -------------------------
-    # RENTABILIDAD
-    # -------------------------
-    st.markdown("---")
-    st.subheader("💰 Rentabilidad")
-
-    df_group["Margen %"] = df_group.apply(
-        lambda x: (x["Ganancia"] / x["Ventas"] * 100) if x["Ventas"] != 0 else 0,
-        axis=1
-    )
-
-    fig_margen = px.line(
-        df_group,
-        x="Periodo",
-        y="Margen %",
-        markers=True,
-        title="Margen (%)"
-    )
-
-    st.plotly_chart(fig_margen, use_container_width=True)
-
-    # -------------------------
-    # PRODUCTO
-    # -------------------------
-    if "Producto" in df.columns:
-        st.markdown("---")
-        st.subheader("📦 Ventas por Producto")
-
-        ventas_prod = (
-            df.groupby("Producto")["Ventas"]
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
-
-        fig_prod = px.bar(
-            ventas_prod,
-            x="Producto",
-            y="Ventas",
-            color="Ventas"
-        )
-
-        st.plotly_chart(fig_prod, use_container_width=True)
-
-    # -------------------------
-    # CLIENTES
-    # -------------------------
-    if "Nombre" in df.columns:
-        st.markdown("---")
-        st.subheader("👤 Ventas por Cliente")
-
-        ventas_cliente = (
-            df.groupby("Nombre")["Ventas"]
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
-
-        fig_cli = px.bar(
-            ventas_cliente,
-            x="Nombre",
-            y="Ventas",
-            color="Ventas"
-        )
-
-        st.plotly_chart(fig_cli, use_container_width=True)
-
-        st.subheader("🏆 Top Clientes")
-        st.dataframe(ventas_cliente.head(5))
-
-    # -------------------------
-    # DATOS
-    # -------------------------
-    st.markdown("---")
-    with st.expander("📂 Ver datos"):
-        st.dataframe(df)
-
-else:
-    st.info("📂 Sube un archivo Excel para comenzar")
+	# -------------------------
+	# RENTABILIDAD
+	# -------------------------
+	st.markdown("---")
+	st.subheader("💰 Rentabilidad")
+	
+	df_group["Margen %"] = df_group.apply(
+	lambda x: (x["Ganancia"] / x["Ventas"] * 100) if x["Ventas"] != 0 else 0,
+	axis=1
+	)
+	
+	fig_margen = px.line(
+	df_group,
+	x="Periodo",
+	y="Margen %",
+	markers=True,
+	title="Margen (%)"
+	)
+	
+	st.plotly_chart(fig_margen, use_container_width=True)
+	
+	# -------------------------
+	# PRODUCTO
+	# -------------------------
+	if "Producto" in df.columns:
+	st.markdown("---")
+	st.subheader("📦 Ventas por Producto")
+	
+	ventas_prod = (
+	df.groupby("Producto")["Ventas"]
+	.sum()
+	.sort_values(ascending=False)
+	.reset_index()
+	)
+	
+	fig_prod = px.bar(
+	ventas_prod,
+	x="Producto",
+	y="Ventas",
+	color="Ventas"
+	)
+	
+	st.plotly_chart(fig_prod, use_container_width=True)
+	
+	# -------------------------
+	# CLIENTES
+	# -------------------------
+	if "Nombre" in df.columns:
+	st.markdown("---")
+	st.subheader("👤 Ventas por Cliente")
+	
+	ventas_cliente = (
+	df.groupby("Nombre")["Ventas"]
+	.sum()
+	.sort_values(ascending=False)
+	.reset_index()
+	)
+	
+	fig_cli = px.bar(
+	ventas_cliente,
+	x="Nombre",
+	y="Ventas",
+	color="Ventas"
+	)
+	
+	st.plotly_chart(fig_cli, use_container_width=True)
+	
+	st.subheader("🏆 Top Cliente 1s")
+	st.dataframe(ventas_cliente.head(5))
+	
+	# -------------------------
+	# DATOS
+	# -------------------------
+	st.markdown("---")
+	with st.expander("📂 Ver datos"):
+	st.dataframe(df)
+	
+	else:
+	st.info("📂 Sube un archivo Excel para comenzar")
