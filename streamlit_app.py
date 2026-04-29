@@ -212,25 +212,22 @@ st.plotly_chart(fig_margen, use_container_width=True)
     # PRODUCTO
     # -------------------------
  if "Producto" in df.columns:
-        st.markdown("---")
-        st.subheader("📦 Ventas por Producto")
+    st.markdown("---")
+    st.subheader("📦 Ventas por Producto")
 
-        ventas_prod = (
-            df.groupby("Producto")["Ventas"]
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
+    ventas_prod = (
+        df.groupby("Producto")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
 
-        fig_prod = px.bar(
-            ventas_prod,
-            x="Producto",
-            y="Ventas",
-            color="Ventas"
-        )
-
-        st.plotly_chart(fig_prod, use_container_width=True)
-
+    fig_prod = px.bar(
+        ventas_prod,
+        x="Producto",
+        y="Ventas",
+        color="Ventas"
+    )
    
     # -------------------------
     # CLIENTES
