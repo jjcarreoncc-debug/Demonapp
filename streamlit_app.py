@@ -14,7 +14,7 @@ st.markdown("---")
 # -------------------------
 # CARGA DE ARCHIVO
 # -------------------------
-archivo = st.file_uploader("Sube tu archivo Excel", type=["xlsx"])
+archivo = st.file_uploader("Sube tu archivo Excel ", type=["xlsx"])
 
 if archivo is not None:
     df = pd.read_excel(archivo)
