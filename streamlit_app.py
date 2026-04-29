@@ -3,7 +3,7 @@ import pandas as pd
 
 st.set_page_config(page_title="Dashboard BI", layout="wide")
 
-st.title("📊 Dashboard de Ventas - Nivel BI")
+st.title("📊 Dashboard de Ventas")
 
 # -------------------------
 # Cargar archivo
@@ -14,7 +14,7 @@ if archivo is None:
     st.stop()
 
 # -------------------------
-# Leer datos (cache)
+# Leer datos
 # -------------------------
 @st.cache_data
 def cargar_datos(archivo):
@@ -25,40 +25,35 @@ def cargar_datos(archivo):
 
 df = cargar_datos(archivo)
 
+# 🔥 limpiar columnas (evita errores)
+df.columns = df.columns.str.strip()
+
 # 🔥 optimización
 df = df.head(300)
 
 # -------------------------
-# Filtros
+# FILTROS
 # -------------------------
 st.sidebar.header("🎛️ Filtros")
 
-if "Producto" in df.columns:
-    productos = st.sidebar.multiselect(
-        "Producto", df["Producto"].dropna().unique()
-    )
-    if productos:
-        df = df[df["Producto"].isin(productos)]
-
-if "Región" in df.columns:
-    regiones = st.sidebar.multiselect(
-        "Región", df["Región"].dropna().unique()
-    )
-    if regiones:
-        df = df[df["Región"].isin(regiones)]
-# -------------------------
-# Filtros POR NOMBRE 
-# -------------------------
-
+# Cliente
 if "Nombre" in df.columns:
     nombres = st.sidebar.multiselect(
-        "Cliente", df["Nombre"].dropna().unique()
+        "👤 Cliente", df["Nombre"].dropna().unique()
     )
     if nombres:
         df = df[df["Nombre"].isin(nombres)]
 
+# Producto
+if "Producto" in df.columns:
+    productos = st.sidebar.multiselect(
+        "📦 Producto", df["Producto"].dropna().unique()
+    )
+    if productos:
+        df = df[df["Producto"].isin(productos)]
+
 # -------------------------
-# Procesamiento
+# PROCESAMIENTO
 # -------------------------
 df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
@@ -75,7 +70,7 @@ df_group = df.groupby("Periodo")[["Ventas", "Costos"]].sum().reset_index()
 df_group = df_group.sort_values("Periodo")
 
 # -------------------------
-# Cálculos
+# CÁLCULOS
 # -------------------------
 df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
 df_group["Margen %"] = (df_group["Ganancia"] / df_group["Ventas"]) * 100
@@ -118,88 +113,61 @@ if len(df_group) > 1:
 # GRÁFICAS
 # -------------------------
 st.subheader("📈 Tendencia")
-
 st.line_chart(
     df_group.set_index("Periodo")[["Ventas", "Costos", "Ganancia"]]
 )
 
 st.subheader("📊 Ventas por periodo")
-
 st.bar_chart(df_group.set_index("Periodo")["Ventas"])
-# -------------------------
-# adiccion 1
-# -------------------------
-
-
-st.subheader("📊 Comparación Mes a Mes")
-
-df_group["Mes"] = df_group["Periodo"].dt.month
-
-comparacion = df_group.groupby("Mes")["Ventas"].sum()
-
-st.bar_chart(comparacion)
-# -------------------------
-# adiccion 2
-# -------------------------
-
-if "Producto" in df.columns:
-    st.subheader("📊 Participación por Producto")
-
-    part = (
-        df.groupby("Producto")["Ventas"]
-        .sum()
-        .sort_values(ascending=False)
-    )
-
-    part_pct = (part / part.sum()) * 100
-
-    st.dataframe(part_pct.round(2))
 
 # -------------------------
-# adiccion 2
+# VENTAS POR PRODUCTO
 # -------------------------
-
-
 if "Producto" in df.columns:
     st.subheader("📦 Ventas por Producto")
 
-    ventas_prod = df.groupby("Producto")["Ventas"].sum()
-    ventas_prod = ventas_prod.sort_values(ascending=False)
-
-    st.bar_chart(ventas_prod)
-else:
-    st.warning("No existe la columna 'Producto'")
-
------------------------------------
-# adiccion 3
-# -------------------------
-
-pivot = df.pivot_table(
-    values="Ventas",
-    index=df["Fecha"].dt.month,
-    aggfunc="sum"
-)
-
-st.subheader("🔥 Ventas por Mes")
-st.dataframe(pivot)
-
-# -------------------------
-# TOP PRODUCTOS
-# -------------------------
-if "Producto" in df.columns:
-    st.subheader("🏆 Top Productos")
-
-    top = (
+    ventas_prod = (
         df.groupby("Producto")["Ventas"]
         .sum()
         .sort_values(ascending=False)
-        .head(5)
+        .head(10)
     )
 
-    st.bar_chart(top)
+    st.bar_chart(ventas_prod)
 
 # -------------------------
-# DATOS OCULTOS
+# VENTAS POR CLIENTE
+# -------------------------
+if "Nombre" in df.columns:
+    st.subheader("👤 Ventas por Cliente")
+
+    ventas_cliente = (
+        df.groupby("Nombre")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+    )
+
+    st.bar_chart(ventas_cliente)
+
+# -------------------------
+# TOP CLIENTES
+# -------------------------
+if "Nombre" in df.columns:
+    st.subheader("🏆 Top Clientes")
+
+    top_clientes = (
+        df.groupby("Nombre")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(5)
+        .reset_index()
+    )
+
+    st.dataframe(top_clientes)
+
+# -------------------------
+# DATOS
 # -------------------------
 with st.expander("📂 Ver datos completos"):
     st.dataframe(df_group)
