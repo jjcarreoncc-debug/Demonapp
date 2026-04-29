@@ -167,7 +167,7 @@ st.subheader("📊 KPIs")
 #col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
 #col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
 col1, col2, col3, col4 = st.columns(4)
-margen = (ganancia_total / ventas_total) * 100
+
 
 col1, col2, col3, col4 = st.columns(4)
 
