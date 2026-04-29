@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Dashboard con Fechas", layout="wide")
+st.set_page_config(page_title="Dashboard Fechas OK", layout="wide")
 
-st.title("📊 Dashboard con Análisis por Fecha")
+st.title("📊 Dashboard por Fecha (corregido)")
 
 # -------------------------
 # Cargar archivo
@@ -20,50 +20,47 @@ else:
     st.stop()
 
 # -------------------------
-# Validar columna Fecha
+# Validar columnas
 # -------------------------
 if "Fecha" not in df.columns:
-    st.error("❌ El archivo debe tener una columna llamada 'Fecha'")
+    st.error("❌ Debe existir columna 'Fecha'")
+    st.write("Columnas encontradas:", df.columns)
     st.stop()
 
 # -------------------------
-# Convertir a fecha
+# Convertir fecha
 # -------------------------
 df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
 # -------------------------
-# Selección de columna numérica
+# Elegir columna numérica
 # -------------------------
-col_valor = st.selectbox("Selecciona columna numérica", df.columns)
+col_valor = st.selectbox("Columna a analizar", df.columns)
 
-# Asegurar que sea numérica
 df[col_valor] = pd.to_numeric(df[col_valor], errors="coerce")
 
 # -------------------------
-# Tipo de agrupación por fecha
+# Selección tipo fecha
 # -------------------------
-tipo_fecha = st.sidebar.selectbox(
-    "Agrupar por",
-    ["Día", "Mes", "Año"]
-)
+tipo = st.sidebar.selectbox("Agrupar por", ["Día", "Mes", "Año"])
 
 # -------------------------
-# Crear Periodo
+# Crear Periodo (FORMA CORRECTA 🔥)
 # -------------------------
-if tipo_fecha == "Día":
-    df["Periodo"] = df["Fecha"].dt.date
-elif tipo_fecha == "Mes":
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+if tipo == "Día":
+    df["Periodo"] = df["Fecha"]
+elif tipo == "Mes":
+    df["Periodo"] = df["Fecha"].dt.to_period("M").dt.to_timestamp()
 else:
-    df["Periodo"] = df["Fecha"].dt.year
+    df["Periodo"] = df["Fecha"].dt.to_period("Y").dt.to_timestamp()
 
 # -------------------------
-# Agrupación
+# Agrupar
 # -------------------------
 df_group = df.groupby("Periodo")[col_valor].sum().reset_index()
 
 # -------------------------
-# ORDENAR (CLAVE 🔥)
+# Ordenar correctamente
 # -------------------------
 df_group = df_group.sort_values("Periodo")
 
@@ -74,7 +71,7 @@ st.subheader("📊 Datos agrupados")
 st.dataframe(df_group)
 
 # -------------------------
-# Gráfica
+# Gráfica (YA FUNCIONA 🔥)
 # -------------------------
 st.subheader("📈 Gráfica")
 
