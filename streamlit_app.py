@@ -242,6 +242,81 @@ if "Nombre" in df.columns:
                 st.warning(f"{n}: 🟡 Moderado ({ratio_n:.2f})")
             else:
                 st.success(f"{n}: 🟢 Estable ({ratio_n:.2f})")
+# -------------------------
+# 🔎 CAUSA DE LA VOLATILIDAD
+# -------------------------
+st.markdown("## 🔎 Causa de la Volatilidad")
+
+# === POR REGIÓN ===
+if "Region" in df.columns:
+
+    df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
+
+    impacto = []
+
+    for r in df_reg["Region"].unique():
+        df_r = df_reg[df_reg["Region"] == r]
+
+        if len(df_r) > 1:
+            vol = df_r["Ventas"].std()
+            impacto.append((r, vol))
+
+    df_imp = pd.DataFrame(impacto, columns=["Region", "Volatilidad"])
+
+    if not df_imp.empty:
+
+        total_vol = df_imp["Volatilidad"].sum()
+        df_imp["Impacto %"] = (df_imp["Volatilidad"] / total_vol) * 100
+
+        df_imp = df_imp.sort_values("Impacto %", ascending=False)
+
+        st.markdown("### 🌍 Regiones que explican la inestabilidad")
+
+        for i, row in df_imp.iterrows():
+
+            if row["Impacto %"] > 40:
+                st.error(f"🔴 {row['Region']} explica {row['Impacto %']:.1f}% de la volatilidad")
+            elif row["Impacto %"] > 20:
+                st.warning(f"🟡 {row['Region']} aporta {row['Impacto %']:.1f}%")
+            else:
+                st.success(f"🟢 {row['Region']} impacto bajo ({row['Impacto %']:.1f}%)")
+
+# === POR NOMBRE ===
+if "Nombre" in df.columns:
+
+    df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
+
+    impacto_n = []
+
+    for n in df_nom["Nombre"].unique():
+        df_n = df_nom[df_nom["Nombre"] == n]
+
+        if len(df_n) > 1:
+            vol = df_n["Ventas"].std()
+            impacto_n.append((n, vol))
+
+    df_imp_n = pd.DataFrame(impacto_n, columns=["Nombre", "Volatilidad"])
+
+    if not df_imp_n.empty:
+
+        total_vol_n = df_imp_n["Volatilidad"].sum()
+        df_imp_n["Impacto %"] = (df_imp_n["Volatilidad"] / total_vol_n) * 100
+
+        df_imp_n = df_imp_n.sort_values("Impacto %", ascending=False)
+
+        st.markdown("### 👤 Responsables de la variabilidad")
+
+        top_n = df_imp_n.head(10)
+
+        for i, row in top_n.iterrows():
+
+            if row["Impacto %"] > 30:
+                st.error(f"🔴 {row['Nombre']} genera {row['Impacto %']:.1f}% del problema")
+            elif row["Impacto %"] > 15:
+                st.warning(f"🟡 {row['Nombre']} aporta {row['Impacto %']:.1f}%")
+            else:
+                st.success(f"🟢 {row['Nombre']} impacto bajo ({row['Impacto %']:.1f}%)")    
+    
     # -------------------------
     # DATOS
     # -------------------------
