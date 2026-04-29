@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import time
 
 # -------------------------
 # CONFIG
@@ -29,11 +28,10 @@ if archivo is not None:
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
-    # SIDEBAR
+    # SIDEBAR (FILTROS)
     # -------------------------
     st.sidebar.header("🔎 Filtros")
 
-    # FILTRO FECHA
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
@@ -42,7 +40,6 @@ if archivo is not None:
         [fecha_min, fecha_max]
     )
 
-    # 🌎 FILTRO PAÍS
     if "Pais" in df.columns:
         paises = st.sidebar.multiselect(
             "País",
@@ -52,7 +49,6 @@ if archivo is not None:
     else:
         paises = None
 
-    # 🗺️ FILTRO REGIÓN
     if "Region" in df.columns:
         regiones = st.sidebar.multiselect(
             "Región",
@@ -62,7 +58,6 @@ if archivo is not None:
     else:
         regiones = None
 
-    # 📦 PRODUCTO
     if "Producto" in df.columns:
         productos = st.sidebar.multiselect(
             "Producto",
@@ -71,16 +66,6 @@ if archivo is not None:
         )
     else:
         productos = None
-
-    # 👤 CLIENTE
-    if "Nombre" in df.columns:
-        clientes = st.sidebar.multiselect(
-            "Cliente",
-            df["Nombre"].unique(),
-            default=df["Nombre"].unique()
-        )
-    else:
-        clientes = None
 
     # -------------------------
     # APLICAR FILTROS
@@ -100,21 +85,19 @@ if archivo is not None:
     if productos:
         df = df[df["Producto"].isin(productos)]
 
-    if clientes:
-        df = df[df["Nombre"].isin(clientes)]
-
     # -------------------------
     # CÁLCULOS
     # -------------------------
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    df_group = (
-        df.groupby("Periodo")[["Ventas", "Ganancia"]]
-        .sum()
-        .reset_index()
-        .sort_values("Periodo")
-    )
+    # 🧠 COMBINACIÓN CLAVE
+    if all(col in df.columns for col in ["Pais", "Region", "Producto"]):
+        df["Categoria"] = (
+            df["Pais"].astype(str) + " | " +
+            df["Region"].astype(str) + " | " +
+            df["Producto"].astype(str)
+        )
 
     # -------------------------
     # KPIs
@@ -133,65 +116,49 @@ if archivo is not None:
     col3.metric("📊 Margen %", round(margen, 1))
 
     # -------------------------
-    # EVOLUCIÓN
+    # 🎯 CONTROL TOP
+    # -------------------------
+    st.sidebar.markdown("---")
+    top_n = st.sidebar.slider("Top categorías", 5, 20, 10)
+
+    # -------------------------
+    # 📊 GRÁFICA PRINCIPAL
     # -------------------------
     st.markdown("---")
-    st.subheader("📈 Evolución")
+    st.subheader("📈 Evolución País | Región | Producto")
 
-    fig = px.line(
-        df_group,
-        x="Periodo",
-        y=["Ventas", "Ganancia"],
-        markers=True
-    )
+    if "Categoria" in df.columns:
 
-    st.plotly_chart(fig, use_container_width=True)
-
-    # -------------------------
-    # 🌎 VENTAS POR PAÍS
-    # -------------------------
-    if "Pais" in df.columns:
-        st.markdown("---")
-        st.subheader("🌎 Ventas por País")
-
-        ventas_pais = (
-            df.groupby("Pais")["Ventas"]
+        df_combo = (
+            df.groupby(["Periodo", "Categoria"])["Ventas"]
             .sum()
-            .sort_values(ascending=False)
             .reset_index()
         )
 
-        fig_pais = px.bar(
-            ventas_pais,
-            x="Pais",
-            y="Ventas",
-            color="Ventas"
-        )
-
-        st.plotly_chart(fig_pais, use_container_width=True)
-
-    # -------------------------
-    # 🗺️ VENTAS POR REGIÓN
-    # -------------------------
-    if "Region" in df.columns:
-        st.markdown("---")
-        st.subheader("🗺️ Ventas por Región")
-
-        ventas_region = (
-            df.groupby("Region")["Ventas"]
+        # 🔥 TOP CATEGORÍAS
+        top_cat = (
+            df.groupby("Categoria")["Ventas"]
             .sum()
-            .sort_values(ascending=False)
-            .reset_index()
+            .nlargest(top_n)
+            .index
         )
 
-        fig_region = px.bar(
-            ventas_region,
-            x="Region",
+        df_combo = df_combo[df_combo["Categoria"].isin(top_cat)]
+
+        fig = px.line(
+            df_combo,
+            x="Periodo",
             y="Ventas",
-            color="Ventas"
+            color="Categoria",
+            markers=True
         )
 
-        st.plotly_chart(fig_region, use_container_width=True)
+        fig.update_layout(hovermode="x unified")
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    else:
+        st.warning("Se requieren columnas: Pais, Region y Producto")
 
     # -------------------------
     # DATOS
