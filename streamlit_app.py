@@ -192,7 +192,7 @@ st.plotly_chart(fig_bar, use_container_width=True)
     # -------------------------
     # RENTABILIDAD
     # -------------------------
-    st.markdown("---")
+st.markdown("---")
     st.subheader("💰 Rentabilidad")
 
     df_group["Margen %"] = df_group.apply(
@@ -208,7 +208,7 @@ st.plotly_chart(fig_bar, use_container_width=True)
         title="Margen (%)"
     )
 
-    st.plotly_chart(fig_margen, use_container_width=True)
+    st.plotly_chart(fig_margen, use_container_width=True)    
 
     # -------------------------
     # PRODUCTO
