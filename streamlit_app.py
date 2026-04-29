@@ -1,4 +1,4 @@
-# === DASHBOARD FINAL NIVEL DIRECTOR (FIX IMAGE READER) ===
+# === DASHBOARD FINAL NIVEL DIRECTOR (FIX DEFINITIVO) ===
 
 import streamlit as st
 import pandas as pd
@@ -8,7 +8,6 @@ from io import BytesIO
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.utils import ImageReader  # 👈 CLAVE
 
 # -------------------------
 # CONFIG
@@ -22,7 +21,7 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF FUNCIONANDO 100%
+# PDF (VERSIÓN ESTABLE)
 # -------------------------
 def generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio):
 
@@ -30,19 +29,17 @@ def generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio):
     doc = SimpleDocTemplate("reporte_director.pdf")
     story = []
 
-    # =========================
-    # FUNCIÓN IMAGEN CORRECTA
-    # =========================
+    # 🔥 FUNCIÓN CORRECTA (BYTESIO)
     def fig_to_img(plot_func):
         buffer = BytesIO()
         plt.figure(figsize=(10,5))
+        plt.rcParams["figure.dpi"] = 120  # mejora calidad
         plot_func()
         plt.tight_layout()
         plt.savefig(buffer, format="png")
         plt.close()
         buffer.seek(0)
-
-        return ImageReader(buffer)  # 🔥 FIX REAL
+        return buffer
 
     # -------------------------
     # PORTADA
@@ -151,7 +148,9 @@ if archivo:
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
+    # -------------------------
     # FILTROS
+    # -------------------------
     st.sidebar.header("Filtros")
 
     if "Pais" in df.columns:
@@ -172,7 +171,9 @@ if archivo:
 
     df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
+    # -------------------------
     # PRINCIPAL
+    # -------------------------
     if st.session_state.vista == "principal":
 
         st.title("📊 Dashboard Ejecutivo")
@@ -193,14 +194,19 @@ if archivo:
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
+
         if col2.button("👤 Responsables"):
             st.session_state.vista = "responsables"
+
         if col3.button("🔎 Causas"):
             st.session_state.vista = "causas"
+
         if col4.button("📄 Reporte"):
             st.session_state.vista = "reporte"
 
+    # -------------------------
     # VOLATILIDAD
+    # -------------------------
     elif st.session_state.vista == "volatilidad":
 
         st.title("🚦 Volatilidad")
@@ -221,7 +227,9 @@ if archivo:
 
         st.line_chart(df_m.set_index("Periodo")["Ventas"])
 
+    # -------------------------
     # RESPONSABLES
+    # -------------------------
     elif st.session_state.vista == "responsables":
 
         st.title("👤 Responsables")
@@ -233,7 +241,9 @@ if archivo:
         fig = px.line(df_nom, x="Periodo", y="Ventas", color="Nombre")
         st.plotly_chart(fig, use_container_width=True)
 
+    # -------------------------
     # CAUSAS
+    # -------------------------
     elif st.session_state.vista == "causas":
 
         st.title("🔎 Causas")
@@ -245,7 +255,9 @@ if archivo:
         fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
         st.plotly_chart(fig, use_container_width=True)
 
+    # -------------------------
     # REPORTE
+    # -------------------------
     elif st.session_state.vista == "reporte":
 
         st.title("📄 Reporte Ejecutivo")
