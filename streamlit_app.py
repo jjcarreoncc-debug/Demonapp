@@ -3,7 +3,7 @@ import pandas as pd
 
 st.set_page_config(page_title="Dashboard Fechas OK", layout="wide")
 
-st.title("📊 Dashboard por Fecha (corregido)")
+st.title("📊 Dashboard por Fecha")
 
 # -------------------------
 # Cargar archivo
@@ -33,10 +33,16 @@ if "Fecha" not in df.columns:
 df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
 # -------------------------
-# Elegir columna numérica
+# Asegurar columnas numéricas
 # -------------------------
+if "Ventas" in df.columns:
+    df["Ventas"] = pd.to_numeric(df["Ventas"], errors="coerce")
+
+if "Costos" in df.columns:
+    df["Costos"] = pd.to_numeric(df["Costos"], errors="coerce")
+
 # -------------------------
-# Selección de métricas
+# Sidebar filtros
 # -------------------------
 col_valores = st.sidebar.multiselect(
     "Selecciona métricas",
@@ -44,17 +50,14 @@ col_valores = st.sidebar.multiselect(
     default=["Ventas", "Costos"]
 )
 
-# Validar selección
 if len(col_valores) == 0:
     st.warning("Selecciona al menos una métrica")
     st.stop()
-# -------------------------
-# Selección tipo fecha
-# -------------------------
+
 tipo = st.sidebar.selectbox("Agrupar por", ["Día", "Mes", "Año"])
 
 # -------------------------
-# Crear Periodo (FORMA CORRECTA 🔥)
+# Crear Periodo
 # -------------------------
 if tipo == "Día":
     df["Periodo"] = df["Fecha"]
@@ -63,15 +66,15 @@ elif tipo == "Mes":
 else:
     df["Periodo"] = df["Fecha"].dt.to_period("Y").dt.to_timestamp()
 
-
-
 # -------------------------
 # Agrupar
 # -------------------------
 df_group = df.groupby("Periodo")[col_valores].sum().reset_index()
 df_group = df_group.sort_values("Periodo")
 
-
+# -------------------------
+# KPI
+# -------------------------
 if "Ventas" in df_group.columns and "Costos" in df_group.columns:
     df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
 
@@ -86,44 +89,33 @@ if "Costos" in df_group.columns:
 if "Ganancia" in df_group.columns:
     col3.metric("Ganancia total", round(df_group["Ganancia"].sum(), 2))
 
-
-    cols_plot = list(col_valores)
-
-if "Ventas" in cols_plot and "Costos" in cols_plot:
-    df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
-    cols_plot.append("Ganancia")
-
- -------------------------
-# Preparar columnas para gráfica
 # -------------------------
-cols_plot = list(col_valores)
-
-# Agregar Ganancia solo si existen ambas
-if "Ventas" in df_group.columns and "Costos" in df_group.columns:
-    df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
-    
-    if "Ventas" in cols_plot and "Costos" in cols_plot:
-        cols_plot.append("Ganancia")
-
-# Validar que haya columnas
-if len(cols_plot) == 0:
-    st.warning("Selecciona al menos una métrica")
-else:
-    st.line_chart(df_group.set_index("Periodo")[cols_plot])
-# -------------------------
-# Ordenar correctamente
-# -------------------------
-df_group = df_group.sort_values("Periodo")
-
-# -------------------------
-# Mostrar datos
+# Datos
 # -------------------------
 st.subheader("📊 Datos agrupados")
 st.dataframe(df_group)
 
 # -------------------------
-# Gráfica (YA FUNCIONA 🔥)
+# Gráfica
 # -------------------------
 st.subheader("📈 Gráfica")
 
-st.line_chart(df_group.set_index("Periodo"))
+cols_plot = list(col_valores)
+
+if "Ventas" in df_group.columns and "Costos" in df_group.columns:
+    if "Ventas" in cols_plot and "Costos" in cols_plot:
+        cols_plot.append("Ganancia")
+
+if len(cols_plot) == 0:
+    st.warning("Selecciona al menos una métrica")
+else:
+    st.line_chart(df_group.set_index("Periodo")[cols_plot])
+
+# -------------------------
+# Descargar
+# -------------------------
+st.download_button(
+    "📥 Descargar datos",
+    df_group.to_csv(index=False),
+    "resultado.csv",
+    "text/csv"
