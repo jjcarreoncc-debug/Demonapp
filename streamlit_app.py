@@ -71,6 +71,21 @@ else:
 df_group = df.groupby("Periodo")[col_valores].sum().reset_index()
 df_group = df_group.sort_values("Periodo")
 
+
+if "Ventas" in df_group.columns and "Costos" in df_group.columns:
+    df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
+
+col1, col2, col3 = st.columns(3)
+
+if "Ventas" in df_group.columns:
+    col1.metric("Ventas totales", round(df_group["Ventas"].sum(), 2))
+
+if "Costos" in df_group.columns:
+    col2.metric("Costos totales", round(df_group["Costos"].sum(), 2))
+
+if "Ganancia" in df_group.columns:
+    col3.metric("Ganancia total", round(df_group["Ganancia"].sum(), 2))
+📈 2. Incluir Ganancia en la gráfica
 # -------------------------
 # Ordenar correctamente
 # -------------------------
