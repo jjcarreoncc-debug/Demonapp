@@ -167,7 +167,7 @@ fig = px.line(
 
 st.plotly_chart(fig, use_container_width=True)    
     st.markdown("---")
-    st.subheader("📈 Análisis Visual")
+    st.subheader("📈 Análisis Visual ")
 
     fig = px.line(
         df_group,
