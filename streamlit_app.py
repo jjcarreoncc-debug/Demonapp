@@ -187,26 +187,25 @@ st.plotly_chart(fig_anim, use_container_width=True)
     # -------------------------
     # CLIENTES
     # -------------------------
-    if "Nombre" in df.columns:
-        st.markdown("---")
-        st.subheader("👤 Ventas por Cliente")
+if "Nombre" in df.columns:
+    st.markdown("---")
+    st.subheader("👤 Ventas por Cliente")
 
-        ventas_cliente = (
-            df.groupby("Nombre")["Ventas"]
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
+    ventas_cliente = (
+        df.groupby("Nombre")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
 
-        fig_cli = px.bar(
-            ventas_cliente,
-            x="Nombre",
-            y="Ventas",
-            color="Ventas"
-        )
+    fig_cli = px.bar(
+        ventas_cliente,
+        x="Nombre",
+        y="Ventas",
+        color="Ventas"
+    )
 
-        st.plotly_chart(fig_cli, use_container_width=True)
-
+    st.plotly_chart(fig_cli, use_container_width=True)
     # -------------------------
     # DATOS
     # -------------------------
