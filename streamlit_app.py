@@ -211,7 +211,7 @@ st.plotly_chart(fig_margen, use_container_width=True)
     # -------------------------
     # PRODUCTO
     # -------------------------
- if "Producto" in df.columns:
+if "Producto" in df.columns:
     st.markdown("---")
     st.subheader("📦 Ventas por Producto")
 
