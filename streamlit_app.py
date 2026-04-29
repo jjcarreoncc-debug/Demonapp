@@ -265,7 +265,7 @@ if "Nombre" in df.columns:
 	# -------------------------
 	# DATOS
 	# -------------------------
-	st.markdown("---")
+st.markdown("---")
 	with st.expander("📂 Ver datos"):
 	st.dataframe(df)
 	
