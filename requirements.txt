@@ -3,3 +3,4 @@ openpyxl
 plotly
 reportlab
 kaleido
+matplotlib
