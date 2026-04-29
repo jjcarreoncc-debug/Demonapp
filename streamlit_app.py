@@ -14,11 +14,60 @@ st.markdown("---")
 # -------------------------
 # CARGA DE ARCHIVO
 # -------------------------
-archivo = st.file_uploader("Sube tu archivo Excel ", type=["xlsx"])
+archivo = st.file_uploader("Sube tu archivo Excel", type=["xlsx"])
 
 if archivo is not None:
+
+    # Leer archivo
     df = pd.read_excel(archivo)
 
+    # Limpieza
+    df.columns = df.columns.str.strip()
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df = df.dropna(subset=["Fecha"])
+
+    # Cálculos base
+    df["Ganancia"] = df["Ventas"] - df["Costos"]
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+    # Agrupación (ESTO CREA df_group)
+    df_group = (
+        df.groupby("Periodo")[["Ventas", "Costos", "Ganancia"]]
+        .sum()
+        .reset_index()
+    )
+
+    # -------------------------
+    # ANÁLISIS VISUAL (AQUÍ YA PUEDES USAR df_group)
+    # -------------------------
+
+    st.markdown("---")
+    st.subheader("📈 Análisis Visual")
+
+    vista = st.selectbox(
+        "📊 Selecciona vista",
+        ["Ventas", "Ganancia", "Ambos"]
+    )
+
+    if vista == "Ventas":
+        y_data = ["Ventas"]
+    elif vista == "Ganancia":
+        y_data = ["Ganancia"]
+    else:
+        y_data = ["Ventas", "Ganancia"]
+
+    fig = px.line(
+        df_group,
+        x="Periodo",
+        y=y_data,
+        markers=True,
+        title="Tendencia dinámica"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+else:
+    st.info("📂 Sube un archivo Excel para comenzar")
     # -------------------------
     # LIMPIEZA
     # -------------------------
