@@ -57,9 +57,6 @@ else:
 
 
 
-df["Ventas"] = pd.to_numeric(df["Ventas"], errors="coerce")
-df["Costos"] = pd.to_numeric(df["Costos"], errors="coerce")
-
 # -------------------------
 # Agrupar
 # -------------------------
