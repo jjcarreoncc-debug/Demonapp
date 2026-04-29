@@ -1,3 +1,4 @@
+CÓDIGO FINAL LIMPIO
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -17,6 +18,9 @@ archivo = st.file_uploader("Sube tu archivo Excel", type=["xlsx"])
 
 if archivo is not None:
 
+    # -------------------------
+    # LECTURA
+    # -------------------------
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
@@ -24,7 +28,7 @@ if archivo is not None:
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
-    # SIDEBAR
+    # SIDEBAR (FILTROS)
     # -------------------------
     st.sidebar.header("🔎 Filtros")
 
@@ -42,7 +46,7 @@ if archivo is not None:
     productos_sel = st.sidebar.multiselect("Producto", productos, default=productos)
 
     # -------------------------
-    # FILTROS
+    # APLICAR FILTROS
     # -------------------------
     if len(rango_fecha) == 2:
         df = df[
@@ -70,36 +74,30 @@ if archivo is not None:
     margen = 0 if ventas_total == 0 else (ganancia_total / ventas_total) * 100
 
     # -------------------------
-    # 🎯 KPIs PRINCIPALES
+    # KPIs CON CONTEXTO
     # -------------------------
-    st.markdown("## 🎯 KPIs Consolidados")
+    st.markdown("## 🎯 KPIs con Contexto")
 
     col1, col2, col3 = st.columns(3)
 
-    def gauge(valor, meta, titulo, color):
-        return go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=valor,
-            delta={'reference': meta},
-            title={'text': titulo},
-            gauge={
-                'axis': {'range': [0, meta]},
-                'bar': {'color': color},
-                'steps': [
-                    {'range': [0, meta*0.6], 'color': "red"},
-                    {'range': [meta*0.6, meta*0.9], 'color': "yellow"},
-                    {'range': [meta*0.9, meta], 'color': "green"}
-                ],
-                'threshold': {'line': {'color': "black", 'width': 3}, 'value': meta}
-            }
-        ))
+    prom_ventas = df.groupby("Pais")["Ventas"].sum().mean() if "Pais" in df.columns else ventas_total
+    prom_ganancia = df.groupby("Pais")["Ganancia"].sum().mean() if "Pais" in df.columns else ganancia_total
 
-    col1.plotly_chart(gauge(ventas_total, ventas_total*1.2, "Ventas", "blue"), use_container_width=True)
-    col2.plotly_chart(gauge(ganancia_total, ganancia_total*1.2, "Ganancia", "green"), use_container_width=True)
-    col3.plotly_chart(gauge(margen, 100, "Margen %", "orange"), use_container_width=True)
+    def kpi(valor, referencia, titulo, subtitulo):
+        fig = go.Figure(go.Indicator(
+            mode="number+delta",
+            value=valor,
+            delta={'reference': referencia, 'relative': True},
+            title={'text': f"{titulo}<br><span style='font-size:12px'>{subtitulo}</span>"}
+        ))
+        return fig
+
+    col1.plotly_chart(kpi(ventas_total, prom_ventas, "Ventas", "vs promedio país"), use_container_width=True)
+    col2.plotly_chart(kpi(ganancia_total, prom_ganancia, "Ganancia", "vs promedio país"), use_container_width=True)
+    col3.plotly_chart(kpi(margen, 50, "Margen %", "vs objetivo 50%"), use_container_width=True)
 
     # -------------------------
-    # 🚨 ALERTAS AUTOMÁTICAS
+    # ALERTAS
     # -------------------------
     st.markdown("---")
     st.subheader("🚨 Alertas")
@@ -107,74 +105,69 @@ if archivo is not None:
     if margen < 30:
         st.error(f"Margen bajo: {round(margen,1)}%")
 
-    if ventas_total < df["Ventas"].mean() * len(df):
-        st.warning("Ventas por debajo del promedio")
-
     if margen > 60:
-        st.success("Buen nivel de rentabilidad")
+        st.success("Alta rentabilidad")
 
     # -------------------------
-    # 🌎 KPIs POR PAÍS
+    # RANKING PAÍS
     # -------------------------
     if "Pais" in df.columns:
 
         st.markdown("---")
-        st.subheader("🌎 Margen por País")
+        st.subheader("🏆 Ranking País")
 
-        df_pais = df.groupby("Pais")[["Ventas", "Ganancia"]].sum().reset_index()
-        df_pais["Margen"] = df_pais["Ganancia"] / df_pais["Ventas"] * 100
+        df_rank = df.groupby("Pais")["Ventas"].sum().sort_values().reset_index()
 
-        cols = st.columns(min(4, len(df_pais)))
+        mejor = df_rank.iloc[-1]["Pais"]
+        peor = df_rank.iloc[0]["Pais"]
 
-        for i, row in df_pais.iterrows():
-            with cols[i % len(cols)]:
-                fig = go.Figure(go.Indicator(
-                    mode="gauge+number",
-                    value=row["Margen"],
-                    title={'text': row["Pais"]},
-                    gauge={
-                        'axis': {'range': [0, 100]},
-                        'steps': [
-                            {'range': [0, 30], 'color': "red"},
-                            {'range': [30, 60], 'color': "yellow"},
-                            {'range': [60, 100], 'color': "green"}
-                        ]
-                    }
-                ))
-                st.plotly_chart(fig, use_container_width=True)
+        df_rank["Color"] = df_rank["Pais"].apply(
+            lambda x: "green" if x == mejor else ("red" if x == peor else "blue")
+        )
+
+        fig = px.bar(
+            df_rank,
+            x="Ventas",
+            y="Pais",
+            orientation="h",
+            color="Color",
+            color_discrete_map={"green": "green", "red": "red", "blue": "lightblue"}
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption(f"🏆 Mejor: {mejor} | 🔻 Peor: {peor}")
 
     # -------------------------
-    # 🗺️ KPIs POR REGIÓN
+    # RANKING REGIÓN
     # -------------------------
     if "Region" in df.columns:
 
         st.markdown("---")
-        st.subheader("🗺️ Margen por Región")
+        st.subheader("🗺️ Ranking Región")
 
-        df_region = df.groupby("Region")[["Ventas", "Ganancia"]].sum().reset_index()
-        df_region["Margen"] = df_region["Ganancia"] / df_region["Ventas"] * 100
+        df_rank_r = df.groupby("Region")["Ventas"].sum().sort_values().reset_index()
 
-        cols = st.columns(min(4, len(df_region)))
+        mejor_r = df_rank_r.iloc[-1]["Region"]
+        peor_r = df_rank_r.iloc[0]["Region"]
 
-        for i, row in df_region.iterrows():
-            with cols[i % len(cols)]:
-                fig = go.Figure(go.Indicator(
-                    mode="gauge+number",
-                    value=row["Margen"],
-                    title={'text': row["Region"]},
-                    gauge={
-                        'axis': {'range': [0, 100]},
-                        'steps': [
-                            {'range': [0, 30], 'color': "red"},
-                            {'range': [30, 60], 'color': "yellow"},
-                            {'range': [60, 100], 'color': "green"}
-                        ]
-                    }
-                ))
-                st.plotly_chart(fig, use_container_width=True)
+        df_rank_r["Color"] = df_rank_r["Region"].apply(
+            lambda x: "green" if x == mejor_r else ("red" if x == peor_r else "blue")
+        )
+
+        fig_r = px.bar(
+            df_rank_r,
+            x="Ventas",
+            y="Region",
+            orientation="h",
+            color="Color",
+            color_discrete_map={"green": "green", "red": "red", "blue": "lightblue"}
+        )
+
+        st.plotly_chart(fig_r, use_container_width=True)
+        st.caption(f"🏆 Mejor: {mejor_r} | 🔻 Peor: {peor_r}")
 
     # -------------------------
-    # 📈 GRÁFICA PRINCIPAL
+    # TENDENCIA
     # -------------------------
     st.markdown("---")
     st.subheader("📈 Tendencia")
@@ -190,10 +183,10 @@ if archivo is not None:
 
     df_group = df.groupby("Periodo")[y_data].sum().reset_index()
 
-    fig = px.line(df_group, x="Periodo", y=y_data, markers=True)
-    fig.update_layout(hovermode="x unified")
+    fig_line = px.line(df_group, x="Periodo", y=y_data, markers=True)
+    fig_line.update_layout(hovermode="x unified")
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig_line, use_container_width=True)
 
     # -------------------------
     # DATOS
