@@ -171,12 +171,7 @@ col1, col2, col3, col4 = st.columns(4)
 
 
 
-col2.markdown(f"""
-<div class="kpi-card">
-    <div class="kpi-title">Costos</div>
-    <div class="kpi-value">{round(costos_total,2)}</div>
-</div>
-""", unsafe_allow_html=True)
+
 
 ventas_total = df_group["Ventas"].sum()
 costos_total = df_group["Costos"].sum()
