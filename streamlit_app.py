@@ -140,16 +140,16 @@ st.line_chart(df_group.set_index("Periodo")["Margen %"])
     # PRODUCTO
     # -------------------------
     if "Producto" in df.columns:
-        st.markdown("---")
-        st.subheader("📦 Ventas por Producto")
+    st.markdown("---")
+    st.subheader("📦 Ventas por Producto")
 
-        ventas_prod = (
-            df.groupby("Producto")["Ventas"]
-            .sum()
-            .sort_values(ascending=False)
-        )
+    ventas_prod = (
+        df.groupby("Producto")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+    )
 
-        st.bar_chart(ventas_prod)
+    st.bar_chart(ventas_prod)
 
     # -------------------------
     # CLIENTES
