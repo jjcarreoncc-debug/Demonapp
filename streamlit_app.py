@@ -227,19 +227,19 @@ if "Producto" in df.columns:
         .sort_values(ascending=False)
         .reset_index()
     )	
-	fig_prod = px.bar(
+fig_prod = px.bar(
 	ventas_prod,
 	x="Producto",
 	y="Ventas",
 	color="Ventas"
-	)
+)
 	
-	st.plotly_chart(fig_prod, use_container_width=True)
+st.plotly_chart(fig_prod, use_container_width=True)
 	
 	# -------------------------
 	# CLIENTES
 	# -------------------------
-	if "Nombre" in df.columns:
+if "Nombre" in df.columns:
 	st.markdown("---")
 	st.subheader("👤 Ventas por Cliente")
 	
