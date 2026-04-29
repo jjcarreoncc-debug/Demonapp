@@ -31,6 +31,10 @@ if archivo is not None:
     # SIDEBAR
     # -------------------------
     st.sidebar.header("🔎 Filtros")
+      
+    rango_fecha = st.sidebar.date_input(...)
+    productos = st.sidebar.multiselect(...)
+    clientes = st.sidebar.multiselect(...)
 
     # CONTROLES VISUALES
     st.sidebar.markdown("---")
@@ -87,6 +91,17 @@ if "Producto" in df.columns:
             (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
         ]
 
+    if len(rango_fecha) == 2:
+    df = df[
+        (df["Fecha"] >= pd.to_datetime(rango_fecha[0])) &
+        (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
+    ]
+
+if productos:
+    df = df[df["Producto"].isin(productos)]
+
+if clientes:
+    df = df[df["Nombre"].isin(clientes)]
     if productos is not None:
         df = df[df["Producto"].isin(productos)]
 
