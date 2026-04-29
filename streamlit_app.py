@@ -145,7 +145,7 @@ fig.update_layout(
 
 st.plotly_chart(fig, use_container_width=True)
     
-    if not df_group.empty:
+if not df_group.empty:
         mejor = df_group.loc[df_group["Ventas"].idxmax()]
         peor = df_group.loc[df_group["Ventas"].idxmin()]
 
