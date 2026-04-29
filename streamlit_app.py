@@ -189,12 +189,13 @@ col3.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-col4.markdown(f"""
-<div class="kpi-card">
-<div class="kpi-title">Margen %</div>
-<div class="kpi-value">{round(margen,2)}%</div>
-</div>
-""", unsafe_allow_html=True)
+#col4.markdown(f"""
+#<div class="kpi-card">
+#<div class="kpi-title">Margen %</div>
+#<div class="kpi-value">{round(margen,2)}%</div>
+#</div>
+#""", unsafe_allow_html=True)
+
 # -------------------------
 # nuevos cambios
 # -------------------------
