@@ -183,5 +183,53 @@ if archivo:
     with st.expander("📂 Ver datos"):
         st.dataframe(df)
 
+# -------------------------
+# IA - INSIGHTS AUTOMÁTICOS AVANZADOS
+# -------------------------
+st.markdown("### 🤖 Análisis Inteligente")
+
+# 1. CRECIMIENTO
+if len(df_m) > 2:
+    crecimiento = df_m["Ventas"].pct_change().mean() * 100
+
+    if crecimiento > 0:
+        st.success(f"📈 Tendencia positiva: crecimiento promedio {crecimiento:.1f}% mensual")
+    else:
+        st.error(f"📉 Tendencia negativa: caída promedio {crecimiento:.1f}% mensual")
+
+# 2. QUÉ EXPLICA LAS VENTAS
+if "Region" in df.columns:
+    df_region = df.groupby("Region")["Ventas"].sum().sort_values(ascending=False)
+
+    top_region = df_region.index[0]
+    share = (df_region.iloc[0] / df_region.sum()) * 100
+
+    st.info(f"🌍 La región {top_region} genera el {share:.1f}% de las ventas")
+
+# 3. CONCENTRACIÓN (RIESGO NEGOCIO)
+if "Nombre" in df.columns:
+    df_nombre = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False)
+
+    top_nombre = df_nombre.index[0]
+    share_nombre = (df_nombre.iloc[0] / df_nombre.sum()) * 100
+
+    if share_nombre > 40:
+        st.warning(f"⚠️ Alta dependencia: {top_nombre} genera {share_nombre:.1f}% del total")
+    else:
+        st.success("Distribución saludable entre responsables")
+
+# 4. ALERTA DE MARGEN
+if margen < 30:
+    st.error("💰 Problema: margen bajo, revisar costos")
+elif margen > 60:
+    st.success("💰 Excelente rentabilidad")
+
+# 5. VARIABILIDAD
+volatilidad = df_m["Ventas"].std()
+
+if volatilidad > df_m["Ventas"].mean() * 0.3:
+    st.warning("📊 Alta variabilidad en ventas (inestabilidad)")
+else:
+    st.success("📊 Ventas estables")
 else:
     st.info("Sube archivo Excel")
