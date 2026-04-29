@@ -86,6 +86,14 @@ if "Costos" in df_group.columns:
 if "Ganancia" in df_group.columns:
     col3.metric("Ganancia total", round(df_group["Ganancia"].sum(), 2))
 📈 2. Incluir Ganancia en la gráfica
+
+    cols_plot = list(col_valores)
+
+if "Ventas" in cols_plot and "Costos" in cols_plot:
+    df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
+    cols_plot.append("Ganancia")
+
+st.line_chart(df_group.set_index("Periodo")[cols_plot])
 # -------------------------
 # Ordenar correctamente
 # -------------------------
