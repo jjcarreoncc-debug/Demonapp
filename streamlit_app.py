@@ -1,13 +1,14 @@
-# === DASHBOARD PRO NIVEL DIRECTOR FINAL ===
+# === DASHBOARD FINAL NIVEL DIRECTOR (FIX IMAGE READER) ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
+from io import BytesIO
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.utils import ImageReader  # 👈 CLAVE
 
 # -------------------------
 # CONFIG
@@ -21,129 +22,116 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF NIVEL DIRECTOR
+# PDF FUNCIONANDO 100%
 # -------------------------
 def generar_pdf(df_m, df, ventas, ganancia, margen, crecimiento, ratio):
 
     styles = getSampleStyleSheet()
-
-    titulo = ParagraphStyle(
-        'titulo', parent=styles['Heading1'],
-        fontSize=22, textColor=colors.black, spaceAfter=20
-    )
-
-    subtitulo = ParagraphStyle(
-        'subtitulo', parent=styles['Normal'],
-        fontSize=14, textColor=colors.grey
-    )
-
-    texto = ParagraphStyle(
-        'texto', parent=styles['Normal'],
-        fontSize=12, spaceAfter=10
-    )
-
     doc = SimpleDocTemplate("reporte_director.pdf")
     story = []
 
+    # =========================
+    # FUNCIÓN IMAGEN CORRECTA
+    # =========================
+    def fig_to_img(plot_func):
+        buffer = BytesIO()
+        plt.figure(figsize=(10,5))
+        plot_func()
+        plt.tight_layout()
+        plt.savefig(buffer, format="png")
+        plt.close()
+        buffer.seek(0)
+
+        return ImageReader(buffer)  # 🔥 FIX REAL
+
+    # -------------------------
     # PORTADA
-    story.append(Paragraph("REPORTE EJECUTIVO", titulo))
-    story.append(Paragraph("Análisis estratégico del negocio", subtitulo))
-    story.append(Spacer(1, 40))
-    story.append(Paragraph("Confidencial", texto))
+    # -------------------------
+    story.append(Paragraph("REPORTE EJECUTIVO", styles['Title']))
+    story.append(Spacer(1, 20))
+    story.append(Paragraph("Análisis estratégico del negocio", styles['Normal']))
     story.append(PageBreak())
 
-    # MENSAJE CLAVE
-    story.append(Paragraph("Mensaje Clave", titulo))
-
-    if ratio > 0.30:
-        mensaje = "Alta volatilidad en el negocio, riesgo operativo elevado."
-    elif margen < 30:
-        mensaje = "Rentabilidad limitada, presión en costos."
-    else:
-        mensaje = "Negocio estable con oportunidades de crecimiento."
-
-    story.append(Paragraph(mensaje, texto))
-    story.append(PageBreak())
-
+    # -------------------------
     # KPIs
-    story.append(Paragraph("Indicadores Clave", titulo))
-    story.append(Paragraph(f"Ventas: ${ventas:,.0f}", texto))
-    story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", texto))
-    story.append(Paragraph(f"Margen: {margen:.1f}%", texto))
-    story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", texto))
+    # -------------------------
+    story.append(Paragraph("Indicadores Clave", styles['Heading1']))
+    story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
+    story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
+    story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Normal']))
+    story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
     story.append(PageBreak())
 
+    # -------------------------
     # TENDENCIA
-    plt.figure(figsize=(10,5))
-    plt.plot(df_m["Periodo"], df_m["Ventas"], label="Ventas")
-    plt.plot(df_m["Periodo"], df_m["Ganancia"], label="Ganancia")
-    plt.legend()
-    plt.xticks(rotation=45)
-    plt.title("Tendencia del negocio")
-    plt.tight_layout()
-    plt.savefig("tendencia.png")
-    plt.close()
+    # -------------------------
+    img = fig_to_img(lambda: (
+        plt.plot(df_m["Periodo"], df_m["Ventas"], label="Ventas"),
+        plt.plot(df_m["Periodo"], df_m["Ganancia"], label="Ganancia"),
+        plt.legend(),
+        plt.xticks(rotation=45),
+        plt.title("Tendencia del negocio")
+    ))
 
-    story.append(Paragraph("Evolución del negocio", titulo))
-    story.append(Image("tendencia.png", width=520, height=300))
+    story.append(Paragraph("Tendencia del negocio", styles['Heading1']))
+    story.append(Image(img, width=500, height=300))
     story.append(PageBreak())
 
+    # -------------------------
     # RESPONSABLES
+    # -------------------------
     if "Nombre" in df.columns:
         df_nom = df.groupby("Nombre")["Ventas"].sum().sort_values(ascending=False).head(5)
 
-        plt.figure(figsize=(10,5))
-        df_nom.plot(kind='bar')
-        plt.xticks(rotation=45)
-        plt.title("Top responsables")
-        plt.tight_layout()
-        plt.savefig("resp.png")
-        plt.close()
+        img = fig_to_img(lambda: (
+            df_nom.plot(kind='bar'),
+            plt.xticks(rotation=45),
+            plt.title("Top responsables")
+        ))
 
-        story.append(Paragraph("Responsables Clave", titulo))
-        story.append(Image("resp.png", width=520, height=300))
+        story.append(Paragraph("Responsables", styles['Heading1']))
+        story.append(Image(img, width=500, height=300))
         story.append(PageBreak())
 
+    # -------------------------
     # REGIONES
+    # -------------------------
     if "Region" in df.columns:
-        df_reg = df.groupby("Region")["Ventas"].sum().sort_values(ascending=False)
+        df_reg = df.groupby("Region")["Ventas"].sum()
 
-        plt.figure(figsize=(10,5))
-        df_reg.plot(kind='bar')
-        plt.xticks(rotation=45)
-        plt.title("Impacto por región")
-        plt.tight_layout()
-        plt.savefig("reg.png")
-        plt.close()
+        img = fig_to_img(lambda: (
+            df_reg.plot(kind='bar'),
+            plt.xticks(rotation=45),
+            plt.title("Impacto por región")
+        ))
 
-        story.append(Paragraph("Distribución Geográfica", titulo))
-        story.append(Image("reg.png", width=520, height=300))
+        story.append(Paragraph("Regiones", styles['Heading1']))
+        story.append(Image(img, width=500, height=300))
         story.append(PageBreak())
 
-    # RIESGO
-    story.append(Paragraph("Riesgo del Negocio", titulo))
+    # -------------------------
+    # VOLATILIDAD
+    # -------------------------
+    story.append(Paragraph("Volatilidad", styles['Heading1']))
 
     if ratio > 0.30:
-        riesgo = "Alto riesgo por inestabilidad."
+        estado = "Alta inestabilidad"
     elif ratio > 0.15:
-        riesgo = "Riesgo moderado."
+        estado = "Variabilidad moderada"
     else:
-        riesgo = "Riesgo controlado."
+        estado = "Estable"
 
-    story.append(Paragraph(riesgo, texto))
+    story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
     story.append(PageBreak())
 
-    # RECOMENDACIÓN
-    story.append(Paragraph("Recomendación Estratégica", titulo))
-
-    if ratio > 0.30:
-        rec = "Implementar control inmediato y seguimiento semanal."
-    elif margen < 30:
-        rec = "Optimizar estructura de costos."
-    else:
-        rec = "Escalar estrategia actual."
-
-    story.append(Paragraph(rec, texto))
+    # -------------------------
+    # CONCLUSIÓN
+    # -------------------------
+    story.append(Paragraph("Conclusión", styles['Heading1']))
+    story.append(Paragraph(
+        "Se recomienda monitoreo continuo y optimización del negocio.",
+        styles['Normal']
+    ))
 
     doc.build(story)
 
@@ -187,7 +175,7 @@ if archivo:
     # PRINCIPAL
     if st.session_state.vista == "principal":
 
-        st.title("Dashboard Ejecutivo")
+        st.title("📊 Dashboard Ejecutivo")
 
         ventas = df["Ventas"].sum()
         ganancia = df["Ganancia"].sum()
@@ -203,20 +191,21 @@ if archivo:
 
         col1, col2, col3, col4 = st.columns(4)
 
-        if col1.button("Volatilidad"):
+        if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
-        if col2.button("Responsables"):
+        if col2.button("👤 Responsables"):
             st.session_state.vista = "responsables"
-        if col3.button("Causas"):
+        if col3.button("🔎 Causas"):
             st.session_state.vista = "causas"
-        if col4.button("Reporte"):
+        if col4.button("📄 Reporte"):
             st.session_state.vista = "reporte"
 
+    # VOLATILIDAD
     elif st.session_state.vista == "volatilidad":
 
-        st.title("Volatilidad")
+        st.title("🚦 Volatilidad")
 
-        if st.button("Volver"):
+        if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         media = df_m["Ventas"].mean()
@@ -232,33 +221,36 @@ if archivo:
 
         st.line_chart(df_m.set_index("Periodo")["Ventas"])
 
+    # RESPONSABLES
     elif st.session_state.vista == "responsables":
 
-        st.title("Responsables")
+        st.title("👤 Responsables")
 
-        if st.button("Volver"):
+        if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
         fig = px.line(df_nom, x="Periodo", y="Ventas", color="Nombre")
         st.plotly_chart(fig, use_container_width=True)
 
+    # CAUSAS
     elif st.session_state.vista == "causas":
 
-        st.title("Causas")
+        st.title("🔎 Causas")
 
-        if st.button("Volver"):
+        if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
         fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
         st.plotly_chart(fig, use_container_width=True)
 
+    # REPORTE
     elif st.session_state.vista == "reporte":
 
-        st.title("Reporte Ejecutivo")
+        st.title("📄 Reporte Ejecutivo")
 
-        if st.button("Volver"):
+        if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         ventas = df["Ventas"].sum()
@@ -266,7 +258,7 @@ if archivo:
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
         crecimiento = df_m["Ventas"].pct_change().mean() * 100
 
-        if st.button("Descargar PDF"):
+        if st.button("📄 Descargar PDF"):
 
             media = df_m["Ventas"].mean()
             vol = df_m["Ventas"].std()
@@ -278,4 +270,4 @@ if archivo:
                 st.download_button("Descargar reporte", f, "reporte_director.pdf")
 
 else:
-    st.info("Sube archivo Excel")
+    st.info("📂 Sube un archivo Excel")
