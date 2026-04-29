@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import numpy as np
 
 # -------------------------
 # CONFIG
@@ -20,7 +19,7 @@ def cargar_datos(archivo):
     return df
 
 # -------------------------
-# VALIDACIÓN + PREPARACIÓN
+# VALIDACIÓN
 # -------------------------
 def validar(df):
     for col in ["Fecha", "Ventas", "Costos"]:
@@ -47,40 +46,51 @@ if archivo:
     df = preparar(df)
 
     # -------------------------
-    # FILTROS
+    # FILTROS INTELIGENTES
     # -------------------------
-    st.sidebar.header("🔎 Filtros")
+    st.sidebar.header("🔎 Filtros Inteligentes")
 
+    # FECHA
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
     rango = st.sidebar.date_input("Rango de fecha", [fecha_min, fecha_max])
 
-    paises = df["Pais"].dropna().unique() if "Pais" in df.columns else []
-    regiones = df["Region"].dropna().unique() if "Region" in df.columns else []
-    productos = df["Producto"].dropna().unique() if "Producto" in df.columns else []
+    df_filtrado = df.copy()
 
-    pais_sel = st.sidebar.multiselect("País", paises, default=paises)
-    reg_sel = st.sidebar.multiselect("Región", regiones, default=regiones)
-    prod_sel = st.sidebar.multiselect("Producto", productos, default=productos)
+    # PAÍS
+    if "Pais" in df.columns:
+        paises = sorted(df["Pais"].dropna().unique())
+        pais_sel = st.sidebar.multiselect("País", paises, default=paises)
+        if pais_sel:
+            df_filtrado = df_filtrado[df_filtrado["Pais"].isin(pais_sel)]
 
-    # Aplicar filtros
+    # REGIÓN DEPENDE DE PAÍS
+    if "Region" in df.columns:
+        regiones = sorted(df_filtrado["Region"].dropna().unique())
+        reg_sel = st.sidebar.multiselect("Región", regiones, default=regiones)
+        if reg_sel:
+            df_filtrado = df_filtrado[df_filtrado["Region"].isin(reg_sel)]
+
+    # NOMBRE DEPENDE DE REGIÓN
+    if "Nombre" in df.columns:
+        nombres = sorted(df_filtrado["Nombre"].dropna().unique())
+        nom_sel = st.sidebar.multiselect("Nombre", nombres, default=nombres)
+        if nom_sel:
+            df_filtrado = df_filtrado[df_filtrado["Nombre"].isin(nom_sel)]
+
+    # FECHA AL FINAL
     if isinstance(rango, list) and len(rango) == 2:
-        df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
-                (df["Fecha"] <= pd.to_datetime(rango[1]))]
+        df_filtrado = df_filtrado[
+            (df_filtrado["Fecha"] >= pd.to_datetime(rango[0])) &
+            (df_filtrado["Fecha"] <= pd.to_datetime(rango[1]))
+        ]
 
-    if len(pais_sel) > 0:
-        df = df[df["Pais"].isin(pais_sel)]
-
-    if len(reg_sel) > 0:
-        df = df[df["Region"].isin(reg_sel)]
-
-    if len(prod_sel) > 0:
-        df = df[df["Producto"].isin(prod_sel)]
-
-    if df.empty:
+    if df_filtrado.empty:
         st.warning("Sin datos con esos filtros")
         st.stop()
+
+    df = df_filtrado
 
     # -------------------------
     # KPIs
@@ -103,7 +113,7 @@ if archivo:
     c2.metric("Ganancia", f"${ganancia:,.0f}")
     c3.metric("Margen", f"{margen:.1f}%")
 
-    # Gauge
+    # GAUGE
     fig_g = go.Figure(go.Indicator(
         mode="gauge+number",
         value=margen,
@@ -120,7 +130,7 @@ if archivo:
     c4.plotly_chart(fig_g, use_container_width=True)
 
     # -------------------------
-    # TOP PAÍSES (TARJETAS)
+    # TOP PAÍSES
     # -------------------------
     if "Pais" in df.columns:
         st.markdown("### 🏆 Top Países")
@@ -149,22 +159,13 @@ if archivo:
     # -------------------------
     st.markdown("### 📈 Tendencia de Negocio")
 
-    fig_line = px.line(
-        df_m,
-        x="Periodo",
-        y=["Ventas", "Ganancia"],
-        markers=True
-    )
-
-    fig_line.update_layout(
-        hovermode="x unified",
-        plot_bgcolor="white"
-    )
+    fig_line = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+    fig_line.update_layout(hovermode="x unified", plot_bgcolor="white")
 
     st.plotly_chart(fig_line, use_container_width=True)
 
     # -------------------------
-    # INSIGHTS
+    # INSIGHT
     # -------------------------
     st.markdown("### 🧠 Insight Ejecutivo")
 
