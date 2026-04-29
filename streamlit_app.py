@@ -157,6 +157,7 @@ elif vista == "Ganancia":
 else:
     y_data = ["Ventas", "Ganancia"]
 
+
 fig = px.line(
     df_group,
     x="Periodo",
