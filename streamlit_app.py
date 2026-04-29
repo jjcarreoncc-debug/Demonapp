@@ -220,5 +220,3 @@ if archivo:
             fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
             st.plotly_chart(fig, use_container_width=True)
 
-else:
-    st.info("Sube archivo Excel
