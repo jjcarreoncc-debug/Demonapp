@@ -22,24 +22,18 @@ if archivo is not None:
     # LECTURA
     # -------------------------
     df = pd.read_excel(archivo)
-
     df.columns = df.columns.str.strip()
+
+    # convertir fecha
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
-    # SIDEBAR
+    # SIDEBAR (FILTROS + CONTROL)
     # -------------------------
     st.sidebar.header("🔎 Filtros")
-      
-    fecha_min = df["Fecha"].min()
-    fecha_max = df["Fecha"].max()
 
-    rango_fecha = st.sidebar.date_input(
-        "Rango de Fecha",
-        [fecha_min, fecha_max]
-)
-    # CONTROLES VISUALES
+    # 🎛️ CONTROL DE VISUALIZACIÓN
     st.sidebar.markdown("---")
     st.sidebar.subheader("🎛️ Visualización")
 
@@ -53,7 +47,7 @@ if archivo is not None:
         ["Línea", "Área"]
     )
 
-    # FILTRO FECHA
+    # 📅 FILTRO FECHA
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
@@ -62,29 +56,26 @@ if archivo is not None:
         [fecha_min, fecha_max]
     )
 
-    # FILTROS OPCIONALES
-    # -------------------------
-    # PRODUCTO
-    # -------------------------
-if "Producto" in df.columns:
-    st.markdown("---")
-    st.subheader("📦 Ventas por Producto")
+    # 📦 FILTRO PRODUCTO
+    if "Producto" in df.columns:
+        productos = st.sidebar.multiselect(
+            "Producto",
+            df["Producto"].unique(),
+            default=df["Producto"].unique()
+        )
+    else:
+        productos = None
 
-    ventas_prod = (
-        df.groupby("Producto")["Ventas"]
-        .sum()
-        .sort_values(ascending=False)
-        .reset_index()
-    )
+    # 👤 FILTRO CLIENTE
+    if "Nombre" in df.columns:
+        clientes = st.sidebar.multiselect(
+            "Cliente",
+            df["Nombre"].unique(),
+            default=df["Nombre"].unique()
+        )
+    else:
+        clientes = None
 
-    fig_prod = px.bar(
-        ventas_prod,
-        x="Producto",
-        y="Ventas",
-        color="Ventas"
-    )
-
-    st.plotly_chart(fig_prod, use_container_width=True)
     # -------------------------
     # APLICAR FILTROS
     # -------------------------
@@ -94,21 +85,10 @@ if "Producto" in df.columns:
             (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
         ]
 
-if len(rango_fecha) == 2:
-    df = df[
-        (df["Fecha"] >= pd.to_datetime(rango_fecha[0])) &
-        (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
-    ]
-
-if productos:
-    df = df[df["Producto"].isin(productos)]
-
-if clientes:
-    df = df[df["Nombre"].isin(clientes)]
-    if productos is not None:
+    if productos:
         df = df[df["Producto"].isin(productos)]
 
-    if clientes is not None:
+    if clientes:
         df = df[df["Nombre"].isin(clientes)]
 
     # -------------------------
@@ -180,54 +160,68 @@ if clientes:
     st.plotly_chart(fig, use_container_width=True)
 
     # -------------------------
-    # ANIMACIÓN
+    # EVOLUCIÓN (LÍNEA)
     # -------------------------
-   # -------------------------
-# EVOLUCIÓN ANIMADA (LÍNEA)
-# -------------------------
-st.markdown("---")
-st.subheader("▶️ Evolución dinámica de ventas")
+    st.markdown("---")
+    st.subheader("📈 Evolución de Ventas")
 
-# ordenar por periodo
-df_group = df_group.sort_values("Periodo")
+    df_group = df_group.sort_values("Periodo")
 
-fig_anim = px.line(
-    df_group,
-    x="Periodo",
-    y="Ventas",
-    markers=True,
-    animation_frame="Periodo",
-    title="Evolución progresiva de ventas"
-)
+    fig_evol = px.line(
+        df_group,
+        x="Periodo",
+        y=["Ventas", "Ganancia"],
+        markers=True
+    )
 
-fig_anim.update_layout(
-    hovermode="x unified"
-)
+    st.plotly_chart(fig_evol, use_container_width=True)
 
-st.plotly_chart(fig_anim, use_container_width=True)
+    # -------------------------
+    # PRODUCTO
+    # -------------------------
+    if "Producto" in df.columns:
+        st.markdown("---")
+        st.subheader("📦 Ventas por Producto")
+
+        ventas_prod = (
+            df.groupby("Producto")["Ventas"]
+            .sum()
+            .sort_values(ascending=False)
+            .reset_index()
+        )
+
+        fig_prod = px.bar(
+            ventas_prod,
+            x="Producto",
+            y="Ventas",
+            color="Ventas"
+        )
+
+        st.plotly_chart(fig_prod, use_container_width=True)
 
     # -------------------------
     # CLIENTES
     # -------------------------
-if "Nombre" in df.columns:
-    st.markdown("---")
-    st.subheader("👤 Ventas por Cliente")
+    if "Nombre" in df.columns:
+        st.markdown("---")
+        st.subheader("👤 Ventas por Cliente")
 
-    ventas_cliente = (
-        df.groupby("Nombre")["Ventas"]
-        .sum()
-        .sort_values(ascending=False)
-        .reset_index()
-    )
+        ventas_cliente = (
+            df.groupby("Nombre")["Ventas"]
+            .sum()
+            .sort_values(ascending=False)
+            .reset_index()
+        )
 
-    fig_cli = px.bar(
-        ventas_cliente,
-        x="Nombre",
-        y="Ventas",
-        color="Ventas"
-    )
+        fig_cli = px.bar(
+            ventas_cliente,
+            x="Nombre",
+            y="Ventas",
+            color="Ventas"
+        )
 
-    st.plotly_chart(fig_cli, use_container_width=True)
+        st.plotly_chart(fig_cli, use_container_width=True)
+
     # -------------------------
     # DATOS
     # -------------------------
