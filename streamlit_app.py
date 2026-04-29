@@ -128,8 +128,22 @@ df_group["Mes"] = df_group["Periodo"].dt.month
 comparacion = df_group.groupby("Mes")["Ventas"].sum()
 
 st.bar_chart(comparacion)
+# -------------------------
+# adiccion 2
+# -------------------------
 
+if "Producto" in df.columns:
+    st.subheader("📊 Participación por Producto")
 
+    part = (
+        df.groupby("Producto")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+    )
+
+    part_pct = (part / part.sum()) * 100
+
+    st.dataframe(part_pct.round(2))
 # -------------------------
 # TOP PRODUCTOS
 # -------------------------
