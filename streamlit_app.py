@@ -30,9 +30,19 @@ if archivo is not None:
     # -------------------------
     # FILTROS
     # -------------------------
-    st.sidebar.header("🔎 Filtros")
-
-    fecha_min = df["Fecha"].min()
+	st.sidebar.header("🔎 Filtros")
+	st.sidebar.markdown("---")
+	st.sidebar.subheader("🎛️ Visualización")
+	
+	vista = st.sidebar.radio(
+	"Métrica",
+	["Ventas", "Ganancia", "Ambos"]
+	)
+   tipo = st.sidebar.radio(
+    "Tipo de gráfica",
+    ["Línea", "Área"]
+)
+	fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
     rango_fecha = st.sidebar.date_input(
@@ -158,24 +168,21 @@ if not df_group.empty:
 st.markdown("---")
 st.subheader("📈 Análisis Visual")
 
-vista = st.selectbox(
-	"📊 Selecciona vista",
-	["Ventas", "Ganancia", "Ambos"]
-)
-
 if vista == "Ventas":
-	y_data = ["Ventas"]
+    y_data = ["Ventas"]
 elif vista == "Ganancia":
-	y_data = ["Ganancia"]
+    y_data = ["Ganancia"]
 else:
-	y_data = ["Ventas", "Ganancia"]
+    y_data = ["Ventas", "Ganancia"]
 
-fig = px.line(
-	df_group,
-	x="Periodo",
-	y=y_data,
-	markers=True,
-	title="Tendencia dinámica"
+if tipo == "Línea":
+    fig = px.line(df_group, x="Periodo", y=y_data, markers=True)
+else:
+    fig = px.area(df_group, x="Periodo", y=y_data)
+
+fig.update_layout(
+    hovermode="x unified",
+    transition_duration=500
 )
 
 st.plotly_chart(fig, use_container_width=True)
