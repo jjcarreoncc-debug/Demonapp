@@ -265,9 +265,13 @@ if "Nombre" in df.columns:
 	# -------------------------
 	# DATOS
 	# -------------------------
-st.markdown("---")
-	with st.expander("📂 Ver datos"):
-	st.dataframe(df)
-	
-	else:
-	st.info("📂 Sube un archivo Excel para comenzar")
+if archivo is not None:
+    # todo tu código (df, gráficas, etc)
+
+    st.markdown("---")
+
+    with st.expander("📂 Ver datos"):
+        st.dataframe(df)
+
+else:
+    st.info("📂 Sube un archivo Excel para comenzar")
