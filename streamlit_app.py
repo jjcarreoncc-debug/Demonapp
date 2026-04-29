@@ -1,10 +1,10 @@
-# === DASHBOARD PRO + PDF PRESENTACIÓN ===
+# === DASHBOARD PRO + PDF CON GRÁFICAS ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet
 
 # -------------------------
@@ -35,9 +35,12 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF PRESENTACIÓN
+# PDF CON GRÁFICAS
 # -------------------------
-def generar_pdf_presentacion(ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
+def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
+
+    # Guardar gráfica
+    fig.write_image("grafica.png")
 
     doc = SimpleDocTemplate("reporte_presentacion.pdf")
     styles = getSampleStyleSheet()
@@ -46,7 +49,6 @@ def generar_pdf_presentacion(ventas, ganancia, margen, crecimiento, max_mes, min
     # PORTADA
     story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
     story.append(Spacer(1, 20))
-    story.append(Paragraph("Análisis del desempeño del negocio", styles['Normal']))
     story.append(PageBreak())
 
     # RESUMEN
@@ -55,32 +57,28 @@ def generar_pdf_presentacion(ventas, ganancia, margen, crecimiento, max_mes, min
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Normal']))
     story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
+    story.append(Spacer(1, 20))
+
+    # GRÁFICA
+    story.append(Image("grafica.png", width=500, height=300))
     story.append(PageBreak())
 
     # VOLATILIDAD
-    story.append(Paragraph("Volatilidad del negocio", styles['Heading1']))
+    story.append(Paragraph("Volatilidad", styles['Heading1']))
+
     if ratio > 0.30:
         estado = "Alta inestabilidad"
     elif ratio > 0.15:
         estado = "Variabilidad moderada"
     else:
-        estado = "Ventas estables"
+        estado = "Estable"
+
     story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
-    story.append(PageBreak())
-
-    # RESPONSABLES
-    story.append(Paragraph("Responsables clave", styles['Heading1']))
-    story.append(Paragraph("Los responsables con mayor variabilidad afectan el desempeño.", styles['Normal']))
-    story.append(PageBreak())
-
-    # CAUSAS
-    story.append(Paragraph("Causas de la variabilidad", styles['Heading1']))
-    story.append(Paragraph("Las regiones con mayor fluctuación explican el comportamiento.", styles['Normal']))
     story.append(PageBreak())
 
     # CONCLUSIÓN
     story.append(Paragraph("Conclusión", styles['Heading1']))
-    story.append(Paragraph("Se recomienda estabilizar las áreas con mayor variabilidad.", styles['Normal']))
+    story.append(Paragraph("Se recomienda estabilizar las áreas críticas.", styles['Normal']))
 
     doc.build(story)
 
@@ -99,9 +97,7 @@ if archivo:
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    # -------------------------
     # FILTROS
-    # -------------------------
     st.sidebar.header("🔎 Filtros")
 
     df_f = df.copy()
@@ -202,16 +198,23 @@ if archivo:
         max_mes = df_m.loc[df_m["Ventas"].idxmax()]
         min_mes = df_m.loc[df_m["Ventas"].idxmin()]
 
-        st.write("Resumen listo para exportar")
+        st.write("Reporte listo para exportar")
 
-        if st.button("📄 Descargar Presentación PDF"):
+        if st.button("📄 Descargar PDF con gráfica"):
 
             media = df_m["Ventas"].mean()
             vol = df_m["Ventas"].std()
             ratio = vol / media if media != 0 else 0
 
             generar_pdf_presentacion(
-                ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio
+                fig,
+                ventas,
+                ganancia,
+                margen,
+                crecimiento,
+                max_mes,
+                min_mes,
+                ratio
             )
 
             with open("reporte_presentacion.pdf", "rb") as f:
