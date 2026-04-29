@@ -91,7 +91,7 @@ if "Producto" in df.columns:
             (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
         ]
 
-    if len(rango_fecha) == 2:
+if len(rango_fecha) == 2:
     df = df[
         (df["Fecha"] >= pd.to_datetime(rango_fecha[0])) &
         (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
