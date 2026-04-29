@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 # -------------------------
 # CONFIG
@@ -28,7 +29,7 @@ if archivo is not None:
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
-    # SIDEBAR (FILTROS)
+    # SIDEBAR
     # -------------------------
     st.sidebar.header("🔎 Filtros")
 
@@ -68,7 +69,7 @@ if archivo is not None:
         productos = None
 
     # -------------------------
-    # APLICAR FILTROS
+    # FILTROS
     # -------------------------
     if len(rango_fecha) == 2:
         df = df[
@@ -91,7 +92,7 @@ if archivo is not None:
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    # 🧠 COMBINACIÓN CLAVE
+    # combinación
     if all(col in df.columns for col in ["Pais", "Region", "Producto"]):
         df["Categoria"] = (
             df["Pais"].astype(str) + " | " +
@@ -100,29 +101,84 @@ if archivo is not None:
         )
 
     # -------------------------
-    # KPIs
+    # KPIs NUMÉRICOS
     # -------------------------
     st.subheader("📊 KPIs")
 
     ventas_total = df["Ventas"].sum()
     ganancia_total = df["Ganancia"].sum()
+    costos_total = df["Costos"].sum()
 
     margen = 0 if ventas_total == 0 else (ganancia_total / ventas_total) * 100
 
-    col1, col2, col3 = st.columns(3)
+    k1, k2, k3, k4 = st.columns(4)
 
-    col1.metric("💰 Ventas", round(ventas_total, 0))
-    col2.metric("📈 Ganancia", round(ganancia_total, 0))
-    col3.metric("📊 Margen %", round(margen, 1))
-
-    # -------------------------
-    # 🎯 CONTROL TOP
-    # -------------------------
-    st.sidebar.markdown("---")
-    top_n = st.sidebar.slider("Top categorías", 5, 20, 10)
+    k1.metric("Ventas", round(ventas_total, 0))
+    k2.metric("Ganancia", round(ganancia_total, 0))
+    k3.metric("Costos", round(costos_total, 0))
+    k4.metric("Margen %", round(margen, 1))
 
     # -------------------------
-    # 📊 GRÁFICA PRINCIPAL
+    # 🎯 GAUGES (CÍRCULOS)
+    # -------------------------
+    st.markdown("---")
+    st.subheader("🎯 Indicadores Visuales")
+
+    g1, g2, g3 = st.columns(3)
+
+    # Ventas
+    max_v = df["Ventas"].max() if not df.empty else 1
+    fig1 = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=ventas_total,
+        title={'text': "Ventas"},
+        gauge={
+            'axis': {'range': [0, max_v]},
+            'bar': {'color': "blue"},
+            'steps': [
+                {'range': [0, max_v*0.5], 'color': "lightgray"},
+                {'range': [max_v*0.5, max_v], 'color': "green"}
+            ]
+        }
+    ))
+    g1.plotly_chart(fig1, use_container_width=True)
+
+    # Ganancia
+    max_g = df["Ganancia"].max() if not df.empty else 1
+    fig2 = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=ganancia_total,
+        title={'text': "Ganancia"},
+        gauge={
+            'axis': {'range': [0, max_g]},
+            'bar': {'color': "green"},
+            'steps': [
+                {'range': [0, max_g*0.5], 'color': "lightgray"},
+                {'range': [max_g*0.5, max_g], 'color': "lime"}
+            ]
+        }
+    ))
+    g2.plotly_chart(fig2, use_container_width=True)
+
+    # Margen
+    fig3 = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=margen,
+        title={'text': "Margen %"},
+        gauge={
+            'axis': {'range': [0, 100]},
+            'bar': {'color': "orange"},
+            'steps': [
+                {'range': [0, 30], 'color': "red"},
+                {'range': [30, 60], 'color': "yellow"},
+                {'range': [60, 100], 'color': "green"}
+            ]
+        }
+    ))
+    g3.plotly_chart(fig3, use_container_width=True)
+
+    # -------------------------
+    # 📈 GRÁFICA PRINCIPAL
     # -------------------------
     st.markdown("---")
     st.subheader("📈 Evolución País | Región | Producto")
@@ -134,16 +190,6 @@ if archivo is not None:
             .sum()
             .reset_index()
         )
-
-        # 🔥 TOP CATEGORÍAS
-        top_cat = (
-            df.groupby("Categoria")["Ventas"]
-            .sum()
-            .nlargest(top_n)
-            .index
-        )
-
-        df_combo = df_combo[df_combo["Categoria"].isin(top_cat)]
 
         fig = px.line(
             df_combo,
@@ -158,7 +204,7 @@ if archivo is not None:
         st.plotly_chart(fig, use_container_width=True)
 
     else:
-        st.warning("Se requieren columnas: Pais, Region y Producto")
+        st.warning("Faltan columnas: Pais, Region o Producto")
 
     # -------------------------
     # DATOS
