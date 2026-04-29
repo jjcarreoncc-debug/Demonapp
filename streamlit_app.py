@@ -33,19 +33,6 @@ if archivo is not None:
     # -------------------------
     st.sidebar.header("🔎 Filtros")
 
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("🎛️ Visualización")
-
-    vista = st.sidebar.radio(
-        "Métrica",
-        ["Ventas", "Ganancia", "Ambos"]
-    )
-
-    tipo = st.sidebar.radio(
-        "Tipo de gráfica",
-        ["Línea", "Área"]
-    )
-
     # FILTRO FECHA
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
@@ -55,7 +42,27 @@ if archivo is not None:
         [fecha_min, fecha_max]
     )
 
-    # FILTRO PRODUCTO
+    # 🌎 FILTRO PAÍS
+    if "Pais" in df.columns:
+        paises = st.sidebar.multiselect(
+            "País",
+            df["Pais"].unique(),
+            default=df["Pais"].unique()
+        )
+    else:
+        paises = None
+
+    # 🗺️ FILTRO REGIÓN
+    if "Region" in df.columns:
+        regiones = st.sidebar.multiselect(
+            "Región",
+            df["Region"].unique(),
+            default=df["Region"].unique()
+        )
+    else:
+        regiones = None
+
+    # 📦 PRODUCTO
     if "Producto" in df.columns:
         productos = st.sidebar.multiselect(
             "Producto",
@@ -65,7 +72,7 @@ if archivo is not None:
     else:
         productos = None
 
-    # FILTRO CLIENTE
+    # 👤 CLIENTE
     if "Nombre" in df.columns:
         clientes = st.sidebar.multiselect(
             "Cliente",
@@ -84,6 +91,12 @@ if archivo is not None:
             (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
         ]
 
+    if paises:
+        df = df[df["Pais"].isin(paises)]
+
+    if regiones:
+        df = df[df["Region"].isin(regiones)]
+
     if productos:
         df = df[df["Producto"].isin(productos)]
 
@@ -97,7 +110,7 @@ if archivo is not None:
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     df_group = (
-        df.groupby("Periodo")[["Ventas", "Costos", "Ganancia"]]
+        df.groupby("Periodo")[["Ventas", "Ganancia"]]
         .sum()
         .reset_index()
         .sort_values("Periodo")
@@ -106,115 +119,84 @@ if archivo is not None:
     # -------------------------
     # KPIs
     # -------------------------
-    st.subheader("📊 KPIs Ejecutivos")
+    st.subheader("📊 KPIs")
 
     ventas_total = df["Ventas"].sum()
-    costos_total = df["Costos"].sum()
     ganancia_total = df["Ganancia"].sum()
 
     margen = 0 if ventas_total == 0 else (ganancia_total / ventas_total) * 100
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
 
     col1.metric("💰 Ventas", round(ventas_total, 0))
     col2.metric("📈 Ganancia", round(ganancia_total, 0))
-    col3.metric("💸 Costos", round(costos_total, 0))
-    col4.metric("📊 Margen %", round(margen, 1))
+    col3.metric("📊 Margen %", round(margen, 1))
 
     # -------------------------
-    # ANÁLISIS VISUAL
+    # EVOLUCIÓN
     # -------------------------
     st.markdown("---")
-    st.subheader("📈 Análisis Visual")
+    st.subheader("📈 Evolución")
 
-    if vista == "Ventas":
-        y_data = ["Ventas"]
-    elif vista == "Ganancia":
-        y_data = ["Ganancia"]
-    else:
-        y_data = ["Ventas", "Ganancia"]
-
-    if tipo == "Línea":
-        fig = px.line(df_group, x="Periodo", y=y_data, markers=True)
-    else:
-        fig = px.area(df_group, x="Periodo", y=y_data)
+    fig = px.line(
+        df_group,
+        x="Periodo",
+        y=["Ventas", "Ganancia"],
+        markers=True
+    )
 
     st.plotly_chart(fig, use_container_width=True)
 
     # -------------------------
-    # ANIMACIÓN REAL (LÍNEA)
+    # 🌎 VENTAS POR PAÍS
     # -------------------------
-    st.markdown("---")
-    st.subheader("▶️ Evolución dinámica")
-
-    placeholder = st.empty()
-
-    for i in range(1, len(df_group) + 1):
-
-        df_temp = df_group.iloc[:i]
-
-        fig_anim = px.line(
-            df_temp,
-            x="Periodo",
-            y=["Ventas", "Ganancia"],
-            markers=True
-        )
-
-        placeholder.plotly_chart(fig_anim, use_container_width=True)
-
-        time.sleep(0.3)
-
-    # -------------------------
-    # PRODUCTO
-    # -------------------------
-    if "Producto" in df.columns:
+    if "Pais" in df.columns:
         st.markdown("---")
-        st.subheader("📦 Ventas por Producto")
+        st.subheader("🌎 Ventas por País")
 
-        ventas_prod = (
-            df.groupby("Producto")["Ventas"]
+        ventas_pais = (
+            df.groupby("Pais")["Ventas"]
             .sum()
             .sort_values(ascending=False)
             .reset_index()
         )
 
-        fig_prod = px.bar(
-            ventas_prod,
-            x="Producto",
+        fig_pais = px.bar(
+            ventas_pais,
+            x="Pais",
             y="Ventas",
             color="Ventas"
         )
 
-        st.plotly_chart(fig_prod, use_container_width=True)
+        st.plotly_chart(fig_pais, use_container_width=True)
 
     # -------------------------
-    # CLIENTES
+    # 🗺️ VENTAS POR REGIÓN
     # -------------------------
-    if "Nombre" in df.columns:
+    if "Region" in df.columns:
         st.markdown("---")
-        st.subheader("👤 Ventas por Cliente")
+        st.subheader("🗺️ Ventas por Región")
 
-        ventas_cliente = (
-            df.groupby("Nombre")["Ventas"]
+        ventas_region = (
+            df.groupby("Region")["Ventas"]
             .sum()
             .sort_values(ascending=False)
             .reset_index()
         )
 
-        fig_cli = px.bar(
-            ventas_cliente,
-            x="Nombre",
+        fig_region = px.bar(
+            ventas_region,
+            x="Region",
             y="Ventas",
             color="Ventas"
         )
 
-        st.plotly_chart(fig_cli, use_container_width=True)
+        st.plotly_chart(fig_region, use_container_width=True)
 
     # -------------------------
     # DATOS
     # -------------------------
     st.markdown("---")
-
     with st.expander("📂 Ver datos"):
         st.dataframe(df)
 
