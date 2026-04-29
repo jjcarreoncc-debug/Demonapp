@@ -176,7 +176,72 @@ if archivo:
             st.success(f"Crecimiento promedio mensual: {crecimiento:.1f}%")
         else:
             st.error(f"Tendencia negativa: {crecimiento:.1f}%")
+# -------------------------
+# 🚦 ANÁLISIS DE VOLATILIDAD AVANZADO
+# -------------------------
+st.markdown("## 🚦 Análisis de Estabilidad del Negocio")
 
+# === GLOBAL ===
+media = df_m["Ventas"].mean()
+volatilidad = df_m["Ventas"].std()
+ratio = volatilidad / media if media != 0 else 0
+
+st.markdown("### 🌐 General")
+
+if ratio > 0.30:
+    st.error(f"🔴 Alta inestabilidad ({ratio:.2f})")
+elif ratio > 0.15:
+    st.warning(f"🟡 Variabilidad moderada ({ratio:.2f})")
+else:
+    st.success(f"🟢 Ventas estables ({ratio:.2f})")
+
+# === POR REGIÓN ===
+if "Region" in df.columns:
+
+    st.markdown("### 🌍 Por Región")
+
+    df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
+
+    regiones = df_reg["Region"].unique()
+
+    for r in regiones:
+        df_r = df_reg[df_reg["Region"] == r]
+
+        if len(df_r) > 1:
+            media_r = df_r["Ventas"].mean()
+            vol_r = df_r["Ventas"].std()
+            ratio_r = vol_r / media_r if media_r != 0 else 0
+
+            if ratio_r > 0.30:
+                st.error(f"{r}: 🔴 Alta inestabilidad ({ratio_r:.2f})")
+            elif ratio_r > 0.15:
+                st.warning(f"{r}: 🟡 Variabilidad moderada ({ratio_r:.2f})")
+            else:
+                st.success(f"{r}: 🟢 Estable ({ratio_r:.2f})")
+
+# === POR NOMBRE ===
+if "Nombre" in df.columns:
+
+    st.markdown("### 👤 Por Responsable")
+
+    df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
+
+    nombres = df_nom["Nombre"].unique()
+
+    for n in nombres[:10]:  # limitamos a 10 para no saturar
+        df_n = df_nom[df_nom["Nombre"] == n]
+
+        if len(df_n) > 1:
+            media_n = df_n["Ventas"].mean()
+            vol_n = df_n["Ventas"].std()
+            ratio_n = vol_n / media_n if media_n != 0 else 0
+
+            if ratio_n > 0.30:
+                st.error(f"{n}: 🔴 Inestable ({ratio_n:.2f})")
+            elif ratio_n > 0.15:
+                st.warning(f"{n}: 🟡 Moderado ({ratio_n:.2f})")
+            else:
+                st.success(f"{n}: 🟢 Estable ({ratio_n:.2f})")
     # -------------------------
     # DATOS
     # -------------------------
