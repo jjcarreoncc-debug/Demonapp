@@ -185,11 +185,22 @@ col2.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+ventas_total = df_group["Ventas"].sum()
+costos_total = df_group["Costos"].sum()
+ganancia_total = df_group["Ganancia"].sum()
+
+if ventas_total != 0:
+    margen = (ganancia_total / ventas_total) * 100
+else:
+    margen = 0
+
 col3.markdown(f"""
 <div class="kpi-card">
     <div class="kpi-title">Ganancia</div>
     <div class="kpi-value">{round(ganancia_total,2)}</div>
 </div>
+
+
 """, unsafe_allow_html=True)
 
 col4.markdown(f"""
