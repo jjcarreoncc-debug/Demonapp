@@ -158,25 +158,25 @@ if not df_group.empty:
 st.markdown("---")
 st.subheader("📈 Análisis Visual")
 
-    vista = st.selectbox(
-        "📊 Selecciona vista",
-        ["Ventas", "Ganancia", "Ambos"]
-    )
+vista = st.selectbox(
+	"📊 Selecciona vista",
+	["Ventas", "Ganancia", "Ambos"]
+)
 
-    if vista == "Ventas":
-        y_data = ["Ventas"]
-    elif vista == "Ganancia":
-        y_data = ["Ganancia"]
-    else:
-        y_data = ["Ventas", "Ganancia"]
+if vista == "Ventas":
+	y_data = ["Ventas"]
+elif vista == "Ganancia":
+	y_data = ["Ganancia"]
+else:
+	y_data = ["Ventas", "Ganancia"]
 
-    fig = px.line(
-        df_group,
-        x="Periodo",
-        y=y_data,
-        markers=True,
-        title="Tendencia dinámica"
-    )
+fig = px.line(
+	df_group,
+	x="Periodo",
+	y=y_data,
+	markers=True,
+	title="Tendencia dinámica"
+)
 
     st.plotly_chart(fig, use_container_width=True)
 
