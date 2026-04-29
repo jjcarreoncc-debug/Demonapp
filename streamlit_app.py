@@ -1,15 +1,13 @@
-# === DASHBOARD PRO FINAL FUNCIONAL ===
+# === DASHBOARD PRO FULL + PDF ESTABLE ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import os
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image
 from reportlab.lib.styles import getSampleStyleSheet
 
-# -------------------------
-# CONFIG
-# -------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo PRO", layout="wide")
 
 # -------------------------
@@ -19,20 +17,26 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # -------------------------
-# PDF CON GRÁFICA
+# PDF
 # -------------------------
-def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
+def generar_pdf(fig, ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
 
-    fig.write_image("grafica.png")
-
-    doc = SimpleDocTemplate("reporte_presentacion.pdf")
     styles = getSampleStyleSheet()
+    doc = SimpleDocTemplate("reporte.pdf")
     story = []
 
+    # Intentar guardar gráfica
+    try:
+        fig.write_image("grafica.png")
+        imagen_ok = True
+    except:
+        imagen_ok = False
+
+    # PORTADA
     story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
-    story.append(Spacer(1, 20))
     story.append(PageBreak())
 
+    # RESUMEN
     story.append(Paragraph("Resumen Ejecutivo", styles['Heading1']))
     story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
     story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
@@ -40,9 +44,14 @@ def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes
     story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
     story.append(Spacer(1, 20))
 
-    story.append(Image("grafica.png", width=500, height=300))
+    if imagen_ok and os.path.exists("grafica.png"):
+        story.append(Image("grafica.png", width=500, height=300))
+    else:
+        story.append(Paragraph("Gráfica no disponible", styles['Normal']))
+
     story.append(PageBreak())
 
+    # VOLATILIDAD
     story.append(Paragraph("Volatilidad", styles['Heading1']))
 
     if ratio > 0.30:
@@ -55,8 +64,9 @@ def generar_pdf_presentacion(fig, ventas, ganancia, margen, crecimiento, max_mes
     story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
     story.append(PageBreak())
 
+    # CONCLUSIÓN
     story.append(Paragraph("Conclusión", styles['Heading1']))
-    story.append(Paragraph("Se recomienda estabilizar áreas críticas.", styles['Normal']))
+    story.append(Paragraph("Enfocar acciones en áreas con mayor variabilidad.", styles['Normal']))
 
     doc.build(story)
 
@@ -72,6 +82,7 @@ if archivo:
 
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
+
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
@@ -119,8 +130,6 @@ if archivo:
         c3.metric("Margen", f"{margen:.1f}%")
 
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        fig.update_layout(plot_bgcolor="white", paper_bgcolor="white")
-
         st.plotly_chart(fig, use_container_width=True)
 
         col1, col2, col3, col4 = st.columns(4)
@@ -128,7 +137,13 @@ if archivo:
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
 
-        if col2.button("📄 Reporte"):
+        if col2.button("👤 Responsables"):
+            st.session_state.vista = "responsables"
+
+        if col3.button("🔎 Causas"):
+            st.session_state.vista = "causas"
+
+        if col4.button("📄 Reporte"):
             st.session_state.vista = "reporte"
 
     # =========================
@@ -146,13 +161,43 @@ if archivo:
         ratio = vol / media if media != 0 else 0
 
         if ratio > 0.30:
-            st.markdown("🔴 Alta inestabilidad")
+            st.error("Alta inestabilidad")
         elif ratio > 0.15:
-            st.markdown("🟡 Variabilidad moderada")
+            st.warning("Variabilidad moderada")
         else:
-            st.markdown("🟢 Estable")
+            st.success("Estable")
 
         st.line_chart(df_m.set_index("Periodo")["Ventas"])
+
+    # =========================
+    # RESPONSABLES
+    # =========================
+    elif st.session_state.vista == "responsables":
+
+        st.title("👤 Responsables")
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
+
+        fig = px.line(df_nom, x="Periodo", y="Ventas", color="Nombre")
+        st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # CAUSAS
+    # =========================
+    elif st.session_state.vista == "causas":
+
+        st.title("🔎 Causas")
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
+
+        fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
+        st.plotly_chart(fig, use_container_width=True)
 
     # =========================
     # REPORTE
@@ -172,19 +217,15 @@ if archivo:
         max_mes = df_m.loc[df_m["Ventas"].idxmax()]
         min_mes = df_m.loc[df_m["Ventas"].idxmin()]
 
-        # 🔥 AQUÍ SE CORRIGE EL ERROR
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        fig.update_layout(plot_bgcolor="white", paper_bgcolor="white")
 
-        st.write("Reporte listo para exportar")
-
-        if st.button("📄 Descargar PDF con gráfica"):
+        if st.button("📄 Descargar PDF"):
 
             media = df_m["Ventas"].mean()
             vol = df_m["Ventas"].std()
             ratio = vol / media if media != 0 else 0
 
-            generar_pdf_presentacion(
+            generar_pdf(
                 fig,
                 ventas,
                 ganancia,
@@ -195,13 +236,5 @@ if archivo:
                 ratio
             )
 
-            with open("reporte_presentacion.pdf", "rb") as f:
-                st.download_button(
-                    "Descargar presentación",
-                    f,
-                    "reporte_ejecutivo.pdf",
-                    "application/pdf"
-                )
-
-else:
-    st.info("Sube archivo Excel")
+            with open("reporte.pdf", "rb") as f:
+                st.download_button("Descargar", f, "reporte.pdf")
