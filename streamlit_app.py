@@ -160,43 +160,29 @@ if archivo is not None:
     # -------------------------
     # ANIMACIÓN
     # -------------------------
-    st.markdown("---")
-    st.subheader("▶️ Evolución de Ventas")
+   # -------------------------
+# EVOLUCIÓN ANIMADA (LÍNEA)
+# -------------------------
+st.markdown("---")
+st.subheader("▶️ Evolución dinámica de ventas")
 
-    fig_anim = px.bar(
-        df_group,
-        x="Periodo",
-        y="Ventas",
-        color="Ventas",
-        animation_frame="Periodo",
-        range_y=[0, df_group["Ventas"].max()],
-        title="Evolución por periodo"
-    )
+# ordenar por periodo
+df_group = df_group.sort_values("Periodo")
 
-    st.plotly_chart(fig_anim, use_container_width=True)
+fig_anim = px.line(
+    df_group,
+    x="Periodo",
+    y="Ventas",
+    markers=True,
+    animation_frame="Periodo",
+    title="Evolución progresiva de ventas"
+)
 
-    # -------------------------
-    # PRODUCTO
-    # -------------------------
-    if "Producto" in df.columns:
-        st.markdown("---")
-        st.subheader("📦 Ventas por Producto")
+fig_anim.update_layout(
+    hovermode="x unified"
+)
 
-        ventas_prod = (
-            df.groupby("Producto")["Ventas"]
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
-        )
-
-        fig_prod = px.bar(
-            ventas_prod,
-            x="Producto",
-            y="Ventas",
-            color="Ventas"
-        )
-
-        st.plotly_chart(fig_prod, use_container_width=True)
+st.plotly_chart(fig_anim, use_container_width=True)
 
     # -------------------------
     # CLIENTES
