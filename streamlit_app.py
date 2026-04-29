@@ -56,24 +56,28 @@ if archivo is not None:
     )
 
     # FILTROS OPCIONALES
-    if "Producto" in df.columns:
-        productos = st.sidebar.multiselect(
-            "Producto",
-            df["Producto"].unique(),
-            default=df["Producto"].unique()
-        )
-    else:
-        productos = None
+    # -------------------------
+    # PRODUCTO
+    # -------------------------
+if "Producto" in df.columns:
+    st.markdown("---")
+    st.subheader("📦 Ventas por Producto")
 
-    if "Nombre" in df.columns:
-        clientes = st.sidebar.multiselect(
-            "Cliente",
-            df["Nombre"].unique(),
-            default=df["Nombre"].unique()
-        )
-    else:
-        clientes = None
+    ventas_prod = (
+        df.groupby("Producto")["Ventas"]
+        .sum()
+        .sort_values(ascending=False)
+        .reset_index()
+    )
 
+    fig_prod = px.bar(
+        ventas_prod,
+        x="Producto",
+        y="Ventas",
+        color="Ventas"
+    )
+
+    st.plotly_chart(fig_prod, use_container_width=True)
     # -------------------------
     # APLICAR FILTROS
     # -------------------------
