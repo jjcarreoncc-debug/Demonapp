@@ -149,7 +149,7 @@ if archivo is not None:
     "📊 Selecciona vista",
     ["Ventas", "Ganancia", "Ambos"]
 )
-   
+
 if vista == "Ventas":
     y_data = ["Ventas"]
 elif vista == "Ganancia":
@@ -164,7 +164,6 @@ fig = px.line(
     markers=True,
     title="Tendencia dinámica"
 )
-
 st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("---")
