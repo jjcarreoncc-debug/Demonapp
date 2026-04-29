@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 
 # -------------------------
 # CONFIG
@@ -96,18 +97,34 @@ if archivo is not None:
     # -------------------------
     # ANALISIS VISUAL
     # -------------------------
-    st.markdown("---")
-    st.subheader("📈 Análisis Visual")
+    fig = px.line(
+    df_group,
+    x="Periodo",
+    y=["Ventas", "Ganancia"],
+    markers=True,
+    title="Tendencia de Ventas y Ganancia"
+)
 
-    col1, col2 = st.columns(2)
+st.plotly_chart(fig, use_container_width=True)
+ 
+fig_bar = px.bar(
+    df_group,
+    x="Periodo",
+    y="Ventas",
+    title="Ventas por Periodo",
+    text_auto=True
+)
 
-    with col1:
-        st.line_chart(df_group.set_index("Periodo")[["Ventas", "Ganancia"]])
+st.plotly_chart(fig_bar, use_container_width=True)
 
-    with col2:
-        st.bar_chart(df_group.set_index("Periodo")["Ventas"])
-
-    # -------------------------
+fig = px.line(
+    df_group,
+    x="Periodo",
+    y=["Ventas", "Ganancia"],
+    markers=True,
+    color_discrete_sequence=["#60A5FA", "#34D399"]
+)
+# -------------------------
     # RENTABILIDAD
     # -------------------------
     st.markdown("---")
