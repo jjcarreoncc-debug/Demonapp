@@ -145,7 +145,7 @@ if archivo is not None:
     # -------------------------
     # GRAFICAS
     # -------------------------
-    vista = st.selectbox(
+ vista = st.selectbox(
     "📊 Selecciona vista",
     ["Ventas", "Ganancia", "Ambos"]
 )
