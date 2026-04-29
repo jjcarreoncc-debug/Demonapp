@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import time
 
 # -------------------------
 # CONFIG
@@ -99,9 +100,8 @@ if archivo is not None:
         df.groupby("Periodo")[["Ventas", "Costos", "Ganancia"]]
         .sum()
         .reset_index()
+        .sort_values("Periodo")
     )
-
-    df_group = df_group.sort_values("Periodo")
 
     # -------------------------
     # KPIs
@@ -122,19 +122,6 @@ if archivo is not None:
     col4.metric("📊 Margen %", round(margen, 1))
 
     # -------------------------
-    # INSIGHTS
-    # -------------------------
-    st.markdown("---")
-    st.subheader("🧠 Insights")
-
-    if not df_group.empty:
-        mejor = df_group.loc[df_group["Ventas"].idxmax()]
-        peor = df_group.loc[df_group["Ventas"].idxmin()]
-
-        st.success(f"Mejor periodo: {mejor['Periodo']} → {round(mejor['Ventas'],0)}")
-        st.warning(f"Peor periodo: {peor['Periodo']} → {round(peor['Ventas'],0)}")
-
-    # -------------------------
     # ANÁLISIS VISUAL
     # -------------------------
     st.markdown("---")
@@ -152,30 +139,30 @@ if archivo is not None:
     else:
         fig = px.area(df_group, x="Periodo", y=y_data)
 
-    fig.update_layout(
-        hovermode="x unified",
-        transition_duration=500
-    )
-
     st.plotly_chart(fig, use_container_width=True)
 
     # -------------------------
-    # EVOLUCIÓN ANIMADA (LÍNEA)
+    # ANIMACIÓN REAL (LÍNEA)
     # -------------------------
     st.markdown("---")
     st.subheader("▶️ Evolución dinámica")
 
-    fig_anim = px.line(
-        df_group,
-        x="Periodo",
-        y=["Ventas", "Ganancia"],
-        markers=True,
-        animation_frame="Periodo"
-    )
+    placeholder = st.empty()
 
-    fig_anim.update_layout(hovermode="x unified")
+    for i in range(1, len(df_group) + 1):
 
-    st.plotly_chart(fig_anim, use_container_width=True)
+        df_temp = df_group.iloc[:i]
+
+        fig_anim = px.line(
+            df_temp,
+            x="Periodo",
+            y=["Ventas", "Ganancia"],
+            markers=True
+        )
+
+        placeholder.plotly_chart(fig_anim, use_container_width=True)
+
+        time.sleep(0.3)
 
     # -------------------------
     # PRODUCTO
