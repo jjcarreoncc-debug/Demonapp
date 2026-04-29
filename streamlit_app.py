@@ -93,7 +93,23 @@ if "Ventas" in cols_plot and "Costos" in cols_plot:
     df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
     cols_plot.append("Ganancia")
 
-st.line_chart(df_group.set_index("Periodo")[cols_plot])
+ -------------------------
+# Preparar columnas para gráfica
+# -------------------------
+cols_plot = list(col_valores)
+
+# Agregar Ganancia solo si existen ambas
+if "Ventas" in df_group.columns and "Costos" in df_group.columns:
+    df_group["Ganancia"] = df_group["Ventas"] - df_group["Costos"]
+    
+    if "Ventas" in cols_plot and "Costos" in cols_plot:
+        cols_plot.append("Ganancia")
+
+# Validar que haya columnas
+if len(cols_plot) == 0:
+    st.warning("Selecciona al menos una métrica")
+else:
+    st.line_chart(df_group.set_index("Periodo")[cols_plot])
 # -------------------------
 # Ordenar correctamente
 # -------------------------
