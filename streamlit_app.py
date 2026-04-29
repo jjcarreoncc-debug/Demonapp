@@ -3,6 +3,13 @@ import pandas as pd
 
 st.set_page_config(page_title="Dashboard BI", layout="wide")
 
+st.markdown("""
+<style>
+body {
+    background-color: #0E1117;
+}
+</style>
+""", unsafe_allow_html=True)
 st.title("📊 Dashboard de Ventas")
 
 # -------------------------
