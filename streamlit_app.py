@@ -1,8 +1,11 @@
-# === DASHBOARD PRO + MODO REPORTE ===
+# === DASHBOARD PRO + PDF PRESENTACIÓN ===
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet
 
 # -------------------------
 # CONFIG
@@ -30,6 +33,56 @@ div[data-testid="stMetric"] {
 # -------------------------
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
+
+# -------------------------
+# PDF PRESENTACIÓN
+# -------------------------
+def generar_pdf_presentacion(ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio):
+
+    doc = SimpleDocTemplate("reporte_presentacion.pdf")
+    styles = getSampleStyleSheet()
+    story = []
+
+    # PORTADA
+    story.append(Paragraph("Reporte Ejecutivo", styles['Title']))
+    story.append(Spacer(1, 20))
+    story.append(Paragraph("Análisis del desempeño del negocio", styles['Normal']))
+    story.append(PageBreak())
+
+    # RESUMEN
+    story.append(Paragraph("Resumen Ejecutivo", styles['Heading1']))
+    story.append(Paragraph(f"Ventas: ${ventas:,.0f}", styles['Normal']))
+    story.append(Paragraph(f"Ganancia: ${ganancia:,.0f}", styles['Normal']))
+    story.append(Paragraph(f"Margen: {margen:.1f}%", styles['Normal']))
+    story.append(Paragraph(f"Crecimiento: {crecimiento:.1f}%", styles['Normal']))
+    story.append(PageBreak())
+
+    # VOLATILIDAD
+    story.append(Paragraph("Volatilidad del negocio", styles['Heading1']))
+    if ratio > 0.30:
+        estado = "Alta inestabilidad"
+    elif ratio > 0.15:
+        estado = "Variabilidad moderada"
+    else:
+        estado = "Ventas estables"
+    story.append(Paragraph(f"Estado: {estado}", styles['Normal']))
+    story.append(PageBreak())
+
+    # RESPONSABLES
+    story.append(Paragraph("Responsables clave", styles['Heading1']))
+    story.append(Paragraph("Los responsables con mayor variabilidad afectan el desempeño.", styles['Normal']))
+    story.append(PageBreak())
+
+    # CAUSAS
+    story.append(Paragraph("Causas de la variabilidad", styles['Heading1']))
+    story.append(Paragraph("Las regiones con mayor fluctuación explican el comportamiento.", styles['Normal']))
+    story.append(PageBreak())
+
+    # CONCLUSIÓN
+    story.append(Paragraph("Conclusión", styles['Heading1']))
+    story.append(Paragraph("Se recomienda estabilizar las áreas con mayor variabilidad.", styles['Normal']))
+
+    doc.build(story)
 
 # -------------------------
 # DATA
@@ -74,7 +127,7 @@ if archivo:
     df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
     # =========================
-    # 🏠 PRINCIPAL
+    # PRINCIPAL
     # =========================
     if st.session_state.vista == "principal":
 
@@ -84,28 +137,15 @@ if archivo:
         ganancia = df["Ganancia"].sum()
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-        st.markdown("### 📌 Indicadores Clave")
+        st.markdown("### 📌 Indicadores")
         c1, c2, c3 = st.columns(3)
-        c1.metric("💰 Ventas", f"${ventas:,.0f}")
-        c2.metric("📈 Ganancia", f"${ganancia:,.0f}")
-        c3.metric("📊 Margen", f"{margen:.1f}%")
+        c1.metric("Ventas", f"${ventas:,.0f}")
+        c2.metric("Ganancia", f"${ganancia:,.0f}")
+        c3.metric("Margen", f"{margen:.1f}%")
 
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        fig.update_layout(plot_bgcolor="white", paper_bgcolor="white", hovermode="x unified")
-        fig.update_traces(line=dict(width=3))
-
-        # Anotación último punto
-        fig.add_annotation(
-            x=df_m["Periodo"].iloc[-1],
-            y=df_m["Ventas"].iloc[-1],
-            text="Último valor",
-            showarrow=True
-        )
-
+        fig.update_layout(plot_bgcolor="white", paper_bgcolor="white")
         st.plotly_chart(fig, use_container_width=True)
-
-        # Navegación
-        st.markdown("## 📊 Explorar análisis")
 
         col1, col2, col3, col4 = st.columns(4)
 
@@ -118,15 +158,15 @@ if archivo:
         if col3.button("🔎 Causas"):
             st.session_state.vista = "causas"
 
-        if col4.button("📄 Reporte Ejecutivo"):
+        if col4.button("📄 Reporte"):
             st.session_state.vista = "reporte"
 
     # =========================
-    # 🚦 VOLATILIDAD
+    # VOLATILIDAD
     # =========================
     elif st.session_state.vista == "volatilidad":
 
-        st.title("🚦 Estabilidad del Negocio")
+        st.title("🚦 Volatilidad")
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
@@ -136,74 +176,16 @@ if archivo:
         ratio = vol / media if media != 0 else 0
 
         if ratio > 0.30:
-            st.markdown("🔴 **Alta inestabilidad**")
+            st.markdown("🔴 Alta inestabilidad")
         elif ratio > 0.15:
-            st.markdown("🟡 **Variabilidad moderada**")
+            st.markdown("🟡 Variabilidad moderada")
         else:
-            st.markdown("🟢 **Ventas estables**")
+            st.markdown("🟢 Estable")
 
         st.line_chart(df_m.set_index("Periodo")["Ventas"])
 
     # =========================
-    # 👤 RESPONSABLES
-    # =========================
-    elif st.session_state.vista == "responsables":
-
-        st.title("👤 Responsables")
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        df_nom = df.groupby(["Periodo", "Nombre"])["Ventas"].sum().reset_index()
-
-        impacto = []
-        for n in df_nom["Nombre"].unique():
-            df_n = df_nom[df_nom["Nombre"] == n]
-            if len(df_n) > 1:
-                impacto.append((n, df_n["Ventas"].std()))
-
-        df_imp = pd.DataFrame(impacto, columns=["Nombre", "Volatilidad"])
-        total = df_imp["Volatilidad"].sum()
-        df_imp["Impacto %"] = (df_imp["Volatilidad"] / total) * 100
-        df_imp = df_imp.sort_values("Impacto %", ascending=False).head(10)
-
-        for _, row in df_imp.iterrows():
-            st.write(f"{row['Nombre']} → {row['Impacto %']:.1f}%")
-
-        fig = px.line(df_nom, x="Periodo", y="Ventas", color="Nombre")
-        st.plotly_chart(fig, use_container_width=True)
-
-    # =========================
-    # 🔎 CAUSAS
-    # =========================
-    elif st.session_state.vista == "causas":
-
-        st.title("🔎 Causas de la Volatilidad")
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        df_reg = df.groupby(["Periodo", "Region"])["Ventas"].sum().reset_index()
-
-        impacto = []
-        for r in df_reg["Region"].unique():
-            df_r = df_reg[df_reg["Region"] == r]
-            if len(df_r) > 1:
-                impacto.append((r, df_r["Ventas"].std()))
-
-        df_imp = pd.DataFrame(impacto, columns=["Region", "Volatilidad"])
-        total = df_imp["Volatilidad"].sum()
-        df_imp["Impacto %"] = (df_imp["Volatilidad"] / total) * 100
-        df_imp = df_imp.sort_values("Impacto %", ascending=False)
-
-        for _, row in df_imp.iterrows():
-            st.write(f"{row['Region']} → {row['Impacto %']:.1f}%")
-
-        fig = px.line(df_reg, x="Periodo", y="Ventas", color="Region")
-        st.plotly_chart(fig, use_container_width=True)
-
-    # =========================
-    # 📄 REPORTE EJECUTIVO
+    # REPORTE
     # =========================
     elif st.session_state.vista == "reporte":
 
@@ -215,32 +197,30 @@ if archivo:
         ventas = df["Ventas"].sum()
         ganancia = df["Ganancia"].sum()
         margen = (ganancia / ventas * 100) if ventas != 0 else 0
-
         crecimiento = df_m["Ventas"].pct_change().mean() * 100
-
-        st.markdown("## 🧾 Resumen")
-
-        st.write(f"- Ventas totales: ${ventas:,.0f}")
-        st.write(f"- Ganancia total: ${ganancia:,.0f}")
-        st.write(f"- Margen: {margen:.1f}%")
-        st.write(f"- Crecimiento promedio: {crecimiento:.1f}%")
-
-        if crecimiento > 0:
-            st.success("El negocio muestra una tendencia positiva.")
-        else:
-            st.error("El negocio presenta una tendencia negativa.")
 
         max_mes = df_m.loc[df_m["Ventas"].idxmax()]
         min_mes = df_m.loc[df_m["Ventas"].idxmin()]
 
-        st.markdown("## 📊 Hallazgos")
+        st.write("Resumen listo para exportar")
 
-        st.write(f"- Mejor periodo: {max_mes['Periodo']} (${max_mes['Ventas']:,.0f})")
-        st.write(f"- Peor periodo: {min_mes['Periodo']} (${min_mes['Ventas']:,.0f})")
+        if st.button("📄 Descargar Presentación PDF"):
 
-        st.markdown("## 🎯 Conclusión")
+            media = df_m["Ventas"].mean()
+            vol = df_m["Ventas"].std()
+            ratio = vol / media if media != 0 else 0
 
-        st.info("Se recomienda enfocar esfuerzos en las regiones y responsables con mayor variabilidad.")
+            generar_pdf_presentacion(
+                ventas, ganancia, margen, crecimiento, max_mes, min_mes, ratio
+            )
+
+            with open("reporte_presentacion.pdf", "rb") as f:
+                st.download_button(
+                    "Descargar presentación",
+                    f,
+                    "reporte_ejecutivo.pdf",
+                    "application/pdf"
+                )
 
 else:
     st.info("Sube archivo Excel")
