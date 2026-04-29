@@ -231,5 +231,3 @@ if volatilidad > df_m["Ventas"].mean() * 0.3:
     st.warning("📊 Alta variabilidad en ventas (inestabilidad)")
 else:
     st.success("📊 Ventas estables")
-else:
-    st.info("Sube archivo Excel")
