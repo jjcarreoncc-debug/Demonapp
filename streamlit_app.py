@@ -2,13 +2,22 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import numpy as np
 
 # -------------------------
 # CONFIG
 # -------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
 st.title("📊 Dashboard Ejecutivo de Ventas")
+
+# -------------------------
+# CACHE
+# -------------------------
+@st.cache_data
+def cargar_datos(archivo):
+    df = pd.read_excel(archivo)
+    df.columns = df.columns.str.strip()
+    return df
 
 # -------------------------
 # CARGA ARCHIVO
@@ -17,12 +26,21 @@ archivo = st.file_uploader("Sube tu archivo Excel", type=["xlsx"])
 
 if archivo is not None:
 
-    # -------------------------
-    # LECTURA
-    # -------------------------
-    df = pd.read_excel(archivo)
-    df.columns = df.columns.str.strip()
+    df = cargar_datos(archivo)
 
+    # -------------------------
+    # VALIDACIONES
+    # -------------------------
+    columnas_necesarias = ["Fecha", "Ventas", "Costos"]
+
+    for col in columnas_necesarias:
+        if col not in df.columns:
+            st.error(f"Falta la columna obligatoria: {col}")
+            st.stop()
+
+    # -------------------------
+    # LIMPIEZA
+    # -------------------------
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
@@ -47,7 +65,7 @@ if archivo is not None:
     # -------------------------
     # APLICAR FILTROS
     # -------------------------
-    if len(rango_fecha) == 2:
+    if isinstance(rango_fecha, list) and len(rango_fecha) == 2:
         df = df[
             (df["Fecha"] >= pd.to_datetime(rango_fecha[0])) &
             (df["Fecha"] <= pd.to_datetime(rango_fecha[1]))
@@ -63,6 +81,13 @@ if archivo is not None:
         df = df[df["Producto"].isin(productos_sel)]
 
     # -------------------------
+    # CONTROL DATA VACÍA
+    # -------------------------
+    if df.empty:
+        st.warning("No hay datos con los filtros seleccionados")
+        st.stop()
+
+    # -------------------------
     # CÁLCULOS
     # -------------------------
     df["Ganancia"] = df["Ventas"] - df["Costos"]
@@ -73,27 +98,54 @@ if archivo is not None:
     margen = 0 if ventas_total == 0 else (ganancia_total / ventas_total) * 100
 
     # -------------------------
-    # KPIs CON CONTEXTO
+    # KPIs
     # -------------------------
-    st.markdown("## 🎯 KPIs con Contexto")
+    st.markdown("## 🎯 KPIs")
 
     col1, col2, col3 = st.columns(3)
 
     prom_ventas = df.groupby("Pais")["Ventas"].sum().mean() if "Pais" in df.columns else ventas_total
     prom_ganancia = df.groupby("Pais")["Ganancia"].sum().mean() if "Pais" in df.columns else ganancia_total
 
-    def kpi(valor, referencia, titulo, subtitulo):
+    prom_ventas = np.nan_to_num(prom_ventas)
+    prom_ganancia = np.nan_to_num(prom_ganancia)
+
+    def kpi(valor, referencia, titulo):
         fig = go.Figure(go.Indicator(
             mode="number+delta",
             value=valor,
             delta={'reference': referencia, 'relative': True},
-            title={'text': f"{titulo}<br><span style='font-size:12px'>{subtitulo}</span>"}
+            title={'text': titulo}
         ))
         return fig
 
-    col1.plotly_chart(kpi(ventas_total, prom_ventas, "Ventas", "vs promedio país"), use_container_width=True)
-    col2.plotly_chart(kpi(ganancia_total, prom_ganancia, "Ganancia", "vs promedio país"), use_container_width=True)
-    col3.plotly_chart(kpi(margen, 50, "Margen %", "vs objetivo 50%"), use_container_width=True)
+    col1.plotly_chart(kpi(ventas_total, prom_ventas, "Ventas"), use_container_width=True)
+    col2.plotly_chart(kpi(ganancia_total, prom_ganancia, "Ganancia"), use_container_width=True)
+
+    # -------------------------
+    # GAUGE MARGEN
+    # -------------------------
+    fig_gauge = go.Figure(go.Indicator(
+        mode="gauge+number+delta",
+        value=margen,
+        delta={'reference': 50},
+        title={'text': "Margen %"},
+        gauge={
+            'axis': {'range': [0, 100]},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 30], 'color': "#e74c3c"},
+                {'range': [30, 60], 'color': "#f1c40f"},
+                {'range': [60, 100], 'color': "#2ecc71"}
+            ],
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'value': 50
+            }
+        }
+    ))
+
+    col3.plotly_chart(fig_gauge, use_container_width=True)
 
     # -------------------------
     # ALERTAS
@@ -103,9 +155,10 @@ if archivo is not None:
 
     if margen < 30:
         st.error(f"Margen bajo: {round(margen,1)}%")
-
-    if margen > 60:
+    elif margen > 60:
         st.success("Alta rentabilidad")
+    else:
+        st.info("Margen en rango medio")
 
     # -------------------------
     # RANKING PAÍS
@@ -117,24 +170,18 @@ if archivo is not None:
 
         df_rank = df.groupby("Pais")["Ventas"].sum().sort_values().reset_index()
 
-        mejor = df_rank.iloc[-1]["Pais"]
-        peor = df_rank.iloc[0]["Pais"]
+        fig = px.bar(df_rank, x="Ventas", y="Pais", orientation="h", text="Ventas")
 
-        df_rank["Color"] = df_rank["Pais"].apply(
-            lambda x: "green" if x == mejor else ("red" if x == peor else "blue")
-        )
+        fig.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
 
-        fig = px.bar(
-            df_rank,
-            x="Ventas",
-            y="Pais",
-            orientation="h",
-            color="Color",
-            color_discrete_map={"green": "green", "red": "red", "blue": "lightblue"}
+        fig.update_layout(
+            showlegend=False,
+            plot_bgcolor="white",
+            yaxis_title="",
+            xaxis_title="Ventas"
         )
 
         st.plotly_chart(fig, use_container_width=True)
-        st.caption(f"🏆 Mejor: {mejor} | 🔻 Peor: {peor}")
 
     # -------------------------
     # RANKING REGIÓN
@@ -146,24 +193,18 @@ if archivo is not None:
 
         df_rank_r = df.groupby("Region")["Ventas"].sum().sort_values().reset_index()
 
-        mejor_r = df_rank_r.iloc[-1]["Region"]
-        peor_r = df_rank_r.iloc[0]["Region"]
+        fig_r = px.bar(df_rank_r, x="Ventas", y="Region", orientation="h", text="Ventas")
 
-        df_rank_r["Color"] = df_rank_r["Region"].apply(
-            lambda x: "green" if x == mejor_r else ("red" if x == peor_r else "blue")
-        )
+        fig_r.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
 
-        fig_r = px.bar(
-            df_rank_r,
-            x="Ventas",
-            y="Region",
-            orientation="h",
-            color="Color",
-            color_discrete_map={"green": "green", "red": "red", "blue": "lightblue"}
+        fig_r.update_layout(
+            showlegend=False,
+            plot_bgcolor="white",
+            yaxis_title="",
+            xaxis_title="Ventas"
         )
 
         st.plotly_chart(fig_r, use_container_width=True)
-        st.caption(f"🏆 Mejor: {mejor_r} | 🔻 Peor: {peor_r}")
 
     # -------------------------
     # TENDENCIA
@@ -181,11 +222,29 @@ if archivo is not None:
         y_data = ["Ventas", "Ganancia"]
 
     df_group = df.groupby("Periodo")[y_data].sum().reset_index()
+    df_group = df_group.sort_values("Periodo")
 
     fig_line = px.line(df_group, x="Periodo", y=y_data, markers=True)
     fig_line.update_layout(hovermode="x unified")
 
     st.plotly_chart(fig_line, use_container_width=True)
+
+    # -------------------------
+    # INSIGHTS AUTOMÁTICOS
+    # -------------------------
+    st.markdown("---")
+    st.subheader("🧠 Insights Automáticos")
+
+    if len(df_group) > 1:
+        ultimo = df_group.iloc[-1]["Ventas"]
+        anterior = df_group.iloc[-2]["Ventas"]
+
+        variacion = ((ultimo - anterior) / anterior) * 100 if anterior != 0 else 0
+
+        if variacion > 0:
+            st.success(f"📈 Las ventas crecieron {variacion:.1f}% vs periodo anterior")
+        else:
+            st.error(f"📉 Las ventas cayeron {abs(variacion):.1f}% vs periodo anterior")
 
     # -------------------------
     # DATOS
