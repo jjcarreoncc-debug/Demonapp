@@ -181,15 +181,14 @@ fig = px.line(
 st.plotly_chart(fig, use_container_width=True)
 
     fig_bar = px.bar(
-        df_group,
-        x="Periodo",
-        y="Ventas",
-        title="Ventas por Periodo",
-        text_auto=True
-    )
+    df_group,
+    x="Periodo",
+    y="Ventas",
+    title="Ventas por Periodo",
+    text_auto=True
+)
 
-    st.plotly_chart(fig_bar, use_container_width=True)
-
+st.plotly_chart(fig_bar, use_container_width=True)
     # -------------------------
     # RENTABILIDAD
     # -------------------------
