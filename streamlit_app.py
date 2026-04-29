@@ -92,7 +92,6 @@ if archivo is not None:
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    # combinación
     if all(col in df.columns for col in ["Pais", "Region", "Producto"]):
         df["Categoria"] = (
             df["Pais"].astype(str) + " | " +
@@ -100,79 +99,77 @@ if archivo is not None:
             df["Producto"].astype(str)
         )
 
-    # -------------------------
-    # KPIs NUMÉRICOS
-    # -------------------------
-    st.subheader("📊 KPIs")
-
     ventas_total = df["Ventas"].sum()
     ganancia_total = df["Ganancia"].sum()
     costos_total = df["Costos"].sum()
 
     margen = 0 if ventas_total == 0 else (ganancia_total / ventas_total) * 100
 
-    k1, k2, k3, k4 = st.columns(4)
-
-    k1.metric("Ventas", round(ventas_total, 0))
-    k2.metric("Ganancia", round(ganancia_total, 0))
-    k3.metric("Costos", round(costos_total, 0))
-    k4.metric("Margen %", round(margen, 1))
-
     # -------------------------
-    # 🎯 GAUGES (CÍRCULOS)
+    # 🎯 KPIs INTELIGENTES
     # -------------------------
-    st.markdown("---")
-    st.subheader("🎯 Indicadores Visuales")
+    st.subheader("🎯 KPIs con Objetivo")
 
     g1, g2, g3 = st.columns(3)
 
-    # Ventas
-    max_v = df["Ventas"].max() if not df.empty else 1
+    # METAS (puedes ajustarlas o traerlas de Excel)
+    meta_ventas = ventas_total * 1.2 if ventas_total > 0 else 1
+    meta_ganancia = ganancia_total * 1.2 if ganancia_total > 0 else 1
+    meta_margen = 50
+
+    # VENTAS
     fig1 = go.Figure(go.Indicator(
-        mode="gauge+number",
+        mode="gauge+number+delta",
         value=ventas_total,
+        delta={'reference': meta_ventas},
         title={'text': "Ventas"},
         gauge={
-            'axis': {'range': [0, max_v]},
+            'axis': {'range': [0, meta_ventas]},
             'bar': {'color': "blue"},
             'steps': [
-                {'range': [0, max_v*0.5], 'color': "lightgray"},
-                {'range': [max_v*0.5, max_v], 'color': "green"}
-            ]
+                {'range': [0, meta_ventas*0.6], 'color': "red"},
+                {'range': [meta_ventas*0.6, meta_ventas*0.9], 'color': "yellow"},
+                {'range': [meta_ventas*0.9, meta_ventas], 'color': "green"}
+            ],
+            'threshold': {'line': {'color': "black", 'width': 4}, 'value': meta_ventas}
         }
     ))
     g1.plotly_chart(fig1, use_container_width=True)
 
-    # Ganancia
-    max_g = df["Ganancia"].max() if not df.empty else 1
+    # GANANCIA
     fig2 = go.Figure(go.Indicator(
-        mode="gauge+number",
+        mode="gauge+number+delta",
         value=ganancia_total,
+        delta={'reference': meta_ganancia},
         title={'text': "Ganancia"},
         gauge={
-            'axis': {'range': [0, max_g]},
+            'axis': {'range': [0, meta_ganancia]},
             'bar': {'color': "green"},
             'steps': [
-                {'range': [0, max_g*0.5], 'color': "lightgray"},
-                {'range': [max_g*0.5, max_g], 'color': "lime"}
-            ]
+                {'range': [0, meta_ganancia*0.6], 'color': "red"},
+                {'range': [meta_ganancia*0.6, meta_ganancia*0.9], 'color': "yellow"},
+                {'range': [meta_ganancia*0.9, meta_ganancia], 'color': "green"}
+            ],
+            'threshold': {'line': {'color': "black", 'width': 4}, 'value': meta_ganancia}
         }
     ))
     g2.plotly_chart(fig2, use_container_width=True)
 
-    # Margen
+    # MARGEN
     fig3 = go.Figure(go.Indicator(
-        mode="gauge+number",
+        mode="gauge+number+delta",
         value=margen,
+        delta={'reference': meta_margen},
         title={'text': "Margen %"},
         gauge={
             'axis': {'range': [0, 100]},
             'bar': {'color': "orange"},
             'steps': [
                 {'range': [0, 30], 'color': "red"},
-                {'range': [30, 60], 'color': "yellow"},
-                {'range': [60, 100], 'color': "green"}
-            ]
+                {'range': [30, 50], 'color': "yellow"},
+                {'range': [50, 100], 'color': "green"}
+            ],
+            'threshold': {'line': {'color': "black", 'width': 4}, 'value': meta_margen}
         }
     ))
     g3.plotly_chart(fig3, use_container_width=True)
