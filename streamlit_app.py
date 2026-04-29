@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Dashboard PRO", layout="wide")
+st.set_page_config(page_title="Dashboard BI", layout="wide")
 
-st.title("📊 Dashboard de Ventas PRO")
+st.title("📊 Dashboard de Ventas - Nivel BI")
 
 # -------------------------
 # Cargar archivo
@@ -14,7 +14,7 @@ if archivo is None:
     st.stop()
 
 # -------------------------
-# Leer datos
+# Leer datos (cache)
 # -------------------------
 @st.cache_data
 def cargar_datos(archivo):
@@ -26,10 +26,10 @@ def cargar_datos(archivo):
 df = cargar_datos(archivo)
 
 # 🔥 optimización
-df = df.head(200)
+df = df.head(300)
 
 # -------------------------
-# FILTROS
+# Filtros
 # -------------------------
 st.sidebar.header("🎛️ Filtros")
 
@@ -48,7 +48,7 @@ if "Región" in df.columns:
         df = df[df["Región"].isin(regiones)]
 
 # -------------------------
-# Procesar
+# Procesamiento
 # -------------------------
 df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
@@ -74,6 +74,8 @@ df_group["Crecimiento %"] = df_group["Ventas"].pct_change() * 100
 # -------------------------
 # KPIs
 # -------------------------
+st.subheader("📊 KPIs")
+
 col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("💰 Ventas", round(df_group["Ventas"].sum(), 2))
@@ -81,8 +83,18 @@ col2.metric("💸 Costos", round(df_group["Costos"].sum(), 2))
 col3.metric("📈 Ganancia", round(df_group["Ganancia"].sum(), 2))
 col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
 
+# KPI con delta
+if len(df_group) > 1:
+    delta = df_group["Ventas"].iloc[-1] - df_group["Ventas"].iloc[-2]
+
+    st.metric(
+        "Ventas actuales",
+        round(df_group["Ventas"].iloc[-1], 2),
+        delta=round(delta, 2)
+    )
+
 # -------------------------
-# ALERTA DE CRECIMIENTO
+# ALERTA
 # -------------------------
 if len(df_group) > 1:
     crecimiento = df_group["Crecimiento %"].iloc[-1]
@@ -93,45 +105,38 @@ if len(df_group) > 1:
         st.error(f"📉 Caída: {round(crecimiento,2)}%")
 
 # -------------------------
-# COMPARACIÓN
-# -------------------------
-if len(df_group) > 1:
-    actual = df_group["Ventas"].iloc[-1]
-    anterior = df_group["Ventas"].iloc[-2]
-
-    st.write(f"Ventas actuales: {round(actual,2)}")
-    st.write(f"Ventas periodo anterior: {round(anterior,2)}")
-
-# -------------------------
-# GRÁFICA PRINCIPAL
+# GRÁFICAS
 # -------------------------
 st.subheader("📈 Tendencia")
 
 st.line_chart(
-    df_group.set_index("Periodo")[["Ventas", "Ganancia"]]
+    df_group.set_index("Periodo")[["Ventas", "Costos", "Ganancia"]]
 )
+
+st.subheader("📊 Ventas por periodo")
+
+st.bar_chart(df_group.set_index("Periodo")["Ventas"])
 
 # -------------------------
 # TOP PRODUCTOS
 # -------------------------
 if "Producto" in df.columns:
-    st.subheader("🏆 Top 5 Productos")
+    st.subheader("🏆 Top Productos")
 
     top = (
         df.groupby("Producto")["Ventas"]
         .sum()
         .sort_values(ascending=False)
         .head(5)
-        .reset_index()
     )
 
-    st.dataframe(top)
+    st.bar_chart(top)
 
 # -------------------------
-# TABLA
+# DATOS OCULTOS
 # -------------------------
-st.subheader("📊 Datos")
-st.dataframe(df_group)
+with st.expander("📂 Ver datos completos"):
+    st.dataframe(df_group)
 
 # -------------------------
 # DESCARGA
