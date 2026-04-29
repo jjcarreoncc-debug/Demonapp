@@ -155,8 +155,8 @@ if not df_group.empty:
     # -------------------------
     # ANÁLISIS VISUAL INTERACTIVO
     # -------------------------
-    st.markdown("---")
-    st.subheader("📈 Análisis Visual")
+st.markdown("---")
+st.subheader("📈 Análisis Visual")
 
     vista = st.selectbox(
         "📊 Selecciona vista",
