@@ -168,12 +168,6 @@ st.subheader("📊 KPIs")
 #col4.metric("📊 Margen %", round(df_group["Margen %"].mean(), 2))
 col1, col2, col3, col4 = st.columns(4)
 
-col1.markdown(f"""
-<div class="kpi-card">
-<div class="kpi-title">Ventas</div>
-<div class="kpi-value">{round(ventas_total,2)}</div>
-</div>
-""", unsafe_allow_html=True)
 
 col2.markdown(f"""
 <div class="kpi-card">
