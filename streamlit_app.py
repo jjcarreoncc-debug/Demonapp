@@ -194,22 +194,20 @@ st.plotly_chart(fig_bar, use_container_width=True)
     # -------------------------
 st.markdown("---")
  st.subheader("💰 Rentabilidad")
+df_group["Margen %"] = df_group.apply(
+    lambda x: (x["Ganancia"] / x["Ventas"] * 100) if x["Ventas"] != 0 else 0,
+    axis=1
+)
 
-    df_group["Margen %"] = df_group.apply(
-        lambda x: (x["Ganancia"] / x["Ventas"] * 100) if x["Ventas"] != 0 else 0,
-        axis=1
-    )
+fig_margen = px.line(
+    df_group,
+    x="Periodo",
+    y="Margen %",
+    markers=True,
+    title="Margen (%)"
+)
 
-    fig_margen = px.line(
-        df_group,
-        x="Periodo",
-        y="Margen %",
-        markers=True,
-        title="Margen (%)"
-    )
-   
-    st.plotly_chart(fig_margen, use_container_width=True)    
-
+st.plotly_chart(fig_margen, use_container_width=True)
     # -------------------------
     # PRODUCTO
     # -------------------------
