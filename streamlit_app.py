@@ -24,16 +24,14 @@ if archivo is not None:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-    # convertir fecha
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
-    # SIDEBAR (FILTROS + CONTROL)
+    # SIDEBAR
     # -------------------------
     st.sidebar.header("🔎 Filtros")
 
-    # 🎛️ CONTROL DE VISUALIZACIÓN
     st.sidebar.markdown("---")
     st.sidebar.subheader("🎛️ Visualización")
 
@@ -47,7 +45,7 @@ if archivo is not None:
         ["Línea", "Área"]
     )
 
-    # 📅 FILTRO FECHA
+    # FILTRO FECHA
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
@@ -56,7 +54,7 @@ if archivo is not None:
         [fecha_min, fecha_max]
     )
 
-    # 📦 FILTRO PRODUCTO
+    # FILTRO PRODUCTO
     if "Producto" in df.columns:
         productos = st.sidebar.multiselect(
             "Producto",
@@ -66,7 +64,7 @@ if archivo is not None:
     else:
         productos = None
 
-    # 👤 FILTRO CLIENTE
+    # FILTRO CLIENTE
     if "Nombre" in df.columns:
         clientes = st.sidebar.multiselect(
             "Cliente",
@@ -102,6 +100,8 @@ if archivo is not None:
         .sum()
         .reset_index()
     )
+
+    df_group = df_group.sort_values("Periodo")
 
     # -------------------------
     # KPIs
@@ -160,21 +160,22 @@ if archivo is not None:
     st.plotly_chart(fig, use_container_width=True)
 
     # -------------------------
-    # EVOLUCIÓN (LÍNEA)
+    # EVOLUCIÓN ANIMADA (LÍNEA)
     # -------------------------
     st.markdown("---")
-    st.subheader("📈 Evolución de Ventas")
+    st.subheader("▶️ Evolución dinámica")
 
-    df_group = df_group.sort_values("Periodo")
-
-    fig_evol = px.line(
+    fig_anim = px.line(
         df_group,
         x="Periodo",
         y=["Ventas", "Ganancia"],
-        markers=True
+        markers=True,
+        animation_frame="Periodo"
     )
 
-    st.plotly_chart(fig_evol, use_container_width=True)
+    fig_anim.update_layout(hovermode="x unified")
+
+    st.plotly_chart(fig_anim, use_container_width=True)
 
     # -------------------------
     # PRODUCTO
