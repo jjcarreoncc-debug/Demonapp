@@ -106,7 +106,45 @@ if archivo is not None:
     # -------------------------
     st.markdown("---")
     st.subheader("🧠 Insights")
+# -------------------------
+# ANÁLISIS VISUAL INTERACTIVO
+# -------------------------
+st.markdown("---")
+st.subheader("📈 Análisis Visual Dinámico")
 
+colA, colB = st.columns(2)
+
+with colA:
+    vista = st.selectbox(
+        "📊 Métrica",
+        ["Ventas", "Ganancia", "Ambos"]
+    )
+
+with colB:
+    tipo = st.selectbox(
+        "📈 Tipo de gráfica",
+        ["Línea", "Área"]
+    )
+
+if vista == "Ventas":
+    y_data = ["Ventas"]
+elif vista == "Ganancia":
+    y_data = ["Ganancia"]
+else:
+    y_data = ["Ventas", "Ganancia"]
+
+if tipo == "Línea":
+    fig = px.line(df_group, x="Periodo", y=y_data, markers=True)
+else:
+    fig = px.area(df_group, x="Periodo", y=y_data)
+
+fig.update_layout(
+    hovermode="x unified",
+    transition_duration=500
+)
+
+st.plotly_chart(fig, use_container_width=True)
+    
     if not df_group.empty:
         mejor = df_group.loc[df_group["Ventas"].idxmax()]
         peor = df_group.loc[df_group["Ventas"].idxmin()]
