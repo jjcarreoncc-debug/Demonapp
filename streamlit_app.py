@@ -3,19 +3,27 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
-archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-    
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-    df.columns = df.columns.str.strip()
+    
 
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
+# =========================
+# CARGA DE DATOS PRINCIPAL
+# =========================
+archivo = st.sidebar.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+if archivo:
+    df = pd.read_excel(archivo)
+else:
+    st.warning("Sube un archivo para continuar")
+    st.stop()
 
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df.columns:
