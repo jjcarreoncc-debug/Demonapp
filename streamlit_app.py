@@ -129,7 +129,7 @@ if archivo:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        col1, col2, col3, col4, col5 = st.columns(5)
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
@@ -146,6 +146,9 @@ if archivo:
         if col5.button("🧠 Resumen Ejecutivo"):
             st.session_state.vista = "resumen"
 
+        if col6.button("📌 Recomendaciones"):
+            st.session_state.vista = "recomendaciones"
+
     # =========================
     # RESUMEN EJECUTIVO
     # =========================
@@ -156,15 +159,11 @@ if archivo:
 
         st.title("🧠 Resumen Ejecutivo")
 
-        # Estado
         score = 100
         if margen < 10:
             score -= 20
         if ratio > 0.30:
             score -= 20
-        if df["Cumplimiento"].notna().any():
-            if df["Cumplimiento"].mean() < 0.8:
-                score -= 30
 
         if score >= 80:
             st.success(f"🟢 Salud Alta ({score})")
@@ -173,116 +172,43 @@ if archivo:
         else:
             st.error(f"🔴 Salud Crítica ({score})")
 
-        # -------------------------
-        # PROYECCIÓN
-        # -------------------------
         st.subheader("📈 Proyección")
 
         if len(df_m) > 2:
             tendencia = df_m["Ventas"].diff().mean()
-            ultimo_periodo = pd.Period(df_m["Periodo"].iloc[-1], freq="M")
-            ultimo_valor = df_m["Ventas"].iloc[-1]
+            ultimo = df_m["Ventas"].iloc[-1]
 
-            proyecciones = []
-            periodo_actual = ultimo_periodo
-            valor_actual = ultimo_valor
+            df_m["Proyección"] = df_m["Ventas"]
+            for i in range(len(df_m)):
+                df_m.loc[i, "Proyección"] = ultimo + (i * tendencia)
 
-            while periodo_actual.month < 12:
-                periodo_actual += 1
-                valor_actual += tendencia
-                proyecciones.append({
-                    "Periodo": periodo_actual.strftime("%Y-%m"),
-                    "Ventas": valor_actual,
-                    "Tipo": "Proyección"
-                })
-
-            df_real = df_m.copy()
-            df_real["Tipo"] = "Real"
-            df_proj = pd.DataFrame(proyecciones)
-
-            df_final = pd.concat([
-                df_real[["Periodo", "Ventas", "Tipo"]],
-                df_proj
-            ], ignore_index=True)
-
-            fig = px.line(df_final, x="Periodo", y="Ventas", color="Tipo", markers=True)
+            fig = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
             st.plotly_chart(fig, use_container_width=True)
 
-        # -------------------------
-        # SEMÁFOROS + DETALLE
-        # -------------------------
-        def calcular_crecimiento(df, col):
-            df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
-            ult = df_t.sort_values("Periodo").groupby(col).tail(2)
-            out = {}
-            for k, g in ult.groupby(col):
-                if len(g) == 2 and g.iloc[0]["Ventas"] != 0:
-                    out[k] = (g.iloc[1]["Ventas"] - g.iloc[0]["Ventas"]) / g.iloc[0]["Ventas"]
-            return out
+    # =========================
+    # RECOMENDACIONES PPT
+    # =========================
+    elif st.session_state.vista == "recomendaciones":
 
-        def mostrar(df, col):
-            crec = calcular_crecimiento(df, col)
-            verdes, rojos = [], []
-            st.subheader(col)
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
 
-            for k, v in crec.items():
-                if v > 0.05:
-                    st.success(f"{k}: 🟢 {v*100:.1f}%")
-                    verdes.append(k)
-                elif v > -0.05:
-                    st.warning(f"{k}: 🟡 {v*100:.1f}%")
-                else:
-                    st.error(f"{k}: 🔴 {v*100:.1f}%")
-                    rojos.append(k)
-
-            # detalle alineado
-            df_det = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
-            df_det = df_det.sort_values("Periodo")
-
-            data = []
-            for k, g in df_det.groupby(col):
-                if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
-                    var = (g.iloc[-1]["Ventas"] - g.iloc[-2]["Ventas"]) / g.iloc[-2]["Ventas"]
-                    data.append({col: k, "Variación %": var*100})
-
-            df_det = pd.DataFrame(data)
-
-            c1, c2 = st.columns(2)
-
-            with c1:
-                st.markdown("### 🟢 Impulsores")
-                st.dataframe(df_det[df_det[col].isin(verdes)])
-
-            with c2:
-                st.markdown("### 🔴 Afectan")
-                st.dataframe(df_det[df_det[col].isin(rojos)])
-
-        for dim in ["Pais", "Region", "Canal"]:
-            if dim in df.columns:
-                mostrar(df, dim)
-
-        if "Producto" in df.columns:
-            mostrar(df, "Producto")
-        elif "Nombre_Producto" in df.columns:
-            mostrar(df, "Nombre_Producto")
-
-        # -------------------------
-        # RECOMENDACIONES
-        # -------------------------
-        st.subheader("🧠 Recomendaciones")
+        st.title("📌 Recomendaciones Estratégicas")
 
         recomendaciones = []
 
         def generar(df, col):
             df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
             df_t = df_t.sort_values("Periodo")
+
             for k, g in df_t.groupby(col):
                 if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
                     var = (g.iloc[-1]["Ventas"] - g.iloc[-2]["Ventas"]) / g.iloc[-2]["Ventas"]
+
                     if var < -0.10:
-                        recomendaciones.append(f"🔴 Recuperar {col}: {k} ({var*100:.1f}%)")
+                        recomendaciones.append(("rojo", f"Recuperar {col}: {k}", var))
                     elif var > 0.10:
-                        recomendaciones.append(f"🟢 Escalar {col}: {k} ({var*100:.1f}%)")
+                        recomendaciones.append(("verde", f"Escalar {col}: {k}", var))
 
         for dim in ["Pais", "Region", "Canal"]:
             if dim in df.columns:
@@ -293,11 +219,27 @@ if archivo:
         elif "Nombre_Producto" in df.columns:
             generar(df, "Nombre_Producto")
 
-        for r in recomendaciones:
-            st.write(r)
+        for tipo, texto, var in recomendaciones:
+
+            if tipo == "verde":
+                st.success(f"""
+                ### 🟢 {texto}
+                #### Crecimiento: {var*100:.1f}%
+
+                👉 Potenciar este segmento
+                """)
+            else:
+                st.error(f"""
+                ### 🔴 {texto}
+                #### Caída: {var*100:.1f}%
+
+                👉 Intervenir inmediatamente
+                """)
+
+            st.markdown("---")
 
     # =========================
-    # ANÁLISIS DETALLADO (VACÍO)
+    # DETALLE VACÍO
     # =========================
     elif st.session_state.vista == "detalle":
 
