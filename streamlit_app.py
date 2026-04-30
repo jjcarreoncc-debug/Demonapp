@@ -182,7 +182,9 @@ if archivo:
         else:
             st.error(f"🔴 Salud Crítica ({score})")
 
-        # PROYECCIÓN CON GRÁFICA
+        # -------------------------
+        # PROYECCIÓN MEJORADA
+        # -------------------------
         st.subheader("📈 Proyección")
 
         if len(df_m) > 2:
@@ -197,26 +199,90 @@ if archivo:
             ultimo_periodo = pd.Period(df_pred["Periodo"].iloc[-1], freq="M")
             siguiente_periodo = (ultimo_periodo + 1).strftime("%Y-%m")
 
-            nueva_fila = pd.DataFrame({
-                "Periodo": [siguiente_periodo],
-                "Ventas": [prediccion],
-                "Ganancia": [None]
+            df_pred["Tipo"] = "Real"
+
+            df_proj = pd.DataFrame({
+                "Periodo": [df_pred["Periodo"].iloc[-1], siguiente_periodo],
+                "Ventas": [df_pred["Ventas"].iloc[-1], prediccion],
+                "Tipo": ["Proyección", "Proyección"]
             })
 
-            df_pred = pd.concat([df_pred, nueva_fila], ignore_index=True)
+            df_final = pd.concat([
+                df_pred[["Periodo", "Ventas", "Tipo"]],
+                df_proj
+            ], ignore_index=True)
 
-            fig = px.line(df_pred, x="Periodo", y="Ventas", markers=True)
-
-            fig.add_scatter(
-                x=[siguiente_periodo],
-                y=[prediccion],
-                mode="markers",
-                name="Predicción"
+            fig = px.line(
+                df_final,
+                x="Periodo",
+                y="Ventas",
+                color="Tipo",
+                markers=True
             )
 
             st.plotly_chart(fig, use_container_width=True)
 
-            st.caption("La proyección se basa en la tendencia promedio de crecimiento de ventas.")
+            st.caption("Comparación entre ventas reales y proyección.")
+
+    # =========================
+    # VOLATILIDAD
+    # =========================
+    elif st.session_state.vista == "volatilidad":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("🚦 Volatilidad")
+
+        if ratio > 0.30:
+            st.error("🔴 Alta volatilidad")
+        elif ratio > 0.15:
+            st.warning("🟡 Volatilidad media")
+        else:
+            st.success("🟢 Estabilidad")
+
+        st.line_chart(df_m.set_index("Periodo")["Ventas"])
+
+    # =========================
+    # RESPONSABLES
+    # =========================
+    elif st.session_state.vista == "responsables":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("👤 Responsables")
+
+        col_resp = "Vendedor_Ruta" if "Vendedor_Ruta" in df.columns else "Nombre"
+
+        df_resp = df.groupby(col_resp)["Ventas"].sum().sort_values(ascending=False)
+
+        st.subheader("🏆 Ranking")
+        st.dataframe(df_resp)
+
+        df_var = df.groupby(["Periodo", col_resp])["Ventas"].sum().reset_index()
+        fig = px.line(df_var, x="Periodo", y="Ventas", color=col_resp)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # CAUSAS
+    # =========================
+    elif st.session_state.vista == "causas":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("🧠 Análisis de Causas")
+
+        if "Region" in df.columns:
+            st.bar_chart(df.groupby("Region")["Ventas"].sum())
+
+        if ratio > 0.30:
+            st.error("Alta variabilidad")
+        elif ratio > 0.15:
+            st.warning("Variación moderada")
+        else:
+            st.success("Estable")
 
 else:
     st.info("📂 Sube archivo")
