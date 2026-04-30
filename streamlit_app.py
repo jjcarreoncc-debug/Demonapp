@@ -72,7 +72,8 @@ if archivo:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        # 🔥 SOLO agregamos una columna adicional
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
@@ -91,6 +92,61 @@ if archivo:
 
         if col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
+
+        # ✅ NUEVO NIVEL 5
+        if col7.button("📊 Resultados"):
+            st.session_state.vista = "resultados"
+
+    # =========================
+    # RESULTADOS (NUEVO)
+    # =========================
+    elif st.session_state.vista == "resultados":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("📊 Resultados y Acciones Prioritarias")
+
+        resultados = []
+
+        for dim in ["Pais", "Region", "Canal", "Producto"]:
+            if dim in df.columns:
+
+                df_t = df.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
+                df_t = df_t.sort_values("Periodo")
+
+                for k, g in df_t.groupby(dim):
+
+                    if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+
+                        v1 = g.iloc[-2]["Ventas"]
+                        v2 = g.iloc[-1]["Ventas"]
+
+                        var = (v2 - v1) / v1
+                        impacto = (v2 - v1)
+
+                        if abs(var) > 0.10:
+                            resultados.append((dim, k, var, impacto, v1, v2))
+
+        resultados = sorted(resultados, key=lambda x: abs(x[3]), reverse=True)
+
+        for dim, nombre, var, impacto, v1, v2 in resultados:
+
+            if var > 0:
+                st.success(f"🟢 Oportunidad: {dim} → {nombre}")
+                st.markdown("👉 Acción: escalar inversión / replicar estrategia")
+            else:
+                st.error(f"🔴 Riesgo: {dim} → {nombre}")
+                st.markdown("👉 Acción: corregir ejecución / revisar causa")
+
+            st.markdown(f"""
+            - Antes: ${v1:,.0f}  
+            - Ahora: ${v2:,.0f}  
+            - Impacto: ${impacto:,.0f}  
+            - Variación: {var*100:.1f}%
+            """)
+
+            st.markdown("---")
 
     # =========================
     # VOLATILIDAD
@@ -219,7 +275,7 @@ if archivo:
             st.dataframe(df_display)
 
     # =========================
-    # RECOMENDACIONES (SOLO ADICIÓN)
+    # RECOMENDACIONES (INTACTO)
     # =========================
     elif st.session_state.vista == "recomendaciones":
 
@@ -277,15 +333,14 @@ if archivo:
             else:
                 st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
-            # 🔥 NUEVO: explicación del %
             st.markdown(f"""
             - Periodo anterior ({p1}): ${v1:,.0f}  
             - Periodo actual ({p2}): ${v2:,.0f}  
             - Variación: (({v2:,.0f} - {v1:,.0f}) / {v1:,.0f}) = **{var*100:.1f}%**
             """)
 
-            # 🔥 NUEVO: driver principal
             df_det = df[df[dim] == nombre]
+
             for subdim in ["Producto", "Region", "Canal"]:
                 if subdim in df_det.columns and subdim != dim:
                     top = df_det.groupby(subdim)["Ventas"].sum().reset_index().sort_values("Ventas", ascending=False).head(1)
@@ -293,7 +348,6 @@ if archivo:
                         st.info(f"Driver principal: {subdim} → {top.iloc[0][subdim]} (${top.iloc[0]['Ventas']:,.0f})")
                         break
 
-            # 🔥 NUEVO: drill down con variación
             with st.expander("🔍 Ver detalle"):
 
                 for subdim in ["Producto", "Region", "Canal"]:
@@ -321,7 +375,6 @@ if archivo:
                             )
                             st.dataframe(df_detalle.head(5))
 
-            # TU gráfica original intacta
             with st.expander("📊 Ver gráfica"):
 
                 df_f = df[df[dim] == nombre]
