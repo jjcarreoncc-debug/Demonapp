@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
+st.write("Tamaño DB:", os.path.getsize("data.db"))
 try:
     conn = sqlite3.connect("data.db")
 
