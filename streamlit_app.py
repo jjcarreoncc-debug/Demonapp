@@ -420,14 +420,16 @@ else:
     # =========================
     # DETALLE
     # =========================
-    elif st.session_state.vista == "detalle":
+   lif st.session_state.vista == "detalle":
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        st.title("🔎 Análisis Detallado")
-        st.dataframe(df)
-   # 👇 PEGAS AQUÍ
+    st.title("🔎 Análisis Detallado")
+    st.dataframe(df)
+
+
+# 👇 ESTO ES LO QUE TE FALTABA
 elif st.session_state.vista == "carga":
 
     if st.button("⬅️ Volver"):
@@ -445,7 +447,9 @@ elif st.session_state.vista == "carga":
             conn = sqlite3.connect("data.db")
             df_upload.to_sql("ventas", conn, if_exists="replace", index=False)
             conn.close()
-            st.success("Datos guardados")     
+            st.success("Datos guardados")
 
+
+# 👇 ESTO SE QUEDA AL FINAL
 else:
     st.info("📂 Sube archivo")
