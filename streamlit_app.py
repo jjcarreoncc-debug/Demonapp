@@ -38,7 +38,7 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
 
 
     df.columns = df.columns.str.strip()
