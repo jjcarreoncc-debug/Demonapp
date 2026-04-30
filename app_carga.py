@@ -77,7 +77,7 @@ if archivo:
 
             else:
                 df.to_sql(nombre_tabla, conn, if_exists="append", index=False)
-
+            conn.commit()
             conn.close()
 
             st.success("Datos guardados correctamente")
