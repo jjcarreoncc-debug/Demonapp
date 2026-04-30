@@ -429,7 +429,7 @@ else:
     st.dataframe(df)
 
 
-# 👇 ESTO ES LO QUE TE FALTABA
+    # 👇 ESTO ES LO QUE TE FALTABA
    elif st.session_state.vista == "carga":
 
     if st.button("⬅️ Volver"):
