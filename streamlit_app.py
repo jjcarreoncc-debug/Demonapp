@@ -422,20 +422,19 @@ else:
     # =========================
     elif st.session_state.vista == "detalle":
 
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
 
-    st.title("🔎 Análisis Detallado")
-    st.dataframe(df)
+       st.title("🔎 Análisis Detallado")
+       st.dataframe(df)
 
     # 👇 ESTO ES LO QUE TE FALTABA
-    elif st.session_state.vista == "carga":
+       elif st.session_state.vista == "carga":
 
-    if st.button("⬅️ Volver"):    
-        st.session_state.vista = "principal"
+           if st.button("⬅️ Volver"):    
+               st.session_state.vista = "principal"
 
     st.title("📂 Carga de datos")
-
     archivo = st.file_uploader("Sube Excel", type=["xlsx"])
 
     if archivo:
