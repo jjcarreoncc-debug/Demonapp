@@ -3,42 +3,8 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
-st.write("Tamaño DB:", os.path.getsize("data.db"))
-try:
-    conn = sqlite3.connect("data.db")
-
-    # 🔥 VERIFICAR TABLAS
-    tablas = pd.read_sql(
-        "SELECT name FROM sqlite_master WHERE type='table';",
-        conn
-    )
-
-    if tablas.empty:
-        st.warning("⚠️ La base existe pero no tiene tablas")
-        st.info("Usa la app de carga primero o cambia a Excel")
-        st.stop()
-
-    # 🔥 SI NO EXISTE 'ventas'
-    if "ventas" not in tablas["name"].values:
-        st.error("❌ La tabla 'ventas' no existe en esta app")
-        st.write("Tablas disponibles:", tablas)
-        st.stop()
-
-    # ✅ SI EXISTE
-    df = pd.read_sql("SELECT * FROM ventas", conn)
-    conn.close()
-
-    st.success(f"Datos cargados desde base ({len(df)} filas)")
-
-except Exception as e:
-    st.error(f"Error leyendo base: {e}")
-    st.stop()
-# 🚨 DEBUG AQUÍ
-st.write("📁 Ruta actual:", os.getcwd())
-st.write("📂 Archivos:", os.listdir())
 
 conn = sqlite3.connect("data.db")
-
 st.write("📊 Tablas en DB:")
 tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
 st.write(tablas)
@@ -96,9 +62,6 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
-
-
-
 
     df.columns = df.columns.str.strip()
 
