@@ -423,7 +423,7 @@ else:
     elif st.session_state.vista == "detalle":
 
         if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+            st.session_state.vista = "principal"
 
     st.title("🔎 Análisis Detallado")
     st.dataframe(df)
