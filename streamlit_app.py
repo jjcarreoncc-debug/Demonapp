@@ -6,6 +6,8 @@ import os
 
 st.write("Ruta actual:", os.getcwd())
 st.sidebar.header("📂 Fuente de datos") 
+st.write("Archivos en carpeta:")
+st.write(os.listdir())
 usar_bd = st.sidebar.checkbox("Usar datos desde base de datos", value=True)
 
 if usar_bd:
