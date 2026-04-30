@@ -5,12 +5,7 @@ import sqlite3
 import os
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-    if archivo:
-        df = pd.read_excel(archivo)
-    else:
-        st.info("Sube un archivo o activa base de datos")
-        st.stop()
-
+    
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
@@ -78,7 +73,7 @@ if "vista" not in st.session_state:
         st.plotly_chart(fig, use_container_width=True)
 
         # 🔥 SOLO agregamos una columna adicional
-        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
@@ -101,6 +96,8 @@ if "vista" not in st.session_state:
         # ✅ NUEVO NIVEL 5
         if col7.button("📊 Resultados"):
             st.session_state.vista = "resultados"
+        if col8.button("📂 Carga"):
+            st.session_state.vista = "carga"
 
     # =========================
     # RESULTADOS (NUEVO)
@@ -422,6 +419,25 @@ if "vista" not in st.session_state:
 
         st.title("🔎 Análisis Detallado")
         st.dataframe(df)
+   # 👇 PEGAS AQUÍ
+elif st.session_state.vista == "carga":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.title("📂 Carga de datos")
+
+    archivo = st.file_uploader("Sube Excel", type=["xlsx"])
+
+    if archivo:
+        df_upload = pd.read_excel(archivo)
+
+        if st.button("Guardar"):
+            import sqlite3
+            conn = sqlite3.connect("data.db")
+            df_upload.to_sql("ventas", conn, if_exists="replace", index=False)
+            conn.close()
+            st.success("Datos guardados")     
 
 else:
     st.info("📂 Sube archivo")
