@@ -247,7 +247,7 @@ if archivo:
             st.dataframe(df_bot)
 
     # =========================
-    # RECOMENDACIONES
+    # RECOMENDACIONES (MODIFICADO SOLO AQUÍ)
     # =========================
     elif st.session_state.vista == "recomendaciones":
 
@@ -297,10 +297,34 @@ if archivo:
 
         for dim, nombre, var, impacto, tipo in recomendaciones:
 
+            texto_var = f"🔴 {var*100:.1f}%" if var < 0 else f"🟢 {var*100:.1f}%"
+
             if tipo == "verde":
-                st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
+                st.success(f"🟢 Escalar {dim}: {nombre} ({texto_var})")
             else:
-                st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
+                st.error(f"🔴 Recuperar {dim}: {nombre} ({texto_var})")
+
+            # 🧠 DRIVER
+            df_det = df[df[dim] == nombre]
+            driver_txt = ""
+            max_impacto = 0
+
+            for subdim in ["Producto", "Region", "Canal"]:
+                if subdim in df_det.columns and subdim != dim:
+
+                    df_sub = df_det.groupby(subdim)["Ventas"].sum().reset_index()
+                    df_sub = df_sub.sort_values("Ventas", ascending=False)
+
+                    if not df_sub.empty:
+                        top = df_sub.iloc[0]
+                        impacto_sub = top["Ventas"]
+
+                        if impacto_sub > max_impacto:
+                            max_impacto = impacto_sub
+                            driver_txt = f"{subdim} → {top[subdim]} (${impacto_sub:,.0f})"
+
+            if driver_txt:
+                st.info(f"🧠 Driver principal: {driver_txt}")
 
             if dim in resumen_dim:
 
@@ -309,12 +333,22 @@ if archivo:
                 with col1:
                     st.markdown("🟢 Crecen")
                     for k, v in resumen_dim[dim]["crece"]:
-                        st.write(f"{k} (+{v*100:.1f}%)")
+                        st.markdown(f"- 🟢 **{k}** (+{v*100:.1f}%)")
 
                 with col2:
                     st.markdown("🔴 Caen")
                     for k, v in resumen_dim[dim]["cae"]:
-                        st.write(f"{k} ({v*100:.1f}%)")
+                        st.markdown(f"- 🔴 **{k}** ({v*100:.1f}%)")
+
+            # 🔍 DRILL DOWN
+            with st.expander(f"🔍 Ver detalle {nombre}"):
+
+                for subdim in ["Producto", "Region", "Canal"]:
+                    if subdim in df_det.columns and subdim != dim:
+                        st.markdown(f"**Impacto por {subdim}**")
+                        df_sub = df_det.groupby(subdim)["Ventas"].sum().reset_index()
+                        df_sub = df_sub.sort_values("Ventas", ascending=False)
+                        st.dataframe(df_sub.head(5))
 
             with st.expander("📊 Ver gráfica"):
 
