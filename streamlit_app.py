@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3
-   st.write("Ruta actual:", os.getcwd())
+  st.write("Ruta actual:", os.getcwd())
 st.sidebar.header("📂 Fuente de datos")
 
 usar_bd = st.sidebar.checkbox("Usar datos desde base de datos", value=True)
