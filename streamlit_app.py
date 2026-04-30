@@ -16,10 +16,11 @@ if usar_bd:
     try:
         df = pd.read_sql(f"SELECT * FROM {tabla}", conn)
         st.sidebar.success("Datos cargados desde base")
-    except:
-        st.sidebar.error("Error al leer la tabla")
-        st.stop()
-
+    
+    except Exception as e:
+    st.sidebar.error(f"Error real: {e}")
+    st.stop()
+    
     conn.close()
 
 else:
