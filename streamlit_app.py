@@ -419,4 +419,4 @@ if archivo:
         st.dataframe(df)
 
 else:
-    st.info("📂 Sube arc
+    st.info("📂 Sube archivo")
