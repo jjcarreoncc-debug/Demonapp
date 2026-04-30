@@ -28,12 +28,13 @@ if archivo:
 cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]
 
 for col in cols_numericas:
-    if col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors="coerce")    
+if col in df.columns:
+    df[col] = pd.to_numeric(df[col], errors="coerce")    
     
     # -------------------------
     # LIMPIEZA
     # -------------------------
+    
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
