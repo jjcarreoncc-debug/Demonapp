@@ -42,7 +42,7 @@ if archivo:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # -------------------------
-    # CALCULOS FLEXIBLES
+    # CALCULOS
     # -------------------------
     if "Ventas_Cantidad" in df.columns and "Precio_Venta" in df.columns:
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
@@ -76,10 +76,7 @@ if archivo:
     # -------------------------
     st.sidebar.header("🎯 Filtros Base")
 
-    rango = st.sidebar.date_input(
-        "Fecha",
-        [df["Fecha"].min(), df["Fecha"].max()]
-    )
+    rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
 
     if len(rango) == 2:
         df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
@@ -159,21 +156,15 @@ if archivo:
 
         st.title("🧠 Resumen Ejecutivo")
 
-        # SCORE
+        # Estado
         score = 100
-
         if margen < 10:
             score -= 20
-
         if ratio > 0.30:
             score -= 20
-
         if df["Cumplimiento"].notna().any():
-            cumplimiento_total = df["Cumplimiento"].mean()
-            if cumplimiento_total < 0.8:
+            if df["Cumplimiento"].mean() < 0.8:
                 score -= 30
-
-        st.subheader("Estado del negocio")
 
         if score >= 80:
             st.success(f"🟢 Salud Alta ({score})")
@@ -188,9 +179,7 @@ if archivo:
         st.subheader("📈 Proyección")
 
         if len(df_m) > 2:
-
             tendencia = df_m["Ventas"].diff().mean()
-
             ultimo_periodo = pd.Period(df_m["Periodo"].iloc[-1], freq="M")
             ultimo_valor = df_m["Ventas"].iloc[-1]
 
@@ -201,7 +190,6 @@ if archivo:
             while periodo_actual.month < 12:
                 periodo_actual += 1
                 valor_actual += tendencia
-
                 proyecciones.append({
                     "Periodo": periodo_actual.strftime("%Y-%m"),
                     "Ventas": valor_actual,
@@ -210,7 +198,6 @@ if archivo:
 
             df_real = df_m.copy()
             df_real["Tipo"] = "Real"
-
             df_proj = pd.DataFrame(proyecciones)
 
             df_final = pd.concat([
@@ -218,45 +205,27 @@ if archivo:
                 df_proj
             ], ignore_index=True)
 
-            fig = px.line(
-                df_final,
-                x="Periodo",
-                y="Ventas",
-                color="Tipo",
-                markers=True
-            )
-
+            fig = px.line(df_final, x="Periodo", y="Ventas", color="Tipo", markers=True)
             st.plotly_chart(fig, use_container_width=True)
 
         # -------------------------
-        # FUNCIONES
+        # SEMÁFOROS + DETALLE
         # -------------------------
-        def calcular_crecimiento(df, columna):
-            df_temp = df.groupby(["Periodo", columna])["Ventas"].sum().reset_index()
-            ultimos = df_temp.sort_values("Periodo").groupby(columna).tail(2)
+        def calcular_crecimiento(df, col):
+            df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
+            ult = df_t.sort_values("Periodo").groupby(col).tail(2)
+            out = {}
+            for k, g in ult.groupby(col):
+                if len(g) == 2 and g.iloc[0]["Ventas"] != 0:
+                    out[k] = (g.iloc[1]["Ventas"] - g.iloc[0]["Ventas"]) / g.iloc[0]["Ventas"]
+            return out
 
-            crecimiento_dict = {}
+        def mostrar(df, col):
+            crec = calcular_crecimiento(df, col)
+            verdes, rojos = [], []
+            st.subheader(col)
 
-            for key, grupo in ultimos.groupby(columna):
-                if len(grupo) == 2:
-                    v1 = grupo.iloc[0]["Ventas"]
-                    v2 = grupo.iloc[1]["Ventas"]
-
-                    if v1 != 0:
-                        crecimiento = (v2 - v1) / v1
-                        crecimiento_dict[key] = crecimiento
-
-            return crecimiento_dict
-
-        def mostrar_semaforo(df, columna):
-            crecimiento = calcular_crecimiento(df, columna)
-
-            st.markdown(f"### {columna}")
-
-            verdes = []
-            rojos = []
-
-            for k, v in crecimiento.items():
+            for k, v in crec.items():
                 if v > 0.05:
                     st.success(f"{k}: 🟢 {v*100:.1f}%")
                     verdes.append(k)
@@ -266,82 +235,77 @@ if archivo:
                     st.error(f"{k}: 🔴 {v*100:.1f}%")
                     rojos.append(k)
 
-            return verdes, rojos
+            # detalle alineado
+            df_det = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
+            df_det = df_det.sort_values("Periodo")
 
-        def detalle_variacion(df, columna):
-            df_temp = df.groupby(["Periodo", columna])["Ventas"].sum().reset_index()
-            df_temp = df_temp.sort_values("Periodo")
+            data = []
+            for k, g in df_det.groupby(col):
+                if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+                    var = (g.iloc[-1]["Ventas"] - g.iloc[-2]["Ventas"]) / g.iloc[-2]["Ventas"]
+                    data.append({col: k, "Variación %": var*100})
 
-            resultados = []
+            df_det = pd.DataFrame(data)
 
-            for key, grupo in df_temp.groupby(columna):
-                if len(grupo) >= 2:
-                    v1 = grupo.iloc[-2]["Ventas"]
-                    v2 = grupo.iloc[-1]["Ventas"]
+            c1, c2 = st.columns(2)
 
-                    if v1 != 0:
-                        crecimiento = (v2 - v1) / v1
+            with c1:
+                st.markdown("### 🟢 Impulsores")
+                st.dataframe(df_det[df_det[col].isin(verdes)])
 
-                        resultados.append({
-                            columna: key,
-                            "Ventas Anterior": v1,
-                            "Ventas Actual": v2,
-                            "Variación %": crecimiento * 100
-                        })
+            with c2:
+                st.markdown("### 🔴 Afectan")
+                st.dataframe(df_det[df_det[col].isin(rojos)])
 
-            return pd.DataFrame(resultados)
-
-        def mostrar_detalle(df, columna, verdes, rojos):
-
-            df_det = detalle_variacion(df, columna)
-
-            if df_det.empty:
-                return
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.markdown(f"### 🟢 {columna} que impulsan")
-
-                df_verdes = df_det[df_det[columna].isin(verdes)]
-
-                if not df_verdes.empty:
-                    st.dataframe(df_verdes.sort_values("Variación %", ascending=False))
-                else:
-                    st.info("Sin impulsores claros")
-
-            with col2:
-                st.markdown(f"### 🔴 {columna} que afectan")
-
-                df_rojos = df_det[df_det[columna].isin(rojos)]
-
-                if not df_rojos.empty:
-                    st.dataframe(df_rojos.sort_values("Variación %"))
-                else:
-                    st.info("Sin caídas relevantes")
-
-        # -------------------------
-        # EJECUCIÓN
-        # -------------------------
-        if "Pais" in df.columns:
-            verdes, rojos = mostrar_semaforo(df, "Pais")
-            mostrar_detalle(df, "Pais", verdes, rojos)
-
-        if "Region" in df.columns:
-            verdes, rojos = mostrar_semaforo(df, "Region")
-            mostrar_detalle(df, "Region", verdes, rojos)
-
-        if "Canal" in df.columns:
-            verdes, rojos = mostrar_semaforo(df, "Canal")
-            mostrar_detalle(df, "Canal", verdes, rojos)
+        for dim in ["Pais", "Region", "Canal"]:
+            if dim in df.columns:
+                mostrar(df, dim)
 
         if "Producto" in df.columns:
-            verdes, rojos = mostrar_semaforo(df, "Producto")
-            mostrar_detalle(df, "Producto", verdes, rojos)
-
+            mostrar(df, "Producto")
         elif "Nombre_Producto" in df.columns:
-            verdes, rojos = mostrar_semaforo(df, "Nombre_Producto")
-            mostrar_detalle(df, "Nombre_Producto", verdes, rojos)
+            mostrar(df, "Nombre_Producto")
+
+        # -------------------------
+        # RECOMENDACIONES
+        # -------------------------
+        st.subheader("🧠 Recomendaciones")
+
+        recomendaciones = []
+
+        def generar(df, col):
+            df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
+            df_t = df_t.sort_values("Periodo")
+            for k, g in df_t.groupby(col):
+                if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+                    var = (g.iloc[-1]["Ventas"] - g.iloc[-2]["Ventas"]) / g.iloc[-2]["Ventas"]
+                    if var < -0.10:
+                        recomendaciones.append(f"🔴 Recuperar {col}: {k} ({var*100:.1f}%)")
+                    elif var > 0.10:
+                        recomendaciones.append(f"🟢 Escalar {col}: {k} ({var*100:.1f}%)")
+
+        for dim in ["Pais", "Region", "Canal"]:
+            if dim in df.columns:
+                generar(df, dim)
+
+        if "Producto" in df.columns:
+            generar(df, "Producto")
+        elif "Nombre_Producto" in df.columns:
+            generar(df, "Nombre_Producto")
+
+        for r in recomendaciones:
+            st.write(r)
+
+    # =========================
+    # ANÁLISIS DETALLADO (VACÍO)
+    # =========================
+    elif st.session_state.vista == "detalle":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("🔎 Análisis Detallado")
+        st.info("Módulo en construcción")
 
 else:
     st.info("📂 Sube archivo")
