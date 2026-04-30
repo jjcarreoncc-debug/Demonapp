@@ -5,7 +5,7 @@ import sqlite3
 import os
 
   st.write("Ruta actual:", os.getcwd())
-st.sidebar.header("📂 Fuente de datos")
+  st.sidebar.header("📂 Fuente de datos")
 
 usar_bd = st.sidebar.checkbox("Usar datos desde base de datos", value=True)
 
