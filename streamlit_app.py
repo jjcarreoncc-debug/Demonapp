@@ -429,7 +429,7 @@ else:
     st.dataframe(df)
 
     # 👇 ESTO ES LO QUE TE FALTABA
-   elif st.session_state.vista == "carga":
+    elif st.session_state.vista == "carga":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
