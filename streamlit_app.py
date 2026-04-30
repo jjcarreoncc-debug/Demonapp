@@ -156,9 +156,7 @@ if archivo:
             fig = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
             st.plotly_chart(fig, use_container_width=True)
 
-        # =========================
-        # FUNCIÓN DE COLOR (SOLO RESUMEN)
-        # =========================
+        # ===== FUNCIONES (ADICIÓN) =====
         def color_valores(val):
             try:
                 val = float(val)
@@ -169,6 +167,17 @@ if archivo:
             except:
                 return ''
             return ''
+
+        def format_color(val, tipo):
+            try:
+                val = float(val)
+                if tipo == "var":
+                    return f"🔴 {val:.2%}" if val < 0 else f"🟢 {val:.2%}"
+                elif tipo == "money":
+                    return f"🔴 ${val:,.0f}" if val < 0 else f"🟢 ${val:,.0f}"
+            except:
+                return val
+            return val
 
         # ===== BLOQUE ADICIONAL =====
         st.markdown("## 📊 Análisis adicional de desempeño")
@@ -205,9 +214,11 @@ if archivo:
 
         if not df_tabla.empty:
 
-            st.dataframe(
-                df_tabla.style.applymap(color_valores, subset=["Variación", "Impacto $"])
-            )
+            df_display = df_tabla.copy()
+            df_display["Variación"] = df_display["Variación"].apply(lambda x: format_color(x, "var"))
+            df_display["Impacto $"] = df_display["Impacto $"].apply(lambda x: format_color(x, "money"))
+
+            st.dataframe(df_display)
 
             st.markdown("### 📊 Indicadores clave")
 
@@ -220,18 +231,20 @@ if archivo:
             k3.metric("Impacto total", f"${df_tabla['Impacto $'].sum():,.0f}")
 
             st.markdown("### 💰 Mayor impacto positivo")
-            st.dataframe(
-                df_tabla.sort_values("Impacto $", ascending=False)
-                .head(10)
-                .style.applymap(color_valores, subset=["Variación", "Impacto $"])
-            )
+
+            df_top = df_tabla.sort_values("Impacto $", ascending=False).head(10).copy()
+            df_top["Variación"] = df_top["Variación"].apply(lambda x: format_color(x, "var"))
+            df_top["Impacto $"] = df_top["Impacto $"].apply(lambda x: format_color(x, "money"))
+
+            st.dataframe(df_top)
 
             st.markdown("### 📉 Mayor impacto negativo")
-            st.dataframe(
-                df_tabla.sort_values("Impacto $")
-                .head(10)
-                .style.applymap(color_valores, subset=["Variación", "Impacto $"])
-            )
+
+            df_bot = df_tabla.sort_values("Impacto $").head(10).copy()
+            df_bot["Variación"] = df_bot["Variación"].apply(lambda x: format_color(x, "var"))
+            df_bot["Impacto $"] = df_bot["Impacto $"].apply(lambda x: format_color(x, "money"))
+
+            st.dataframe(df_bot)
 
     # =========================
     # RECOMENDACIONES
