@@ -183,7 +183,7 @@ if archivo:
             st.error(f"🔴 Salud Crítica ({score})")
 
         # -------------------------
-        # PROYECCIÓN MULTIPERIODO
+        # PROYECCIÓN
         # -------------------------
         st.subheader("📈 Proyección")
 
@@ -228,15 +228,10 @@ if archivo:
 
             st.plotly_chart(fig, use_container_width=True)
 
-            st.caption("Proyección hasta cierre de año basada en tendencia histórica.")
-
         # -------------------------
-        # GAUGES / SEMÁFOROS
+        # FUNCIONES
         # -------------------------
-        st.subheader("🎯 Palancas de Crecimiento")
-
         def calcular_crecimiento(df, columna):
-
             df_temp = df.groupby(["Periodo", columna])["Ventas"].sum().reset_index()
             ultimos = df_temp.sort_values("Periodo").groupby(columna).tail(2)
 
@@ -253,38 +248,100 @@ if archivo:
 
             return crecimiento_dict
 
-        # PAIS
+        def mostrar_semaforo(df, columna):
+            crecimiento = calcular_crecimiento(df, columna)
+
+            st.markdown(f"### {columna}")
+
+            verdes = []
+            rojos = []
+
+            for k, v in crecimiento.items():
+                if v > 0.05:
+                    st.success(f"{k}: 🟢 {v*100:.1f}%")
+                    verdes.append(k)
+                elif v > -0.05:
+                    st.warning(f"{k}: 🟡 {v*100:.1f}%")
+                else:
+                    st.error(f"{k}: 🔴 {v*100:.1f}%")
+                    rojos.append(k)
+
+            return verdes, rojos
+
+        def detalle_variacion(df, columna):
+            df_temp = df.groupby(["Periodo", columna])["Ventas"].sum().reset_index()
+            df_temp = df_temp.sort_values("Periodo")
+
+            resultados = []
+
+            for key, grupo in df_temp.groupby(columna):
+                if len(grupo) >= 2:
+                    v1 = grupo.iloc[-2]["Ventas"]
+                    v2 = grupo.iloc[-1]["Ventas"]
+
+                    if v1 != 0:
+                        crecimiento = (v2 - v1) / v1
+
+                        resultados.append({
+                            columna: key,
+                            "Ventas Anterior": v1,
+                            "Ventas Actual": v2,
+                            "Variación %": crecimiento * 100
+                        })
+
+            return pd.DataFrame(resultados)
+
+        def mostrar_detalle(df, columna, verdes, rojos):
+
+            df_det = detalle_variacion(df, columna)
+
+            if df_det.empty:
+                return
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown(f"### 🟢 {columna} que impulsan")
+
+                df_verdes = df_det[df_det[columna].isin(verdes)]
+
+                if not df_verdes.empty:
+                    st.dataframe(df_verdes.sort_values("Variación %", ascending=False))
+                else:
+                    st.info("Sin impulsores claros")
+
+            with col2:
+                st.markdown(f"### 🔴 {columna} que afectan")
+
+                df_rojos = df_det[df_det[columna].isin(rojos)]
+
+                if not df_rojos.empty:
+                    st.dataframe(df_rojos.sort_values("Variación %"))
+                else:
+                    st.info("Sin caídas relevantes")
+
+        # -------------------------
+        # EJECUCIÓN
+        # -------------------------
         if "Pais" in df.columns:
-            st.markdown("### 🌎 País")
-            for k, v in calcular_crecimiento(df, "Pais").items():
-                if v > 0.05:
-                    st.success(f"{k}: 🟢 {v*100:.1f}% crecimiento")
-                elif v > -0.05:
-                    st.warning(f"{k}: 🟡 {v*100:.1f}% estable")
-                else:
-                    st.error(f"{k}: 🔴 {v*100:.1f}% caída")
+            verdes, rojos = mostrar_semaforo(df, "Pais")
+            mostrar_detalle(df, "Pais", verdes, rojos)
 
-        # REGION
         if "Region" in df.columns:
-            st.markdown("### 🗺 Región")
-            for k, v in calcular_crecimiento(df, "Region").items():
-                if v > 0.05:
-                    st.success(f"{k}: 🟢 {v*100:.1f}% crecimiento")
-                elif v > -0.05:
-                    st.warning(f"{k}: 🟡 {v*100:.1f}% estable")
-                else:
-                    st.error(f"{k}: 🔴 {v*100:.1f}% caída")
+            verdes, rojos = mostrar_semaforo(df, "Region")
+            mostrar_detalle(df, "Region", verdes, rojos)
 
-        # CANAL
         if "Canal" in df.columns:
-            st.markdown("### 📡 Canal")
-            for k, v in calcular_crecimiento(df, "Canal").items():
-                if v > 0.05:
-                    st.success(f"{k}: 🟢 {v*100:.1f}% crecimiento")
-                elif v > -0.05:
-                    st.warning(f"{k}: 🟡 {v*100:.1f}% estable")
-                else:
-                    st.error(f"{k}: 🔴 {v*100:.1f}% caída")
+            verdes, rojos = mostrar_semaforo(df, "Canal")
+            mostrar_detalle(df, "Canal", verdes, rojos)
+
+        if "Producto" in df.columns:
+            verdes, rojos = mostrar_semaforo(df, "Producto")
+            mostrar_detalle(df, "Producto", verdes, rojos)
+
+        elif "Nombre_Producto" in df.columns:
+            verdes, rojos = mostrar_semaforo(df, "Nombre_Producto")
+            mostrar_detalle(df, "Nombre_Producto", verdes, rojos)
 
 else:
     st.info("📂 Sube archivo")
