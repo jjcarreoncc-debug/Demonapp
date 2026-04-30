@@ -425,8 +425,8 @@ else:
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
-       st.title("🔎 Análisis Detallado")
-       st.dataframe(df)
+        st.title("🔎 Análisis Detallado")
+        st.dataframe(df)
 
     # 👇 ESTO ES LO QUE TE FALTABA
        elif st.session_state.vista == "carga":
