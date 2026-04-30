@@ -230,65 +230,61 @@ if archivo:
 
             st.caption("Proyección hasta cierre de año basada en tendencia histórica.")
 
-    # =========================
-    # VOLATILIDAD
-    # =========================
-    elif st.session_state.vista == "volatilidad":
+        # -------------------------
+        # GAUGES / SEMÁFOROS
+        # -------------------------
+        st.subheader("🎯 Palancas de Crecimiento")
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+        def calcular_crecimiento(df, columna):
 
-        st.title("🚦 Volatilidad")
+            df_temp = df.groupby(["Periodo", columna])["Ventas"].sum().reset_index()
+            ultimos = df_temp.sort_values("Periodo").groupby(columna).tail(2)
 
-        if ratio > 0.30:
-            st.error("🔴 Alta volatilidad")
-        elif ratio > 0.15:
-            st.warning("🟡 Volatilidad media")
-        else:
-            st.success("🟢 Estabilidad")
+            crecimiento_dict = {}
 
-        st.line_chart(df_m.set_index("Periodo")["Ventas"])
+            for key, grupo in ultimos.groupby(columna):
+                if len(grupo) == 2:
+                    v1 = grupo.iloc[0]["Ventas"]
+                    v2 = grupo.iloc[1]["Ventas"]
 
-    # =========================
-    # RESPONSABLES
-    # =========================
-    elif st.session_state.vista == "responsables":
+                    if v1 != 0:
+                        crecimiento = (v2 - v1) / v1
+                        crecimiento_dict[key] = crecimiento
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+            return crecimiento_dict
 
-        st.title("👤 Responsables")
+        # PAIS
+        if "Pais" in df.columns:
+            st.markdown("### 🌎 País")
+            for k, v in calcular_crecimiento(df, "Pais").items():
+                if v > 0.05:
+                    st.success(f"{k}: 🟢 {v*100:.1f}% crecimiento")
+                elif v > -0.05:
+                    st.warning(f"{k}: 🟡 {v*100:.1f}% estable")
+                else:
+                    st.error(f"{k}: 🔴 {v*100:.1f}% caída")
 
-        col_resp = "Vendedor_Ruta" if "Vendedor_Ruta" in df.columns else "Nombre"
-
-        df_resp = df.groupby(col_resp)["Ventas"].sum().sort_values(ascending=False)
-
-        st.subheader("🏆 Ranking")
-        st.dataframe(df_resp)
-
-        df_var = df.groupby(["Periodo", col_resp])["Ventas"].sum().reset_index()
-        fig = px.line(df_var, x="Periodo", y="Ventas", color=col_resp)
-        st.plotly_chart(fig, use_container_width=True)
-
-    # =========================
-    # CAUSAS
-    # =========================
-    elif st.session_state.vista == "causas":
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        st.title("🧠 Análisis de Causas")
-
+        # REGION
         if "Region" in df.columns:
-            st.bar_chart(df.groupby("Region")["Ventas"].sum())
+            st.markdown("### 🗺 Región")
+            for k, v in calcular_crecimiento(df, "Region").items():
+                if v > 0.05:
+                    st.success(f"{k}: 🟢 {v*100:.1f}% crecimiento")
+                elif v > -0.05:
+                    st.warning(f"{k}: 🟡 {v*100:.1f}% estable")
+                else:
+                    st.error(f"{k}: 🔴 {v*100:.1f}% caída")
 
-        if ratio > 0.30:
-            st.error("Alta variabilidad")
-        elif ratio > 0.15:
-            st.warning("Variación moderada")
-        else:
-            st.success("Estable")
+        # CANAL
+        if "Canal" in df.columns:
+            st.markdown("### 📡 Canal")
+            for k, v in calcular_crecimiento(df, "Canal").items():
+                if v > 0.05:
+                    st.success(f"{k}: 🟢 {v*100:.1f}% crecimiento")
+                elif v > -0.05:
+                    st.warning(f"{k}: 🟡 {v*100:.1f}% estable")
+                else:
+                    st.error(f"{k}: 🔴 {v*100:.1f}% caída")
 
 else:
     st.info("📂 Sube archivo")
