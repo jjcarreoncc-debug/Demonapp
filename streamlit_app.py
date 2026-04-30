@@ -31,7 +31,6 @@ else:
     else:
         st.info("Sube un archivo o activa base de datos")
         st.stop()
-```
 
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
