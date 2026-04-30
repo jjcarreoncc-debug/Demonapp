@@ -8,6 +8,13 @@ st.write("Ruta actual:", os.getcwd())
 st.sidebar.header("📂 Fuente de datos") 
 st.write("Archivos en carpeta:")
 st.write(os.listdir())
+conn = sqlite3.connect("data.db")
+
+tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
+
+st.write(tablas)
+
+conn.close()
 usar_bd = st.sidebar.checkbox("Usar datos desde base de datos", value=True)
 
 if usar_bd:
