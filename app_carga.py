@@ -137,4 +137,3 @@ if st.button("Ver registros guardados"):
 
     except Exception as e:
         st.error(f"Error al leer la base: {e}")
-```
