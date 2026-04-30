@@ -3,52 +3,6 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
-
-conn = sqlite3.connect("data.db")
-st.write("📊 Tablas en DB:")
-tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
-st.write(tablas)
-
-try:
-    df_test = pd.read_sql("SELECT * FROM ventas", conn)
-    st.success(f"Filas encontradas: {len(df_test)}")
-    st.write(df_test.head())
-except Exception as e:
-    st.error(e)
-
-conn.close()
-conn = sqlite3.connect("data.db")
-
-tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
-
-st.write(tablas)
-
-conn.close()
-usar_bd = st.sidebar.checkbox("Usar datos desde base de datos", value=True)
-
-if usar_bd:
-
-    conn = sqlite3.connect("data.db")
-    tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
-    st.write("Tablas en la base:")
-    st.write(tablas)
-    conn.close() 
-
-    conn = sqlite3.connect("data.db")
-
-    tabla = st.sidebar.text_input("Tabla", value="ventas")
-    try:
-        df = pd.read_sql(f"SELECT * FROM {tabla}", conn)
-        st.sidebar.success("Datos cargados desde base")
-    
-    except Exception as e:
-       st.sidebar.error(f"Error real: {e}")
-       st.stop()
-
-    conn.close()
-
-else:
-
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
     if archivo:
