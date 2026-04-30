@@ -129,12 +129,6 @@ if archivo:
         fig = px.line(df_m, x="Periodo", y="Ventas", markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        with st.expander("📊 Detalle de Volatilidad"):
-            st.write("Ratio = desviación estándar / media")
-            st.write(f"Media: {media:,.2f}")
-            st.write(f"Desviación: {volatilidad:,.2f}")
-            st.write(f"Ratio: {ratio:.2f}")
-
     # =========================
     # RESPONSABLES
     # =========================
@@ -162,10 +156,6 @@ if archivo:
 
             fig2 = px.line(df_t, x="Periodo", y="Ventas", color="Vendedor_Ruta", markers=True)
             st.plotly_chart(fig2, use_container_width=True)
-
-            with st.expander("📊 Insight"):
-                mejor = df_r.iloc[0]
-                st.success(f"Top responsable: {mejor['Vendedor_Ruta']}")
 
     # =========================
     # CAUSAS
@@ -268,12 +258,8 @@ if archivo:
                 fig = px.line(df_proj, x="Periodo", y="Ventas", markers=True)
                 st.plotly_chart(fig, use_container_width=True)
 
-                with st.expander("📊 Cómo se calcula"):
-                    st.write("Variación = (Último - Anterior) / Anterior")
-                    st.write("Proyección = Último * (1 + variación)")
-
     # =========================
-    # RECOMENDACIONES
+    # RECOMENDACIONES (MEJORADO)
     # =========================
     elif st.session_state.vista == "recomendaciones":
 
@@ -283,12 +269,16 @@ if archivo:
         st.title("📌 Recomendaciones Estratégicas")
 
         recomendaciones = []
+        resumen_dim = {}
 
-        def generar(df, col):
+        def generar(col):
 
             df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
             df_t["Periodo"] = pd.to_datetime(df_t["Periodo"])
             df_t = df_t.sort_values("Periodo")
+
+            crecen = []
+            caen = []
 
             for k, g in df_t.groupby(col):
 
@@ -300,14 +290,38 @@ if archivo:
                     var = (v2 - v1) / v1
                     impacto = abs(v2 - v1)
 
-                    if var < -0.10:
-                        recomendaciones.append((col, k, var, impacto, "rojo"))
-                    elif var > 0.10:
+                    if var > 0.10:
+                        crecen.append((k, var))
                         recomendaciones.append((col, k, var, impacto, "verde"))
+                    elif var < -0.10:
+                        caen.append((k, var))
+                        recomendaciones.append((col, k, var, impacto, "rojo"))
+
+            resumen_dim[col] = {"crecen": crecen, "caen": caen}
 
         for dim in ["Pais", "Region", "Canal", "Producto"]:
             if dim in df.columns:
-                generar(df, dim)
+                generar(dim)
+
+        st.subheader("📊 Qué está pasando")
+
+        for dim, vals in resumen_dim.items():
+
+            st.markdown(f"### {dim}")
+
+            c1, c2 = st.columns(2)
+
+            with c1:
+                st.markdown("🟢 Crecimiento")
+                for k, v in vals["crecen"]:
+                    st.success(f"{k} ({v*100:.1f}%)")
+
+            with c2:
+                st.markdown("🔴 Decrecimiento")
+                for k, v in vals["caen"]:
+                    st.error(f"{k} ({v*100:.1f}%)")
+
+        st.subheader("📌 Acciones")
 
         recomendaciones = sorted(recomendaciones, key=lambda x: -x[3])
 
@@ -348,7 +362,7 @@ if archivo:
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
-        st.title("🔎 Detalle Completo")
+        st.title("🔎 Detalle")
         st.dataframe(df)
 
 else:
