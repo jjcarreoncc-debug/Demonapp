@@ -3,6 +3,24 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
+# 🚨 DEBUG AQUÍ
+st.write("📁 Ruta actual:", os.getcwd())
+st.write("📂 Archivos:", os.listdir())
+
+conn = sqlite3.connect("data.db")
+
+st.write("📊 Tablas en DB:")
+tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
+st.write(tablas)
+
+try:
+    df_test = pd.read_sql("SELECT * FROM ventas", conn)
+    st.success(f"Filas encontradas: {len(df_test)}")
+    st.write(df_test.head())
+except Exception as e:
+    st.error(e)
+
+conn.close()
 conn = sqlite3.connect("data.db")
 
 tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
