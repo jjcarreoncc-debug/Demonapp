@@ -1,6 +1,38 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import sqlite3
+
+st.sidebar.header("📂 Fuente de datos")
+
+usar_bd = st.sidebar.checkbox("Usar datos desde base de datos", value=True)
+
+if usar_bd:
+
+    conn = sqlite3.connect("data.db")
+
+    tabla = st.sidebar.text_input("Tabla", value="ventas")
+
+    try:
+        df = pd.read_sql(f"SELECT * FROM {tabla}", conn)
+        st.sidebar.success("Datos cargados desde base")
+    except:
+        st.sidebar.error("Error al leer la tabla")
+        st.stop()
+
+    conn.close()
+
+else:
+
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if archivo:
+        df = pd.read_excel(archivo)
+    else:
+        st.info("Sube un archivo o activa base de datos")
+        st.stop()
+```
+
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
@@ -9,9 +41,7 @@ if "vista" not in st.session_state:
 
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-if archivo:
 
-    df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
