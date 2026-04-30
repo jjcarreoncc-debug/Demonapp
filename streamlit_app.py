@@ -156,6 +156,20 @@ if archivo:
             fig = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
             st.plotly_chart(fig, use_container_width=True)
 
+        # =========================
+        # FUNCIÓN DE COLOR (SOLO RESUMEN)
+        # =========================
+        def color_valores(val):
+            try:
+                val = float(val)
+                if val < 0:
+                    return 'color: red'
+                elif val > 0:
+                    return 'color: green'
+            except:
+                return ''
+            return ''
+
         # ===== BLOQUE ADICIONAL =====
         st.markdown("## 📊 Análisis adicional de desempeño")
 
@@ -191,7 +205,9 @@ if archivo:
 
         if not df_tabla.empty:
 
-            st.dataframe(df_tabla)
+            st.dataframe(
+                df_tabla.style.applymap(color_valores, subset=["Variación", "Impacto $"])
+            )
 
             st.markdown("### 📊 Indicadores clave")
 
@@ -204,10 +220,18 @@ if archivo:
             k3.metric("Impacto total", f"${df_tabla['Impacto $'].sum():,.0f}")
 
             st.markdown("### 💰 Mayor impacto positivo")
-            st.dataframe(df_tabla.sort_values("Impacto $", ascending=False).head(10))
+            st.dataframe(
+                df_tabla.sort_values("Impacto $", ascending=False)
+                .head(10)
+                .style.applymap(color_valores, subset=["Variación", "Impacto $"])
+            )
 
             st.markdown("### 📉 Mayor impacto negativo")
-            st.dataframe(df_tabla.sort_values("Impacto $").head(10))
+            st.dataframe(
+                df_tabla.sort_values("Impacto $")
+                .head(10)
+                .style.applymap(color_valores, subset=["Variación", "Impacto $"])
+            )
 
     # =========================
     # RECOMENDACIONES
