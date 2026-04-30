@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
+
   st.write("Ruta actual:", os.getcwd())
 st.sidebar.header("📂 Fuente de datos")
 
