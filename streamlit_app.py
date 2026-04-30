@@ -47,14 +47,6 @@ if usar_bd:
     conn = sqlite3.connect("data.db")
 
     tabla = st.sidebar.text_input("Tabla", value="ventas")
-# 3. Conexión
-st.write("🔌 Conectando a DB...")
-conn = sqlite3.connect("data.db")
-
-# 4. Tablas existentes
-st.write("📊 Tablas en DB:")
-tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
-st.write(tablas)
     try:
         df = pd.read_sql(f"SELECT * FROM {tabla}", conn)
         st.sidebar.success("Datos cargados desde base")
