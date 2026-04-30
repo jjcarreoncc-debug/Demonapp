@@ -183,32 +183,38 @@ if archivo:
             st.error(f"🔴 Salud Crítica ({score})")
 
         # -------------------------
-        # PROYECCIÓN MEJORADA
+        # PROYECCIÓN MULTIPERIODO
         # -------------------------
         st.subheader("📈 Proyección")
 
         if len(df_m) > 2:
 
             tendencia = df_m["Ventas"].diff().mean()
-            prediccion = df_m["Ventas"].iloc[-1] + tendencia
 
-            st.metric("Próximo periodo", f"${prediccion:,.0f}")
+            ultimo_periodo = pd.Period(df_m["Periodo"].iloc[-1], freq="M")
+            ultimo_valor = df_m["Ventas"].iloc[-1]
 
-            df_pred = df_m.copy()
+            proyecciones = []
+            periodo_actual = ultimo_periodo
+            valor_actual = ultimo_valor
 
-            ultimo_periodo = pd.Period(df_pred["Periodo"].iloc[-1], freq="M")
-            siguiente_periodo = (ultimo_periodo + 1).strftime("%Y-%m")
+            while periodo_actual.month < 12:
+                periodo_actual += 1
+                valor_actual += tendencia
 
-            df_pred["Tipo"] = "Real"
+                proyecciones.append({
+                    "Periodo": periodo_actual.strftime("%Y-%m"),
+                    "Ventas": valor_actual,
+                    "Tipo": "Proyección"
+                })
 
-            df_proj = pd.DataFrame({
-                "Periodo": [df_pred["Periodo"].iloc[-1], siguiente_periodo],
-                "Ventas": [df_pred["Ventas"].iloc[-1], prediccion],
-                "Tipo": ["Proyección", "Proyección"]
-            })
+            df_real = df_m.copy()
+            df_real["Tipo"] = "Real"
+
+            df_proj = pd.DataFrame(proyecciones)
 
             df_final = pd.concat([
-                df_pred[["Periodo", "Ventas", "Tipo"]],
+                df_real[["Periodo", "Ventas", "Tipo"]],
                 df_proj
             ], ignore_index=True)
 
@@ -222,7 +228,7 @@ if archivo:
 
             st.plotly_chart(fig, use_container_width=True)
 
-            st.caption("Comparación entre ventas reales y proyección.")
+            st.caption("Proyección hasta cierre de año basada en tendencia histórica.")
 
     # =========================
     # VOLATILIDAD
