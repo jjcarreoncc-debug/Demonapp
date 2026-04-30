@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import os
 from datetime import datetime
+st.write("RUTA CARGA:", os.getcwd())
+st.write("Ruta actual:", os.getcwd())
 
 st.set_page_config(page_title="Carga de Datos", layout="wide")
 
@@ -64,6 +67,7 @@ if archivo:
     # BOTÓN GUARDAR
     # -------------------------
     if st.button("💾 Guardar en base de datos"):
+        
 
         try:
             conn = sqlite3.connect(DB_NAME)
