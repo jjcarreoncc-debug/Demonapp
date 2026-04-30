@@ -10,9 +10,9 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-  # -------------------------
-  # CARGA
-  # -------------------------
+# -------------------------
+# CARGA
+# -------------------------
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 if archivo:
@@ -20,49 +20,61 @@ if archivo:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-   
-    # -------------------------
-    # CONVERSIÓN A NUMÉRICO (ANTI-ERROR)
-    # -------------------------
-
-    cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]
-
-    for col in cols_numericas:
-        if col in df.columns:
-           df[col] = pd.to_numeric(df[col], errors="coerce")    
-    
     # -------------------------
     # LIMPIEZA
     # -------------------------
-    
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
     # -------------------------
+    # CONVERSIÓN NUMÉRICA
+    # -------------------------
+    cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos", "Objetivo"]
+
+    for col in cols_numericas:
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(",", "")
+                .str.replace("$", "")
+            )
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # -------------------------
     # CALCULOS FLEXIBLES
     # -------------------------
-    # Ventas
     if "Ventas_Cantidad" in df.columns and "Precio_Venta" in df.columns:
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
     else:
         df["Ventas"] = df.get("Ventas", 0)
 
-    # Costos
     if "Costos_Venta" in df.columns and "Ventas_Cantidad" in df.columns:
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
     else:
         df["Costos"] = df.get("Costos", 0)
 
-    # Ganancia
     df["Ganancia"] = df["Ventas"] - df["Costos"]
-
-    # Periodo
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     # -------------------------
-    # FILTROS
+    # INDICADORES
     # -------------------------
-    st.sidebar.header("🎯 Filtros")
+    if "Objetivo" in df.columns:
+        df["Cumplimiento"] = df["Ventas"] / df["Objetivo"]
+    else:
+        df["Cumplimiento"] = None
+
+    if "Ventas_Cantidad" in df.columns:
+        total_unidades = df["Ventas_Cantidad"].sum()
+        ticket = df["Ventas"].sum() / total_unidades if total_unidades != 0 else 0
+    else:
+        ticket = 0
+
+    # -------------------------
+    # FILTROS BASE (PRINCIPAL)
+    # -------------------------
+    st.sidebar.header("🎯 Filtros Base")
 
     rango = st.sidebar.date_input(
         "Fecha",
@@ -80,14 +92,6 @@ if archivo:
     if "Region" in df.columns:
         region = st.sidebar.multiselect("Región", df["Region"].unique(), df["Region"].unique())
         df = df[df["Region"].isin(region)]
-
-    if "Vendedor_Ruta" in df.columns:
-        ruta = st.sidebar.multiselect("Ruta", df["Vendedor_Ruta"].unique(), df["Vendedor_Ruta"].unique())
-        df = df[df["Vendedor_Ruta"].isin(ruta)]
-
-    if "Canal" in df.columns:
-        canal = st.sidebar.multiselect("Canal", df["Canal"].unique(), df["Canal"].unique())
-        df = df[df["Canal"].isin(canal)]
 
     if df.empty:
         st.warning("⚠️ No hay datos")
@@ -113,15 +117,22 @@ if archivo:
 
         st.title("📊 Dashboard Ejecutivo")
 
-        c1, c2, c3 = st.columns(3)
+        c1, c2, c3, c4 = st.columns(4)
+
         c1.metric("Ventas", f"${ventas:,.0f}")
         c2.metric("Ganancia", f"${ganancia:,.0f}")
         c3.metric("Margen", f"{margen:.1f}%")
 
+        if df["Cumplimiento"].notna().any():
+            cumplimiento_total = df["Cumplimiento"].mean() * 100
+            c4.metric("Cumplimiento", f"{cumplimiento_total:.1f}%")
+
+        st.metric("Ticket Promedio", f"${ticket:,.0f}")
+
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
@@ -131,6 +142,38 @@ if archivo:
 
         if col3.button("🧠 Causas"):
             st.session_state.vista = "causas"
+
+        if col4.button("🔎 Análisis Detallado"):
+            st.session_state.vista = "detalle"
+
+    # =========================
+    # DETALLE (NUEVO DASHBOARD)
+    # =========================
+    elif st.session_state.vista == "detalle":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("🔎 Análisis Detallado")
+
+        df_det = df.copy()
+
+        # Filtros secundarios
+        if "Vendedor_Ruta" in df_det.columns:
+            ruta = st.multiselect("Ruta", df_det["Vendedor_Ruta"].unique(), df_det["Vendedor_Ruta"].unique())
+            df_det = df_det[df_det["Vendedor_Ruta"].isin(ruta)]
+
+        if "Canal" in df_det.columns:
+            canal = st.multiselect("Canal", df_det["Canal"].unique(), df_det["Canal"].unique())
+            df_det = df_det[df_det["Canal"].isin(canal)]
+
+        st.subheader("Ventas por Canal")
+        if "Canal" in df_det.columns:
+            st.bar_chart(df_det.groupby("Canal")["Ventas"].sum())
+
+        st.subheader("Ventas por Ruta")
+        if "Vendedor_Ruta" in df_det.columns:
+            st.bar_chart(df_det.groupby("Vendedor_Ruta")["Ventas"].sum())
 
     # =========================
     # VOLATILIDAD
@@ -161,22 +204,16 @@ if archivo:
 
         st.title("👤 Responsables")
 
-        col_resp = None
-        if "Vendedor_Ruta" in df.columns:
-            col_resp = "Vendedor_Ruta"
-        elif "Nombre" in df.columns:
-            col_resp = "Nombre"
+        col_resp = "Vendedor_Ruta" if "Vendedor_Ruta" in df.columns else "Nombre"
 
-        if col_resp:
-            df_resp = df.groupby(col_resp)["Ventas"].sum().sort_values(ascending=False)
+        df_resp = df.groupby(col_resp)["Ventas"].sum().sort_values(ascending=False)
 
-            st.subheader("🏆 Ranking")
-            st.dataframe(df_resp)
+        st.subheader("🏆 Ranking")
+        st.dataframe(df_resp)
 
-            df_var = df.groupby(["Periodo", col_resp])["Ventas"].sum().reset_index()
-
-            fig = px.line(df_var, x="Periodo", y="Ventas", color=col_resp)
-            st.plotly_chart(fig, use_container_width=True)
+        df_var = df.groupby(["Periodo", col_resp])["Ventas"].sum().reset_index()
+        fig = px.line(df_var, x="Periodo", y="Ventas", color=col_resp)
+        st.plotly_chart(fig, use_container_width=True)
 
     # =========================
     # CAUSAS
@@ -189,26 +226,14 @@ if archivo:
         st.title("🧠 Análisis de Causas")
 
         if "Region" in df.columns:
-            df_reg = df.groupby("Region")["Ventas"].sum().sort_values(ascending=False)
-            st.subheader("Impacto por región")
-            st.bar_chart(df_reg)
-
-        if "Canal" in df.columns:
-            df_canal = df.groupby("Canal")["Ventas"].sum().sort_values(ascending=False)
-            st.subheader("Impacto por canal")
-            st.bar_chart(df_canal)
-
-        if "Vendedor_Ruta" in df.columns:
-            df_ruta = df.groupby("Vendedor_Ruta")["Ventas"].sum().sort_values(ascending=False)
-            st.subheader("Impacto por ruta")
-            st.bar_chart(df_ruta)
+            st.bar_chart(df.groupby("Region")["Ventas"].sum())
 
         if ratio > 0.30:
-            st.error("Posible causa: alta variabilidad")
+            st.error("Alta variabilidad")
         elif ratio > 0.15:
-            st.warning("Posible causa: diferencias por canal/región")
+            st.warning("Variación moderada")
         else:
-            st.success("Sistema estable")
+            st.success("Estable")
 
 else:
     st.info("📂 Sube archivo")
