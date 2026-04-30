@@ -93,4 +93,3 @@ if archivo:
 
 else:
     st.info("📂 Sube un archivo para comenzar")
-```
