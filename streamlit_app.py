@@ -20,7 +20,7 @@ if usar_bd:
     except Exception as e:
     st.sidebar.error(f"Error real: {e}")
     st.stop()
-    
+
     conn.close()
 
 else:
