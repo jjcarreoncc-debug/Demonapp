@@ -10,9 +10,9 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-# -------------------------
-# CARGA
-# -------------------------
+  # -------------------------
+  # CARGA
+  # -------------------------
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 if archivo:
@@ -25,11 +25,11 @@ if archivo:
     # CONVERSIÓN A NUMÉRICO (ANTI-ERROR)
     # -------------------------
 
-cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]
+    cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]
 
-for col in cols_numericas:
-if col in df.columns:
-    df[col] = pd.to_numeric(df[col], errors="coerce")    
+    for col in cols_numericas:
+        if col in df.columns:
+           df[col] = pd.to_numeric(df[col], errors="coerce")    
     
     # -------------------------
     # LIMPIEZA
