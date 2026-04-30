@@ -20,6 +20,17 @@ if archivo:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
+   
+    # -------------------------
+    # CONVERSIÓN A NUMÉRICO (ANTI-ERROR)
+    # -------------------------
+
+cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]
+
+for col in cols_numericas:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")    
+    
     # -------------------------
     # LIMPIEZA
     # -------------------------
