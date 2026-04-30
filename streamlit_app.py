@@ -3,7 +3,26 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
+# 3. Conexión
+st.write("🔌 Conectando a DB...")
+conn = sqlite3.connect("data.db")
 
+# 4. Tablas existentes
+st.write("📊 Tablas en DB:")
+tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
+st.write(tablas)
+
+# 5. Intentar leer tabla
+try:
+    st.write("📥 Intentando leer tabla ventas...")
+    df_test = pd.read_sql("SELECT * FROM ventas", conn)
+
+    st.success("✅ Datos cargados correctamente")
+    st.write("🔢 Filas:", len(df_test))
+    st.write(df_test.head())
+
+except Exception as e:
+    st.error(f"❌ Error leyendo tabla: {e}")
 st.write("Ruta actual:", os.getcwd())
 st.sidebar.header("📂 Fuente de datos") 
 st.write("Archivos en carpeta:")
