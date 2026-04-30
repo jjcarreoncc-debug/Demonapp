@@ -150,7 +150,7 @@ if archivo:
             st.session_state.vista = "resumen"
 
     # =========================
-    # RESUMEN EJECUTIVO (IA)
+    # RESUMEN EJECUTIVO
     # =========================
     elif st.session_state.vista == "resumen":
 
@@ -182,140 +182,41 @@ if archivo:
         else:
             st.error(f"🔴 Salud Crítica ({score})")
 
-        # ALERTAS
-        st.subheader("🚨 Alertas")
-
-        if margen < 10:
-            st.error("Margen bajo")
-
-        if ratio > 0.30:
-            st.warning("Alta volatilidad")
-
-        if df["Cumplimiento"].notna().any():
-            if cumplimiento_total < 0.8:
-                st.error("Bajo cumplimiento")
-
-        # DIAGNÓSTICO
-        st.subheader("🔍 Diagnóstico")
-
-        if ratio > 0.30:
-            st.write("Variabilidad alta en ventas")
-
-        if margen < 10:
-            st.write("Costos elevados o precios bajos")
-
-        if "Canal" in df.columns:
-            canal_top = df.groupby("Canal")["Ventas"].sum().idxmax()
-            st.write(f"Canal principal: {canal_top}")
-
-        # PREDICCIÓN
+        # PROYECCIÓN CON GRÁFICA
         st.subheader("📈 Proyección")
 
         if len(df_m) > 2:
+
             tendencia = df_m["Ventas"].diff().mean()
             prediccion = df_m["Ventas"].iloc[-1] + tendencia
+
             st.metric("Próximo periodo", f"${prediccion:,.0f}")
 
-        # RECOMENDACIONES
-        st.subheader("💡 Recomendaciones")
+            df_pred = df_m.copy()
 
-        if margen < 10:
-            st.write("Revisar estructura de costos")
+            ultimo_periodo = pd.Period(df_pred["Periodo"].iloc[-1], freq="M")
+            siguiente_periodo = (ultimo_periodo + 1).strftime("%Y-%m")
 
-        if ratio > 0.30:
-            st.write("Diversificar ventas")
+            nueva_fila = pd.DataFrame({
+                "Periodo": [siguiente_periodo],
+                "Ventas": [prediccion],
+                "Ganancia": [None]
+            })
 
-        if df["Cumplimiento"].notna().any():
-            if cumplimiento_total < 0.8:
-                st.write("Ajustar estrategia comercial")
+            df_pred = pd.concat([df_pred, nueva_fila], ignore_index=True)
 
-    # =========================
-    # DETALLE
-    # =========================
-    elif st.session_state.vista == "detalle":
+            fig = px.line(df_pred, x="Periodo", y="Ventas", markers=True)
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+            fig.add_scatter(
+                x=[siguiente_periodo],
+                y=[prediccion],
+                mode="markers",
+                name="Predicción"
+            )
 
-        st.title("🔎 Análisis Detallado")
+            st.plotly_chart(fig, use_container_width=True)
 
-        df_det = df.copy()
-
-        if "Vendedor_Ruta" in df_det.columns:
-            ruta = st.multiselect("Ruta", df_det["Vendedor_Ruta"].unique(), df_det["Vendedor_Ruta"].unique())
-            df_det = df_det[df_det["Vendedor_Ruta"].isin(ruta)]
-
-        if "Canal" in df_det.columns:
-            canal = st.multiselect("Canal", df_det["Canal"].unique(), df_det["Canal"].unique())
-            df_det = df_det[df_det["Canal"].isin(canal)]
-
-        if "Canal" in df_det.columns:
-            st.subheader("Ventas por Canal")
-            st.bar_chart(df_det.groupby("Canal")["Ventas"].sum())
-
-        if "Vendedor_Ruta" in df_det.columns:
-            st.subheader("Ventas por Ruta")
-            st.bar_chart(df_det.groupby("Vendedor_Ruta")["Ventas"].sum())
-
-    # =========================
-    # VOLATILIDAD
-    # =========================
-    elif st.session_state.vista == "volatilidad":
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        st.title("🚦 Volatilidad")
-
-        if ratio > 0.30:
-            st.error("🔴 Alta volatilidad")
-        elif ratio > 0.15:
-            st.warning("🟡 Volatilidad media")
-        else:
-            st.success("🟢 Estabilidad")
-
-        st.line_chart(df_m.set_index("Periodo")["Ventas"])
-
-    # =========================
-    # RESPONSABLES
-    # =========================
-    elif st.session_state.vista == "responsables":
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        st.title("👤 Responsables")
-
-        col_resp = "Vendedor_Ruta" if "Vendedor_Ruta" in df.columns else "Nombre"
-
-        df_resp = df.groupby(col_resp)["Ventas"].sum().sort_values(ascending=False)
-
-        st.subheader("🏆 Ranking")
-        st.dataframe(df_resp)
-
-        df_var = df.groupby(["Periodo", col_resp])["Ventas"].sum().reset_index()
-        fig = px.line(df_var, x="Periodo", y="Ventas", color=col_resp)
-        st.plotly_chart(fig, use_container_width=True)
-
-    # =========================
-    # CAUSAS
-    # =========================
-    elif st.session_state.vista == "causas":
-
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
-        st.title("🧠 Análisis de Causas")
-
-        if "Region" in df.columns:
-            st.bar_chart(df.groupby("Region")["Ventas"].sum())
-
-        if ratio > 0.30:
-            st.error("Alta variabilidad")
-        elif ratio > 0.15:
-            st.warning("Variación moderada")
-        else:
-            st.success("Estable")
+            st.caption("La proyección se basa en la tendencia promedio de crecimiento de ventas.")
 
 else:
     st.info("📂 Sube archivo")
