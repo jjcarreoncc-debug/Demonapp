@@ -1,3 +1,6 @@
+# =========================
+# IMPORTS
+# =========================
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -54,6 +57,9 @@ if archivo:
     if df.empty:
         st.stop()
 
+    # =========================
+    # AGREGACIONES
+    # =========================
     df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
     df_m["Periodo_dt"] = pd.to_datetime(df_m["Periodo"])
     df_m = df_m.sort_values("Periodo_dt")
@@ -123,6 +129,12 @@ if archivo:
         fig = px.line(df_m, x="Periodo", y="Ventas", markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
+        with st.expander("📊 Detalle de Volatilidad"):
+            st.write("Ratio = desviación estándar / media")
+            st.write(f"Media: {media:,.2f}")
+            st.write(f"Desviación: {volatilidad:,.2f}")
+            st.write(f"Ratio: {ratio:.2f}")
+
     # =========================
     # RESPONSABLES
     # =========================
@@ -134,18 +146,26 @@ if archivo:
         st.title("👤 Responsables")
 
         if "Vendedor_Ruta" in df.columns:
-            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index().sort_values("Ventas", ascending=False)
+
+            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+            df_r = df_r.sort_values("Ventas", ascending=False)
+
             st.dataframe(df_r)
 
             fig = px.bar(df_r, x="Vendedor_Ruta", y="Ventas")
             st.plotly_chart(fig, use_container_width=True)
 
-            top = df_r.head(3)["Vendedor_Ruta"]
+            top = df_r.head(5)["Vendedor_Ruta"]
+
             df_t = df[df["Vendedor_Ruta"].isin(top)]
             df_t = df_t.groupby(["Periodo", "Vendedor_Ruta"])["Ventas"].sum().reset_index()
 
             fig2 = px.line(df_t, x="Periodo", y="Ventas", color="Vendedor_Ruta", markers=True)
             st.plotly_chart(fig2, use_container_width=True)
+
+            with st.expander("📊 Insight"):
+                mejor = df_r.iloc[0]
+                st.success(f"Top responsable: {mejor['Vendedor_Ruta']}")
 
     # =========================
     # CAUSAS
@@ -158,19 +178,28 @@ if archivo:
         st.title("🧠 Causas")
 
         if "Producto" in df.columns:
-            df_c = df.groupby("Producto")["Ventas"].sum().reset_index().sort_values("Ventas", ascending=False)
+
+            df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
+            df_c = df_c.sort_values("Ventas", ascending=False)
+
             st.dataframe(df_c)
 
             df_t = df.groupby(["Periodo", "Producto"])["Ventas"].sum().reset_index()
 
             for prod, g in df_t.groupby("Producto"):
                 g = g.sort_values("Periodo")
+
                 if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+
                     var = (g.iloc[-1]["Ventas"] - g.iloc[-2]["Ventas"]) / g.iloc[-2]["Ventas"]
+
                     if var < -0.15:
                         st.error(f"{prod} caída fuerte ({var*100:.1f}%)")
                     elif var > 0.15:
                         st.success(f"{prod} crecimiento fuerte ({var*100:.1f}%)")
+
+            fig = px.bar(df_c.head(10), x="Producto", y="Ventas")
+            st.plotly_chart(fig, use_container_width=True)
 
     # =========================
     # RESUMEN EJECUTIVO
@@ -184,18 +213,18 @@ if archivo:
 
         df_res = df.copy()
 
-        colf1, colf2, colf3 = st.columns(3)
+        c1, c2, c3 = st.columns(3)
 
         if "Canal" in df.columns:
-            canal = colf1.multiselect("Canal", df["Canal"].unique(), df["Canal"].unique())
+            canal = c1.multiselect("Canal", df["Canal"].unique(), df["Canal"].unique())
             df_res = df_res[df_res["Canal"].isin(canal)]
 
         if "Vendedor_Ruta" in df.columns:
-            ruta = colf2.multiselect("Ruta", df["Vendedor_Ruta"].unique(), df["Vendedor_Ruta"].unique())
+            ruta = c2.multiselect("Ruta", df["Vendedor_Ruta"].unique(), df["Vendedor_Ruta"].unique())
             df_res = df_res[df_res["Vendedor_Ruta"].isin(ruta)]
 
         if "Producto" in df.columns:
-            prod = colf3.multiselect("Producto", df["Producto"].unique(), df["Producto"].unique())
+            prod = c3.multiselect("Producto", df["Producto"].unique(), df["Producto"].unique())
             df_res = df_res[df_res["Producto"].isin(prod)]
 
         df_m_res = df_res.groupby("Periodo")["Ventas"].sum().reset_index()
@@ -232,13 +261,16 @@ if archivo:
                     df_proj,
                     pd.DataFrame({
                         "Periodo": [sig.strftime("%Y-%m")],
-                        "Ventas": [proy],
-                        "Periodo_dt": [sig]
+                        "Ventas": [proy]
                     })
                 ])
 
                 fig = px.line(df_proj, x="Periodo", y="Ventas", markers=True)
                 st.plotly_chart(fig, use_container_width=True)
+
+                with st.expander("📊 Cómo se calcula"):
+                    st.write("Variación = (Último - Anterior) / Anterior")
+                    st.write("Proyección = Último * (1 + variación)")
 
     # =========================
     # RECOMENDACIONES
@@ -248,17 +280,20 @@ if archivo:
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
-        st.title("📌 Recomendaciones")
+        st.title("📌 Recomendaciones Estratégicas")
 
         recomendaciones = []
 
-        def generar(col):
+        def generar(df, col):
+
             df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
             df_t["Periodo"] = pd.to_datetime(df_t["Periodo"])
             df_t = df_t.sort_values("Periodo")
 
             for k, g in df_t.groupby(col):
+
                 if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+
                     v1 = g.iloc[-2]["Ventas"]
                     v2 = g.iloc[-1]["Ventas"]
 
@@ -266,19 +301,43 @@ if archivo:
                     impacto = abs(v2 - v1)
 
                     if var < -0.10:
-                        recomendaciones.append((f"🔴 Recuperar {col}: {k}", impacto))
+                        recomendaciones.append((col, k, var, impacto, "rojo"))
                     elif var > 0.10:
-                        recomendaciones.append((f"🟢 Escalar {col}: {k}", impacto))
+                        recomendaciones.append((col, k, var, impacto, "verde"))
 
         for dim in ["Pais", "Region", "Canal", "Producto"]:
             if dim in df.columns:
-                generar(dim)
+                generar(df, dim)
 
-        recomendaciones = sorted(recomendaciones, key=lambda x: -x[1])
+        recomendaciones = sorted(recomendaciones, key=lambda x: -x[3])
 
-        for r, imp in recomendaciones:
-            st.write(r)
-            st.caption(f"Impacto: ${imp:,.0f}")
+        for dim, nombre, var, impacto, tipo in recomendaciones:
+
+            if tipo == "verde":
+                st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
+            else:
+                st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
+
+            st.caption(f"Impacto: ${impacto:,.0f}")
+
+            with st.expander("📊 Ver gráfica"):
+
+                df_f = df[df[dim] == nombre]
+
+                df_g = df_f.groupby("Periodo")["Ventas"].sum().reset_index()
+                df_g["Periodo"] = pd.to_datetime(df_g["Periodo"])
+
+                fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
+                st.plotly_chart(fig, use_container_width=True)
+
+                df_total = df.groupby("Periodo")["Ventas"].sum().reset_index()
+                df_total["Periodo"] = pd.to_datetime(df_total["Periodo"])
+
+                df_comp = df_g.merge(df_total, on="Periodo", suffixes=("_seg", "_tot"))
+
+                fig2 = px.line(df_comp, x="Periodo", y=["Ventas_seg", "Ventas_tot"], markers=True)
+                st.plotly_chart(fig2, use_container_width=True)
+
             st.markdown("---")
 
     # =========================
@@ -289,7 +348,7 @@ if archivo:
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
-        st.title("🔎 Detalle")
+        st.title("🔎 Detalle Completo")
         st.dataframe(df)
 
 else:
