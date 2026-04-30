@@ -11,8 +11,8 @@ if usar_bd:
 
     conn = sqlite3.connect("data.db")
     tablas = pd.read_sql("SELECT name FROM sqlite_master WHERE type='table';", conn)
-     st.write("Tablas en la base:")
-     st.write(tablas)
+    st.write("Tablas en la base:")
+    st.write(tablas)
     conn.close() 
 
     conn = sqlite3.connect("data.db")
