@@ -2,17 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# -------------------------
 # CONFIG
-# -------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-# -------------------------
-# CARGA
-# -------------------------
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 if archivo:
@@ -20,50 +15,33 @@ if archivo:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-    # -------------------------
-    # LIMPIEZA
-    # -------------------------
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
-    # -------------------------
-    # CONVERSIÓN NUMÉRICA
-    # -------------------------
-    cols_numericas = ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]
-
-    for col in cols_numericas:
+    # NUMÉRICOS
+    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta", "Ventas", "Costos"]:
         if col in df.columns:
             df[col] = (
-                df[col]
-                .astype(str)
+                df[col].astype(str)
                 .str.replace(",", "")
                 .str.replace("$", "")
             )
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # -------------------------
-    # CALCULOS
-    # -------------------------
+    # CÁLCULOS
     if "Ventas_Cantidad" in df.columns and "Precio_Venta" in df.columns:
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-    else:
-        df["Ventas"] = df.get("Ventas", 0)
 
     if "Costos_Venta" in df.columns and "Ventas_Cantidad" in df.columns:
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-    else:
-        df["Costos"] = df.get("Costos", 0)
 
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    # -------------------------
-    # FILTROS BASE
-    # -------------------------
-    st.sidebar.header("🎯 Filtros Base")
+    # FILTROS
+    st.sidebar.header("🎯 Filtros")
 
     rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
-
     if len(rango) == 2:
         df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
                 (df["Fecha"] <= pd.to_datetime(rango[1]))]
@@ -77,12 +55,8 @@ if archivo:
         df = df[df["Region"].isin(region)]
 
     if df.empty:
-        st.warning("⚠️ No hay datos")
         st.stop()
 
-    # -------------------------
-    # CALCULOS GENERALES
-    # -------------------------
     df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
     ventas = df["Ventas"].sum()
@@ -97,7 +71,6 @@ if archivo:
         st.title("📊 Dashboard Ejecutivo")
 
         c1, c2, c3 = st.columns(3)
-
         c1.metric("Ventas", f"${ventas:,.0f}")
         c2.metric("Ganancia", f"${ganancia:,.0f}")
         c3.metric("Margen", f"{margen:.1f}%")
@@ -106,15 +79,6 @@ if archivo:
         st.plotly_chart(fig, use_container_width=True)
 
         col1, col2, col3, col4, col5, col6 = st.columns(6)
-
-        if col1.button("🚦 Volatilidad"):
-            st.session_state.vista = "volatilidad"
-
-        if col2.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-
-        if col3.button("🧠 Causas"):
-            st.session_state.vista = "causas"
 
         if col4.button("🔎 Análisis Detallado"):
             st.session_state.vista = "detalle"
@@ -140,11 +104,12 @@ if archivo:
         if len(df_m) > 2:
             tendencia = df_m["Ventas"].diff().mean()
             df_m["Proyección"] = df_m["Ventas"].iloc[-1] + tendencia
+
             fig = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
             st.plotly_chart(fig, use_container_width=True)
 
     # =========================
-    # RECOMENDACIONES
+    # RECOMENDACIONES CON IMPACTO
     # =========================
     elif st.session_state.vista == "recomendaciones":
 
@@ -156,17 +121,37 @@ if archivo:
         recomendaciones = []
 
         def generar(df, col):
+
             df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
             df_t = df_t.sort_values("Periodo")
 
             for k, g in df_t.groupby(col):
+
                 if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
-                    var = (g.iloc[-1]["Ventas"] - g.iloc[-2]["Ventas"]) / g.iloc[-2]["Ventas"]
+
+                    v1 = g.iloc[-2]["Ventas"]
+                    v2 = g.iloc[-1]["Ventas"]
+
+                    var = (v2 - v1) / v1
+                    impacto = abs(var * v2)
 
                     if var < -0.10:
-                        recomendaciones.append(("rojo", col, k, var))
+                        recomendaciones.append({
+                            "tipo": "rojo",
+                            "dimension": col,
+                            "nombre": k,
+                            "var": var,
+                            "impacto": impacto
+                        })
+
                     elif var > 0.10:
-                        recomendaciones.append(("verde", col, k, var))
+                        recomendaciones.append({
+                            "tipo": "verde",
+                            "dimension": col,
+                            "nombre": k,
+                            "var": var,
+                            "impacto": impacto
+                        })
 
         for dim in ["Pais", "Region", "Canal"]:
             if dim in df.columns:
@@ -177,24 +162,31 @@ if archivo:
         elif "Nombre_Producto" in df.columns:
             generar(df, "Nombre_Producto")
 
-        for tipo, dim, nombre, var in recomendaciones:
+        # 🔥 ORDENAR POR IMPACTO
+        recomendaciones = sorted(recomendaciones, key=lambda x: x["impacto"], reverse=True)
+
+        # MOSTRAR
+        for rec in recomendaciones:
+
+            tipo = rec["tipo"]
+            dim = rec["dimension"]
+            nombre = rec["nombre"]
+            var = rec["var"]
 
             if tipo == "verde":
                 st.success(f"""
                 ### 🟢 Escalar {dim}: {nombre}
                 #### Crecimiento: {var*100:.1f}%
-
                 👉 Potenciar este segmento
                 """)
             else:
                 st.error(f"""
                 ### 🔴 Recuperar {dim}: {nombre}
                 #### Caída: {var*100:.1f}%
-
                 👉 Intervenir inmediatamente
                 """)
 
-            # EXPANDER CON GRÁFICA
+            # 📊 GRÁFICA
             with st.expander("📊 Ver gráfica"):
 
                 df_filtro = df[df[dim] == nombre]
@@ -210,7 +202,7 @@ if archivo:
                     )
                     st.plotly_chart(fig, use_container_width=True)
                 else:
-                    st.info("Sin datos para graficar")
+                    st.info("Sin datos")
 
             st.markdown("---")
 
