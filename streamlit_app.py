@@ -420,7 +420,7 @@ else:
     # =========================
     # DETALLE
     # =========================
-   lif st.session_state.vista == "detalle":
+    if st.session_state.vista == "detalle":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
