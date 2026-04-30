@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
     if archivo:
         df = pd.read_excel(archivo)
