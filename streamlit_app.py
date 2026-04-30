@@ -72,7 +72,7 @@ if archivo:
         ticket = 0
 
     # -------------------------
-    # FILTROS BASE (PRINCIPAL)
+    # FILTROS BASE
     # -------------------------
     st.sidebar.header("🎯 Filtros Base")
 
@@ -132,7 +132,7 @@ if archivo:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
@@ -146,8 +146,91 @@ if archivo:
         if col4.button("🔎 Análisis Detallado"):
             st.session_state.vista = "detalle"
 
+        if col5.button("🧠 Resumen Ejecutivo"):
+            st.session_state.vista = "resumen"
+
     # =========================
-    # DETALLE (NUEVO DASHBOARD)
+    # RESUMEN EJECUTIVO (IA)
+    # =========================
+    elif st.session_state.vista == "resumen":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.title("🧠 Resumen Ejecutivo")
+
+        # SCORE
+        score = 100
+
+        if margen < 10:
+            score -= 20
+
+        if ratio > 0.30:
+            score -= 20
+
+        if df["Cumplimiento"].notna().any():
+            cumplimiento_total = df["Cumplimiento"].mean()
+            if cumplimiento_total < 0.8:
+                score -= 30
+
+        st.subheader("Estado del negocio")
+
+        if score >= 80:
+            st.success(f"🟢 Salud Alta ({score})")
+        elif score >= 50:
+            st.warning(f"🟡 Salud Media ({score})")
+        else:
+            st.error(f"🔴 Salud Crítica ({score})")
+
+        # ALERTAS
+        st.subheader("🚨 Alertas")
+
+        if margen < 10:
+            st.error("Margen bajo")
+
+        if ratio > 0.30:
+            st.warning("Alta volatilidad")
+
+        if df["Cumplimiento"].notna().any():
+            if cumplimiento_total < 0.8:
+                st.error("Bajo cumplimiento")
+
+        # DIAGNÓSTICO
+        st.subheader("🔍 Diagnóstico")
+
+        if ratio > 0.30:
+            st.write("Variabilidad alta en ventas")
+
+        if margen < 10:
+            st.write("Costos elevados o precios bajos")
+
+        if "Canal" in df.columns:
+            canal_top = df.groupby("Canal")["Ventas"].sum().idxmax()
+            st.write(f"Canal principal: {canal_top}")
+
+        # PREDICCIÓN
+        st.subheader("📈 Proyección")
+
+        if len(df_m) > 2:
+            tendencia = df_m["Ventas"].diff().mean()
+            prediccion = df_m["Ventas"].iloc[-1] + tendencia
+            st.metric("Próximo periodo", f"${prediccion:,.0f}")
+
+        # RECOMENDACIONES
+        st.subheader("💡 Recomendaciones")
+
+        if margen < 10:
+            st.write("Revisar estructura de costos")
+
+        if ratio > 0.30:
+            st.write("Diversificar ventas")
+
+        if df["Cumplimiento"].notna().any():
+            if cumplimiento_total < 0.8:
+                st.write("Ajustar estrategia comercial")
+
+    # =========================
+    # DETALLE
     # =========================
     elif st.session_state.vista == "detalle":
 
@@ -158,7 +241,6 @@ if archivo:
 
         df_det = df.copy()
 
-        # Filtros secundarios
         if "Vendedor_Ruta" in df_det.columns:
             ruta = st.multiselect("Ruta", df_det["Vendedor_Ruta"].unique(), df_det["Vendedor_Ruta"].unique())
             df_det = df_det[df_det["Vendedor_Ruta"].isin(ruta)]
@@ -167,12 +249,12 @@ if archivo:
             canal = st.multiselect("Canal", df_det["Canal"].unique(), df_det["Canal"].unique())
             df_det = df_det[df_det["Canal"].isin(canal)]
 
-        st.subheader("Ventas por Canal")
         if "Canal" in df_det.columns:
+            st.subheader("Ventas por Canal")
             st.bar_chart(df_det.groupby("Canal")["Ventas"].sum())
 
-        st.subheader("Ventas por Ruta")
         if "Vendedor_Ruta" in df_det.columns:
+            st.subheader("Ventas por Ruta")
             st.bar_chart(df_det.groupby("Vendedor_Ruta")["Ventas"].sum())
 
     # =========================
