@@ -18,8 +18,8 @@ if usar_bd:
         st.sidebar.success("Datos cargados desde base")
     
     except Exception as e:
-    st.sidebar.error(f"Error real: {e}")
-    st.stop()
+       st.sidebar.error(f"Error real: {e}")
+       st.stop()
 
     conn.close()
 
