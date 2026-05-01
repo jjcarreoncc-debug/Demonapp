@@ -194,7 +194,7 @@ if archivo:
         st.plotly_chart(fig, use_container_width=True)
 
         # 🔥 SOLO agregamos una columna adicional
-        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        col1, col2, col3, col4, col5, col6, col7, Co18 = st.columns(7)
         
 
         if col1.button("🚦 Volatilidad"):
@@ -215,7 +215,7 @@ if archivo:
         if col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
         # 👇 ESTE ES EL NUEVO (usa una columna libre)
-        if col7.button("📋 Log de Carga"):
+        if col8.button("📋 Log de Carga"):
              st.session_state.vista = "log"
            
         # ✅ NUEVO NIVEL 5
@@ -225,13 +225,12 @@ if archivo:
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
-    elif st.session_state.vista == "log":
+elif st.session_state.vista == "log":
 
-        # 🔹 Bloque indentado
-         if st.button("⬅️ Volver"):
-           st.session_state.vista = "principal"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-         st.title("📋 Log de Carga")
+    st.title("📋 Log de Carga")
 
     log = st.session_state.get("log_carga")
 
@@ -251,8 +250,7 @@ if archivo:
             st.success("No hubo registros eliminados")
 
     else:
-        st.info("Aún no hay cargas registradas")
-
+        st.info("Aún no hay cargas registradas")   
        
     #
         st.title("📊 Resultados y Acciones Prioritarias")
