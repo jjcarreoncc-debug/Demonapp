@@ -258,9 +258,8 @@ if authentication_status:
      # =========================
     # CAUSAS
     # =========================
-    with col_main:
-
-    vista = st.session_state.vista
+with col_main:
+vista = st.session_state.vista
 
     if vista == "causas":
 
