@@ -174,9 +174,8 @@ if archivo:
 
     # 🔥 BOTÓN GUARDAR
     if st.button("💾 Guardar en Base de Datos"):
-       st.experimental_rerun()
+           
         df_db = df.copy()
-
         columnas_db = [
             "Fecha",
             "Nombre_Producto",
