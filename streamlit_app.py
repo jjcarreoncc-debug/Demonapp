@@ -195,6 +195,7 @@ if archivo:
 
         # 🔥 SOLO agregamos una columna adicional
         col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
@@ -213,7 +214,10 @@ if archivo:
 
         if col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
-
+        # 👇 ESTE ES EL NUEVO (usa una columna libre)
+       if col7.button("📋 Log de Carga"):
+           st.session_state.vista = "log"
+           
         # ✅ NUEVO NIVEL 5
         if col7.button("📊 Resultados"):
             st.session_state.vista = "resultados"
@@ -225,7 +229,36 @@ if archivo:
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
+    #
+    elif st.session_state.vista == "log":
 
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.title("📋 Log de Carga")
+
+    log = st.session_state.get("log_carga")
+
+    if log:
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Filas originales", log["original"])
+        col2.metric("Filas cargadas", log["final"])
+        col3.metric("Filas eliminadas", log["eliminadas"])
+
+        st.markdown("### 🧹 Registros eliminados")
+
+        if not log["df_eliminadas"].empty:
+            st.dataframe(log["df_eliminadas"])
+        else:
+            st.success("No hubo registros eliminados")
+
+    else:
+        st.info("Aún no hay cargas registradas")
+
+       
+    #
         st.title("📊 Resultados y Acciones Prioritarias")
 
         resultados = []
