@@ -258,18 +258,19 @@ with st.sidebar:
 # ------------------------
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
-# RECOMENDACIONES (DEBUG)
+# =========================
+# RECOMENDACIONES (FINAL REAL)
 # =========================
 if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
 
-    st.title("📌 Recomendaciones Estratégicas (DEBUG)")
+    st.title("📌 Recomendaciones Estratégicas")
 
     recomendaciones = []
 
-    # Función para generar recomendaciones
+    # Función para generar recomendaciones reales
     def generar(df, col):
         df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
         df_t = df_t.sort_values("Periodo")
@@ -278,43 +279,90 @@ if st.session_state.vista == "recomendaciones":
         detalle_cae = []
 
         for k, g in df_t.groupby(col):
-            # Forzar var=0 para debug
-            var = 0
-            impacto = 0
+            if g["Periodo"].nunique() >= 2 and g.iloc[-2]["Ventas"] != 0:
+                v1 = g.iloc[-2]["Ventas"]
+                v2 = g.iloc[-1]["Ventas"]
+                var = (v2 - v1) / v1
+                impacto = abs(var * v2)
+                p1 = g.iloc[-2]["Periodo"]
+                p2 = g.iloc[-1]["Periodo"]
 
-            recomendaciones.append((col, k, var, impacto, "verde", 0, 0, 0, 0))
-            detalle_crece.append((k, var))
-
+                if var < -0.10:
+                    recomendaciones.append((col, k, var, impacto, "rojo", v1, v2, p1, p2))
+                    detalle_cae.append((k, var))
+                elif var > 0.10:
+                    recomendaciones.append((col, k, var, impacto, "verde", v1, v2, p1, p2))
+                    detalle_crece.append((k, var))
         return detalle_crece, detalle_cae
 
+    # Generar recomendaciones por dimensión
     resumen_dim = {}
     for dim in ["Pais", "Region", "Canal", "Producto"]:
         if dim in df.columns:
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
 
-    # Mostrar todas las recomendaciones forzadas a 0
+    recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
+
+    # Mostrar recomendaciones
     for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
-        # Forzar var=0 ya está hecho
         if tipo == "verde":
-            st.success(f"🟢 Escalar {dim}: {nombre} ({var:.1f}%)")
+            st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
         else:
-            st.error(f"🔴 Recuperar {dim}: {nombre} ({var:.1f}%)")
+            st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
         st.markdown(f"""
         - Periodo anterior ({p1}): ${v1:,.0f}  
         - Periodo actual ({p2}): ${v2:,.0f}  
-        - Variación: {var:.1f}%
+        - Variación: {var*100:.1f}%
         """)
 
-        # Mini detalle de drivers (vacío porque estamos en debug)
         df_det = df[df[dim] == nombre]
-        for subdim in ["Producto", "Region", "Canal"]:
-            if subdim in df_det.columns and subdim != dim:
-                top = df_det.groupby(subdim)["Ventas"].sum().reset_index().sort_values("Ventas", ascending=False).head(1)
-                if not top.empty:
-                    st.info(f"Driver principal: {subdim} → {top.iloc[0][subdim]} (${top.iloc[0]['Ventas']:,.0f})")
-                    break
+
+        # 🔹 Botón Ver detalle
+        with st.expander("🔍 Ver detalle"):
+            for subdim in ["Producto", "Region", "Canal"]:
+                if subdim in df_det.columns and subdim != dim:
+                    df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+                    df_sub = df_sub.sort_values("Periodo")
+                    tabla = []
+                    for k2, g2 in df_sub.groupby(subdim):
+                        if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
+                            a1 = g2.iloc[-2]["Ventas"]
+                            a2 = g2.iloc[-1]["Ventas"]
+                            var2 = (a2 - a1) / a1
+                            tabla.append([k2, a1, a2, var2])
+                    if tabla:
+                        df_detalle = pd.DataFrame(tabla, columns=["Elemento", "Anterior", "Actual", "Variación"])
+                        df_detalle["Variación"] = df_detalle["Variación"].apply(
+                            lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
+                        )
+                        st.dataframe(df_detalle.head(5))
+
+        # 🔹 Botón Ver gráfica
+        with st.expander("📊 Ver gráfica"):
+            df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+            df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
+            df_g = df_g.sort_values("Periodo_dt")
+
+            if len(df_g) >= 2:
+                v1_g = df_g.iloc[-2]["Ventas"]
+                v2_g = df_g.iloc[-1]["Ventas"]
+                var_g = (v2_g - v1_g) / v1_g if v1_g != 0 else 0
+                proy = v2_g * (1 + var_g)
+                sig = df_g["Periodo_dt"].iloc[-1] + pd.DateOffset(months=1)
+                df_g = pd.concat([
+                    df_g,
+                    pd.DataFrame({
+                        "Periodo": [sig.strftime("%Y-%m")],
+                        "Ventas": [proy]
+                    })
+                ])
+
+            fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
+            st.plotly_chart(fig, use_container_width=True)
+
+        st.markdown("---")
 # ------------------------
 # VALIDACIÓN
 # ------------------------
