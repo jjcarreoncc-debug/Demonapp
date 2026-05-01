@@ -40,31 +40,31 @@ df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
     # -------------------------
 st.sidebar.header("🎯 Filtros")
 
-    rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
-    if len(rango) == 2:
-        df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
-                (df["Fecha"] <= pd.to_datetime(rango[1]))]
+rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
+if len(rango) == 2:
+    df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
+            (df["Fecha"] <= pd.to_datetime(rango[1]))]
 
-    if "Pais" in df.columns:
-        pais = st.sidebar.multiselect("País", df["Pais"].unique(), df["Pais"].unique())
-        df = df[df["Pais"].isin(pais)]
+if "Pais" in df.columns:
+    pais = st.sidebar.multiselect("País", df["Pais"].unique(), df["Pais"].unique())
+    df = df[df["Pais"].isin(pais)]
 
-    if "Region" in df.columns:
-        region = st.sidebar.multiselect("Región", df["Region"].unique(), df["Region"].unique())
-        df = df[df["Region"].isin(region)]
+if "Region" in df.columns:
+    region = st.sidebar.multiselect("Región", df["Region"].unique(), df["Region"].unique())
+    df = df[df["Region"].isin(region)]
 
-    if df.empty:
-        st.stop()
+if df.empty:
+    st.stop()
 
-    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-    ventas = df["Ventas"].sum()
-    ganancia = df["Ganancia"].sum()
-    margen = (ganancia / ventas * 100) if ventas != 0 else 0
+ventas = df["Ventas"].sum()
+ganancia = df["Ganancia"].sum()
+margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-    media = df_m["Ventas"].mean()
-    volatilidad = df_m["Ventas"].std()
-    ratio = volatilidad / media if media != 0 else 0
+media = df_m["Ventas"].mean()
+volatilidad = df_m["Ventas"].std()
+ratio = volatilidad / media if media != 0 else 0  
 
     # =========================
     # PRINCIPAL
