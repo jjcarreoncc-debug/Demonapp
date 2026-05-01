@@ -553,6 +553,6 @@ with col_main:
 #elif authentication_status is None:
 #    st.warning("Ingresa tus credenciales")
     
-else:
-    st.info("📂 Sube archivo")
+#else:
+#    st.info("📂 Sube archivo")
      
