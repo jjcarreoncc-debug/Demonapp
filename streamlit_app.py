@@ -210,9 +210,9 @@ if archivo:
     # RESULTADOS (NUEVO)
     # =========================
     #
-    st.title("📊 Resultados y Acciones Prioritarias")
+        st.title("📊 Resultados y Acciones Prioritarias")
 
-    resultados = []
+        resultados = []
 
         for dim in ["Pais", "Region", "Canal", "Producto"]:
             if dim in df.columns:
@@ -252,7 +252,6 @@ if archivo:
             """)
 
             st.markdown("---")
-
 
     # =========================
     # VOLATILIDAD
@@ -569,4 +568,4 @@ elif authentication_status is None:
     
 else:
     st.info("📂 Sube archivo")
-    
+     
