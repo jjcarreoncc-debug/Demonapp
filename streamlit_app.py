@@ -33,7 +33,7 @@ credentials = {
         "ventas": {"name": "Ventas", "password": "abcd"}
     }
 }
-}
+
 #credentials = {
 #    "usernames": {
 #        usernames[i]: {
