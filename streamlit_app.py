@@ -451,4 +451,4 @@ if archivo:
         st.dataframe(df)
 
 else:
-    st.info("📂 Sube archivo"
+    st.info("📂 Sube archivo")
