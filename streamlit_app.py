@@ -18,10 +18,6 @@ st.markdown("### TIDS CONSULTING")
 # ------------------------
 # LOGIN
 # ------------------------
-#hashed_passwords = [
-#    "$2b$12$abcdefghijklmnopqrstuv",
-#    "$2b$12$uvwxyzabcdefghijklmnop"
-#]
 from streamlit_authenticator import Hasher
 
 passwords = ["1234", "abcd"]
@@ -31,19 +27,6 @@ st.write(hashed_passwords)
 names = ["Admin", "Ventas"]
 usernames = ["admin", "ventas"]
 
-#credentials = {
-#    "usernames": {
-#        "admin": {"name": "Admin", "password": "1234"},
-#        "ventas": {"name": "Ventas", "password": "abcd"}
-#    }
-#}
-# Credenciales en texto plano (solo para pruebas)
-#credentials = {
-#    "usernames": {
-#        "1234": {"name": "Admin", "password": "abcd"},
-#        "ventas": {"name": "Ventas", "password": "abcd"}
-#    }
-#}
 credentials = {
     "usernames": {
         "admin": {"name": "Admin", "password": hashed_passwords[0]},
@@ -58,7 +41,6 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
-#name, authentication_status, username = authenticator.login("Login", location="main")
 
 # 🔴 Si no está logueado → detener app (pero deja el logo)
 
