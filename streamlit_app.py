@@ -259,7 +259,8 @@ if authentication_status:
     # CAUSAS
     # =========================
 with col_main:
-vista = st.session_state.vista
+
+    vista = st.session_state.vista
 
     if vista == "causas":
 
@@ -271,7 +272,7 @@ vista = st.session_state.vista
         if "Producto" in df.columns:
             df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
             st.dataframe(df_c)
-    # =========================
+# =========================
     # RESUMEN
     # =========================
     elif st.session_state.vista == "resumen":
