@@ -188,7 +188,7 @@ if archivo:
         # ------------------------
         # BOTONES PRINCIPAL
         # ------------------------
-       col1, col2, col3, col4, col5, col6, col7, col8, col9=st.columns(9)
+      col1, col2, col3, col4, col5, col6, col7, col8, col9=st.columns(9)
 
         if col1.button("🚦 principal"):
             st.session_state.vista = "dashprincipal"
