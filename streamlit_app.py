@@ -176,76 +176,81 @@ if authentication_status:
     ventas = df["Ventas"].sum()
     ganancia = df["Ganancia"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
+# ------------------------
+# NAVEGACIÓN (BOTONES)
+# ------------------------
+with col_nav:
+    st.markdown("## 🚦 Navegación")
+    st.divider()
 
-    # ------------------------
-    # NAVEGACIÓN
-    # ------------------------
-    with col_nav:
-        st.markdown("## 🚦 Navegación")
-        st.divider()
-
-        def nav_btn(label, key):
-            activo = st.session_state.vista == key
-            if st.button(("🟢 " if activo else "⚪ ") + label, use_container_width=True):
-                st.session_state.vista = key
-
-        nav_btn("📊 Principal", "principal")
-        nav_btn("🚦 Volatilidad", "volatilidad")
-
-    # ------------------------
-    # DASHBOARD
-    # ------------------------
-    with col_main:
-
-        if st.session_state.vista == "principal":
-
-            st.markdown("## 📊 Dashboard Ejecutivo")
-            st.divider()
-
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Ventas", f"${ventas:,.0f}")
-            c2.metric("Ganancia", f"${ganancia:,.0f}")
-            c3.metric("Margen", f"{margen:.1f}%")
-
-            fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-            st.plotly_chart(fig, use_container_width=True)
-
-        elif st.session_state.vista == "volatilidad":
-
-            st.markdown("## 🚦 Volatilidad")
-            st.divider()
-
-            ratio = ganancia / ventas if ventas != 0 else 0
-
-            if ratio > 0.3:
-                st.error(f"Alta volatilidad ({ratio:.2f})")
-            elif ratio > 0.15:
-                st.warning(f"Volatilidad media ({ratio:.2f})")
-            else:
-                st.success(f"Volatilidad baja ({ratio:.2f})")
-
-elif authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-
-elif authentication_status is None:
-    st.warning("Ingresa tus credenciales")
-    
-    # =========================
-    # RESPONSABLES
-    # =========================
-
-elif vista == "responsables":
-
-    if st.button("⬅️ Volver"):
+    if st.button("📊 Principal"):
         st.session_state.vista = "principal"
 
-    st.title("👤 Responsables")
+    if st.button("🚦 Volatilidad"):
+        st.session_state.vista = "volatilidad"
 
-    if "Vendedor_Ruta" in df.columns:
-        df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
-        st.dataframe(df_r)
-        
-    # =========================
+    if st.button("👤 Responsables"):
+        st.session_state.vista = "responsables"
+
+# ------------------------
+# DASHBOARD (VISTAS)
+# ------------------------
+with col_main:
+
+    vista = st.session_state.vista
+
+    # ------------------------
+    # PRINCIPAL
+    # ------------------------
+    if vista == "principal":
+
+        st.markdown("## 📊 Dashboard Ejecutivo")
+        st.divider()
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Ventas", f"${ventas:,.0f}")
+        c2.metric("Ganancia", f"${ganancia:,.0f}")
+        c3.metric("Margen", f"{margen:.1f}%")
+
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # ------------------------
+    # VOLATILIDAD
+    # ------------------------
+    elif vista == "volatilidad":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.markdown("## 🚦 Volatilidad")
+        st.divider()
+
+        ratio = ganancia / ventas if ventas != 0 else 0
+
+        if ratio > 0.3:
+            st.error(f"Alta volatilidad ({ratio:.2f})")
+        elif ratio > 0.15:
+            st.warning(f"Volatilidad media ({ratio:.2f})")
+        else:
+            st.success(f"Volatilidad baja ({ratio:.2f})")
+
+    # ------------------------
+    # RESPONSABLES
+    # ------------------------
+    elif vista == "responsables":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.markdown("## 👤 Responsables")
+        st.divider()
+
+        if "Vendedor_Ruta" in df.columns:
+            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+            st.dataframe(df_r)
+    
+     # =========================
     # CAUSAS
     # =========================
     elif st.session_state.vista == "causas":
