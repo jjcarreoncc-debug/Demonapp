@@ -137,55 +137,48 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # ------------------------
-# LAYOUT
+# SIDEBAR (COLUMNA 1 REAL)
 # ------------------------
-col_nav, col_main = st.columns([2, 8])
+with st.sidebar:
 
-# ------------------------
-# IZQUIERDA (BIENVENIDO + FILTROS + NAV) 🔥
-# ------------------------
-with col_nav:
+    st.markdown("## 👋 Bienvenido")
+    st.divider()
 
-    # 🔥 CONTENEDOR GRIS (AQUÍ ESTÁ EL CAMBIO REAL)
-    with st.container():
-        st.markdown("## 👋 Bienvenido")
-        st.divider()
+    # FILTROS
+    st.markdown("### 🎯 Filtros")
 
-        # FILTROS
-        st.markdown("### 🎯 Filtros")
+    if "Pais" in df.columns:
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique())
+        )
+        df = df[df["Pais"].isin(pais)]
 
-        if "Pais" in df.columns:
-            pais = st.multiselect(
-                "País",
-                sorted(df["Pais"].dropna().unique()),
-                default=sorted(df["Pais"].dropna().unique())
-            )
-            df = df[df["Pais"].isin(pais)]
+    if "Region" in df.columns:
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique())
+        )
+        df = df[df["Region"].isin(region)]
 
-        if "Region" in df.columns:
-            region = st.multiselect(
-                "Región",
-                sorted(df["Region"].dropna().unique()),
-                default=sorted(df["Region"].dropna().unique())
-            )
-            df = df[df["Region"].isin(region)]
+    st.divider()
 
-        st.divider()
+    # NAVEGACIÓN
+    st.markdown("### 🚦 Navegación")
 
-        # NAVEGACIÓN
-        st.markdown("## 🚦 Navegación")
+    if st.button("📊 Principal", use_container_width=True):
+        st.session_state.vista = "principal"
 
-        if st.button("📊 Principal", use_container_width=True):
-            st.session_state.vista = "principal"
+    if st.button("🚦 Volatilidad", use_container_width=True):
+        st.session_state.vista = "volatilidad"
 
-        if st.button("🚦 Volatilidad", use_container_width=True):
-            st.session_state.vista = "volatilidad"
+    if st.button("👤 Responsables", use_container_width=True):
+        st.session_state.vista = "responsables"
 
-        if st.button("👤 Responsables", use_container_width=True):
-            st.session_state.vista = "responsables"
-
-        if st.button("🧠 Causas", use_container_width=True):
-            st.session_state.vista = "causas"
+    if st.button("🧠 Causas", use_container_width=True):
+        st.session_state.vista = "causas"
 
 # ------------------------
 # VALIDACIÓN
@@ -204,64 +197,62 @@ ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# DASHBOARD
+# DASHBOARD (COLUMNA 2)
 # ------------------------
-with col_main:
+vista = st.session_state.vista
 
-    vista = st.session_state.vista
+if vista == "principal":
+    st.markdown("## 📊 Dashboard Ejecutivo")
+    st.divider()
 
-    if vista == "principal":
-        st.markdown("## 📊 Dashboard Ejecutivo")
-        st.divider()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ventas", f"${ventas:,.0f}")
+    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    c3.metric("Margen", f"{margen:.1f}%")
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas", f"${ventas:,.0f}")
-        c2.metric("Ganancia", f"${ganancia:,.0f}")
-        c3.metric("Margen", f"{margen:.1f}%")
+    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+    st.plotly_chart(fig, use_container_width=True)
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        st.plotly_chart(fig, use_container_width=True)
+if vista == "volatilidad":
 
-    if vista == "volatilidad":
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    st.markdown("## 🚦 Volatilidad")
+    st.divider()
 
-        st.markdown("## 🚦 Volatilidad")
-        st.divider()
+    ratio = ganancia / ventas if ventas != 0 else 0
 
-        ratio = ganancia / ventas if ventas != 0 else 0
+    if ratio > 0.3:
+        st.error(f"Alta volatilidad ({ratio:.2f})")
+    elif ratio > 0.15:
+        st.warning(f"Volatilidad media ({ratio:.2f})")
+    else:
+        st.success(f"Volatilidad baja ({ratio:.2f})")
 
-        if ratio > 0.3:
-            st.error(f"Alta volatilidad ({ratio:.2f})")
-        elif ratio > 0.15:
-            st.warning(f"Volatilidad media ({ratio:.2f})")
-        else:
-            st.success(f"Volatilidad baja ({ratio:.2f})")
+if vista == "responsables":
 
-    if vista == "responsables":
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    st.markdown("## 👤 Responsables")
+    st.divider()
 
-        st.markdown("## 👤 Responsables")
-        st.divider()
+    if "Vendedor_Ruta" in df.columns:
+        df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+        st.dataframe(df_r)
 
-        if "Vendedor_Ruta" in df.columns:
-            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
-            st.dataframe(df_r)
+if vista == "causas":
 
-    if vista == "causas":
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    st.markdown("## 🧠 Causas")
+    st.divider()
 
-        st.markdown("## 🧠 Causas")
-        st.divider()
-
-        if "Producto" in df.columns:
-            df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
-            st.dataframe(df_c)
+    if "Producto" in df.columns:
+        df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
+        st.dataframe(df_c)
 
     # =======================
     # RESUMEN
