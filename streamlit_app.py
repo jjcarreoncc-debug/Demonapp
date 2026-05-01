@@ -1,38 +1,23 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import sqlite3  # 👈 BD
+import sqlite3
 import streamlit_authenticator as stauth
 
-####
-#  CREACION DEL LOGO
-st.sidebar.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
-st.sidebar.markdown("TIDS CONSULTING ")
-####
+# ------------------------
+# CONFIG
+# ------------------------
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
-#
-# 🔐 Usuarios (puedes cambiar esto luego a BD)
-#
-#names = ["Admin", "Ventas"]
-#usernames = ["admin", "ventas"]
+# ------------------------
+# LOGO SIEMPRE ARRIBA
+# ------------------------
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
+st.markdown("### TIDS CONSULTING")
 
-# 🔑 contraseñas en texto plano (se encriptan abajo)
-#passwords = ["1234", "abcd"]
-# Hashed previamente
-
-hashed_passwords = [
-    "$2b$12$abcdefghijklmnopqrstuv",
-    "$2b$12$uvwxyzabcdefghijklmnop"
-]
-
-names = ["Admin", "Ventas"]
-usernames = ["admin", "ventas"]
-
-# 🔒 generar hashes
-#hashed_passwords = stauth.Hasher(passwords).hash()
-#hashed_passwords = stauth.Hasher(passwords).generate()
-from streamlit_authenticator import Authenticate
-
+# ------------------------
+# LOGIN
+# ------------------------
 credentials = {
     "usernames": {
         "admin": {"name": "Admin", "password": "1234"},
@@ -40,53 +25,34 @@ credentials = {
     }
 }
 
-#credentials = {
-#    "usernames": {
-#        usernames[i]: {
-#            "name": names[i],
-#            "password": hashed_passwords[i]
-#        } for i in range(len(usernames))
-#    }
-
 authenticator = stauth.Authenticate(
     credentials,
-    "mi_dashboard",   # nombre cookie
-    "abcdef",         # key secreta
+    "mi_dashboard",
+    "abcdef",
     cookie_expiry_days=1
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
-######
-# AUTENTICACION
-#####
-if authentication_status:
-    st.sidebar.write(f"Bienvenido {name}")
-    authenticator.logout("Cerrar sesión", "sidebar")
 
-######
-# BASE DE DATOS
-######
+# 🔴 Si no está logueado → detener app (pero deja el logo)
+if not authentication_status:
+    st.stop()
 
-conn = sqlite3.connect("data.db")
-############### 🔥 SOLO UNA VEZ (luego lo puedes borrar)
-conn.execute("DROP TABLE IF EXISTS ventas")
-###############
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+# 🔓 Si está logueado
+st.sidebar.write(f"Bienvenido {name}")
+authenticator.logout("Cerrar sesión", "sidebar")
 
-#######
-# NOMBRE DE LA EMPRESA
-col1, col2 = st.columns([1,4])
+# ------------------------
+# SESSION STATE
+# ------------------------
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-if st.session_state.vista == "principal":
-    with col1:
-        st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=100)
-    with col2:
-        st.markdown("## Dashboard Ejecutivo\n### TIDS CONSULTING")
-  ###
+# ------------------------
+# BASE DE DATOS
+# ------------------------
+conn = sqlite3.connect("data.db")
 
-# BD
 conn.execute("""
 CREATE TABLE IF NOT EXISTS ventas (
     Fecha TEXT,
@@ -103,23 +69,21 @@ CREATE TABLE IF NOT EXISTS ventas (
 )
 """)
 
-if "vista" not in st.session_state:
-    st.session_state.vista = "principal"
-
+# ------------------------
+# CARGA ARCHIVO
+# ------------------------
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-# 👇 SOLO SI HAY ARCHIVO
 if archivo:
 
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-    # 🔥 CONTROL DE FILAS
     filas_original = len(df)
 
-    # detectar fechas malas
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df_eliminadas = df[df["Fecha"].isna()].copy()
+
     if not df_eliminadas.empty:
         df_eliminadas["Motivo"] = "Fecha inválida"
 
@@ -127,7 +91,6 @@ if archivo:
     filas_final = len(df)
     filas_eliminadas = filas_original - filas_final
 
-    # 🔥 GUARDAR LOG EN MEMORIA
     st.session_state["log_carga"] = {
         "original": filas_original,
         "final": filas_final,
@@ -135,7 +98,7 @@ if archivo:
         "df_eliminadas": df_eliminadas
     }
 
-    # 🔥 LIMPIEZA
+    # LIMPIEZA
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df.columns:
             df[col] = (
@@ -146,86 +109,33 @@ if archivo:
             )
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # 🔍 VALIDACIONES
-    errores = []
+    st.success("✅ Archivo validado correctamente")
 
-    columnas_obligatorias = [
-        "Fecha", "Nombre_Producto", "Numero_Producto",
-        "Ventas_Cantidad", "Precio_Venta", "Costos_Venta"
-    ]
-
-    faltantes = [col for col in columnas_obligatorias if col not in df.columns]
-    if faltantes:
-        errores.append(f"Faltan columnas: {faltantes}")
-
-    if "Ventas_Cantidad" in df.columns:
-        if (df["Ventas_Cantidad"] < 0).any():
-            errores.append("Hay ventas negativas")
-
-    if "Nombre_Producto" in df.columns:
-        nulos = df["Nombre_Producto"].isna().sum()
-        if nulos > 0:
-            errores.append(f"Productos vacíos: {nulos}")
-
-    if errores:
-        for e in errores:
-            st.error(f"❌ {e}")
-        st.stop()
-    else:
-        st.success("✅ Archivo validado correctamente")
-
-    # 🔥 BOTÓN GUARDAR
+    # ------------------------
+    # GUARDAR BD
+    # ------------------------
     if st.button("💾 Guardar en Base de Datos"):
-           
         df_db = df.copy()
-        columnas_db = [
-            "Fecha",
-            "Nombre_Producto",
-            "Numero_Producto",
-            "Ventas_Cantidad",
-            "Pais",
-            "Region",
-            "Canal",
-            "Vendedor_Ruta",
-            "Tipo_cliente",
-            "Precio_Venta",
-            "Costos_Venta"
-        ]
-
-        df_db = df_db[[col for col in columnas_db if col in df_db.columns]]
-
-        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-            if col in df_db.columns:
-                df_db[col] = (
-                    df_db[col]
-                    .astype(str)
-                    .str.replace(",", "")
-                    .str.strip()
-                )
-                df_db[col] = pd.to_numeric(df_db[col], errors="coerce")
-
         df_db["Fecha"] = df_db["Fecha"].astype(str)
         df_db = df_db.fillna("")
 
         try:
             df_db.to_sql("ventas", conn, if_exists="append", index=False)
             st.success("✅ Datos guardados correctamente")
-            
         except Exception as e:
-            st.error(f"❌ Error al guardar: {e}")
+            st.error(f"❌ Error: {e}")
 
-    # 🔥 MÉTRICAS DERIVADAS
-    df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
-    df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
+    # ------------------------
+    # MÉTRICAS
+    # ------------------------
+    df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+    df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-# -------------------------
-# FILTROS
-# -------------------------
-# -------------------------
+    # ------------------------
     # FILTROS
-    # -------------------------
+    # ------------------------
     st.sidebar.header("🎯 Filtros")
 
     rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
@@ -237,10 +147,6 @@ if archivo:
         pais = st.sidebar.multiselect("País", df["Pais"].unique(), df["Pais"].unique())
         df = df[df["Pais"].isin(pais)]
 
-    if "Region" in df.columns:
-        region = st.sidebar.multiselect("Región", df["Region"].unique(), df["Region"].unique())
-        df = df[df["Region"].isin(region)]
-
     if df.empty:
         st.stop()
 
@@ -250,27 +156,11 @@ if archivo:
     ganancia = df["Ganancia"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-    media = df_m["Ventas"].mean()
-    volatilidad = df_m["Ventas"].std()
-    ratio = volatilidad / media if media != 0 else 0
-
-    # =========================
-    # PRINCIPAL
-    # =========================
-    #######
-# NOMBRE DE LA EMPRESA
-#col1, col2 = st.columns([1,4])
-#if st.session_state.vista == "principal":
-#    col1, col2 = st.columns([1,4])
-#    with col1:
-#        st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=100)
-#     with col2:
-#        st.markdown("## Dashboard Ejecutivo\n### TIDS CONSULTING")
-####
-    
+    # ------------------------
+    # DASHBOARD PRINCIPAL
+    # ------------------------
     if st.session_state.vista == "principal":
 
-        
         st.title("📊 Dashboard Ejecutivo")
 
         c1, c2, c3 = st.columns(3)
@@ -281,45 +171,27 @@ if archivo:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        # 🔥 SOLO agregamos una columna adicional
+        # ------------------------
+        # BOTONES PRINCIPAL
+        # ------------------------
         col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
-        
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
-            
-
-        if col2.button("👤 Responsables"):
+        elif col2.button("👤 Responsables"):
             st.session_state.vista = "responsables"
-            
-
-        if col3.button("🧠 Causas"):
+        elif col3.button("🧠 Causas"):
             st.session_state.vista = "causas"
-
-        if col4.button("🔎 Análisis Detallado"):
+        elif col4.button("🔎 Análisis Detallado"):
             st.session_state.vista = "detalle"
-            
-
-        if col5.button("🧠 Resumen Ejecutivo"):
+        elif col5.button("🧠 Resumen Ejecutivo"):
             st.session_state.vista = "resumen"
-            
-
-        if col6.button("📌 Recomendaciones"):
+        elif col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
-            
-        
-        
-        if col7.button("📋 Log de Carga"):
-             st.session_state.vista = "log"   
-             
-     
-  
-        # ✅ NUEVO NIVEL 5
-        if col8.button("📊 Resultados"):
-             st.session_state.vista = "resultados"
-             
-
-    
+        elif col7.button("📋 Log de Carga"):
+            st.session_state.vista = "log"
+        elif col8.button("📊 Resultados"):
+            st.session_state.vista = "resultados"
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
