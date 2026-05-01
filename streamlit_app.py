@@ -123,7 +123,7 @@ ratio = volatilidad / media if media != 0 else 0
     # =========================
     # PRINCIPAL
     # =========================
-    if st.session_state.vista == "principal":
+if st.session_state.vista == "principal":
 
         st.title("📊 Dashboard Ejecutivo")
 
