@@ -48,42 +48,41 @@ if archivo:
 # 🔍 VALIDACIONES
 #
 ##########################################################
-errores = []
+# 🔍 VALIDACIONES
+    errores = []
 
-# 1. Columnas obligatorias
-columnas_obligatorias = [
-    "Fecha", "Nombre_Producto", "Numero_Producto",
-    "Ventas_Cantidad", "Precio_Venta", "Costos_Venta"
-]
+    columnas_obligatorias = [
+        "Fecha", "Nombre_Producto", "Numero_Producto",
+        "Ventas_Cantidad", "Precio_Venta", "Costos_Venta"
+    ]
 
-faltantes = [col for col in columnas_obligatorias if col not in df.columns]
-if faltantes:
-    errores.append(f"Faltan columnas: {faltantes}")
+    faltantes = [col for col in columnas_obligatorias if col not in df.columns]
+    if faltantes:
+        errores.append(f"Faltan columnas: {faltantes}")
 
-# 2. Fecha válida
-if "Fecha" in df.columns:
-    fechas_invalidas = pd.to_datetime(df["Fecha"], errors="coerce").isna().sum()
-    if fechas_invalidas > 0:
-        errores.append(f"Fechas inválidas: {fechas_invalidas}")
+    if "Fecha" in df.columns:
+        fechas_invalidas = pd.to_datetime(df["Fecha"], errors="coerce").isna().sum()
+        if fechas_invalidas > 0:
+            errores.append(f"Fechas inválidas: {fechas_invalidas}")
 
-# 3. Valores negativos
-if "Ventas_Cantidad" in df.columns:
-    if (df["Ventas_Cantidad"] < 0).any():
-        errores.append("Hay ventas negativas")
+    if "Ventas_Cantidad" in df.columns:
+        if (df["Ventas_Cantidad"] < 0).any():
+            errores.append("Hay ventas negativas")
 
-# 4. Nulos críticos
-if "Nombre_Producto" in df.columns:
-    nulos = df["Nombre_Producto"].isna().sum()
-    if nulos > 0:
-        errores.append(f"Productos vacíos: {nulos}")
+    if "Nombre_Producto" in df.columns:
+        nulos = df["Nombre_Producto"].isna().sum()
+        if nulos > 0:
+            errores.append(f"Productos vacíos: {nulos}")
 
-# 🔥 RESULTADO
-if errores:
-    for e in errores:
-        st.error(f"❌ {e}")
-    st.stop()
-else:
-    st.success("✅ Archivo validado correctamente")
+    # 🔥 RESULTADO (ESTO YA ESTÁ BIEN)
+    if errores:
+        for e in errores:
+            st.error(f"❌ {e}")
+        st.stop()
+    else:
+        st.success("✅ Archivo validado correctamente")
+
+    # 👇 SIGUE NORMAL (SIN MÁS ELSE)
 ############################################################################
     # 🔥 BOTÓN GUARDAR (CORREGIDO: AHORA ESTÁ DENTRO)
     if st.button("💾 Guardar en Base de Datos"):
