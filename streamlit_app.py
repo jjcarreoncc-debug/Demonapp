@@ -76,12 +76,13 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 #######
 # NOMBRE DE LA EMPRESA
 col1, col2 = st.columns([1,4])
-if st.session_state.vista == "principal":
-     col1, col2 = st.columns([1,4])
-    with col1:
-        st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=100)
-    with col2:
-        st.markdown("## Dashboard Ejecutivo\n### TIDS CONSULTING")
+#if st.session_state.vista == "principal":
+#     col1, col2 = st.columns([1,4])
+#    with col1:
+#
+#st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=100)
+#    with col2:
+#        st.markdown("## Dashboard Ejecutivo\n### TIDS CONSULTING")
 ####
 
 # BD
