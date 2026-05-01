@@ -291,9 +291,9 @@ elif vista == "detalle":
     st.dataframe(df)
 
 # 🔥 DATA FINAL FILTRADA
-df = df_f.copy()
+
 # 🔥 ESTE ES EL DF FINAL QUE USA TODO
-df = df_f.copy()
+
 
 # ------------------------
 # VALIDACIÓN
