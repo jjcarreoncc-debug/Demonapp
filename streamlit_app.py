@@ -138,6 +138,9 @@ with st.sidebar:
 
     st.divider()
 
+    # ------------------------
+    # FILTROS
+    # ------------------------
     st.markdown("### 🎯 Filtros")
 
     if "Pais" in df.columns:
@@ -155,27 +158,29 @@ with st.sidebar:
             default=sorted(df["Region"].dropna().unique())
         )
         df = df[df["Region"].isin(region)]
-# periodo
-#
-st.markdown("### 📅 Periodo")
 
-periodos = sorted(df["Periodo"].dropna().unique())
+    # ------------------------
+    # PERIODO ✅ (DENTRO DEL SIDEBAR)
+    # ------------------------
+    st.markdown("### 📅 Periodo")
 
-periodo_sel = st.multiselect(
-    "Selecciona periodo",
-    periodos,
-    default=periodos
-)
+    periodos = sorted(df["Periodo"].dropna().unique())
 
-df = df[df["Periodo"].isin(periodo_sel)]    
+    periodo_sel = st.multiselect(
+        "Selecciona periodo",
+        periodos,
+        default=periodos
+    )
 
-if df["Periodo"].nunique() > 2:
-    st.warning("Selecciona al menos 2 periodos para análisis")
-    st.stop() 
+    df = df[df["Periodo"].isin(periodo_sel)]
+
     st.divider()
+
+    # ------------------------
+    # NAVEGACIÓN ✅ (NO SE BLOQUEA)
+    # ------------------------
     st.markdown("### 🚦 Navegación")
-#### fin periodo
-    
+
     if st.button("📊 Principal", use_container_width=True):
         st.session_state.vista = "principal"
 
@@ -188,16 +193,17 @@ if df["Periodo"].nunique() > 2:
     if st.button("🧠 Causas", use_container_width=True):
         st.session_state.vista = "causas"
 
-    # 🔥 BOTONES QUE FALTABAN
-    if st.button("📊 Reporte Ejecutivo", use_container_width=True):
-        st.session_state.vista = "reporte"
-
     if st.button("📋 Log", use_container_width=True):
         st.session_state.vista = "log"
+
+    if st.button("🔎 Detalle", use_container_width=True):
+        st.session_state.vista = "detalle"
 
     if st.button("📌 Recomendaciones", use_container_width=True):
         st.session_state.vista = "recomendaciones"
 
+    if st.button("🧠 Resumen", use_container_width=True):
+        st.session_state.vista = "resumen"
 # ------------------------
 # VALIDACIÓN
 # ------------------------
