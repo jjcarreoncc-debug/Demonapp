@@ -164,8 +164,12 @@ with st.sidebar:
     # ------------------------
     st.markdown("### 📅 Periodo")
 
-    periodos = sorted(df_f["Periodo"].dropna().unique())
+  periodos = sorted(df["Periodo"].dropna().unique())
 
+# 👇 SI NO HAY DATOS, NO ROMPE
+if len(periodos) == 0:
+    st.warning("No hay periodos disponibles")
+else:
     default_periodos = periodos[-2:] if len(periodos) >= 2 else periodos
 
     periodo_sel = st.multiselect(
@@ -174,7 +178,13 @@ with st.sidebar:
         default=default_periodos
     )
 
-    df_f = df_f[df_f["Periodo"].isin(periodo_sel)]
+    # 👇 FILTRO SEGURO
+    df_temp = df[df["Periodo"].isin(periodo_sel)]
+
+    if len(df_temp) > 0:
+        df = df_temp
+    else:
+        st.warning("Ese filtro deja sin datos, se mantiene la información an
 
     st.divider()
 
