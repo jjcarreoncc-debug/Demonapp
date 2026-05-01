@@ -46,8 +46,58 @@ if archivo:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # 🔥 BOTÓN GUARDAR (MISMO LUGAR)
-    if st.button("💾 Guardar en Base de Datos"):
+   if st.button("💾 Guardar en Base de Datos"):
 
+    df_db = df.copy()
+
+    # 🔹 Renombrar columnas para que coincidan con la BD
+    df_db = df_db.rename(columns={
+        "Nombre_Producto": "Nombre_Producto",
+        "Numero_Producto": "Numero_Producto"
+    })
+
+    # 🔹 Columnas EXACTAS de la tabla
+    columnas_db = [
+        "Fecha",
+        "Nombre_Producto",
+        "Numero_Producto",
+        "Ventas_Cantidad",
+        "Pais",
+        "Region",
+        "Canal",
+        "Vendedor_Ruta",
+        "Tipo_cliente",
+        "Precio_Venta",
+        "Costos_Venta"
+    ]
+
+    # 🔥 QUEDARSE SOLO con columnas válidas
+    df_db = df_db[[col for col in columnas_db if col in df_db.columns]]
+
+    # 🔥 LIMPIAR NUMÉRICOS (esto te estaba rompiendo antes)
+    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+        if col in df_db.columns:
+            df_db[col] = (
+                df_db[col]
+                .astype(str)
+                .str.replace(",", "")
+                .str.strip()
+            )
+            df_db[col] = pd.to_numeric(df_db[col], errors="coerce")
+
+    # 🔹 Fecha como texto (SQLite)
+    df_db["Fecha"] = df_db["Fecha"].astype(str)
+
+    # 🔹 Limpiar nulos
+    df_db = df_db.fillna("")
+
+    # 🔥 GUARDAR
+    try:
+        df_db.to_sql("ventas", conn, if_exists="append", index=False)
+        st.success("✅ Datos guardados correctamente")
+    except Exception as e:
+        st.error(f"❌ Error al guardar: {e}")
+        
         df_db = df.copy()
 
         df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
