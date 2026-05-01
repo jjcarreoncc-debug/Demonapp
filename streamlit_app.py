@@ -43,12 +43,9 @@ authenticator = stauth.Authenticate(
 name, authentication_status, username = authenticator.login("Login", location="main")
 
 # 🔴 Si no está logueado → detener app (pero deja el logo)
-if not authentication_status:
-    st.stop()
-
-# 🔓 Si está logueado
-st.sidebar.write(f"Bienvenido {name}")
-authenticator.logout("Cerrar sesión", "sidebar")
+if authentication_status:
+   st.sidebar.write(f"Bienvenido {name}")
+   authenticator.logout("Cerrar sesión", "sidebar")
 
 # ------------------------
 # SESSION STATE
