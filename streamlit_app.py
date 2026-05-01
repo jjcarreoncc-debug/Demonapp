@@ -192,8 +192,7 @@ if archivo:
 
         if col1.button("🚦 principal"):
             st.session_state.vista = "dashprincipal"
-        elif    
-        if col2.button("🚦 volatidad"):
+        elif col2.button("🚦 volatidad"):
             st.session_state.vista = "volatidad"
         elif col3.button("👤 Responsables"):
             st.session_state.vista = "responsables"
