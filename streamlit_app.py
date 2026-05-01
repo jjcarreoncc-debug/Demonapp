@@ -19,11 +19,12 @@ if "vista" not in st.session_state:
 # =========================
 archivo = st.sidebar.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-if archivo:
-    df = pd.read_excel(archivo)
-else:
+if not archivo:
     st.warning("Sube un archivo para continuar")
     st.stop()
+
+df = pd.read_excel(archivo)
+    
 
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df.columns:
