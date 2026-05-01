@@ -18,6 +18,14 @@ st.markdown("### TIDS CONSULTING")
 # ------------------------
 # LOGIN
 # ------------------------
+hashed_passwords = [
+    "$2b$12$abcdefghijklmnopqrstuv",
+    "$2b$12$uvwxyzabcdefghijklmnop"
+]
+
+names = ["Admin", "Ventas"]
+usernames = ["admin", "ventas"]
+
 credentials = {
     "usernames": {
         "admin": {"name": "Admin", "password": "1234"},
