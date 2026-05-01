@@ -33,7 +33,7 @@ credentials = {
         "ventas": {"name": "Ventas", "password": "abcd"}
     }
 }
-
+}
 #credentials = {
 #    "usernames": {
 #        usernames[i]: {
@@ -41,15 +41,15 @@ credentials = {
 #            "password": hashed_passwords[i]
 #        } for i in range(len(usernames))
 #    }
-#}
 
 authenticator = stauth.Authenticate(
     credentials,
     "mi_dashboard",   # nombre cookie
     "abcdef",         # key secreta
     cookie_expiry_days=1
+}
 
-name, authentication_status, username = authenticator.login("Login", "main")
+    name, authentication_status, username = authenticator.login("Login", "main")
 
 ######
 # AUTENTICACION
