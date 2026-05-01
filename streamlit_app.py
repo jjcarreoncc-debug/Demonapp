@@ -35,7 +35,7 @@ if archivo:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-    # 🔥 LIMPIEZA (ESTABA MAL UBICADA)
+    # 🔥 LIMPIEZA
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df.columns:
             df[col] = (
@@ -46,64 +46,56 @@ if archivo:
             )
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # 🔥 BOTÓN GUARDAR (MISMO LUGAR)
-if st.button("💾 Guardar en Base de Datos"):
+    # 🔥 BOTÓN GUARDAR (CORREGIDO: AHORA ESTÁ DENTRO)
+    if st.button("💾 Guardar en Base de Datos"):
 
-    df_db = df.copy()
+        df_db = df.copy()
 
-    # 🔹 Columnas EXACTAS de la tabla
-    columnas_db = [
-        "Fecha",
-        "Nombre_Producto",
-        "Numero_Producto",
-        "Ventas_Cantidad",
-        "Pais",
-        "Region",
-        "Canal",
-        "Vendedor_Ruta",
-        "Tipo_cliente",
-        "Precio_Venta",
-        "Costos_Venta"
-    ]
+        columnas_db = [
+            "Fecha",
+            "Nombre_Producto",
+            "Numero_Producto",
+            "Ventas_Cantidad",
+            "Pais",
+            "Region",
+            "Canal",
+            "Vendedor_Ruta",
+            "Tipo_cliente",
+            "Precio_Venta",
+            "Costos_Venta"
+        ]
 
-    # 🔥 QUEDARSE SOLO con columnas válidas
-    df_db = df_db[[col for col in columnas_db if col in df_db.columns]]
+        df_db = df_db[[col for col in columnas_db if col in df_db.columns]]
 
-    # 🔥 LIMPIAR NUMÉRICOS
-    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-        if col in df_db.columns:
-            df_db[col] = (
-                df_db[col]
-                .astype(str)
-                .str.replace(",", "")
-                .str.strip()
-            )
-            df_db[col] = pd.to_numeric(df_db[col], errors="coerce")
+        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+            if col in df_db.columns:
+                df_db[col] = (
+                    df_db[col]
+                    .astype(str)
+                    .str.replace(",", "")
+                    .str.strip()
+                )
+                df_db[col] = pd.to_numeric(df_db[col], errors="coerce")
 
-    # 🔹 Fecha como texto (SQLite)
-    df_db["Fecha"] = df_db["Fecha"].astype(str)
+        df_db["Fecha"] = df_db["Fecha"].astype(str)
+        df_db = df_db.fillna("")
 
-    # 🔹 Limpiar nulos
-    df_db = df_db.fillna("")
+        try:
+            df_db.to_sql("ventas", conn, if_exists="append", index=False)
+            st.success("✅ Datos guardados correctamente")
+        except Exception as e:
+            st.error(f"❌ Error al guardar: {e}")
 
-    # 🔥 GUARDAR
-    try:
-        df_db.to_sql("ventas", conn, if_exists="append", index=False)
-        st.success("✅ Datos guardados correctamente")
-    except Exception as e:
-        st.error(f"❌ Error al guardar: {e}")
+    # 👇 TU LÓGICA (TAMBIÉN DENTRO)
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df = df.dropna(subset=["Fecha"])
 
-# 👇 TU LÓGICA ORIGINAL (FUERA del botón)
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df = df.dropna(subset=["Fecha"])
+    df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
+    df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
+    df["Ganancia"] = df["Ventas"] - df["Costos"]
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
-df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
-df["Ganancia"] = df["Ventas"] - df["Costos"]
-df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-# 👉 AQUÍ SIGUE TU DASHBOARD TAL CUAL    
-    # -------------------------
+# -------------------------
     # FILTROS
     # -------------------------
     st.sidebar.header("🎯 Filtros")
