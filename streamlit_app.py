@@ -101,178 +101,173 @@ if authentication_status:
     # ------------------------
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-    if not archivo:
-        st.info("📂 Sube un archivo para comenzar")
-        st.stop()
+if not archivo:
+    st.info("📂 Sube un archivo para comenzar")
+    st.stop()
 
-    df = pd.read_excel(archivo)
-    df.columns = df.columns.str.strip()
+df = pd.read_excel(archivo)
+df.columns = df.columns.str.strip()
 
-    # ------------------------
-    # LIMPIEZA
-    # ------------------------
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    df = df.dropna(subset=["Fecha"])
+# ------------------------
+# LIMPIEZA
+# ------------------------
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df = df.dropna(subset=["Fecha"])
 
-    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-        if col in df.columns:
-            df[col] = (
-                df[col]
-                .astype(str)
-                .str.replace(",", "")
-                .str.strip()
-            )
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+    if col in df.columns:
+        df[col] = (
+            df[col]
+            .astype(str)
+            .str.replace(",", "")
+            .str.strip()
+        )
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # ------------------------
-    # MÉTRICAS BASE
-    # ------------------------
-    df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-    df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-    df["Ganancia"] = df["Ventas"] - df["Costos"]
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+# ------------------------
+# MÉTRICAS BASE
+# ------------------------
+df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+df["Ganancia"] = df["Ventas"] - df["Costos"]
+df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    # ------------------------
-    # ESTADO
-    # ------------------------
-    if "vista" not in st.session_state:
+# ------------------------
+# ESTADO
+# ------------------------
+if "vista" not in st.session_state:
+    st.session_state.vista = "principal"
+
+# ------------------------
+# LAYOUT
+# ------------------------
+col_nav, col_main = st.columns([2, 8])
+
+# ------------------------
+# IZQUIERDA (BIENVENIDO + FILTROS + NAV)
+# ------------------------
+with col_nav:
+
+    st.markdown("## 👋 Bienvenido")
+    st.divider()
+
+    # FILTROS
+    st.markdown("### 🎯 Filtros")
+
+    if "Pais" in df.columns:
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique())
+        )
+        df = df[df["Pais"].isin(pais)]
+
+    if "Region" in df.columns:
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique())
+        )
+        df = df[df["Region"].isin(region)]
+
+    st.divider()
+
+    # NAVEGACIÓN
+    st.markdown("## 🚦 Navegación")
+
+    if st.button("📊 Principal"):
         st.session_state.vista = "principal"
 
-    # ------------------------
-    # LAYOUT (SIN FILTROS)
-    # ------------------------
-    col_nav, col_main = st.columns([2, 8])
+    if st.button("🚦 Volatilidad"):
+        st.session_state.vista = "volatilidad"
 
-    # ------------------------
-    # BIENVENIDO + FILTROS + NAVEGACIÓN
-    # ------------------------
-    with col_nav:
+    if st.button("👤 Responsables"):
+        st.session_state.vista = "responsables"
 
-        st.markdown("## 👋 Bienvenido")
-        st.divider()
+    if st.button("🧠 Causas"):
+        st.session_state.vista = "causas"
 
-        # ------------------------
-        # FILTROS (AQUÍ)
-        # ------------------------
-        st.markdown("### 🎯 Filtros")
+# ------------------------
+# VALIDACIÓN
+# ------------------------
+if df.empty:
+    st.warning("No hay datos con esos filtros")
+    st.stop()
 
-        if "Pais" in df.columns:
-            pais = st.multiselect(
-                "País",
-                sorted(df["Pais"].dropna().unique()),
-                default=sorted(df["Pais"].dropna().unique())
-            )
-            df = df[df["Pais"].isin(pais)]
+# ------------------------
+# RECÁLCULO
+# ------------------------
+df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-        if "Region" in df.columns:
-            region = st.multiselect(
-                "Región",
-                sorted(df["Region"].dropna().unique()),
-                default=sorted(df["Region"].dropna().unique())
-            )
-            df = df[df["Region"].isin(region)]
+ventas = df["Ventas"].sum()
+ganancia = df["Ganancia"].sum()
+margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-        st.divider()
-
-        # ------------------------
-        # NAVEGACIÓN
-        # ------------------------
-        st.markdown("## 🚦 Navegación")
-
-        if st.button("📊 Principal"):
-            st.session_state.vista = "principal"
-
-        if st.button("🚦 Volatilidad"):
-            st.session_state.vista = "volatilidad"
-
-        if st.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-
-    # ------------------------
-    # VALIDACIÓN
-    # ------------------------
-    if df.empty:
-        st.warning("No hay datos con esos filtros")
-        st.stop()
-
-    # ------------------------
-    # RECÁLCULO
-    # ------------------------
-    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
-
-    ventas = df["Ventas"].sum()
-    ganancia = df["Ganancia"].sum()
-    margen = (ganancia / ventas * 100) if ventas != 0 else 0
-
-    # ------------------------
-    # DASHBOARD
-    # ------------------------
-    with col_main:
-
-        vista = st.session_state.vista
-
-        if vista == "principal":
-
-            st.markdown("## 📊 Dashboard Ejecutivo")
-            st.divider()
-
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Ventas", f"${ventas:,.0f}")
-            c2.metric("Ganancia", f"${ganancia:,.0f}")
-            c3.metric("Margen", f"{margen:.1f}%")
-
-            fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-            st.plotly_chart(fig, use_container_width=True)
-
-        elif vista == "volatilidad":
-
-            if st.button("⬅️ Volver"):
-                st.session_state.vista = "principal"
-
-            st.markdown("## 🚦 Volatilidad")
-            st.divider()
-
-            ratio = ganancia / ventas if ventas != 0 else 0
-
-            if ratio > 0.3:
-                st.error(f"Alta volatilidad ({ratio:.2f})")
-            elif ratio > 0.15:
-                st.warning(f"Volatilidad media ({ratio:.2f})")
-            else:
-                st.success(f"Volatilidad baja ({ratio:.2f})")
-
-        elif vista == "responsables":
-
-            if st.button("⬅️ Volver"):
-                st.session_state.vista = "principal"
-
-            st.markdown("## 👤 Responsables")
-            st.divider()
-
-            if "Vendedor_Ruta" in df.columns:
-                df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
-                st.dataframe(df_r)
-
-
-    
-     # =========================
-    # CAUSAS
-    # =========================
+# ------------------------
+# DASHBOARD
+# ------------------------
 with col_main:
 
     vista = st.session_state.vista
 
+    # PRINCIPAL
+    if vista == "principal":
+
+        st.markdown("## 📊 Dashboard Ejecutivo")
+        st.divider()
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Ventas", f"${ventas:,.0f}")
+        c2.metric("Ganancia", f"${ganancia:,.0f}")
+        c3.metric("Margen", f"{margen:.1f}%")
+
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # VOLATILIDAD
+    if vista == "volatilidad":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.markdown("## 🚦 Volatilidad")
+        st.divider()
+
+        ratio = ganancia / ventas if ventas != 0 else 0
+
+        if ratio > 0.3:
+            st.error(f"Alta volatilidad ({ratio:.2f})")
+        elif ratio > 0.15:
+            st.warning(f"Volatilidad media ({ratio:.2f})")
+        else:
+            st.success(f"Volatilidad baja ({ratio:.2f})")
+
+    # RESPONSABLES
+    if vista == "responsables":
+
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
+
+        st.markdown("## 👤 Responsables")
+        st.divider()
+
+        if "Vendedor_Ruta" in df.columns:
+            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+            st.dataframe(df_r)
+
+    # CAUSAS
     if vista == "causas":
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
-        st.title("🧠 Causas")
+        st.markdown("## 🧠 Causas")
+        st.divider()
 
         if "Producto" in df.columns:
             df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
             st.dataframe(df_c)
-# =========================
+    =======================
     # RESUMEN
     # =========================
     elif st.session_state.vista == "resumen":
