@@ -544,10 +544,10 @@ if archivo:
     # =========================
     elif st.session_state.vista == "log":
 
-       if st.button("⬅️ Volver"):
-           st.session_state.vista = "principal"
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
 
-       st.title("📋 Log de Carga")
+        st.title("📋 Log de Carga")
 
     log = st.session_state.get("log_carga")
 
