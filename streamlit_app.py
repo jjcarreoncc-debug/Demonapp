@@ -289,14 +289,14 @@ if archivo:
 
         if col2.button("👤 Responsables"):
             st.session_state.vista = "responsables"
-            st.experimental_rerun()
+            
 
         if col3.button("🧠 Causas"):
             st.session_state.vista = "causas"
 
         if col4.button("🔎 Análisis Detallado"):
             st.session_state.vista = "detalle"
-            st.experimental_rerun()
+            
 
         if col5.button("🧠 Resumen Ejecutivo"):
             st.session_state.vista = "resumen"
