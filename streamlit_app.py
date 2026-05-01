@@ -542,16 +542,16 @@ if archivo:
     # =========================
     # LOG
     # =========================
-    elif st.session_state.vista == "log":
+   elif st.session_state.vista == "log":
 
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+       if st.button("⬅️ Volver"):
+           st.session_state.vista = "principal"
 
-    st.title("📋 Log de Carga")
+       st.title("📋 Log de Carga")
 
     log = st.session_state.get("log_carga")
 
-    if log:
+       if log:
         col1, col2, col3 = st.columns(3)
 
         col1.metric("Filas originales", log["original"])
