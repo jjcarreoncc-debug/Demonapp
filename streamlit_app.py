@@ -26,13 +26,19 @@ hashed_passwords = [
 names = ["Admin", "Ventas"]
 usernames = ["admin", "ventas"]
 
+#credentials = {
+#    "usernames": {
+#        "admin": {"name": "Admin", "password": "1234"},
+#        "ventas": {"name": "Ventas", "password": "abcd"}
+#    }
+#}
+# Credenciales en texto plano (solo para pruebas)
 credentials = {
     "usernames": {
-        "admin": {"name": "Admin", "password": "1234"},
+        "1234": {"name": "Admin", "password": "abcd"},
         "ventas": {"name": "Ventas", "password": "abcd"}
     }
 }
-
 authenticator = stauth.Authenticate(
     credentials,
     "mi_dashboard",
@@ -41,8 +47,10 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
+#name, authentication_status, username = authenticator.login("Login", location="main")
 
 # 🔴 Si no está logueado → detener app (pero deja el logo)
+
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()  # Detiene aquí, login sigue visible
