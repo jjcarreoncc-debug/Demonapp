@@ -24,16 +24,16 @@ if not archivo:
     st.stop()
 
 df = pd.read_excel(archivo)
-    
+# 👇 AQUÍ TODO VA SIN INDENTAR
+for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+    if col in df.columns:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
+df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
+df["Ganancia"] = df["Ventas"] - df["Costos"]
+df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)    
 
-    df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
-    df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
-    df["Ganancia"] = df["Ventas"] - df["Costos"]
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     # -------------------------
     # FILTROS
