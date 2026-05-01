@@ -132,7 +132,7 @@ df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
 # ------------------------
-# FILTROS + NAV (FIX)
+# FILTROS + NAV (FIX) CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE
 # ------------------------
 df_base = df.copy()
 
@@ -162,6 +162,46 @@ with st.sidebar:
             key="region"
         )
         df = df[df["Region"].isin(region)]
+
+    # PRODUCTO
+    if "Producto" in df.columns:
+        producto = st.multiselect(
+            "Producto",
+            sorted(df["Producto"].dropna().unique()),
+            default=sorted(df["Producto"].dropna().unique()),
+            key="producto"
+        )
+        df = df[df["Producto"].isin(producto)]
+
+    # CANAL
+    if "Canal" in df.columns:
+        canal = st.multiselect(
+            "Canal",
+            sorted(df["Canal"].dropna().unique()),
+            default=sorted(df["Canal"].dropna().unique()),
+            key="canal"
+        )
+        df = df[df["Canal"].isin(canal)]
+
+    # VENDEDOR
+    if "Vendedor_Ruta" in df.columns:
+        vendedor = st.multiselect(
+            "Vendedor",
+            sorted(df["Vendedor_Ruta"].dropna().unique()),
+            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
+            key="vendedor"
+        )
+        df = df[df["Vendedor_Ruta"].isin(vendedor)]
+
+    # TIPO CLIENTE
+    if "Tipo_cliente" in df.columns:
+        tipo_cliente = st.multiselect(
+            "Tipo cliente",
+            sorted(df["Tipo_cliente"].dropna().unique()),
+            default=sorted(df["Tipo_cliente"].dropna().unique()),
+            key="tipo_cliente"
+        )
+        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
     # PERIODO
     st.markdown("### 📅 Periodo")
@@ -205,6 +245,10 @@ with st.sidebar:
 
     if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
+
+Con esto:
+
+Los filtros ahora incluyen Producto, Canal, Ven
 
 # ------------------------
 # VALIDACIÓN
