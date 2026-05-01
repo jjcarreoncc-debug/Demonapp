@@ -30,7 +30,7 @@ st.markdown("### TIDS CONSULTING")
 from PIL import Image
 img = Image.open("imagen_presentacion1.png")
 st.image(img, use_column_width=True)
-st.image(logo, width=200)  # ajusta tamaño según prefieras
+st.image(LOOGO-TIDS-CONSULTING(2).jpg, width=200)  # ajusta tamaño según prefieras
 st.markdown("---")  # separador
 img = Image.open("imagen_presentacion1.png")
 st.image(img, use_column_width=True)
