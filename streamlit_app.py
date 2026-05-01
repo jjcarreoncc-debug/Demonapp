@@ -131,6 +131,7 @@ df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 # ------------------------
+# ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
 df_base = df.copy()
@@ -148,7 +149,7 @@ with st.sidebar:
             "País",
             sorted(df["Pais"].dropna().unique()),
             default=sorted(df["Pais"].dropna().unique()),
-            key="pais"
+            key="filtro_pais"
         )
         df = df[df["Pais"].isin(pais)]
 
@@ -158,7 +159,7 @@ with st.sidebar:
             "Región",
             sorted(df["Region"].dropna().unique()),
             default=sorted(df["Region"].dropna().unique()),
-            key="region"
+            key="filtro_region"
         )
         df = df[df["Region"].isin(region)]
 
@@ -168,7 +169,7 @@ with st.sidebar:
             "Producto",
             sorted(df["Producto"].dropna().unique()),
             default=sorted(df["Producto"].dropna().unique()),
-            key="producto"
+            key="filtro_producto"
         )
         df = df[df["Producto"].isin(producto)]
 
@@ -178,7 +179,7 @@ with st.sidebar:
             "Canal",
             sorted(df["Canal"].dropna().unique()),
             default=sorted(df["Canal"].dropna().unique()),
-            key="canal"
+            key="filtro_canal"
         )
         df = df[df["Canal"].isin(canal)]
 
@@ -188,7 +189,7 @@ with st.sidebar:
             "Vendedor",
             sorted(df["Vendedor_Ruta"].dropna().unique()),
             default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-            key="vendedor"
+            key="filtro_vendedor"
         )
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
@@ -198,7 +199,7 @@ with st.sidebar:
             "Tipo cliente",
             sorted(df["Tipo_cliente"].dropna().unique()),
             default=sorted(df["Tipo_cliente"].dropna().unique()),
-            key="tipo_cliente"
+            key="filtro_tipo_cliente"
         )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
@@ -214,7 +215,7 @@ with st.sidebar:
         value=(fecha_min, fecha_max),
         min_value=fecha_min,
         max_value=fecha_max,
-        key="rango_fecha"
+        key="filtro_rango_fecha"
     )
 
     df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
@@ -231,28 +232,28 @@ with st.sidebar:
     # ------------------------
     st.markdown("### 🚦 Navegación")
 
-    if st.button("📊 Principal"):
+    if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
 
-    if st.button("🚦 Volatilidad"):
+    if st.button("🚦 Volatilidad", key="nav_volatilidad"):
         st.session_state.vista = "volatilidad"
 
-    if st.button("👤 Responsables"):
+    if st.button("👤 Responsables", key="nav_responsables"):
         st.session_state.vista = "responsables"
 
-    if st.button("🧠 Causas"):
+    if st.button("🧠 Causas", key="nav_causas"):
         st.session_state.vista = "causas"
 
-    if st.button("📋 Log"):
+    if st.button("📋 Log", key="nav_log"):
         st.session_state.vista = "log"
 
-    if st.button("🔎 Detalle"):
+    if st.button("🔎 Detalle", key="nav_detalle"):
         st.session_state.vista = "detalle"
 
-    if st.button("📌 Recomendaciones"):
+    if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
         st.session_state.vista = "recomendaciones"
 
-    if st.button("🧠 Resumen"):
+    if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
 
 # ------------------------
@@ -260,21 +261,19 @@ with st.sidebar:
 # ------------------------
 st.markdown("## 🛠️ Debug Recomendaciones")
 
-st.write("Total filas después de filtros:", len(df))
-st.write("Periodos únicos disponibles:", df["Periodo"].unique())
+st.write("Total filas después de filtros:", len(df), key="debug_total_filas")
+st.write("Periodos únicos disponibles:", df["Periodo"].unique(), key="debug_periodos_unicos")
 
 def mostrar_periodos_por_dimension(df, dim):
     if dim in df.columns:
         df_periodos = df.groupby(dim)["Periodo"].nunique().reset_index()
         df_periodos.columns = [dim, "Periodos"]
-        st.write(f"Periodos por {dim} (mínimo 2 para recomendaciones):")
-        st.dataframe(df_periodos)
+        st.write(f"Periodos por {dim} (mínimo 2 para recomendaciones):", key=f"debug_{dim}")
+        st.dataframe(df_periodos, key=f"debug_df_{dim}")
 
 # Revisar todas las dimensiones importantes
 for dim in ["Producto", "Canal", "Region", "Vendedor_Ruta", "Pais"]:
     mostrar_periodos_por_dimension(df, dim)
-    if st.button("🧠 Resumen"):
-        st.session_state.vista = "resumen"
 # ------------------------
 # VALIDACIÓN
 # ------------------------
