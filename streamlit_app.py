@@ -450,3 +450,5 @@ elif st.session_state.vista == "detalle":
 # =========================
 else:
     st.info("Selecciona una vista del dashboard")
+else
+    st.info("Selecciona una vista del dashboard")
