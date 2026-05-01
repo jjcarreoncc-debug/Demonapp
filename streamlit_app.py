@@ -229,7 +229,7 @@ elif col9.button("📊 Resultados"):
     # RESULTADOS (NUEVO)
     # =========================
     #
-        st.title("📊 Resultados y Acciones Prioritarias")
+      st.title("📊 Resultados y Acciones Prioritarias")
 
         resultados = []
 
