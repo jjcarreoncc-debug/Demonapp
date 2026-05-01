@@ -544,10 +544,10 @@ if archivo:
     # =========================
     elif st.session_state.vista == "log":
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        st.title("📋 Log de Carga")
+    st.title("📋 Log de Carga")
 
     log = st.session_state.get("log_carga")
 
@@ -557,11 +557,26 @@ if archivo:
         col1.metric("Filas originales", log["original"])
         col2.metric("Filas cargadas", log["final"])
         col3.metric("Filas eliminadas", log["eliminadas"])
+
         st.markdown("### 🧹 Registros eliminados")
 
         if not log["df_eliminadas"].empty:
             st.dataframe(log["df_eliminadas"])
+
+            # 🔥 👉 AQUÍ VA EL BOTÓN DE DESCARGA
+            csv = log["df_eliminadas"].to_csv(index=False).encode("utf-8")
+
+            st.download_button(
+                label="📥 Descargar errores en Excel",
+                data=csv,
+                file_name="errores_carga.csv",
+                mime="text/csv"
+            )
+
         else:
-            st.success("No hubo registros eliminado")
-else:
+            st.success("No hubo registros eliminados")
+
+    else:
+        st.info("Aún no hay cargas registradas")
+    else:
     st.info("📂 Sube archivo")
