@@ -7,6 +7,16 @@ import streamlit_authenticator as stauth
 # ------------------------
 # CONFIG
 # ------------------------
+st.markdown("""
+<style>
+/* Fondo gris para navegación */
+.nav-container {
+    background-color: #f0f2f6;
+    padding: 15px;
+    border-radius: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
@@ -180,6 +190,8 @@ if authentication_status:
 # NAVEGACIÓN (BOTONES)
 # ------------------------
 with col_nav:
+    st.markdown('<div class="nav-container">', unsafe_allow_html=True)
+
     st.markdown("## 🚦 Navegación")
     st.divider()
 
@@ -192,6 +204,7 @@ with col_nav:
     if st.button("👤 Responsables"):
         st.session_state.vista = "responsables"
 
+    st.markdown('</div>', unsafe_allow_html=True)
 # ------------------------
 # DASHBOARD (VISTAS)
 # ------------------------
