@@ -24,16 +24,15 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
-
-# ------------------------
+ ------------------------
 # LOGIN
 # ------------------------
 from streamlit_authenticator import Hasher
+import streamlit_authenticator as stauth
 
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
 
-st.write(hashed_passwords)
 names = ["Admin", "Ventas"]
 usernames = ["admin", "ventas"]
 
@@ -43,6 +42,7 @@ credentials = {
         "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
     }
 }
+
 authenticator = stauth.Authenticate(
     credentials,
     "mi_dashboard",
@@ -52,21 +52,25 @@ authenticator = stauth.Authenticate(
 
 name, authentication_status, username = authenticator.login("Login", location="main")
 
-# 🔴 Si no está logueado → detener app (pero deja el logo)
-
+# ------------------------
+# CONTROL LOGIN (CLAVE)
+# ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
-    st.stop()  # Detiene aquí, login sigue visible
+    st.stop()
+
 elif authentication_status is None:
     st.warning("Ingresa tus credenciales")
-    st.stop()  # Detiene aquí, login sigue visible
+    st.stop()
 
-# ✅ Si llegó hasta aquí → login correcto
-st.sidebar.write(f"Bienvenidossssss {name}")
+# ------------------------
+# SI LLEGA AQUÍ → LOGIN OK
+# ------------------------
+st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
-# ------------------------<
-# SESSION STAT
+# ------------------------
+# SESSION STATE
 # ------------------------
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
@@ -91,9 +95,7 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
-# ------------------------
-# CARGA ARCHIVO
-# ------------------------
+
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
@@ -123,7 +125,7 @@ for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
 # ------------------------
-# MÉTRICAS BASE
+# MÉTRICAS
 # ------------------------
 df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
@@ -131,20 +133,12 @@ df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
 # ------------------------
-# ESTADO
-# ------------------------
-if "vista" not in st.session_state:
-    st.session_state.vista = "principal"
-
-# ------------------------
-# SIDEBAR (COLUMNA 1 REAL)
+# SIDEBAR (FILTROS + NAV)
 # ------------------------
 with st.sidebar:
 
-    st.markdown("## 👋 Bienvenido")
     st.divider()
 
-    # FILTROS
     st.markdown("### 🎯 Filtros")
 
     if "Pais" in df.columns:
@@ -165,7 +159,6 @@ with st.sidebar:
 
     st.divider()
 
-    # NAVEGACIÓN
     st.markdown("### 🚦 Navegación")
 
     if st.button("📊 Principal", use_container_width=True):
@@ -197,13 +190,12 @@ ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# DASHBOARD (COLUMNA 2)
+# DASHBOARD
 # ------------------------
 vista = st.session_state.vista
 
 if vista == "principal":
     st.markdown("## 📊 Dashboard Ejecutivo")
-    st.divider()
 
     c1, c2, c3 = st.columns(3)
     c1.metric("Ventas", f"${ventas:,.0f}")
@@ -213,13 +205,12 @@ if vista == "principal":
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
     st.plotly_chart(fig, use_container_width=True)
 
-if vista == "volatilidad":
+elif vista == "volatilidad":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
 
     st.markdown("## 🚦 Volatilidad")
-    st.divider()
 
     ratio = ganancia / ventas if ventas != 0 else 0
 
@@ -230,25 +221,23 @@ if vista == "volatilidad":
     else:
         st.success(f"Volatilidad baja ({ratio:.2f})")
 
-if vista == "responsables":
+elif vista == "responsables":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
 
     st.markdown("## 👤 Responsables")
-    st.divider()
 
     if "Vendedor_Ruta" in df.columns:
         df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
         st.dataframe(df_r)
 
-if vista == "causas":
+elif vista == "causas":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
 
     st.markdown("## 🧠 Causas")
-    st.divider()
 
     if "Producto" in df.columns:
         df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
