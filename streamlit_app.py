@@ -225,33 +225,6 @@ if archivo:
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
-elif st.session_state.vista == "log":
-
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
-
-    st.title("📋 Log de Carga")
-
-    log = st.session_state.get("log_carga")
-
-    if log:
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric("Filas originales", log["original"])
-        col2.metric("Filas cargadas", log["final"])
-        col3.metric("Filas eliminadas", log["eliminadas"])
-
-        st.markdown("### 🧹 Registros eliminados")
-
-        if not log["df_eliminadas"].empty:
-            st.dataframe(log["df_eliminadas"])
-        else:
-            st.success("No hubo registros eliminados")
-
-    else:
-        st.info("Aún no hay cargas registradas")   
-       
     #
         st.title("📊 Resultados y Acciones Prioritarias")
 
