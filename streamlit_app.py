@@ -4,6 +4,12 @@ import plotly.express as px
 import sqlite3  # 👈 BD
 import streamlit_authenticator as stauth
 
+####
+#  CREACION DEL LOGO
+st.sidebar.image("LOOGO-TIDS-CONSULTING(2)", width=150)
+st.sidebar.markdown("TIDS CONSULTING ")
+####
+
 #
 # 🔐 Usuarios (puedes cambiar esto luego a BD)
 #
@@ -66,6 +72,17 @@ conn = sqlite3.connect("data.db")
 conn.execute("DROP TABLE IF EXISTS ventas")
 ###############
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+
+#######
+# NOMBRE DE LA EMPRESA
+col1, col2 = st.columns([1,4])
+
+with col1:
+    st.image("logo_empresa.png", width=100)
+
+with col2:
+    st.markdown("## Dashboard Ejecutivo\n### Nombre de la Empresa")
+####
 
 # BD
 conn.execute("""
