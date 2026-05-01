@@ -215,7 +215,7 @@ if archivo:
         if col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
         # 👇 ESTE ES EL NUEVO (usa una columna libre)
-        if col8.button("📋 Log de Carga"):
+        if col7.button("📋 Log de Carga"):
             st.session_state.vista = "log"
            
         # ✅ NUEVO NIVEL 5
