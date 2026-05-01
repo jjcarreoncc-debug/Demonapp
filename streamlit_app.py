@@ -138,7 +138,7 @@ if archivo:
         if col in df.columns:
             df[col] = (
                 df[col]
-    F            .astype(str)
+                .astype(str)
                 .str.replace(",", "")
                 .str.strip()
             )
