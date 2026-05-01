@@ -8,7 +8,7 @@ import streamlit_authenticator as stauth
 # CONFIG
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
+st.set_page_config(layout="wide")
 # ------------------------
 # LOGO SIEMPRE ARRIBA
 # ------------------------
@@ -86,6 +86,9 @@ st.set_page_config(layout="wide")
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
+# ------------------------
+# CARGA ARCHIVO
+# ------------------------
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 if not archivo:
@@ -126,9 +129,9 @@ if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
 # ------------------------
-# LAYOUT
+# LAYOUT (MEJORADO)
 # ------------------------
-col_filtros, col_nav, col_main = st.columns([1.5, 2, 6])
+col_filtros, col_nav, col_main = st.columns([2, 2.5, 7])
 
 # ------------------------
 # FILTROS
@@ -170,7 +173,7 @@ ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# NAVEGACIÓN PRO
+# NAVEGACIÓN
 # ------------------------
 with col_nav:
     st.markdown("## 🚦 Navegación")
@@ -185,17 +188,14 @@ with col_nav:
         ):
             st.session_state.vista = key
 
-    nav_btn("Principal", "principal")
-    nav_btn("Volatilidad", "volatilidad")
+    nav_btn("📊 Principal", "principal")
+    nav_btn("🚦 Volatilidad", "volatilidad")
 
 # ------------------------
 # DASHBOARD
 # ------------------------
 with col_main:
 
-    # =========================
-    # PRINCIPAL
-    # =========================
     if st.session_state.vista == "principal":
 
         st.markdown("## 📊 Dashboard Ejecutivo")
@@ -209,9 +209,6 @@ with col_main:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-    # =========================
-    # VOLATILIDAD
-    # =========================
     elif st.session_state.vista == "volatilidad":
 
         st.markdown("## 🚦 Volatilidad")
