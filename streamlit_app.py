@@ -163,28 +163,57 @@ with st.sidebar:
     # PERIODO (SOBRE DF FILTRADO)
     # ------------------------
     st.markdown("### 📅 Periodo")
+with st.sidebar:
 
-  periodos = sorted(df["Periodo"].dropna().unique())
+    st.divider()
 
-# 👇 SI NO HAY DATOS, NO ROMPE
-if len(periodos) == 0:
-    st.warning("No hay periodos disponibles")
-else:
-    default_periodos = periodos[-2:] if len(periodos) >= 2 else periodos
+    # ------------------------
+    # FILTROS
+    # ------------------------
+    st.markdown("### 🎯 Filtros")
 
-    periodo_sel = st.multiselect(
-        "Selecciona periodo",
-        periodos,
-        default=default_periodos
-    )
+    if "Pais" in df.columns:
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique())
+        )
+        df = df[df["Pais"].isin(pais)]
 
-    # 👇 FILTRO SEGURO
-    df_temp = df[df["Periodo"].isin(periodo_sel)]
+    if "Region" in df.columns:
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique())
+        )
+        df = df[df["Region"].isin(region)]
 
-    if len(df_temp) > 0:
-        df = df_temp
+    # ------------------------
+    # PERIODO ✅ (BIEN INDENTADO)
+    # ------------------------
+    st.markdown("### 📅 Periodo")
+
+    periodos = sorted(df["Periodo"].dropna().unique())
+
+    if len(periodos) > 0:
+
+        default_periodos = periodos[-2:] if len(periodos) >= 2 else periodos
+
+        periodo_sel = st.multiselect(
+            "Selecciona periodo",
+            periodos,
+            default=default_periodos
+        )
+
+        df_temp = df[df["Periodo"].isin(periodo_sel)]
+
+        if len(df_temp) > 0:
+            df = df_temp
+        else:
+            st.warning("Filtro sin datos, se mantiene info anterior")
+
     else:
-        st.warning("Ese filtro deja sin datos, se mantiene la información an
+        st.warning("No hay periodos disponibles")
 
     st.divider()
 
@@ -216,7 +245,7 @@ else:
 
     if st.button("🧠 Resumen", use_container_width=True):
         st.session_state.vista = "resumen"
-
+  
 # 🔥 ESTE ES EL DF FINAL QUE USA TODO
 df = df_f.copy()
 
