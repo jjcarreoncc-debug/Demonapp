@@ -173,11 +173,12 @@ with st.sidebar:
     st.markdown("### 🎯 Filtros")
 
     if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
-        )
+       pais = st.multiselect(
+           "País",
+    sorted(df["Pais"].dropna().unique()),
+    default=sorted(df["Pais"].dropna().unique()),
+    key="filtro_pais"
+)
         df = df[df["Pais"].isin(pais)]
 
     if "Region" in df.columns:
