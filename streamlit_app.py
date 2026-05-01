@@ -2,7 +2,46 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3  # 👈 BD
+import streamlit_authenticator as stauth
 
+#
+# 🔐 Usuarios (puedes cambiar esto luego a BD)
+#
+names = ["Admin", "Ventas"]
+usernames = ["admin", "ventas"]
+
+# 🔑 contraseñas en texto plano (se encriptan abajo)
+passwords = ["1234", "abcd"]
+
+# 🔒 generar hashes
+hashed_passwords = stauth.Hasher(passwords).generate()
+
+credentials = {
+    "usernames": {
+        usernames[i]: {
+            "name": names[i],
+            "password": hashed_passwords[i]
+        } for i in range(len(usernames))
+    }
+}
+
+authenticator = stauth.Authenticate(
+    credentials,
+    "mi_dashboard",   # nombre cookie
+    "abcdef",         # key secreta
+    cookie_expiry_days=1
+)
+name, authentication_status, username = authenticator.login("Login", "main")
+######
+# AUTENTICACION
+#####
+if authentication_status:
+
+    authenticator.logout("Cerrar sesión", "sidebar")
+    st.sidebar.write(f"Bienvenido {name}")
+######
+# BASE DE DATOS
+######
 conn = sqlite3.connect("data.db")
 
 # 🔥 SOLO UNA VEZ (luego lo puedes borrar)
@@ -577,3 +616,9 @@ if archivo:
             st.success("No hubo registros eliminados")
 else:
     st.info("📂 Sube archivo")
+    
+elif authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+
+elif authentication_status is None:
+    st.warning("Ingresa tus credenciales")
