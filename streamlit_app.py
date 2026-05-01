@@ -155,11 +155,27 @@ with st.sidebar:
             default=sorted(df["Region"].dropna().unique())
         )
         df = df[df["Region"].isin(region)]
+# periodo
+#
+st.markdown("### 📅 Periodo")
 
+periodos = sorted(df["Periodo"].dropna().unique())
+
+periodo_sel = st.multiselect(
+    "Selecciona periodo",
+    periodos,
+    default=periodos
+)
+
+df = df[df["Periodo"].isin(periodo_sel)]    
+
+if df["Periodo"].nunique() < 2:
+    st.warning("Selecciona al menos 2 periodos para análisis")
+    st.stop() 
     st.divider()
-
     st.markdown("### 🚦 Navegación")
-
+#### fin periodo
+    
     if st.button("📊 Principal", use_container_width=True):
         st.session_state.vista = "principal"
 
