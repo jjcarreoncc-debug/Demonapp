@@ -265,8 +265,6 @@ if archivo:
 #     with col2:
 #        st.markdown("## Dashboard Ejecutivo\n### TIDS CONSULTING")
 ####
-if st.session_state.vista != "principal":
-    st.experimental_rerun()
     
     if st.session_state.vista == "principal":
 
@@ -305,6 +303,10 @@ if st.session_state.vista != "principal":
         # 👇 ESTE ES EL NUEVO (usa una columna libre)
         if col7.button("📋 Log de Carga"):
              st.session_state.vista = "log"   
+
+if st.button("Ir a Log"):
+    st.session_state.vista = "log"
+    st.experimental_rerun()
     
         # ✅ NUEVO NIVEL 5
         if col7.button("📊 Resultados"):
