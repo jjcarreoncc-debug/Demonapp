@@ -81,6 +81,8 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
+st.set_page_config(layout="wide")
+
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
@@ -93,28 +95,12 @@ if not archivo:
 df = pd.read_excel(archivo)
 df.columns = df.columns.str.strip()
 
-filas_original = len(df)
-
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df_eliminadas = df[df["Fecha"].isna()].copy()
-
-if not df_eliminadas.empty:
-    df_eliminadas["Motivo"] = "Fecha inválida"
-
-df = df.dropna(subset=["Fecha"])
-filas_final = len(df)
-filas_eliminadas = filas_original - filas_final
-
-st.session_state["log_carga"] = {
-    "original": filas_original,
-    "final": filas_final,
-    "eliminadas": filas_eliminadas,
-    "df_eliminadas": df_eliminadas
-}
-
 # ------------------------
 # LIMPIEZA
 # ------------------------
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df = df.dropna(subset=["Fecha"])
+
 for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
     if col in df.columns:
         df[col] = (
@@ -125,8 +111,6 @@ for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         )
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-st.success("✅ Archivo validado correctamente")
-
 # ------------------------
 # MÉTRICAS BASE
 # ------------------------
@@ -136,35 +120,48 @@ df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
 # ------------------------
-# LAYOUT 3 COLUMNAS
+# ESTADO
 # ------------------------
-col_filtros, col_botones, col_main = st.columns([1,1,4])
+if "vista" not in st.session_state:
+    st.session_state.vista = "principal"
 
 # ------------------------
-# FILTROS (PAÍS / REGIÓN)
+# LAYOUT
+# ------------------------
+col_filtros, col_nav, col_main = st.columns([1.5, 2, 6])
+
+# ------------------------
+# FILTROS
 # ------------------------
 with col_filtros:
     st.markdown("## 🎯 Filtros")
+    st.divider()
 
     if "Pais" in df.columns:
-        pais_opciones = sorted(df["Pais"].dropna().unique())
-        pais = st.multiselect("País", pais_opciones, default=pais_opciones)
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique())
+        )
         df = df[df["Pais"].isin(pais)]
 
     if "Region" in df.columns:
-        region_opciones = sorted(df["Region"].dropna().unique())
-        region = st.multiselect("Región", region_opciones, default=region_opciones)
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique())
+        )
         df = df[df["Region"].isin(region)]
 
 # ------------------------
-# VALIDACIÓN POST FILTRO
+# VALIDACIÓN
 # ------------------------
 if df.empty:
     st.warning("No hay datos con esos filtros")
     st.stop()
 
 # ------------------------
-# RECÁLCULO (CLAVE)
+# RECÁLCULO
 # ------------------------
 df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
@@ -173,25 +170,36 @@ ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# BOTONES
+# NAVEGACIÓN PRO
 # ------------------------
-with col_botones:
+with col_nav:
     st.markdown("## 🚦 Navegación")
+    st.divider()
 
-    if st.button("📊 Principal"):
-        st.session_state.vista = "principal"
+    def nav_btn(label, key):
+        activo = st.session_state.vista == key
 
-    if st.button("🚦 Volatilidad"):
-        st.session_state.vista = "volatilidad"
+        if st.button(
+            ("🟢 " if activo else "⚪ ") + label,
+            use_container_width=True
+        ):
+            st.session_state.vista = key
+
+    nav_btn("Principal", "principal")
+    nav_btn("Volatilidad", "volatilidad")
 
 # ------------------------
 # DASHBOARD
 # ------------------------
 with col_main:
 
+    # =========================
+    # PRINCIPAL
+    # =========================
     if st.session_state.vista == "principal":
 
-        st.title("📊 Dashboard Ejecutivo")
+        st.markdown("## 📊 Dashboard Ejecutivo")
+        st.divider()
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Ventas", f"${ventas:,.0f}")
@@ -201,53 +209,13 @@ with col_main:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        # RESULTADOS
-        st.title("📊 Resultados y Acciones Prioritarias")
-
-        resultados = []
-
-        for dim in ["Pais", "Region", "Canal", "Producto"]:
-            if dim in df.columns:
-
-                df_t = df.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
-                df_t = df_t.sort_values("Periodo")
-
-                for k, g in df_t.groupby(dim):
-
-                    if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
-
-                        v1 = g.iloc[-2]["Ventas"]
-                        v2 = g.iloc[-1]["Ventas"]
-
-                        var = (v2 - v1) / v1
-                        impacto = (v2 - v1)
-
-                        if abs(var) > 0.10:
-                            resultados.append((dim, k, var, impacto, v1, v2))
-
-        resultados = sorted(resultados, key=lambda x: abs(x[3]), reverse=True)
-
-        for dim, nombre, var, impacto, v1, v2 in resultados:
-
-            if var > 0:
-                st.success(f"🟢 Oportunidad: {dim} → {nombre}")
-                st.markdown("👉 Acción: escalar inversión / replicar estrategia")
-            else:
-                st.error(f"🔴 Riesgo: {dim} → {nombre}")
-                st.markdown("👉 Acción: corregir ejecución / revisar causa")
-
-            st.markdown(f"""
-            - Antes: ${v1:,.0f}  
-            - Ahora: ${v2:,.0f}  
-            - Impacto: ${impacto:,.0f}  
-            - Variación: {var*100:.1f}%
-            """)
-
-            st.markdown("---")
-
+    # =========================
+    # VOLATILIDAD
+    # =========================
     elif st.session_state.vista == "volatilidad":
 
-        st.title("🚦 Volatilidad")
+        st.markdown("## 🚦 Volatilidad")
+        st.divider()
 
         ratio = ganancia / ventas if ventas != 0 else 0
 
