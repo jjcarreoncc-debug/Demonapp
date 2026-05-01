@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3  # 👈 BD
 # 🔥 SOLO UNA VEZ (luego lo puedes borrar)
-#conn.execute("DROP TABLE IF EXISTS ventas")
+conn.execute("DROP TABLE IF EXISTS ventas")
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # BD
