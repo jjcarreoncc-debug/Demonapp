@@ -225,14 +225,9 @@ if archivo:
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
-    elif st.session_state.vista == "resultados":
-
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
-
-
     elif st.session_state.vista == "log":
 
+    # 🔹 Bloque indentado
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
 
