@@ -259,22 +259,24 @@ with st.sidebar:
 # ------------------------
 # MINI DASHBOARD DE DEBUG
 # ------------------------
+# ------------------------
+# MINI DASHBOARD DE DEBUG CORREGIDO
+# ------------------------
 st.markdown("## 🛠️ Debug Recomendaciones")
 
-st.write("Total filas después de filtros:", len(df), key="debug_total_filas")
-st.write("Periodos únicos disponibles:", df["Periodo"].unique(), key="debug_periodos_unicos")
+st.write("Total filas después de filtros:", len(df))
+st.write("Periodos únicos disponibles:", df["Periodo"].unique())
 
 def mostrar_periodos_por_dimension(df, dim):
     if dim in df.columns:
         df_periodos = df.groupby(dim)["Periodo"].nunique().reset_index()
         df_periodos.columns = [dim, "Periodos"]
-        st.write(f"Periodos por {dim} (mínimo 2 para recomendaciones):", key=f"debug_{dim}")
-        st.dataframe(df_periodos, key=f"debug_df_{dim}")
+        st.write(f"Periodos por {dim} (mínimo 2 para recomendaciones):")
+        st.dataframe(df_periodos)  # aquí sí se puede usar key si quieres, pero no necesario
 
 # Revisar todas las dimensiones importantes
 for dim in ["Producto", "Canal", "Region", "Vendedor_Ruta", "Pais"]:
-    mostrar_periodos_por_dimension(df, dim)
-# ------------------------
+    mostrar_periodos_por_dimension(df, dim)# ------------------------
 # VALIDACIÓN
 # ------------------------
 if df.empty:
