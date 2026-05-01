@@ -20,7 +20,7 @@ st.markdown("""
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-# LOGO SIEMPRE ARRIBA
+#  SIEMPRE ARRIBA
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
@@ -63,7 +63,7 @@ elif authentication_status is None:
     st.stop()
 
 # ------------------------
-# SI LLEGA AQUÍ → LOGIN OK
+# LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
@@ -131,92 +131,164 @@ df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-# 🔥 BASE ORIGINAL (NO TOCAR)
+# ------------------------
+# FILTROS + NAV (FIX)
+# ------------------------
 df_base = df.copy()
 
-# ------------------------
-# SIDEBAR (ÚNICO Y LIMPIO)
-# ------------------------
 with st.sidebar:
 
     st.divider()
     st.markdown("### 🎯 Filtros")
 
-    df_f = df_base.copy()
+    df = df_base.copy()
 
-    # FILTRO PAÍS
-    if "Pais" in df_f.columns:
+    # PAÍS
+    if "Pais" in df.columns:
         pais = st.multiselect(
             "País",
-            sorted(df_f["Pais"].dropna().unique()),
-            default=sorted(df_f["Pais"].dropna().unique()),
-            key="filtro_pais"
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique()),
+            key="pais"
         )
-        df_f = df_f[df_f["Pais"].isin(pais)]
+        df = df[df["Pais"].isin(pais)]
 
-    # FILTRO REGIÓN
-    if "Region" in df_f.columns:
+    # REGIÓN
+    if "Region" in df.columns:
         region = st.multiselect(
             "Región",
-            sorted(df_f["Region"].dropna().unique()),
-            default=sorted(df_f["Region"].dropna().unique()),
-            key="filtro_region"
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique()),
+            key="region"
         )
-        df_f = df_f[df_f["Region"].isin(region)]
+        df = df[df["Region"].isin(region)]
 
-    # ------------------------
     # PERIODO
-    # ------------------------
     st.markdown("### 📅 Periodo")
 
-    periodos = sorted(df_f["Periodo"].dropna().unique())
+    periodos = sorted(df["Periodo"].dropna().unique())
 
-    if len(periodos) > 0:
-
-        default_periodos = periodos[-2:] if len(periodos) >= 2 else periodos
-
+    if periodos:
         periodo_sel = st.multiselect(
-            "Selecciona periodo",
+            "Periodo",
             periodos,
-            default=default_periodos,
-            key="filtro_periodo"
+            default=periodos[-2:] if len(periodos) >= 2 else periodos,
+            key="periodo"
         )
-
-        df_f = df_f[df_f["Periodo"].isin(periodo_sel)]
-
-    else:
-        st.warning("No hay periodos disponibles")
+        df = df[df["Periodo"].isin(periodo_sel)]
 
     st.divider()
 
-    # ------------------------
     # NAVEGACIÓN
-    # ------------------------
     st.markdown("### 🚦 Navegación")
 
-    if st.button("📊 Principal", use_container_width=True):
+    if st.button("📊 Principal"):
         st.session_state.vista = "principal"
 
-    if st.button("🚦 Volatilidad", use_container_width=True):
+    if st.button("🚦 Volatilidad"):
         st.session_state.vista = "volatilidad"
 
-    if st.button("👤 Responsables", use_container_width=True):
+    if st.button("👤 Responsables"):
         st.session_state.vista = "responsables"
 
-    if st.button("🧠 Causas", use_container_width=True):
+    if st.button("🧠 Causas"):
         st.session_state.vista = "causas"
 
-    if st.button("📋 Log", use_container_width=True):
+    if st.button("📋 Log"):
         st.session_state.vista = "log"
 
-    if st.button("🔎 Detalle", use_container_width=True):
+    if st.button("🔎 Detalle"):
         st.session_state.vista = "detalle"
 
-    if st.button("📌 Recomendaciones", use_container_width=True):
+    if st.button("📌 Recomendaciones"):
         st.session_state.vista = "recomendaciones"
 
-    if st.button("🧠 Resumen", use_container_width=True):
+    if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
+
+# ------------------------
+# VALIDACIÓN
+# ------------------------
+if df.empty:
+    st.warning("No hay datos con esos filtros")
+    st.stop()
+
+# ------------------------
+# RECÁLCULO
+# ------------------------
+df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+
+ventas = df["Ventas"].sum()
+ganancia = df["Ganancia"].sum()
+margen = (ganancia / ventas * 100) if ventas != 0 else 0
+
+# ------------------------
+# DASHBOARD
+# ------------------------
+vista = st.session_state.vista
+
+# PRINCIPAL
+if vista == "principal":
+
+    st.markdown("## 📊 Dashboard Ejecutivo")
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ventas", f"${ventas:,.0f}")
+    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    c3.metric("Margen", f"{margen:.1f}%")
+
+    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+    st.plotly_chart(fig, use_container_width=True)
+
+# VOLATILIDAD
+elif vista == "volatilidad":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 🚦 Volatilidad")
+
+    ratio = ganancia / ventas if ventas != 0 else 0
+
+    if ratio > 0.3:
+        st.error(f"Alta volatilidad ({ratio:.2f})")
+    elif ratio > 0.15:
+        st.warning(f"Volatilidad media ({ratio:.2f})")
+    else:
+        st.success(f"Volatilidad baja ({ratio:.2f})")
+
+# RESPONSABLES
+elif vista == "responsables":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 👤 Responsables")
+
+    if "Vendedor_Ruta" in df.columns:
+        df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+        st.dataframe(df_r)
+
+# CAUSAS
+elif vista == "causas":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 🧠 Causas")
+
+    if "Producto" in df.columns:
+        df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
+        st.dataframe(df_c)
+
+# DETALLE
+elif vista == "detalle":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 🔎 Detalle")
+    st.dataframe(df)
 
 # 🔥 DATA FINAL FILTRADA
 df = df_f.copy()
