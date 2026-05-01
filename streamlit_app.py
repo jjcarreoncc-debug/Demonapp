@@ -213,7 +213,7 @@ elif col9.button("📊 Resultados"):
     # DASHBOARD PRINCIPAL
     # ------------------------
 
-    elif st.session_state.vista == "principal":
+  if st.session_state.vista == "principal":
 
         st.title("📊 Dashboard Ejecutivo")
 
