@@ -76,6 +76,9 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 #######
 # NOMBRE DE LA EMPRESA
 col1, col2 = st.columns([1,4])
+if "vista" not in st.session_state:
+    st.session_state.vista = "principal"
+
 if st.session_state.vista == "principal":
     with col1:
         st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=100)
