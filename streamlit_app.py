@@ -87,7 +87,7 @@ df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-# -------------------------
+    # -------------------------
     # FILTROS
     # -------------------------
     st.sidebar.header("🎯 Filtros")
