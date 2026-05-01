@@ -25,15 +25,23 @@ usernames = ["admin", "ventas"]
 # 🔒 generar hashes
 #hashed_passwords = stauth.Hasher(passwords).hash()
 #hashed_passwords = stauth.Hasher(passwords).generate()
+from streamlit_authenticator import Authenticate
 
 credentials = {
     "usernames": {
-        usernames[i]: {
-            "name": names[i],
-            "password": hashed_passwords[i]
-        } for i in range(len(usernames))
+        "admin": {"name": "Admin", "password": "1234"},
+        "ventas": {"name": "Ventas", "password": "abcd"}
     }
 }
+
+#credentials = {
+#    "usernames": {
+#        usernames[i]: {
+#            "name": names[i],
+#            "password": hashed_passwords[i]
+#        } for i in range(len(usernames))
+#    }
+#}
 
 authenticator = stauth.Authenticate(
     credentials,
@@ -42,6 +50,7 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 name, authentication_status, username = authenticator.login("Login", "main")
+
 ######
 # AUTENTICACION
 #####
@@ -49,6 +58,7 @@ if authentication_status:
 
     authenticator.logout("Cerrar sesión", "sidebar")
     st.sidebar.write(f"Bienvenido {name}")
+
 ######
 # BASE DE DATOS
 ######
