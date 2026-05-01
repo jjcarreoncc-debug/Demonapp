@@ -576,13 +576,7 @@ for dim, nombre, var, impacto, v1, v2 in resultados:
 
         else:
             st.success("No hubo registros eliminados")
-            
-elif authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-
-elif authentication_status is None:
-    st.warning("Ingresa tus credenciales")
-    
-else:
+          
+   else:
     st.info("📂 Sube archivo")
      
