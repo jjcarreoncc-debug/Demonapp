@@ -614,11 +614,13 @@ if archivo:
 
         else:
             st.success("No hubo registros eliminados")
-else:
-    st.info("📂 Sube archivo")
-    
+            
 elif authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
 
 elif authentication_status is None:
     st.warning("Ingresa tus credenciales")
+    
+else:
+    st.info("📂 Sube archivo")
+    
