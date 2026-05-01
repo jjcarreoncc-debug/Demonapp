@@ -95,7 +95,6 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
-
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
@@ -173,6 +172,16 @@ with st.sidebar:
     if st.button("🧠 Causas", use_container_width=True):
         st.session_state.vista = "causas"
 
+    # 🔥 BOTONES QUE FALTABAN
+    if st.button("📊 Reporte Ejecutivo", use_container_width=True):
+        st.session_state.vista = "reporte"
+
+    if st.button("📋 Log", use_container_width=True):
+        st.session_state.vista = "log"
+
+    if st.button("📌 Recomendaciones", use_container_width=True):
+        st.session_state.vista = "recomendaciones"
+
 # ------------------------
 # VALIDACIÓN
 # ------------------------
@@ -242,6 +251,47 @@ elif vista == "causas":
     if "Producto" in df.columns:
         df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
         st.dataframe(df_c)
+
+# 🔥 NUEVAS VISTAS CONECTADAS
+
+elif vista == "reporte":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 📊 Reporte Ejecutivo")
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ventas", f"${ventas:,.0f}")
+    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    c3.metric("Margen", f"{margen:.1f}%")
+
+    fig = px.bar(df_m, x="Periodo", y="Ventas")
+    st.plotly_chart(fig, use_container_width=True)
+
+elif vista == "log":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 📋 Log")
+
+    st.write("Filas cargadas:", len(df))
+    st.dataframe(df.head(20))
+
+elif vista == "recomendaciones":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.markdown("## 📌 Recomendaciones")
+
+    if margen < 20:
+        st.error("Margen bajo: revisar costos o precios")
+    elif margen < 35:
+        st.warning("Margen medio: optimizar operación")
+    else:
+        st.success("Margen saludable: escalar negocio")
 
     # =======================
     # RESUMEN
