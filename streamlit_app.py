@@ -49,26 +49,22 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 
-#name, authentication_status, username = authenticator.login("Login", location="main")
-#name, authentication_status, username = authenticator.login("Login", "main")
-name, authentication_status, username = authenticator.login("Login")
-
+name, authentication_status, username = authenticator.login("Login", location="main")
 ######
 # AUTENTICACION
 #####
 if authentication_status:
-
-    authenticator.logout("Cerrar sesión", "sidebar")
     st.sidebar.write(f"Bienvenido {name}")
+    authenticator.logout("Cerrar sesión", "sidebar")
 
 ######
 # BASE DE DATOS
 ######
+
 conn = sqlite3.connect("data.db")
-
-# 🔥 SOLO UNA VEZ (luego lo puedes borrar)
+############### 🔥 SOLO UNA VEZ (luego lo puedes borrar)
 conn.execute("DROP TABLE IF EXISTS ventas")
-
+###############
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # BD
