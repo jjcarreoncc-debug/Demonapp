@@ -194,7 +194,7 @@ if archivo:
         st.plotly_chart(fig, use_container_width=True)
 
         # 🔥 SOLO agregamos una columna adicional
-        col1, col2, col3, col4, col5, col6, col7, Co18 = st.columns(7)
+        col1, col2, col3, col4, col5, col6, col7, = st.columns(7)
         
 
         if col1.button("🚦 Volatilidad"):
