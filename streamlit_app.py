@@ -179,7 +179,7 @@ with st.sidebar:
     default=sorted(df["Pais"].dropna().unique()),
     key="filtro_pais"
 )
-        df = df[df["Pais"].isin(pais)]
+    df = df[df["Pais"].isin(pais)]
 
     if "Region" in df.columns:
         region = st.multiselect(
