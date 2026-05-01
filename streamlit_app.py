@@ -35,21 +35,17 @@ if archivo:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-    # 🔥 AHORA SÍ (después de crear df)
+    # 🔥 CONTROL DE FILAS
+    filas_original = len(df)
+
+    # detectar fechas malas
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df_eliminadas = df[df["Fecha"].isna()]  # 👈 guardamos lo eliminado
+
     df = df.dropna(subset=["Fecha"])
-    ###############################################################################333
-filas_original = len(df)
+    filas_final = len(df)
 
-# detectar fechas malas
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df_eliminadas = df[df["Fecha"].isna()]  # 👈 guardamos lo que se borra
-
-df = df.dropna(subset=["Fecha"])
-filas_final = len(df)
-
-filas_eliminadas = filas_original - filas_final
-    #################################################################################333  
+    filas_eliminadas = filas_original - filas_final
 
     # 🔥 LIMPIEZA
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
