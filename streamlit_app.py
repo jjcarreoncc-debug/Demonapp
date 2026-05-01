@@ -1,3 +1,5 @@
+Ultimo archivo a las 6:31 am 570 registros
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -172,108 +174,91 @@ if archivo:
     # ------------------------
     # DASHBOARD PRINCIPAL
     # ------------------------
-    #if st.session_state.vista == "principal":
-    #
-    #
-    #    st.title("📊 Dashboard Ejecutivo")
-    #
-    #    c1, c2, c3 = st.columns(3)
-    #    c1.metric("Ventas", f"${ventas:,.0f}")
-    #    c2.metric("Ganancia", f"${ganancia:,.0f}")
-    #    c3.metric("Margen", f"{margen:.1f}%")
+    st.stop()
+    if st.session_state.vista == "principal":
 
-    #   fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    #  st.plotly_chart(fig, use_container_width=True)
+        st.title("📊 Dashboard Ejecutivo")
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Ventas", f"${ventas:,.0f}")
+        c2.metric("Ganancia", f"${ganancia:,.0f}")
+        c3.metric("Margen", f"{margen:.1f}%")
+
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        st.plotly_chart(fig, use_container_width=True)
 
         # ------------------------
         # BOTONES PRINCIPAL
         # ------------------------
-col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(9)
+        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
 
-if col1.button("🚦 principal"):
-    st.session_state.vista = "dashprincipal"
-elif col2.button("🚦 volatidad"):
-    st.session_state.vista = "volatidad"
-elif col3.button("👤 Responsables"):
-    st.session_state.vista = "responsables"
-elif col4.button("🧠 Causas"):
-    st.session_state.vista = "causas"
-elif col5.button("🔎 Análisis Detallado"):
-    st.session_state.vista = "detalle"
-elif col6.button("🧠 Resumen Ejecutivo"):
-    st.session_state.vista = "resumen"
-elif col7.button("📌 Recomendaciones"):
-    st.session_state.vista = "recomendaciones"
-elif col8.button("📋 Log de Carga"):
-    st.session_state.vista = "log"
-elif col9.button("📊 Resultados"):
-    st.session_state.vista = "resultados"
-
-    # ------------------------
-    # DASHBOARD PRINCIPAL
-    # ------------------------
-
-    if st.session_state.vista == "principal":
-
-      st.title("📊 Dashboard Ejecutivo")
-
-      c1, c2, c3 = st.columns(3)
-      c1.metric("Ventas", f"${ventas:,.0f}")
-      c2.metric("Ganancia", f"${ganancia:,.0f}")
-      c3.metric("Margen", f"{margen:.1f}%")
-
-      fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-      st.plotly_chart(fig, use_container_width=True)  
-      
+        if col1.button("🚦 Volatilidad"):
+            st.session_state.vista = "volatilidad"
+        elif col2.button("👤 Responsables"):
+            st.session_state.vista = "responsables"
+        elif col3.button("🧠 Causas"):
+            st.session_state.vista = "causas"
+        elif col4.button("🔎 Análisis Detallado"):
+            st.session_state.vista = "detalle"
+        elif col5.button("🧠 Resumen Ejecutivo"):
+            st.session_state.vista = "resumen"
+        elif col6.button("📌 Recomendaciones"):
+            st.session_state.vista = "recomendaciones"
+        elif col7.button("📋 Log de Carga"):
+            st.session_state.vista = "log"
+        elif col8.button("📊 Resultados"):
+            st.session_state.vista = "resultados"
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
-st.title("📊 Resultados y Acciones Prioritarias")
+    #
+        st.title("📊 Resultados y Acciones Prioritarias")
 
-resultados = []
+        resultados = []
 
-for dim in ["Pais", "Region", "Canal", "Producto"]:
-    if dim in df.columns:
+        for dim in ["Pais", "Region", "Canal", "Producto"]:
+            if dim in df.columns:
 
-        df_t = df.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
-        df_t = df_t.sort_values("Periodo")
+                df_t = df.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
+                df_t = df_t.sort_values("Periodo")
 
-        for k, g in df_t.groupby(dim):
+                for k, g in df_t.groupby(dim):
 
-            if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+                    if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
 
-                v1 = g.iloc[-2]["Ventas"]
-                v2 = g.iloc[-1]["Ventas"]
+                        v1 = g.iloc[-2]["Ventas"]
+                        v2 = g.iloc[-1]["Ventas"]
 
-                var = (v2 - v1) / v1
-                impacto = (v2 - v1)
+                        var = (v2 - v1) / v1
+                        impacto = (v2 - v1)
 
-                if abs(var) > 0.10:
-                    resultados.append((dim, k, var, impacto, v1, v2))
+                        if abs(var) > 0.10:
+                            resultados.append((dim, k, var, impacto, v1, v2))
 
-resultados = sorted(resultados, key=lambda x: abs(x[3]), reverse=True)
+        resultados = sorted(resultados, key=lambda x: abs(x[3]), reverse=True)
 
-for dim, nombre, var, impacto, v1, v2 in resultados:
+        for dim, nombre, var, impacto, v1, v2 in resultados:
 
-    if var > 0:
-        st.success(f"🟢 Oportunidad: {dim} → {nombre}")
-        st.markdown("👉 Acción: escalar inversión / replicar estrategia")
-    else:
-        st.error(f"🔴 Riesgo: {dim} → {nombre}")
-        st.markdown("👉 Acción: corregir ejecución / revisar causa")
+            if var > 0:
+                st.success(f"🟢 Oportunidad: {dim} → {nombre}")
+                st.markdown("👉 Acción: escalar inversión / replicar estrategia")
+            else:
+                st.error(f"🔴 Riesgo: {dim} → {nombre}")
+                st.markdown("👉 Acción: corregir ejecución / revisar causa")
 
-    st.markdown(f"""
-    - Antes: ${v1:,.0f}  
-    - Ahora: ${v2:,.0f}  
-    - Impacto: ${impacto:,.0f}  
-    - Variación: {var*100:.1f}%
-    """)
+            st.markdown(f"""
+            - Antes: ${v1:,.0f}  
+            - Ahora: ${v2:,.0f}  
+            - Impacto: ${impacto:,.0f}  
+            - Variación: {var*100:.1f}%
+            """)
 
-    st.markdown("---")    
+            st.markdown("---")
+
     # =========================
     # VOLATILIDAD
     # =========================
-    if st.session_state.vista == "volatilidad":
+    elif st.session_state.vista == "volatilidad":
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
@@ -576,7 +561,13 @@ for dim, nombre, var, impacto, v1, v2 in resultados:
 
         else:
             st.success("No hubo registros eliminados")
-          
-   else:
+            
+elif authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+
+elif authentication_status is None:
+    st.warning("Ingresa tus credenciales")
+    
+else:
     st.info("📂 Sube archivo")
      
