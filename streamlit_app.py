@@ -62,7 +62,7 @@ elif authentication_status is None:
     st.stop()  # Detiene aquí, login sigue visible
 
 # ✅ Si llegó hasta aquí → login correcto
-st.sidebar.write(f"Bienvenido {name}")
+st.sidebar.write(f"Bienvenidossssss {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
 # ------------------------<
