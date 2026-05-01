@@ -24,8 +24,8 @@ st.markdown("### TIDS CONSULTING")
 #]
 from streamlit_authenticator import Hasher
 
-#passwords = ["1234", "abcd"]
-#hashed_passwords = Hasher(passwords).generate()
+passwords = ["1234", "abcd"]
+hashed_passwords = Hasher(passwords).generate()
 
 st.write(hashed_passwords)
 names = ["Admin", "Ventas"]
