@@ -43,12 +43,19 @@ authenticator = stauth.Authenticate(
 name, authentication_status, username = authenticator.login("Login", location="main")
 
 # 🔴 Si no está logueado → detener app (pero deja el logo)
-if authentication_status:
-   st.sidebar.write(f"Bienvenido {name}")
-   authenticator.logout("Cerrar sesión", "sidebar")
+if authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+    st.stop()  # Detiene aquí, login sigue visible
+elif authentication_status is None:
+    st.warning("Ingresa tus credenciales")
+    st.stop()  # Detiene aquí, login sigue visible
 
-# ------------------------
-# SESSION STATE
+# ✅ Si llegó hasta aquí → login correcto
+st.sidebar.write(f"Bienvenido {name}")
+authenticator.logout("Cerrar sesión", "sidebar")
+
+# ------------------------<
+# SESSION STAT
 # ------------------------
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
