@@ -104,9 +104,7 @@ else:
         # ✅ NUEVO NIVEL 5
         if col7.button("📊 Resultados"):
             st.session_state.vista = "resultados"
-        if col8.button("📂 Carga"):
-            st.session_state.vista = "carga"
-
+        
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
