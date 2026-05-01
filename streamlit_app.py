@@ -46,15 +46,9 @@ if archivo:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # 🔥 BOTÓN GUARDAR (MISMO LUGAR)
-    if st.button("💾 Guardar en Base de Datos"):
+if st.button("💾 Guardar en Base de Datos"):
 
     df_db = df.copy()
-
-    # 🔹 Renombrar columnas para que coincidan con la BD
-    df_db = df_db.rename(columns={
-        "Nombre_Producto": "Nombre_Producto",
-        "Numero_Producto": "Numero_Producto"
-    })
 
     # 🔹 Columnas EXACTAS de la tabla
     columnas_db = [
@@ -74,7 +68,7 @@ if archivo:
     # 🔥 QUEDARSE SOLO con columnas válidas
     df_db = df_db[[col for col in columnas_db if col in df_db.columns]]
 
-    # 🔥 LIMPIAR NUMÉRICOS (esto te estaba rompiendo antes)
+    # 🔥 LIMPIAR NUMÉRICOS
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df_db.columns:
             df_db[col] = (
@@ -97,29 +91,17 @@ if archivo:
         st.success("✅ Datos guardados correctamente")
     except Exception as e:
         st.error(f"❌ Error al guardar: {e}")
-        
-        df_db = df.copy()
 
-        df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
-        df_db["Costos"] = df_db.get("Costos", df_db["Ventas_Cantidad"] * df_db.get("Costos_Venta", 0))
-        df_db["Ganancia"] = df_db["Ventas"] - df_db["Costos"]
+# 👇 TU LÓGICA ORIGINAL (FUERA del botón)
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df = df.dropna(subset=["Fecha"])
 
-        df_db = df_db.fillna("")
+df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
+df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
+df["Ganancia"] = df["Ventas"] - df["Costos"]
+df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-        df_db.to_sql("ventas", conn, if_exists="append", index=False)
-
-        st.success("✅ Datos guardados en la base de datos")
-
-    # 👇 TU LÓGICA ORIGINAL
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    df = df.dropna(subset=["Fecha"])
-
-    df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
-    df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
-    df["Ganancia"] = df["Ventas"] - df["Costos"]
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-    # 👉 AQUÍ SIGUE TU DASHBOARD TAL CUAL (FILTROS, GRÁFICAS, ETC)
+# 👉 AQUÍ SIGUE TU DASHBOARD TAL CUAL    
     # -------------------------
     # FILTROS
     # -------------------------
