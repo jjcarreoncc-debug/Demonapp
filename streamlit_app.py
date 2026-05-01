@@ -287,10 +287,13 @@ else:
     # =========================
     # RECOMENDACIONES (INTACTO)
     # =========================
-    elif st.session_state.vista == "recomendaciones":
+    # =========================
+# RECOMENDACIONES (FULL)
+# =========================
+elif st.session_state.vista == "recomendaciones":
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
     st.title("📌 Recomendaciones Estratégicas")
 
@@ -350,9 +353,9 @@ else:
         - Variación: {var*100:.1f}%
         """)
 
-        # DRIVER PRINCIPAL
         df_det = df[df[dim] == nombre]
 
+        # DRIVER PRINCIPAL
         for subdim in ["Producto", "Region", "Canal"]:
             if subdim in df_det.columns and subdim != dim:
                 top = df_det.groupby(subdim)["Ventas"].sum().reset_index() \
@@ -431,8 +434,9 @@ else:
 
         st.markdown("---")
 
+
 # =========================
-# DETALLE (CORRECTO)
+# DETALLE
 # =========================
 elif st.session_state.vista == "detalle":
 
@@ -442,8 +446,9 @@ elif st.session_state.vista == "detalle":
     st.title("🔎 Análisis Detallado")
     st.dataframe(df)
 
+
 # =========================
-# MENSAJE FINAL (SI NO HAY NADA)
+# ⚠️ SIEMPRE ÚLTIMO
 # =========================
 else:
     st.info("Selecciona una vista del dashboard")
