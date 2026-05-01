@@ -130,9 +130,8 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
 # ------------------------
-# FILTROS + NAV (FIX) CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE
+# FILTROS + NAV (FIX) CON RANGO DE FECHAS
 # ------------------------
 df_base = df.copy()
 
@@ -203,23 +202,37 @@ with st.sidebar:
         )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
-    # PERIODO
+    # ------------------------
+    # 🔥 PERIODO (RANGO REAL)
+    # ------------------------
     st.markdown("### 📅 Periodo")
 
-    periodos = sorted(df["Periodo"].dropna().unique())
+    fecha_min = df["Fecha"].min()
+    fecha_max = df["Fecha"].max()
 
-    if periodos:
-        periodo_sel = st.multiselect(
-            "Periodo",
-            periodos,
-            default=periodos[-2:] if len(periodos) >= 2 else periodos,
-            key="periodo"
-        )
-        df = df[df["Periodo"].isin(periodo_sel)]
+    fecha_ini, fecha_fin = st.date_input(
+        "Selecciona rango de fechas",
+        value=(fecha_min, fecha_max),
+        min_value=fecha_min,
+        max_value=fecha_max,
+        key="rango_fecha"
+    )
+
+    df = df[
+        (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+        (df["Fecha"] <= pd.to_datetime(fecha_fin))
+    ]
+
+    # recalcular periodo después del filtro
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+    st.caption(f"📅 {fecha_ini} → {fecha_fin}")
 
     st.divider()
 
+    # ------------------------
     # NAVEGACIÓN
+    # ------------------------
     st.markdown("### 🚦 Navegación")
 
     if st.button("📊 Principal"):
@@ -245,7 +258,6 @@ with st.sidebar:
 
     if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
-
 # ------------------------
 # VALIDACIÓN
 # ------------------------
