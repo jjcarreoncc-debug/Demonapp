@@ -175,7 +175,7 @@ if archivo:
 
     # 🔥 BOTÓN GUARDAR
     if st.button("💾 Guardar en Base de Datos"):
-       st.experimental_rerun()    
+           
         df_db = df.copy()
         columnas_db = [
             "Fecha",
@@ -286,7 +286,7 @@ if archivo:
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
-            st.experimental_rerun()
+            
 
         if col2.button("👤 Responsables"):
             st.session_state.vista = "responsables"
