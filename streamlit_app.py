@@ -188,26 +188,26 @@ if archivo:
         # ------------------------
         # BOTONES PRINCIPAL
         # ------------------------
-col1, col2, col3, col4, col5, col6, col7, col8, col9=st.columns(9)
+col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(9)
 
-        if col1.button("🚦 principal"):
-            st.session_state.vista = "dashprincipal"
-        elif col2.button("🚦 volatidad"):
-            st.session_state.vista = "volatidad"
-        elif col3.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-        elif col4.button("🧠 Causas"):
-            st.session_state.vista = "causas"
-        elif col5.button("🔎 Análisis Detallado"):
-            st.session_state.vista = "detalle"
-        elif col6.button("🧠 Resumen Ejecutivo"):
-            st.session_state.vista = "resumen"
-        elif col7.button("📌 Recomendaciones"):
-            st.session_state.vista = "recomendaciones"
-        elif col8.button("📋 Log de Carga"):
-            st.session_state.vista = "log"
-        elif col9.button("📊 Resultados"):
-            st.session_state.vista = "resultados"
+if col1.button("🚦 principal"):
+    st.session_state.vista = "dashprincipal"
+elif col2.button("🚦 volatidad"):
+    st.session_state.vista = "volatidad"
+elif col3.button("👤 Responsables"):
+    st.session_state.vista = "responsables"
+elif col4.button("🧠 Causas"):
+    st.session_state.vista = "causas"
+elif col5.button("🔎 Análisis Detallado"):
+    st.session_state.vista = "detalle"
+elif col6.button("🧠 Resumen Ejecutivo"):
+    st.session_state.vista = "resumen"
+elif col7.button("📌 Recomendaciones"):
+    st.session_state.vista = "recomendaciones"
+elif col8.button("📋 Log de Carga"):
+    st.session_state.vista = "log"
+elif col9.button("📊 Resultados"):
+    st.session_state.vista = "resultados"
 
     # ------------------------
     # DASHBOARD PRINCIPAL
