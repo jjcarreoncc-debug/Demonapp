@@ -562,6 +562,6 @@ if archivo:
         if not log["df_eliminadas"].empty:
             st.dataframe(log["df_eliminadas"])
         else:
-            st.success("No hubo registros eliminado
+            st.success("No hubo registros eliminado")
 else:
     st.info("📂 Sube archivo")
