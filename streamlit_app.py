@@ -38,7 +38,7 @@ if archivo:
     # 🔥 AHORA SÍ (después de crear df)
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
-###############################################################################333
+    ###############################################################################333
 filas_original = len(df)
 
 # detectar fechas malas
@@ -49,9 +49,9 @@ df = df.dropna(subset=["Fecha"])
 filas_final = len(df)
 
 filas_eliminadas = filas_original - filas_final
-#################################################################################333  
+    #################################################################################333  
 
-# 🔥 LIMPIEZA
+    # 🔥 LIMPIEZA
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df.columns:
             df[col] = (
