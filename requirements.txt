@@ -6,3 +6,4 @@ kaleido
 matplotlib
 python-pptx
 openpyxl
+streamlit-authenticator
