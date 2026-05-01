@@ -31,11 +31,14 @@ archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 # 👇 SOLO SI HAY ARCHIVO (NO METO ELSE)
 if archivo:
-     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-     df = df.dropna(subset=["Fecha"])
+
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
+    # 🔥 AHORA SÍ (después de crear df)
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df = df.dropna(subset=["Fecha"])
+    
     # 🔥 LIMPIEZA
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
         if col in df.columns:
