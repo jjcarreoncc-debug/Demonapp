@@ -36,7 +36,7 @@ img = Image.open("imagen_presentacion1.png")
 st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
-# ------------------------
+# ------------------------        
 from streamlit_authenticator import Hasher
 import streamlit_authenticator as stauth
 
