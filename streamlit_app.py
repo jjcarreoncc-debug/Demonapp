@@ -18,11 +18,16 @@ st.markdown("### TIDS CONSULTING")
 # ------------------------
 # LOGIN
 # ------------------------
-hashed_passwords = [
-    "$2b$12$abcdefghijklmnopqrstuv",
-    "$2b$12$uvwxyzabcdefghijklmnop"
-]
+#hashed_passwords = [
+#    "$2b$12$abcdefghijklmnopqrstuv",
+#    "$2b$12$uvwxyzabcdefghijklmnop"
+#]
+from streamlit_authenticator import Hasher
 
+passwords = ["1234", "abcd"]
+hashed_passwords = Hasher(passwords).generate()
+
+st.write(hashed_passwords)
 names = ["Admin", "Ventas"]
 usernames = ["admin", "ventas"]
 
@@ -33,10 +38,16 @@ usernames = ["admin", "ventas"]
 #    }
 #}
 # Credenciales en texto plano (solo para pruebas)
+#credentials = {
+#    "usernames": {
+#        "1234": {"name": "Admin", "password": "abcd"},
+#        "ventas": {"name": "Ventas", "password": "abcd"}
+#    }
+#}
 credentials = {
     "usernames": {
-        "1234": {"name": "Admin", "password": "abcd"},
-        "ventas": {"name": "Ventas", "password": "abcd"}
+        "admin": {"name": "Admin", "password": hashed_passwords[0]},
+        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
     }
 }
 authenticator = stauth.Authenticate(
