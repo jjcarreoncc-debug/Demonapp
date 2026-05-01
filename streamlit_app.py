@@ -1,8 +1,25 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import sqlite3  # 👈 NUEVO
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+
+# 👇 CONEXIÓN BD (NUEVO)
+conn = sqlite3.connect("data.db")
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS ventas (
+    Fecha TEXT,
+    Pais TEXT,
+    Region TEXT,
+    Canal TEXT,
+    Producto TEXT,
+    Ventas REAL,
+    Costos REAL,
+    Ganancia REAL
+)
+""")
 
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
@@ -14,6 +31,22 @@ if archivo:
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
+    # 👇 BOTÓN GUARDAR (NUEVO - AQUÍ VA EXACTO)
+    if st.button("💾 Guardar en Base de Datos"):
+
+        df_db = df.copy()
+
+        df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
+        df_db["Costos"] = df_db.get("Costos", df_db["Ventas_Cantidad"] * df_db.get("Costos_Venta", 0))
+        df_db["Ganancia"] = df_db["Ventas"] - df_db["Costos"]
+
+        df_db = df_db.fillna("")
+
+        df_db.to_sql("ventas", conn, if_exists="append", index=False)
+
+        st.success("✅ Datos guardados en la base de datos")
+
+    # 👇 TU LÓGICA ORIGINAL (NO TOCADA)
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
@@ -25,7 +58,6 @@ if archivo:
     df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
     # -------------------------
     # FILTROS
     # -------------------------
