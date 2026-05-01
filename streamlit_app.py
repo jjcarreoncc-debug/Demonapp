@@ -133,8 +133,10 @@ df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 ###
 ### FILTROS
 ###
-with st.sidebar:
 df_base = df.copy()
+
+with st.sidebar:
+
     st.divider()
 
     st.markdown("### 🎯 Filtros")
