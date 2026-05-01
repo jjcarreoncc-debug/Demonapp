@@ -420,8 +420,5 @@ else:
     # =========================
     # DETALLE
     # =========================
-    elif st.session_state.vista == "detalle":
-
-     
 else:
     st.info("📂 Sube archivo")
