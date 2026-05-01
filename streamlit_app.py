@@ -422,30 +422,6 @@ else:
     # =========================
     elif st.session_state.vista == "detalle":
 
-if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
-
-    st.title("🔎 Análisis Detallado")
-    st.dataframe(df)
-
-
-elif st.session_state.vista == "carga":
-
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
-
-    st.title("📂 Carga de datos")
-
-    archivo = st.file_uploader("Sube Excel", type=["xlsx"])
-
-    if archivo:
-        df_upload = pd.read_excel(archivo)
-
-        if st.button("Guardar"):
-            import sqlite3
-            conn = sqlite3.connect("data.db")
-            df_upload.to_sql("ventas", conn, if_exists="replace", index=False)
-            conn.close()
-            st.success("Datos guardados")       
+     
 else:
     st.info("📂 Sube archivo")
