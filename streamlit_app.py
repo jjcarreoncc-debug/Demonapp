@@ -94,12 +94,10 @@ CREATE TABLE IF NOT EXISTS ventas (
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
-if authentication_status:
-
-    # ------------------------
-    # CARGA ARCHIVO
-    # ------------------------
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+# ------------------------
+# CARGA ARCHIVO
+# ------------------------
+archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 if not archivo:
     st.info("📂 Sube un archivo para comenzar")
@@ -144,48 +142,50 @@ if "vista" not in st.session_state:
 col_nav, col_main = st.columns([2, 8])
 
 # ------------------------
-# IZQUIERDA (BIENVENIDO + FILTROS + NAV)
+# IZQUIERDA (BIENVENIDO + FILTROS + NAV) 🔥
 # ------------------------
 with col_nav:
 
-    st.markdown("## 👋 Bienvenido")
-    st.divider()
+    # 🔥 CONTENEDOR GRIS (AQUÍ ESTÁ EL CAMBIO REAL)
+    with st.container():
+        st.markdown("## 👋 Bienvenido")
+        st.divider()
 
-    # FILTROS
-    st.markdown("### 🎯 Filtros")
+        # FILTROS
+        st.markdown("### 🎯 Filtros")
 
-    if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
-        )
-        df = df[df["Pais"].isin(pais)]
+        if "Pais" in df.columns:
+            pais = st.multiselect(
+                "País",
+                sorted(df["Pais"].dropna().unique()),
+                default=sorted(df["Pais"].dropna().unique())
+            )
+            df = df[df["Pais"].isin(pais)]
 
-    if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique())
-        )
-        df = df[df["Region"].isin(region)]
+        if "Region" in df.columns:
+            region = st.multiselect(
+                "Región",
+                sorted(df["Region"].dropna().unique()),
+                default=sorted(df["Region"].dropna().unique())
+            )
+            df = df[df["Region"].isin(region)]
 
-    st.divider()
+        st.divider()
 
-    # NAVEGACIÓN
-    st.markdown("## 🚦 Navegación")
+        # NAVEGACIÓN
+        st.markdown("## 🚦 Navegación")
 
-    if st.button("📊 Principal"):
-        st.session_state.vista = "principal"
+        if st.button("📊 Principal", use_container_width=True):
+            st.session_state.vista = "principal"
 
-    if st.button("🚦 Volatilidad"):
-        st.session_state.vista = "volatilidad"
+        if st.button("🚦 Volatilidad", use_container_width=True):
+            st.session_state.vista = "volatilidad"
 
-    if st.button("👤 Responsables"):
-        st.session_state.vista = "responsables"
+        if st.button("👤 Responsables", use_container_width=True):
+            st.session_state.vista = "responsables"
 
-    if st.button("🧠 Causas"):
-        st.session_state.vista = "causas"
+        if st.button("🧠 Causas", use_container_width=True):
+            st.session_state.vista = "causas"
 
 # ------------------------
 # VALIDACIÓN
@@ -210,9 +210,7 @@ with col_main:
 
     vista = st.session_state.vista
 
-    # PRINCIPAL
     if vista == "principal":
-
         st.markdown("## 📊 Dashboard Ejecutivo")
         st.divider()
 
@@ -224,7 +222,6 @@ with col_main:
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
 
-    # VOLATILIDAD
     if vista == "volatilidad":
 
         if st.button("⬅️ Volver"):
@@ -242,7 +239,6 @@ with col_main:
         else:
             st.success(f"Volatilidad baja ({ratio:.2f})")
 
-    # RESPONSABLES
     if vista == "responsables":
 
         if st.button("⬅️ Volver"):
@@ -255,7 +251,6 @@ with col_main:
             df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
             st.dataframe(df_r)
 
-    # CAUSAS
     if vista == "causas":
 
         if st.button("⬅️ Volver"):
@@ -267,6 +262,7 @@ with col_main:
         if "Producto" in df.columns:
             df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
             st.dataframe(df_c)
+
     # =======================
     # RESUMEN
     # =========================
