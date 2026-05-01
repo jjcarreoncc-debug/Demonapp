@@ -542,7 +542,7 @@ if archivo:
     # =========================
     # LOG
     # =========================
-   elif st.session_state.vista == "log":
+    elif st.session_state.vista == "log":
 
        if st.button("⬅️ Volver"):
            st.session_state.vista = "principal"
