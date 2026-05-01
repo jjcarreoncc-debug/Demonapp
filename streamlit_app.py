@@ -215,16 +215,16 @@ elif col9.button("📊 Resultados"):
 
   if st.session_state.vista == "principal":
 
-        st.title("📊 Dashboard Ejecutivo")
+    st.title("📊 Dashboard Ejecutivo")
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas", f"${ventas:,.0f}")
-        c2.metric("Ganancia", f"${ganancia:,.0f}")
-        c3.metric("Margen", f"{margen:.1f}%")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ventas", f"${ventas:,.0f}")
+    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    c3.metric("Margen", f"{margen:.1f}%")
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        st.plotly_chart(fig, use_container_width=True)
-    
+    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+    st.plotly_chart(fig, use_container_width=True)  
+      
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
