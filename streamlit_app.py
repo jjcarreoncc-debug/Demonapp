@@ -5,7 +5,7 @@ import sqlite3  # 👈 NUEVO
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
-# 👇 CONEXIÓN BD (NUEVO)
+# 👇 CONEXIÓN BD
 conn = sqlite3.connect("data.db")
 
 conn.execute("""
@@ -26,15 +26,29 @@ if "vista" not in st.session_state:
 
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
+# 👇 IMPORTANTE: inicializar df
+df = None
+
 if archivo:
 
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
-    # 👇 BOTÓN GUARDAR (NUEVO - AQUÍ VA EXACTO)
+    # 👇 BOTÓN GUARDAR (BIEN UBICADO)
     if st.button("💾 Guardar en Base de Datos"):
 
         df_db = df.copy()
+
+        # LIMPIEZA para evitar error de strings
+        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+            if col in df_db.columns:
+                df_db[col] = (
+                    df_db[col]
+                    .astype(str)
+                    .str.replace(",", "")
+                    .str.strip()
+                )
+                df_db[col] = pd.to_numeric(df_db[col], errors="coerce")
 
         df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
         df_db["Costos"] = df_db.get("Costos", df_db["Ventas_Cantidad"] * df_db.get("Costos_Venta", 0))
@@ -46,24 +60,27 @@ if archivo:
 
         st.success("✅ Datos guardados en la base de datos")
 
-    # 👇 TU LÓGICA ORIGINAL (NO TOCADA)
+    # 👇 TODO ESTO DEBE IR DENTRO DEL IF archivo
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
 
-for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-    if col in df.columns:
-        df[col] = (
-            df[col]
-            .astype(str)
-            .str.replace(",", "")
-            .str.strip()
-        )
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(",", "")
+                .str.strip()
+            )
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
     df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+else:
+    st.info("📂 Sube archivo")
     # -------------------------
     # FILTROS
     # -------------------------
