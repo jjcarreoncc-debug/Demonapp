@@ -229,21 +229,22 @@ elif authentication_status is False:
 
 elif authentication_status is None:
     st.warning("Ingresa tus credenciales")
+    
     # =========================
     # RESPONSABLES
     # =========================
-if st.button("Responsables"):
-    st.session_state.vista = "responsables"
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+elif vista == "responsables":
 
-        st.title("👤 Responsables")
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        if "Vendedor_Ruta" in df.columns:
-            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
-            st.dataframe(df_r)
+    st.title("👤 Responsables")
 
+    if "Vendedor_Ruta" in df.columns:
+        df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+        st.dataframe(df_r)
+        
     # =========================
     # CAUSAS
     # =========================
