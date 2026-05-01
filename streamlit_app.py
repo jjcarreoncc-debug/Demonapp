@@ -421,14 +421,24 @@ else:
     # DETALLE
     # =========================
     elif st.session_state.vista == "detalle":
+    archivo = st.sidebar.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
+if archivo:
+    df = pd.read_excel(archivo)
+
+    # 👇 TODO tu dashboard va aquí dentro
+    if st.session_state.vista == "principal":
+        ...
+
+    elif st.session_state.vista == "detalle":
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
 
         st.title("🔎 Análisis Detallado")
         st.dataframe(df)
 
-# 🔴 ESTO ES CLAVE — NO LO BORRES
+# 👇 ESTE ELSE ES DEL ARCHIVO, NO DE LAS VISTAS
 else:
     st.info("📂 Sube archivo")
+        
 
