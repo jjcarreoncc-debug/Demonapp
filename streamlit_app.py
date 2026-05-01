@@ -175,7 +175,7 @@ if archivo:
 
     # 🔥 BOTÓN GUARDAR
     if st.button("💾 Guardar en Base de Datos"):
-           
+       st.experimental_rerun()    
         df_db = df.copy()
         columnas_db = [
             "Fecha",
@@ -209,7 +209,7 @@ if archivo:
         try:
             df_db.to_sql("ventas", conn, if_exists="append", index=False)
             st.success("✅ Datos guardados correctamente")
-            st.experimental_rerun()
+            
         except Exception as e:
             st.error(f"❌ Error al guardar: {e}")
 
