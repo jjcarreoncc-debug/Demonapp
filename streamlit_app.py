@@ -28,11 +28,11 @@ st.markdown("### TIDS CONSULTING")
 # UBICAR IMAGEN
 #--------------------------
 from PIL import Image
-img = Image.open("assets/imagen_presentacion.png")
+img = Image.open("imagen_presentacion1.png")
 st.image(img, use_column_width=True)
 st.image(logo, width=200)  # ajusta tamaño según prefieras
 st.markdown("---")  # separador
-img = Image.open("assets/imagen_presentacion.png")
+img = Image.open("imagen_presentacion1.png")
 st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
