@@ -172,6 +172,7 @@ if archivo:
     # ------------------------
     # DASHBOARD PRINCIPAL
     # ------------------------
+    st.stop()
     if st.session_state.vista == "principal":
 
         st.title("📊 Dashboard Ejecutivo")
