@@ -51,8 +51,14 @@ if archivo:
     df = df.dropna(subset=["Fecha"])
 
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+    if col in df.columns:
+        df[col] = (
+            df[col]
+            .astype(str)              # fuerza a string
+            .str.replace(",", "")    # quita comas
+            .str.strip()             # quita espacios ocultos
+        )
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
     df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
