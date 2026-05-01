@@ -1,18 +1,77 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import sqlite3
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
+conn = sqlite3.connect("data.db")
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS ventas (
+    Fecha TEXT,
+    Pais TEXT,
+    Region TEXT,
+    Canal TEXT,
+    Producto TEXT,
+    Ventas REAL,
+    Costos REAL,
+    Ganancia REAL
+)
+""")
+
+conn.commit()
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
+modo = st.radio("Fuente de datos", ["Subir Excel", "Usar Base de Datos"])
 
-archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+df = None
 
-if archivo:
+if modo == "Subir Excel":
 
-    df = pd.read_excel(archivo)
-    df.columns = df.columns.str.strip()
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if df is not None:
+        df = pd.read_excel(archivo)
+        df.columns = df.columns.str.strip()
+
+        # 🔥 BOTÓN GUARDAR
+        if st.button("💾 Guardar en Base de Datos"):
+
+            df_db = df.copy()
+
+            df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
+            df_db["Costos"] = df_db.get("Costos", df_db["Ventas_Cantidad"] * df_db.get("Costos_Venta", 0))
+            df_db["Ganancia"] = df_db["Ventas"] - df_db["Costos"]
+
+            df_db = df_db.fillna("")
+
+            df_db.to_sql("ventas", conn, if_exists="append", index=False)
+
+            st.success("✅ Datos guardados en la base de datos")
+
+elif modo == "Usar Base de Datos":
+
+    df = pd.read_sql("SELECT * FROM ventas", conn)
+
+    if df.empty:
+        st.warning("No hay datos en la base de datos")
+        st.stop()
+if st.button("💾 Guardar en Base de Datos"):
+
+    df_db = df.copy()
+
+    # Asegurar columnas
+    df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
+    df_db["Costos"] = df_db.get("Costos", df_db["Ventas_Cantidad"] * df_db.get("Costos_Venta", 0))
+    df_db["Ganancia"] = df_db["Ventas"] - df_db["Costos"]
+
+    df_db = df_db.fillna("")
+
+    df_db.to_sql("ventas", conn, if_exists="append", index=False)
+
+    st.success("✅ Datos guardados en la base de datos")    
 
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
     df = df.dropna(subset=["Fecha"])
