@@ -1,5 +1,3 @@
-Ultimo archivo a las 6:31 am 570 registros
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
