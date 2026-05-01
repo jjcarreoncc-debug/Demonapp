@@ -209,6 +209,7 @@ if archivo:
         try:
             df_db.to_sql("ventas", conn, if_exists="append", index=False)
             st.success("✅ Datos guardados correctamente")
+            st.experimental_rerun()
         except Exception as e:
             st.error(f"❌ Error al guardar: {e}")
 
