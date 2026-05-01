@@ -58,7 +58,7 @@ for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             .str.replace(",", "")
             .str.strip()
         )
-        df[col] = pd.to_numeric(df[col], errors="coerce"
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
     df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
     df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
