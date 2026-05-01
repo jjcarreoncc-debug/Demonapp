@@ -280,7 +280,7 @@ if archivo:
         st.plotly_chart(fig, use_container_width=True)
 
         # 🔥 SOLO agregamos una columna adicional
-        col1, col2, col3, col4, col5, col6, col7, = st.columns(7)
+        col1, col2, col3, col4, col5, col6, col7, co18 = st.columns(8)
         
 
         if col1.button("🚦 Volatilidad"):
@@ -303,15 +303,17 @@ if archivo:
         # 👇 ESTE ES EL NUEVO (usa una columna libre)
         if col7.button("📋 Log de Carga"):
              st.session_state.vista = "log"   
-
-if st.button("Ir a Log"):
-    st.session_state.vista = "log"
-    st.experimental_rerun()
-    
+     
+  
         # ✅ NUEVO NIVEL 5
-        if col7.button("📊 Resultados"):
+        if col8.button("📊 Resultados"):
              st.session_state.vista = "resultados"
 
+        if st.button("Ir a Log"):
+           st.session_state.vista = "log"
+           st.experimental_rerun()
+
+    
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
