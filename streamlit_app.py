@@ -499,26 +499,26 @@ elif st.session_state.vista == "recomendaciones":
             st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("---")
-    
-    # =========================
-    # DETALLE
-    # =========================
-    elif st.session_state.vista == "detalle":
+# =========================
+# DETALLE
+# =========================
+elif st.session_state.vista == "detalle":
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
 
-        st.title("🔎 Análisis Detallado")
-        st.dataframe(df)
+    st.title("🔎 Análisis Detallado")
+    st.dataframe(df)
 
-    # =========================
-    # LOG
-    # =========================
-    elif st.session_state.vista == "log":
+# =========================
+# LOG
+# =========================
+elif st.session_state.vista == "log":
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-            st.experimental_rerun()
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+        st.experimental_rerun()
+
     st.title("📋 Log de Carga")
 
     log = st.session_state.get("log_carga")
@@ -535,7 +535,6 @@ elif st.session_state.vista == "recomendaciones":
         if not log["df_eliminadas"].empty:
             st.dataframe(log["df_eliminadas"])
 
-            # 🔥 👉 AQUÍ VA EL BOTÓN DE DESCARGA
             csv = log["df_eliminadas"].to_csv(index=False).encode("utf-8")
 
             st.download_button(
@@ -546,14 +545,4 @@ elif st.session_state.vista == "recomendaciones":
             )
 
         else:
-            st.success("No hubo registros eliminados")
-            
-#elif authentication_status is False:
-#    st.error("Usuario o contraseña incorrectos")
-
-#elif authentication_status is None:
-#    st.warning("Ingresa tus credenciales")
-    
-#else:
-#    st.info("📂 Sube archivo")
-     
+            st.success("No hubo registros eliminados")    
