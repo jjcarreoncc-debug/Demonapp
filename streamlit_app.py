@@ -219,8 +219,8 @@ if archivo:
              st.session_state.vista = "log"   
     
         # ✅ NUEVO NIVEL 5
-        #if col7.button("📊 Resultados"):
-        #    st.session_state.vista = "resultados"
+        if col7.button("📊 Resultados"):
+             st.session_state.vista = "resultados"
 
     # =========================
     # RESULTADOS (NUEVO)
