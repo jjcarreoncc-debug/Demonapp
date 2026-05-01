@@ -232,7 +232,8 @@ elif authentication_status is None:
     # =========================
     # RESPONSABLES
     # =========================
-    elif st.session_state.vista == "responsables":
+if st.button("Responsables"):
+    st.session_state.vista = "responsables"
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
