@@ -168,44 +168,53 @@ if archivo:
     ventas = df["Ventas"].sum()
     ganancia = df["Ganancia"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
+# ------------------------
+# DASHBOARD PRINCIPAL
+# ------------------------
+
+if st.session_state.vista == "principal":
+
+    st.title("📊 Dashboard Ejecutivo")
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Ventas", f"${ventas:,.0f}")
+    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    c3.metric("Margen", f"{margen:.1f}%")
+
+    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+    st.plotly_chart(fig, use_container_width=True)
 
     # ------------------------
-    # DASHBOARD PRINCIPAL
+    # BOTONES
     # ------------------------
-    st.stop()
-    if st.session_state.vista == "principal":
+    col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(9)
 
-        st.title("📊 Dashboard Ejecutivo")
+    if col1.button("📊 Principal 1"):
+        st.session_state.vista = "principal"
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas", f"${ventas:,.0f}")
-        c2.metric("Ganancia", f"${ganancia:,.0f}")
-        c3.metric("Margen", f"{margen:.1f}%")
+    if col2.button("🚦 Volatilidad 2"):
+        st.session_state.vista = "volatilidad"
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        st.plotly_chart(fig, use_container_width=True)
+    if col3.button("👤 Responsables 3"):
+        st.session_state.vista = "responsables"
 
-        # ------------------------
-        # BOTONES PRINCIPAL
-        # ------------------------
-        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
+    if col4.button("🧠 Causas 4"):
+        st.session_state.vista = "causas"
 
-        if col1.button("🚦 Volatilidad"):
-            st.session_state.vista = "volatilidad"
-        elif col2.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-        elif col3.button("🧠 Causas"):
-            st.session_state.vista = "causas"
-        elif col4.button("🔎 Análisis Detallado"):
-            st.session_state.vista = "detalle"
-        elif col5.button("🧠 Resumen Ejecutivo"):
-            st.session_state.vista = "resumen"
-        elif col6.button("📌 Recomendaciones"):
-            st.session_state.vista = "recomendaciones"
-        elif col7.button("📋 Log de Carga"):
-            st.session_state.vista = "log"
-        elif col8.button("📊 Resultados"):
-            st.session_state.vista = "resultados"
+    if col5.button("🔎 Análisis 5"):
+        st.session_state.vista = "detalle"
+
+    if col6.button("🧠 Resumen 6"):
+        st.session_state.vista = "resumen"
+
+    if col7.button("📌 Recomendaciones 7"):
+        st.session_state.vista = "recomendaciones"
+
+    if col8.button("📋 Log 8"):
+        st.session_state.vista = "log"
+
+    if col9.button("📊 Resultados 9"):
+        st.session_state.vista = "resultados"
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
