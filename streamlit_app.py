@@ -86,142 +86,149 @@ CREATE TABLE IF NOT EXISTS ventas (
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
-# ------------------------
-# CARGA ARCHIVO
-# ------------------------
-archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+if authentication_status:
 
-if not archivo:
-    st.info("📂 Sube un archivo para comenzar")
-    st.stop()
-
-df = pd.read_excel(archivo)
-df.columns = df.columns.str.strip()
-
-# ------------------------
-# LIMPIEZA
-# ------------------------
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df = df.dropna(subset=["Fecha"])
-
-for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-    if col in df.columns:
-        df[col] = (
-            df[col]
-            .astype(str)
-            .str.replace(",", "")
-            .str.strip()
-        )
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-
-# ------------------------
-# MÉTRICAS BASE
-# ------------------------
-df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-df["Ganancia"] = df["Ventas"] - df["Costos"]
-df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-# ------------------------
-# ESTADO
-# ------------------------
-if "vista" not in st.session_state:
-    st.session_state.vista = "principal"
-
-# ------------------------
-# LAYOUT (MEJORADO)
-# ------------------------
-col_filtros, col_nav, col_main = st.columns([2, 2.5, 7])
-
-# ------------------------
-# FILTROS
-# ------------------------
-with col_filtros:
-    st.markdown("## 🎯 Filtros")
+    st.write("👋 Bienvenido")
     st.divider()
 
-    if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
-        )
-        df = df[df["Pais"].isin(pais)]
+    # ------------------------
+    # CARGA ARCHIVO
+    # ------------------------
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-    if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique())
-        )
-        df = df[df["Region"].isin(region)]
+    if not archivo:
+        st.info("📂 Sube un archivo para comenzar")
+        st.stop()
 
-# ------------------------
-# VALIDACIÓN
-# ------------------------
-if df.empty:
-    st.warning("No hay datos con esos filtros")
-    st.stop()
+    df = pd.read_excel(archivo)
+    df.columns = df.columns.str.strip()
 
-# ------------------------
-# RECÁLCULO
-# ------------------------
-df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+    # ------------------------
+    # LIMPIEZA
+    # ------------------------
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df = df.dropna(subset=["Fecha"])
 
-ventas = df["Ventas"].sum()
-ganancia = df["Ganancia"].sum()
-margen = (ganancia / ventas * 100) if ventas != 0 else 0
+    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+        if col in df.columns:
+            df[col] = (
+                df[col]
+                .astype(str)
+                .str.replace(",", "")
+                .str.strip()
+            )
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
-# ------------------------
-# NAVEGACIÓN
-# ------------------------
-with col_nav:
-    st.markdown("## 🚦 Navegación")
-    st.divider()
+    # ------------------------
+    # MÉTRICAS BASE
+    # ------------------------
+    df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+    df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+    df["Ganancia"] = df["Ventas"] - df["Costos"]
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    def nav_btn(label, key):
-        activo = st.session_state.vista == key
+    # ------------------------
+    # ESTADO
+    # ------------------------
+    if "vista" not in st.session_state:
+        st.session_state.vista = "principal"
 
-        if st.button(
-            ("🟢 " if activo else "⚪ ") + label,
-            use_container_width=True
-        ):
-            st.session_state.vista = key
+    # ------------------------
+    # LAYOUT
+    # ------------------------
+    col_filtros, col_nav, col_main = st.columns([2, 2.5, 7])
 
-    nav_btn("📊 Principal", "principal")
-    nav_btn("🚦 Volatilidad", "volatilidad")
-
-# ------------------------
-# DASHBOARD
-# ------------------------
-with col_main:
-
-    if st.session_state.vista == "principal":
-
-        st.markdown("## 📊 Dashboard Ejecutivo")
+    # ------------------------
+    # FILTROS
+    # ------------------------
+    with col_filtros:
+        st.markdown("## 🎯 Filtros")
         st.divider()
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas", f"${ventas:,.0f}")
-        c2.metric("Ganancia", f"${ganancia:,.0f}")
-        c3.metric("Margen", f"{margen:.1f}%")
+        if "Pais" in df.columns:
+            pais = st.multiselect(
+                "País",
+                sorted(df["Pais"].dropna().unique()),
+                default=sorted(df["Pais"].dropna().unique())
+            )
+            df = df[df["Pais"].isin(pais)]
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        st.plotly_chart(fig, use_container_width=True)
+        if "Region" in df.columns:
+            region = st.multiselect(
+                "Región",
+                sorted(df["Region"].dropna().unique()),
+                default=sorted(df["Region"].dropna().unique())
+            )
+            df = df[df["Region"].isin(region)]
 
-    elif st.session_state.vista == "volatilidad":
+    # ------------------------
+    # VALIDACIÓN
+    # ------------------------
+    if df.empty:
+        st.warning("No hay datos con esos filtros")
+        st.stop()
 
-        st.markdown("## 🚦 Volatilidad")
+    # ------------------------
+    # RECÁLCULO
+    # ------------------------
+    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+
+    ventas = df["Ventas"].sum()
+    ganancia = df["Ganancia"].sum()
+    margen = (ganancia / ventas * 100) if ventas != 0 else 0
+
+    # ------------------------
+    # NAVEGACIÓN
+    # ------------------------
+    with col_nav:
+        st.markdown("## 🚦 Navegación")
         st.divider()
 
-        ratio = ganancia / ventas if ventas != 0 else 0
+        def nav_btn(label, key):
+            activo = st.session_state.vista == key
+            if st.button(("🟢 " if activo else "⚪ ") + label, use_container_width=True):
+                st.session_state.vista = key
 
-        if ratio > 0.3:
-            st.error(f"Alta volatilidad ({ratio:.2f})")
-        elif ratio > 0.15:
-            st.warning(f"Volatilidad media ({ratio:.2f})")
-        else:
-            st.success(f"Volatilidad baja ({ratio:.2f})")
+        nav_btn("📊 Principal", "principal")
+        nav_btn("🚦 Volatilidad", "volatilidad")
+
+    # ------------------------
+    # DASHBOARD
+    # ------------------------
+    with col_main:
+
+        if st.session_state.vista == "principal":
+
+            st.markdown("## 📊 Dashboard Ejecutivo")
+            st.divider()
+
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Ventas", f"${ventas:,.0f}")
+            c2.metric("Ganancia", f"${ganancia:,.0f}")
+            c3.metric("Margen", f"{margen:.1f}%")
+
+            fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+            st.plotly_chart(fig, use_container_width=True)
+
+        elif st.session_state.vista == "volatilidad":
+
+            st.markdown("## 🚦 Volatilidad")
+            st.divider()
+
+            ratio = ganancia / ventas if ventas != 0 else 0
+
+            if ratio > 0.3:
+                st.error(f"Alta volatilidad ({ratio:.2f})")
+            elif ratio > 0.15:
+                st.warning(f"Volatilidad media ({ratio:.2f})")
+            else:
+                st.success(f"Volatilidad baja ({ratio:.2f})")
+
+elif authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+
+elif authentication_status is None:
+    st.warning("Ingresa tus credenciales")
     # =========================
     # RESPONSABLES
     # =========================
