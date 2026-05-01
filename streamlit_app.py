@@ -280,38 +280,42 @@ if archivo:
         st.plotly_chart(fig, use_container_width=True)
 
         # 🔥 SOLO agregamos una columna adicional
-        col1, col2, col3, col4, col5, col6, col7, co18 = st.columns(8)
+        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
         
 
         if col1.button("🚦 Volatilidad"):
             st.session_state.vista = "volatilidad"
+            st.experimental_rerun()
 
         if col2.button("👤 Responsables"):
             st.session_state.vista = "responsables"
+            st.experimental_rerun()
 
         if col3.button("🧠 Causas"):
             st.session_state.vista = "causas"
 
         if col4.button("🔎 Análisis Detallado"):
             st.session_state.vista = "detalle"
+            st.experimental_rerun()
 
         if col5.button("🧠 Resumen Ejecutivo"):
             st.session_state.vista = "resumen"
+            st.experimental_rerun()
 
         if col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
-        # 👇 ESTE ES EL NUEVO (usa una columna libre)
+            st.experimental_rerun()
+        
+        
         if col7.button("📋 Log de Carga"):
              st.session_state.vista = "log"   
+             st.experimental_rerun()
      
   
         # ✅ NUEVO NIVEL 5
         if col8.button("📊 Resultados"):
              st.session_state.vista = "resultados"
-
-        if st.button("Ir a Log"):
-           st.session_state.vista = "log"
-           st.experimental_rerun()
+             st.experimental_rerun()
 
     
     # =========================
