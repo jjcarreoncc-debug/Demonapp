@@ -48,7 +48,7 @@ authenticator = stauth.Authenticate(
     "mi_dashboard",   # nombre cookie
     "abcdef",         # key secreta
     cookie_expiry_days=1
-)
+
 name, authentication_status, username = authenticator.login("Login", "main")
 
 ######
