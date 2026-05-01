@@ -282,9 +282,7 @@ else:
 
             st.dataframe(df_display)
 
-    # =========================
-    # RECOMENDACIONES (INTACTO)
-    # =========================
+   
     # =========================
     # RECOMENDACIONES (FULL)
     # =========================
@@ -450,5 +448,4 @@ elif st.session_state.vista == "detalle":
 # =========================
 else:
     st.info("Selecciona una vista del dashboard")
-else
-    st.info("Selecciona una vista del dashboard")
+
