@@ -172,7 +172,49 @@ if archivo:
     # ------------------------
     # DASHBOARD PRINCIPAL
     # ------------------------
-    if st.session_state.vista == "principal":
+    #if st.session_state.vista == "principal":
+    #
+    #
+    #    st.title("📊 Dashboard Ejecutivo")
+    #
+    #    c1, c2, c3 = st.columns(3)
+    #    c1.metric("Ventas", f"${ventas:,.0f}")
+    #    c2.metric("Ganancia", f"${ganancia:,.0f}")
+    #    c3.metric("Margen", f"{margen:.1f}%")
+
+    #   fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+    #  st.plotly_chart(fig, use_container_width=True)
+
+        # ------------------------
+        # BOTONES PRINCIPAL
+        # ------------------------
+        col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(9)
+
+        if col1.button("🚦 principal"):
+            st.session_state.vista = "dashprincipal"
+        elif    
+        if col2.button("🚦 volatidad"):
+            st.session_state.vista = "volatidad"
+        elif col3.button("👤 Responsables"):
+            st.session_state.vista = "responsables"
+        elif col4.button("🧠 Causas"):
+            st.session_state.vista = "causas"
+        elif col5.button("🔎 Análisis Detallado"):
+            st.session_state.vista = "detalle"
+        elif col6.button("🧠 Resumen Ejecutivo"):
+            st.session_state.vista = "resumen"
+        elif col7.button("📌 Recomendaciones"):
+            st.session_state.vista = "recomendaciones"
+        elif col8.button("📋 Log de Carga"):
+            st.session_state.vista = "log"
+        elif col9.button("📊 Resultados"):
+            st.session_state.vista = "resultados"
+
+    # ------------------------
+    # DASHBOARD PRINCIPAL
+    # ------------------------
+
+    elif st.session_state.vista == "principal":
 
         st.title("📊 Dashboard Ejecutivo")
 
@@ -183,28 +225,7 @@ if archivo:
 
         fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
         st.plotly_chart(fig, use_container_width=True)
-
-        # ------------------------
-        # BOTONES PRINCIPAL
-        # ------------------------
-        col1, col2, col3, col4, col5, col6, col7, col8 = st.columns(8)
-
-        if col1.button("🚦 Volatilidad"):
-            st.session_state.vista = "volatilidad"
-        elif col2.button("👤 Responsables"):
-            st.session_state.vista = "responsables"
-        elif col3.button("🧠 Causas"):
-            st.session_state.vista = "causas"
-        elif col4.button("🔎 Análisis Detallado"):
-            st.session_state.vista = "detalle"
-        elif col5.button("🧠 Resumen Ejecutivo"):
-            st.session_state.vista = "resumen"
-        elif col6.button("📌 Recomendaciones"):
-            st.session_state.vista = "recomendaciones"
-        elif col7.button("📋 Log de Carga"):
-            st.session_state.vista = "log"
-        elif col8.button("📊 Resultados"):
-            st.session_state.vista = "resultados"
+    
     # =========================
     # RESULTADOS (NUEVO)
     # =========================
