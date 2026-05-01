@@ -1,129 +1,66 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import sqlite3
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
-conn = sqlite3.connect("data.db")
-cursor = conn.cursor()
-
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS ventas (
-    Fecha TEXT,
-    Pais TEXT,
-    Region TEXT,
-    Canal TEXT,
-    Producto TEXT,
-    Ventas REAL,
-    Costos REAL,
-    Ganancia REAL
-)
-""")
-
-conn.commit()
 
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
 
-modo = st.radio("Fuente de datos", ["Subir Excel", "Usar Base de Datos"])
+archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-df = None
+if archivo:
 
-# =========================
-# EXCEL
-# =========================
-if modo == "Subir Excel":
+    df = pd.read_excel(archivo)
+    df.columns = df.columns.str.strip()
 
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df = df.dropna(subset=["Fecha"])
 
-    # ✅ CORREGIDO
-    if archivo is not None:
-        df = pd.read_excel(archivo)
-        df.columns = df.columns.str.strip()
+    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        if st.button("💾 Guardar en Base de Datos"):
-
-            df_db = df.copy()
-
-            df_db["Ventas"] = df_db.get("Ventas", df_db["Ventas_Cantidad"] * df_db.get("Precio_Venta", 1))
-            df_db["Costos"] = df_db.get("Costos", df_db["Ventas_Cantidad"] * df_db.get("Costos_Venta", 0))
-            df_db["Ganancia"] = df_db["Ventas"] - df_db["Costos"]
-
-            df_db = df_db.fillna("")
-            df_db.to_sql("ventas", conn, if_exists="append", index=False)
-
-            st.success("✅ Datos guardados en la base de datos")
-
-# =========================
-# BASE DE DATOS
-# =========================
-elif modo == "Usar Base de Datos":
-
-    df = pd.read_sql("SELECT * FROM ventas", conn)
-
-    if df.empty:
-        st.warning("No hay datos en la base de datos")
-        st.stop()
-
-# =========================
-# VALIDACIÓN
-# =========================
-if df is None:
-    st.stop()
-
-# =========================
-# PROCESAMIENTO (FUERA DEL BOTÓN)
-# =========================
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df = df.dropna(subset=["Fecha"])
-
-for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-    if col in df.columns:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-
-df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
-df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
-df["Ganancia"] = df["Ventas"] - df["Costos"]
-df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+    df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
+    df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
+    df["Ganancia"] = df["Ventas"] - df["Costos"]
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     # -------------------------
     # FILTROS
     # -------------------------
-st.sidebar.header("🎯 Filtros")
+    st.sidebar.header("🎯 Filtros")
 
-rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
-if len(rango) == 2:
-    df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
-            (df["Fecha"] <= pd.to_datetime(rango[1]))]
+    rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
+    if len(rango) == 2:
+        df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
+                (df["Fecha"] <= pd.to_datetime(rango[1]))]
 
-if "Pais" in df.columns:
-    pais = st.sidebar.multiselect("País", df["Pais"].unique(), df["Pais"].unique())
-    df = df[df["Pais"].isin(pais)]
+    if "Pais" in df.columns:
+        pais = st.sidebar.multiselect("País", df["Pais"].unique(), df["Pais"].unique())
+        df = df[df["Pais"].isin(pais)]
 
-if "Region" in df.columns:
-    region = st.sidebar.multiselect("Región", df["Region"].unique(), df["Region"].unique())
-    df = df[df["Region"].isin(region)]
+    if "Region" in df.columns:
+        region = st.sidebar.multiselect("Región", df["Region"].unique(), df["Region"].unique())
+        df = df[df["Region"].isin(region)]
 
-if df.empty:
-    st.stop()
+    if df.empty:
+        st.stop()
 
-# -------------------------
-# MÉTRICAS
-# -------------------------
-df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-ventas = df["Ventas"].sum()
-ganancia = df["Ganancia"].sum()
-margen = (ganancia / ventas * 100) if ventas != 0 else 0
+    ventas = df["Ventas"].sum()
+    ganancia = df["Ganancia"].sum()
+    margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-media = df_m["Ventas"].mean()
-volatilidad = df_m["Ventas"].std()
-ratio = volatilidad / media if media != 0 else 0
+    media = df_m["Ventas"].mean()
+    volatilidad = df_m["Ventas"].std()
+    ratio = volatilidad / media if media != 0 else 0
+
     # =========================
     # PRINCIPAL
     # =========================
-if st.session_state.vista == "principal":
+    if st.session_state.vista == "principal":
 
         st.title("📊 Dashboard Ejecutivo")
 
@@ -482,4 +419,4 @@ if st.session_state.vista == "principal":
         st.dataframe(df)
 
 else:
-    st.info("📂 Sube archivo")
+    st.info("📂 Sube archivo"
