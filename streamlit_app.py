@@ -286,9 +286,9 @@ else:
     # RECOMENDACIONES (INTACTO)
     # =========================
     # =========================
-# RECOMENDACIONES (FULL)
-# =========================
-elif st.session_state.vista == "recomendaciones":
+    # RECOMENDACIONES (FULL)
+    # =========================
+
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
