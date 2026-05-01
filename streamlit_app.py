@@ -81,149 +81,127 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
-
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-if archivo:
+if not archivo:
+    st.info("📂 Sube un archivo para comenzar")
+    st.stop()
 
-    df = pd.read_excel(archivo)
-    df.columns = df.columns.str.strip()
+df = pd.read_excel(archivo)
+df.columns = df.columns.str.strip()
 
-    filas_original = len(df)
+filas_original = len(df)
 
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    df_eliminadas = df[df["Fecha"].isna()].copy()
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df_eliminadas = df[df["Fecha"].isna()].copy()
 
-    if not df_eliminadas.empty:
-        df_eliminadas["Motivo"] = "Fecha inválida"
+if not df_eliminadas.empty:
+    df_eliminadas["Motivo"] = "Fecha inválida"
 
-    df = df.dropna(subset=["Fecha"])
-    filas_final = len(df)
-    filas_eliminadas = filas_original - filas_final
+df = df.dropna(subset=["Fecha"])
+filas_final = len(df)
+filas_eliminadas = filas_original - filas_final
 
-    st.session_state["log_carga"] = {
-        "original": filas_original,
-        "final": filas_final,
-        "eliminadas": filas_eliminadas,
-        "df_eliminadas": df_eliminadas
-    }
+st.session_state["log_carga"] = {
+    "original": filas_original,
+    "final": filas_final,
+    "eliminadas": filas_eliminadas,
+    "df_eliminadas": df_eliminadas
+}
 
-    # LIMPIEZA
-    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-        if col in df.columns:
-            df[col] = (
-                df[col]
-                .astype(str)
-                .str.replace(",", "")
-                .str.strip()
-            )
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+# ------------------------
+# LIMPIEZA
+# ------------------------
+for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+    if col in df.columns:
+        df[col] = (
+            df[col]
+            .astype(str)
+            .str.replace(",", "")
+            .str.strip()
+        )
+        df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    st.success("✅ Archivo validado correctamente")
+st.success("✅ Archivo validado correctamente")
 
-    # ------------------------
-    # GUARDAR BD
-    # ------------------------
-    if st.button("💾 Guardar en Base de Datos"):
-        df_db = df.copy()
-        df_db["Fecha"] = df_db["Fecha"].astype(str)
-        df_db = df_db.fillna("")
+# ------------------------
+# MÉTRICAS BASE
+# ------------------------
+df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+df["Ganancia"] = df["Ventas"] - df["Costos"]
+df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-        try:
-            df_db.to_sql("ventas", conn, if_exists="append", index=False)
-            st.success("✅ Datos guardados correctamente")
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
+# ------------------------
+# LAYOUT 3 COLUMNAS
+# ------------------------
+col_filtros, col_botones, col_main = st.columns([1,1,4])
 
-    # ------------------------
-    # MÉTRICAS
-    # ------------------------
-    df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-    df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-    df["Ganancia"] = df["Ventas"] - df["Costos"]
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-    # ------------------------
-    # FILTROS
-    # ------------------------
-    st.sidebar.header("🎯 Filtros")
-
-    rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
-    if len(rango) == 2:
-        df = df[(df["Fecha"] >= pd.to_datetime(rango[0])) &
-                (df["Fecha"] <= pd.to_datetime(rango[1]))]
+# ------------------------
+# FILTROS (PAÍS / REGIÓN)
+# ------------------------
+with col_filtros:
+    st.markdown("## 🎯 Filtros")
 
     if "Pais" in df.columns:
-        pais = st.sidebar.multiselect("País", df["Pais"].unique(), df["Pais"].unique())
+        pais_opciones = sorted(df["Pais"].dropna().unique())
+        pais = st.multiselect("País", pais_opciones, default=pais_opciones)
         df = df[df["Pais"].isin(pais)]
 
-    if df.empty:
-        st.stop()
+    if "Region" in df.columns:
+        region_opciones = sorted(df["Region"].dropna().unique())
+        region = st.multiselect("Región", region_opciones, default=region_opciones)
+        df = df[df["Region"].isin(region)]
 
-    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
-
-    ventas = df["Ventas"].sum()
-    ganancia = df["Ganancia"].sum()
-    margen = (ganancia / ventas * 100) if ventas != 0 else 0
 # ------------------------
-# DASHBOARD PRINCIPAL
+# VALIDACIÓN POST FILTRO
 # ------------------------
+if df.empty:
+    st.warning("No hay datos con esos filtros")
+    st.stop()
+
 # ------------------------
-# DASHBOARD PRINCIPAL
+# RECÁLCULO (CLAVE)
 # ------------------------
-if archivo and st.session_state.vista == "principal":
+df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-    ventas = df_m["Ventas"].sum()
-    ganancia = df_m["Ganancia"].sum()
-    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
+ventas = df["Ventas"].sum()
+ganancia = df["Ganancia"].sum()
+margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-    st.title("📊 Dashboard Ejecutivo")
+# ------------------------
+# BOTONES
+# ------------------------
+with col_botones:
+    st.markdown("## 🚦 Navegación")
 
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Ventas", f"${ventas:,.0f}")
-    c2.metric("Ganancia", f"${ganancia:,.0f}")
-    c3.metric("Margen", f"{margen:.1f}%")
-
-    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
-    # ------------------------
-    # BOTONES
-    # ------------------------
-    col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(9)
-
-    if col1.button("📊 Principal 1"):
+    if st.button("📊 Principal"):
         st.session_state.vista = "principal"
 
-    if col2.button("🚦 Volatilidad 2"):
+    if st.button("🚦 Volatilidad"):
         st.session_state.vista = "volatilidad"
 
-    if col3.button("👤 Responsables 3"):
-        st.session_state.vista = "responsables"
+# ------------------------
+# DASHBOARD
+# ------------------------
+with col_main:
 
-    if col4.button("🧠 Causas 4"):
-        st.session_state.vista = "causas"
+    if st.session_state.vista == "principal":
 
-    if col5.button("🔎 Análisis 5"):
-        st.session_state.vista = "detalle"
+        st.title("📊 Dashboard Ejecutivo")
 
-    if col6.button("🧠 Resumen 6"):
-        st.session_state.vista = "resumen"
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Ventas", f"${ventas:,.0f}")
+        c2.metric("Ganancia", f"${ganancia:,.0f}")
+        c3.metric("Margen", f"{margen:.1f}%")
 
-    if col7.button("📌 Recomendaciones 7"):
-        st.session_state.vista = "recomendaciones"
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        st.plotly_chart(fig, use_container_width=True)
 
-    if col8.button("📋 Log 8"):
-        st.session_state.vista = "log"
-
-    if col9.button("📊 Resultados 9"):
-        st.session_state.vista = "resultados"
-    # =========================
-    # RESULTADOS (NUEVO)
-    # =========================
-    #
+        # RESULTADOS
         st.title("📊 Resultados y Acciones Prioritarias")
 
         resultados = []
@@ -267,15 +245,11 @@ if archivo and st.session_state.vista == "principal":
 
             st.markdown("---")
 
-    # =========================
-    # VOLATILIDAD
-    # =========================
     elif st.session_state.vista == "volatilidad":
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
-
         st.title("🚦 Volatilidad")
+
+        ratio = ganancia / ventas if ventas != 0 else 0
 
         if ratio > 0.3:
             st.error(f"Alta volatilidad ({ratio:.2f})")
@@ -283,7 +257,6 @@ if archivo and st.session_state.vista == "principal":
             st.warning(f"Volatilidad media ({ratio:.2f})")
         else:
             st.success(f"Volatilidad baja ({ratio:.2f})")
-
     # =========================
     # RESPONSABLES
     # =========================
