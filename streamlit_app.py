@@ -547,11 +547,11 @@ with col_main:
         else:
             st.success("No hubo registros eliminados")
             
-elif authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
+#elif authentication_status is False:
+#    st.error("Usuario o contraseña incorrectos")
 
-elif authentication_status is None:
-    st.warning("Ingresa tus credenciales")
+#elif authentication_status is None:
+#    st.warning("Ingresa tus credenciales")
     
 else:
     st.info("📂 Sube archivo")
