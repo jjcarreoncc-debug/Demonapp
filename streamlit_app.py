@@ -91,15 +91,10 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
-
-
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
 if authentication_status:
-
-    st.write("👋 Bienvenido")
-    st.divider()
 
     # ------------------------
     # CARGA ARCHIVO
@@ -144,16 +139,22 @@ if authentication_status:
         st.session_state.vista = "principal"
 
     # ------------------------
-    # LAYOUT
+    # LAYOUT (SIN FILTROS)
     # ------------------------
-    col_filtros, col_nav, col_main = st.columns([2, 2.5, 7])
+    col_nav, col_main = st.columns([2, 8])
 
     # ------------------------
-    # FILTROS
+    # BIENVENIDO + FILTROS + NAVEGACIÓN
     # ------------------------
-    with col_filtros:
-        st.markdown("## 🎯 Filtros")
+    with col_nav:
+
+        st.markdown("## 👋 Bienvenido")
         st.divider()
+
+        # ------------------------
+        # FILTROS (AQUÍ)
+        # ------------------------
+        st.markdown("### 🎯 Filtros")
 
         if "Pais" in df.columns:
             pais = st.multiselect(
@@ -171,6 +172,22 @@ if authentication_status:
             )
             df = df[df["Region"].isin(region)]
 
+        st.divider()
+
+        # ------------------------
+        # NAVEGACIÓN
+        # ------------------------
+        st.markdown("## 🚦 Navegación")
+
+        if st.button("📊 Principal"):
+            st.session_state.vista = "principal"
+
+        if st.button("🚦 Volatilidad"):
+            st.session_state.vista = "volatilidad"
+
+        if st.button("👤 Responsables"):
+            st.session_state.vista = "responsables"
+
     # ------------------------
     # VALIDACIÓN
     # ------------------------
@@ -186,82 +203,57 @@ if authentication_status:
     ventas = df["Ventas"].sum()
     ganancia = df["Ganancia"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
-# ------------------------
-# NAVEGACIÓN (BOTONES)
-# ------------------------
-with col_nav:
-    st.markdown('<div class="nav-container">', unsafe_allow_html=True)
-
-    st.markdown("## 🚦 Navegación")
-    st.divider()
-
-    if st.button("📊 Principal"):
-        st.session_state.vista = "principal"
-
-    if st.button("🚦 Volatilidad"):
-        st.session_state.vista = "volatilidad"
-
-    if st.button("👤 Responsables"):
-        st.session_state.vista = "responsables"
-
-    st.markdown('</div>', unsafe_allow_html=True)
-# ------------------------
-# DASHBOARD (VISTAS)
-# ------------------------
-with col_main:
-
-    vista = st.session_state.vista
 
     # ------------------------
-    # PRINCIPAL
+    # DASHBOARD
     # ------------------------
-    if vista == "principal":
+    with col_main:
 
-        st.markdown("## 📊 Dashboard Ejecutivo")
-        st.divider()
+        vista = st.session_state.vista
 
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Ventas", f"${ventas:,.0f}")
-        c2.metric("Ganancia", f"${ganancia:,.0f}")
-        c3.metric("Margen", f"{margen:.1f}%")
+        if vista == "principal":
 
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-        st.plotly_chart(fig, use_container_width=True)
+            st.markdown("## 📊 Dashboard Ejecutivo")
+            st.divider()
 
-    # ------------------------
-    # VOLATILIDAD
-    # ------------------------
-    elif vista == "volatilidad":
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Ventas", f"${ventas:,.0f}")
+            c2.metric("Ganancia", f"${ganancia:,.0f}")
+            c3.metric("Margen", f"{margen:.1f}%")
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+            fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+            st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown("## 🚦 Volatilidad")
-        st.divider()
+        elif vista == "volatilidad":
 
-        ratio = ganancia / ventas if ventas != 0 else 0
+            if st.button("⬅️ Volver"):
+                st.session_state.vista = "principal"
 
-        if ratio > 0.3:
-            st.error(f"Alta volatilidad ({ratio:.2f})")
-        elif ratio > 0.15:
-            st.warning(f"Volatilidad media ({ratio:.2f})")
-        else:
-            st.success(f"Volatilidad baja ({ratio:.2f})")
+            st.markdown("## 🚦 Volatilidad")
+            st.divider()
 
-    # ------------------------
-    # RESPONSABLES
-    # ------------------------
-    elif vista == "responsables":
+            ratio = ganancia / ventas if ventas != 0 else 0
 
-        if st.button("⬅️ Volver"):
-            st.session_state.vista = "principal"
+            if ratio > 0.3:
+                st.error(f"Alta volatilidad ({ratio:.2f})")
+            elif ratio > 0.15:
+                st.warning(f"Volatilidad media ({ratio:.2f})")
+            else:
+                st.success(f"Volatilidad baja ({ratio:.2f})")
 
-        st.markdown("## 👤 Responsables")
-        st.divider()
+        elif vista == "responsables":
 
-        if "Vendedor_Ruta" in df.columns:
-            df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
-            st.dataframe(df_r)
+            if st.button("⬅️ Volver"):
+                st.session_state.vista = "principal"
+
+            st.markdown("## 👤 Responsables")
+            st.divider()
+
+            if "Vendedor_Ruta" in df.columns:
+                df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
+                st.dataframe(df_r)
+
+
     
      # =========================
     # CAUSAS
