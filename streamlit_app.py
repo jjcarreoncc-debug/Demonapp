@@ -400,7 +400,7 @@ if vista == "principal":
 # VOLATILIDAD
 elif vista == "volatilidad":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver principal"):
         st.session_state.vista = "principal"
 
     st.markdown("## 🚦 Volatilidad")
@@ -486,7 +486,7 @@ if vista == "principal":
 
 elif vista == "volatilidad":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Ejecutivo"):
         st.session_state.vista = "principal"
 
     st.markdown("## 🚦 Volatilidad")
@@ -502,7 +502,7 @@ elif vista == "volatilidad":
 
 elif vista == "responsables":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Responsable"):
         st.session_state.vista = "principal"
 
     st.markdown("## 👤 Responsables")
@@ -513,7 +513,7 @@ elif vista == "responsables":
 
 elif vista == "causas":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Causa"):
         st.session_state.vista = "principal"
 
     st.markdown("## 🧠 Causas")
@@ -526,7 +526,7 @@ elif vista == "causas":
 
 elif vista == "reporte":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Reporte"):
         st.session_state.vista = "principal"
 
     st.markdown("## 📊 Reporte Ejecutivo")
@@ -541,7 +541,7 @@ elif vista == "reporte":
 
 elif vista == "log":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Log"):
         st.session_state.vista = "principal"
 
     st.markdown("## 📋 Log")
@@ -551,7 +551,7 @@ elif vista == "log":
 
 elif vista == "recomendaciones":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Recomendacion"):
         st.session_state.vista = "principal"
 
     st.markdown("## 📌 Recomendaciones")
@@ -567,7 +567,7 @@ elif vista == "recomendaciones":
 # =======================
 elif st.session_state.vista == "resumen":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Resumen"):
         st.session_state.vista = "principal"
 
     st.title("🧠 Resumen Ejecutivo")
