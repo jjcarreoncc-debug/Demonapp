@@ -38,7 +38,7 @@ df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
     # -------------------------
     # FILTROS
     # -------------------------
-    st.sidebar.header("🎯 Filtros")
+st.sidebar.header("🎯 Filtros")
 
     rango = st.sidebar.date_input("Fecha", [df["Fecha"].min(), df["Fecha"].max()])
     if len(rango) == 2:
