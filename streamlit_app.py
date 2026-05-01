@@ -273,7 +273,7 @@ for dim, nombre, var, impacto, v1, v2 in resultados:
     # =========================
     # VOLATILIDAD
     # =========================
-    elif st.session_state.vista == "volatilidad":
+    if st.session_state.vista == "volatilidad":
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
