@@ -24,7 +24,7 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
- ------------------------
+# ------------------------
 # LOGIN
 # ------------------------
 from streamlit_authenticator import Hasher
