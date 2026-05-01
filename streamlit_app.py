@@ -539,5 +539,23 @@ if archivo:
         st.title("🔎 Análisis Detallado")
         st.dataframe(df)
 
+    # =========================
+    # LOG
+    # =========================
+    elif st.session_state.vista == "log":
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "principal"
+
+    st.title("📋 Log de Carga")
+
+    log = st.session_state.get("log_carga")
+
+    if log:
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Filas originales", log["original"])
+        col2.metric("Filas cargadas", log["final"])
+        col3.metric("Filas eliminadas", log["eliminadas"])
 else:
     st.info("📂 Sube archivo")
