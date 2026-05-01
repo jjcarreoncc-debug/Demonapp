@@ -267,7 +267,7 @@ with col_main:
         if "Producto" in df.columns:
             df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
             st.dataframe(df_c)
-    =======================
+    # =======================
     # RESUMEN
     # =========================
     elif st.session_state.vista == "resumen":
