@@ -24,6 +24,13 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
+#--------------------------
+# UBICAR IMAGEN
+#--------------------------
+from PIL import Image
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
+
 # ------------------------
 # LOGIN
 # ------------------------
