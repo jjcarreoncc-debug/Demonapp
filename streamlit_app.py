@@ -14,7 +14,8 @@ usernames = ["admin", "ventas"]
 passwords = ["1234", "abcd"]
 
 # 🔒 generar hashes
-hashed_passwords = stauth.Hasher(passwords).generate()
+hashed_passwords = stauth.Hasher(passwords).hash()
+#hashed_passwords = stauth.Hasher(passwords).generate()
 
 credentials = {
     "usernames": {
