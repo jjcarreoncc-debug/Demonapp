@@ -169,7 +169,7 @@ periodo_sel = st.multiselect(
 
 df = df[df["Periodo"].isin(periodo_sel)]    
 
-if df["Periodo"].nunique() ¨> 2:
+if df["Periodo"].nunique() > 2:
     st.warning("Selecciona al menos 2 periodos para análisis")
     st.stop() 
     st.divider()
