@@ -2,9 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3  # 👈 BD
+
 conn = sqlite3.connect("data.db")
+
 # 🔥 SOLO UNA VEZ (luego lo puedes borrar)
 conn.execute("DROP TABLE IF EXISTS ventas")
+
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # BD
@@ -29,7 +32,7 @@ if "vista" not in st.session_state:
 
 archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-# 👇 SOLO SI HAY ARCHIVO (NO METO ELSE)
+# 👇 SOLO SI HAY ARCHIVO
 if archivo:
 
     df = pd.read_excel(archivo)
@@ -40,12 +43,21 @@ if archivo:
 
     # detectar fechas malas
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    df_eliminadas = df[df["Fecha"].isna()]  # 👈 guardamos lo eliminado
+    df_eliminadas = df[df["Fecha"].isna()].copy()
+    if not df_eliminadas.empty:
+        df_eliminadas["Motivo"] = "Fecha inválida"
 
     df = df.dropna(subset=["Fecha"])
     filas_final = len(df)
-
     filas_eliminadas = filas_original - filas_final
+
+    # 🔥 GUARDAR LOG EN MEMORIA
+    st.session_state["log_carga"] = {
+        "original": filas_original,
+        "final": filas_final,
+        "eliminadas": filas_eliminadas,
+        "df_eliminadas": df_eliminadas
+    }
 
     # 🔥 LIMPIEZA
     for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
@@ -57,10 +69,8 @@ if archivo:
                 .str.strip()
             )
             df[col] = pd.to_numeric(df[col], errors="coerce")
-# 🔍 VALIDACIONES
-#
-##########################################################
-# 🔍 VALIDACIONES
+
+    # 🔍 VALIDACIONES
     errores = []
 
     columnas_obligatorias = [
@@ -72,11 +82,6 @@ if archivo:
     if faltantes:
         errores.append(f"Faltan columnas: {faltantes}")
 
-    if "Fecha" in df.columns:
-        fechas_invalidas = pd.to_datetime(df["Fecha"], errors="coerce").isna().sum()
-        if fechas_invalidas > 0:
-            errores.append(f"Fechas inválidas: {fechas_invalidas}")
-
     if "Ventas_Cantidad" in df.columns:
         if (df["Ventas_Cantidad"] < 0).any():
             errores.append("Hay ventas negativas")
@@ -86,7 +91,6 @@ if archivo:
         if nulos > 0:
             errores.append(f"Productos vacíos: {nulos}")
 
-    # 🔥 RESULTADO (ESTO YA ESTÁ BIEN)
     if errores:
         for e in errores:
             st.error(f"❌ {e}")
@@ -94,9 +98,7 @@ if archivo:
     else:
         st.success("✅ Archivo validado correctamente")
 
-    # 👇 SIGUE NORMAL (SIN MÁS ELSE)
-############################################################################
-    # 🔥 BOTÓN GUARDAR (CORREGIDO: AHORA ESTÁ DENTRO)
+    # 🔥 BOTÓN GUARDAR
     if st.button("💾 Guardar en Base de Datos"):
 
         df_db = df.copy()
@@ -136,12 +138,15 @@ if archivo:
         except Exception as e:
             st.error(f"❌ Error al guardar: {e}")
 
-    
+    # 🔥 MÉTRICAS DERIVADAS
     df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
     df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
     df["Ganancia"] = df["Ventas"] - df["Costos"]
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
+# -------------------------
+# FILTROS
+# -------------------------
 # -------------------------
     # FILTROS
     # -------------------------
