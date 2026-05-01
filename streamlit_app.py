@@ -131,7 +131,7 @@ df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 # ------------------------
-# FILTROS + NAV (FIX) CON RANGO DE FECHAS
+# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
 df_base = df.copy()
 
@@ -203,31 +203,27 @@ with st.sidebar:
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
     # ------------------------
-    # 🔥 PERIODO (RANGO REAL)
+    # RANGO DE FECHAS
     # ------------------------
-    st.markdown("### 📅 Periodo")
-
+    st.markdown("### 📅 Rango de fechas")
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
     fecha_ini, fecha_fin = st.date_input(
-        "Selecciona rango de fechas",
+        "Selecciona fecha inicial y final",
         value=(fecha_min, fecha_max),
         min_value=fecha_min,
         max_value=fecha_max,
         key="rango_fecha"
     )
 
-    df = df[
-        (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-        (df["Fecha"] <= pd.to_datetime(fecha_fin))
-    ]
+    df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+            (df["Fecha"] <= pd.to_datetime(fecha_fin))]
 
-    # recalcular periodo después del filtro
+    # recalcular Periodo
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    st.caption(f"📅 {fecha_ini} → {fecha_fin}")
-
+    st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
     st.divider()
 
     # ------------------------
@@ -256,6 +252,27 @@ with st.sidebar:
     if st.button("📌 Recomendaciones"):
         st.session_state.vista = "recomendaciones"
 
+    if st.button("🧠 Resumen"):
+        st.session_state.vista = "resumen"
+
+# ------------------------
+# MINI DASHBOARD DE DEBUG
+# ------------------------
+st.markdown("## 🛠️ Debug Recomendaciones")
+
+st.write("Total filas después de filtros:", len(df))
+st.write("Periodos únicos disponibles:", df["Periodo"].unique())
+
+def mostrar_periodos_por_dimension(df, dim):
+    if dim in df.columns:
+        df_periodos = df.groupby(dim)["Periodo"].nunique().reset_index()
+        df_periodos.columns = [dim, "Periodos"]
+        st.write(f"Periodos por {dim} (mínimo 2 para recomendaciones):")
+        st.dataframe(df_periodos)
+
+# Revisar todas las dimensiones importantes
+for dim in ["Producto", "Canal", "Region", "Vendedor_Ruta", "Pais"]:
+    mostrar_periodos_por_dimension(df, dim)
     if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
 # ------------------------
