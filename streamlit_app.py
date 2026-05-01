@@ -31,7 +31,8 @@ archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
 # 👇 SOLO SI HAY ARCHIVO (NO METO ELSE)
 if archivo:
-
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df = df.dropna(subset=["Fecha"])
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip()
 
@@ -124,10 +125,7 @@ if archivo:
         except Exception as e:
             st.error(f"❌ Error al guardar: {e}")
 
-    # 👇 TU LÓGICA (TAMBIÉN DENTRO)
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-    df = df.dropna(subset=["Fecha"])
-
+    
     df["Ventas"] = df.get("Ventas", df["Ventas_Cantidad"] * df.get("Precio_Venta", 1))
     df["Costos"] = df.get("Costos", df["Ventas_Cantidad"] * df.get("Costos_Venta", 0))
     df["Ganancia"] = df["Ventas"] - df["Costos"]
