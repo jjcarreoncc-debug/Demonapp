@@ -289,8 +289,8 @@ else:
     # =========================
     elif st.session_state.vista == "recomendaciones":
 
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        if st.button("⬅️ Volver"):
+            st.session_state.vista = "principal"
 
     st.title("📌 Recomendaciones Estratégicas")
 
