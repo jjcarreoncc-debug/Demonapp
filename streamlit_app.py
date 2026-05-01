@@ -246,10 +246,6 @@ with st.sidebar:
     if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
 
-Con esto:
-
-Los filtros ahora incluyen Producto, Canal, Ven
-
 # ------------------------
 # VALIDACIÓN
 # ------------------------
