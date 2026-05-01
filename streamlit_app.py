@@ -258,7 +258,8 @@ if authentication_status:
      # =========================
     # CAUSAS
     # =========================
-    elif st.session_state.vista == "causas":
+    with col_main
+        vista =st.session_state.vista
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
