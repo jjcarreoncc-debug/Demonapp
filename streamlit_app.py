@@ -51,7 +51,6 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
-
 # ------------------------
 # CONTROL LOGIN (CLAVE)
 # ------------------------
@@ -95,6 +94,7 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
+
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
@@ -130,72 +130,46 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-###
-### FILTROS
-###
+
+# 🔥 BASE ORIGINAL (NO TOCAR)
 df_base = df.copy()
 
+# ------------------------
+# SIDEBAR (ÚNICO Y LIMPIO)
+# ------------------------
 with st.sidebar:
 
     st.divider()
-
     st.markdown("### 🎯 Filtros")
 
     df_f = df_base.copy()
 
+    # FILTRO PAÍS
     if "Pais" in df_f.columns:
         pais = st.multiselect(
             "País",
             sorted(df_f["Pais"].dropna().unique()),
-            default=sorted(df_f["Pais"].dropna().unique())
+            default=sorted(df_f["Pais"].dropna().unique()),
+            key="filtro_pais"
         )
         df_f = df_f[df_f["Pais"].isin(pais)]
 
+    # FILTRO REGIÓN
     if "Region" in df_f.columns:
         region = st.multiselect(
             "Región",
             sorted(df_f["Region"].dropna().unique()),
-            default=sorted(df_f["Region"].dropna().unique())
+            default=sorted(df_f["Region"].dropna().unique()),
+            key="filtro_region"
         )
         df_f = df_f[df_f["Region"].isin(region)]
 
     # ------------------------
-    # PERIODO (SOBRE DF FILTRADO)
-    # ------------------------
-    st.markdown("### 📅 Periodo")
-with st.sidebar:
-
-    st.divider()
-
-    # ------------------------
-    # FILTROS
-    # ------------------------
-    st.markdown("### 🎯 Filtros")
-
-    if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
-        )
-        df = df[df["Pais"].isin(pais)]
-
-    if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique()),
-            key="filtro_region"
-        )
-        df = df[df["Region"].isin(region)]
-
-    # ------------------------
-    # PERIODO ✅
+    # PERIODO
     # ------------------------
     st.markdown("### 📅 Periodo")
 
-    periodos = sorted(df["Periodo"].dropna().unique())
+    periodos = sorted(df_f["Periodo"].dropna().unique())
 
     if len(periodos) > 0:
 
@@ -208,12 +182,7 @@ with st.sidebar:
             key="filtro_periodo"
         )
 
-        df_temp = df[df["Periodo"].isin(periodo_sel)]
-
-        if len(df_temp) > 0:
-            df = df_temp
-        else:
-            st.warning("Filtro sin datos, se mantiene info anterior")
+        df_f = df_f[df_f["Periodo"].isin(periodo_sel)]
 
     else:
         st.warning("No hay periodos disponibles")
@@ -248,6 +217,9 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", use_container_width=True):
         st.session_state.vista = "resumen"
+
+# 🔥 DATA FINAL FILTRADA
+df = df_f.copy()
 # 🔥 ESTE ES EL DF FINAL QUE USA TODO
 df = df_f.copy()
 
