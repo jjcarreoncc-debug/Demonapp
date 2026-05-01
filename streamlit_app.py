@@ -300,11 +300,11 @@ if archivo:
 
         if col5.button("🧠 Resumen Ejecutivo"):
             st.session_state.vista = "resumen"
-            st.experimental_rerun()
+            
 
         if col6.button("📌 Recomendaciones"):
             st.session_state.vista = "recomendaciones"
-            st.experimental_rerun()
+            
         
         
         if col7.button("📋 Log de Carga"):
@@ -315,7 +315,7 @@ if archivo:
         # ✅ NUEVO NIVEL 5
         if col8.button("📊 Resultados"):
              st.session_state.vista = "resultados"
-             st.experimental_rerun()
+             
 
     
     # =========================
@@ -642,7 +642,7 @@ if archivo:
 
         if st.button("⬅️ Volver"):
             st.session_state.vista = "principal"
-
+            st.experimental_rerun()
     st.title("📋 Log de Carga")
 
     log = st.session_state.get("log_carga")
