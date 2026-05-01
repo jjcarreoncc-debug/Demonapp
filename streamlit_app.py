@@ -8,7 +8,7 @@ import streamlit_authenticator as stauth
 # CONFIG
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-st.set_page_config(layout="wide")
+
 # ------------------------
 # LOGO SIEMPRE ARRIBA
 # ------------------------
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
-st.set_page_config(layout="wide")
+
 
 # ------------------------
 # CARGA ARCHIVO
