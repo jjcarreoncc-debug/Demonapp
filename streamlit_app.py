@@ -265,7 +265,9 @@ if archivo:
 #     with col2:
 #        st.markdown("## Dashboard Ejecutivo\n### TIDS CONSULTING")
 ####
-
+if st.session_state.vista != "principal":
+    st.experimental_rerun()
+    
     if st.session_state.vista == "principal":
 
         
