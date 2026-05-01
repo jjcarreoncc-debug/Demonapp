@@ -255,28 +255,29 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
-
 # ------------------------
-# MINI DASHBOARD DE DEBUG
+# MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # ------------------------
-# ------------------------
-# MINI DASHBOARD DE DEBUG CORREGIDO
-# ------------------------
-st.markdown("## 🛠️ Debug Recomendaciones")
+st.markdown("## 🛠️ Debug Recomendaciones con Ventas, Costos y Precio")
 
 st.write("Total filas después de filtros:", len(df))
 st.write("Periodos únicos disponibles:", df["Periodo"].unique())
 
-def mostrar_periodos_por_dimension(df, dim):
+def mostrar_resumen_por_dimension(df, dim):
     if dim in df.columns:
-        df_periodos = df.groupby(dim)["Periodo"].nunique().reset_index()
-        df_periodos.columns = [dim, "Periodos"]
-        st.write(f"Periodos por {dim} (mínimo 2 para recomendaciones):")
-        st.dataframe(df_periodos)  # aquí sí se puede usar key si quieres, pero no necesario
+        df_resumen = df.groupby(dim).agg(
+            Periodos=("Periodo", "nunique"),
+            Ventas=("Ventas", "sum"),
+            Costos=("Costos", "sum"),
+            Precio_promedio=("Precio_Venta", "mean")
+        ).reset_index()
+        st.write(f"Resumen por {dim} (mínimo 2 periodos para recomendaciones):")
+        st.dataframe(df_resumen)
 
 # Revisar todas las dimensiones importantes
 for dim in ["Producto", "Canal", "Region", "Vendedor_Ruta", "Pais"]:
-    mostrar_periodos_por_dimension(df, dim)# ------------------------
+    mostrar_resumen_por_dimension(df, dim)
+
 # VALIDACIÓN
 # ------------------------
 if df.empty:
