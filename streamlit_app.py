@@ -171,13 +171,14 @@ if archivo:
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------
+# ------------------------
+# DASHBOARD PRINCIPAL
+# ------------------------
+if archivo and st.session_state.vista == "principal":
 
-if st.session_state.vista == "principal":
     ventas = df_m["Ventas"].sum()
     ganancia = df_m["Ganancia"].sum()
     margen = (ganancia / ventas) * 100 if ventas != 0 else 0
-
-    st.title("📊 Dashboard Ejecutivo")
 
     st.title("📊 Dashboard Ejecutivo")
 
@@ -188,7 +189,6 @@ if st.session_state.vista == "principal":
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
     st.plotly_chart(fig, use_container_width=True)
-
     # ------------------------
     # BOTONES
     # ------------------------
