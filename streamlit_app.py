@@ -212,7 +212,7 @@ if archivo:
     #
     st.title("📊 Resultados y Acciones Prioritarias")
 
-        resultados = []
+    resultados = []
 
         for dim in ["Pais", "Region", "Canal", "Producto"]:
             if dim in df.columns:
