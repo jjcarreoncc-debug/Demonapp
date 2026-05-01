@@ -173,6 +173,11 @@ if archivo:
 # ------------------------
 
 if st.session_state.vista == "principal":
+    ventas = df_m["Ventas"].sum()
+    ganancia = df_m["Ganancia"].sum()
+    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
+
+    st.title("📊 Dashboard Ejecutivo")
 
     st.title("📊 Dashboard Ejecutivo")
 
