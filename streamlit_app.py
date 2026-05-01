@@ -9,7 +9,6 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 conn = sqlite3.connect("data.db")
 conn.execute("""
 CREATE TABLE IF NOT EXISTS ventas (
-    CREATE TABLE ventas (
     Fecha TEXT,
     Nombre_Producto TEXT,
     Numero_Producto TEXT,
