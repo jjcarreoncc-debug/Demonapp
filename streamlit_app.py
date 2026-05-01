@@ -173,26 +173,25 @@ with st.sidebar:
     st.markdown("### 🎯 Filtros")
 
     if "Pais" in df.columns:
-       pais = st.multiselect(
-           "País",
-    sorted(df["Pais"].dropna().unique()),
-    default=sorted(df["Pais"].dropna().unique()),
-    key="filtro_pais"
-)
-    df = df[df["Pais"].isin(pais)]
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique()),
+            key="filtro_pais"
+        )
+        df = df[df["Pais"].isin(pais)]
 
     if "Region" in df.columns:
         region = st.multiselect(
-    "Región",
-    sorted(df["Region"].dropna().unique()),
-    default=sorted(df["Region"].dropna().unique()),
-    key="filtro_region"
-)
-
-    df = df[df["Region"].isin(region)]
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique()),
+            key="filtro_region"
+        )
+        df = df[df["Region"].isin(region)]
 
     # ------------------------
-    # PERIODO ✅ (BIEN INDENTADO)
+    # PERIODO ✅
     # ------------------------
     st.markdown("### 📅 Periodo")
 
@@ -201,13 +200,14 @@ with st.sidebar:
     if len(periodos) > 0:
 
         default_periodos = periodos[-2:] if len(periodos) >= 2 else periodos
- periodo_sel = st.multiselect(
-    "Selecciona periodo",
-    periodos,
-    default=default_periodos,
-    key="filtro_periodo"
-)
-       
+
+        periodo_sel = st.multiselect(
+            "Selecciona periodo",
+            periodos,
+            default=default_periodos,
+            key="filtro_periodo"
+        )
+
         df_temp = df[df["Periodo"].isin(periodo_sel)]
 
         if len(df_temp) > 0:
@@ -248,7 +248,6 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", use_container_width=True):
         st.session_state.vista = "resumen"
-  
 # 🔥 ESTE ES EL DF FINAL QUE USA TODO
 df = df_f.copy()
 
