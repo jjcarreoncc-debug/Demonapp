@@ -46,7 +46,7 @@ if archivo:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
     # 🔥 BOTÓN GUARDAR (MISMO LUGAR)
-   if st.button("💾 Guardar en Base de Datos"):
+    if st.button("💾 Guardar en Base de Datos"):
 
     df_db = df.copy()
 
