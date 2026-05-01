@@ -9,8 +9,8 @@ import streamlit_authenticator as stauth
 # ------------------------
 st.markdown("""
 <style>
-/* Fondo gris para navegación */
-.nav-container {
+/* Fondo gris para egación */
+.-container {
     background-color: #f0f2f6;
     padding: 15px;
     border-radius: 10px;
@@ -130,10 +130,6 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-# ------------------------
-# SIDEBAR (FILTROS + NAV)
-# ------------------------
 with st.sidebar:
 
     st.divider()
@@ -160,24 +156,33 @@ with st.sidebar:
         df = df[df["Region"].isin(region)]
 
     # ------------------------
-    # PERIODO ✅ (DENTRO DEL SIDEBAR)
+    # PERIODO 🔥 (ARREGLADO)
     # ------------------------
     st.markdown("### 📅 Periodo")
 
     periodos = sorted(df["Periodo"].dropna().unique())
 
+    # ✅ default inteligente
+    default_periodos = periodos[-2:] if len(periodos) >= 2 else periodos
+
     periodo_sel = st.multiselect(
         "Selecciona periodo",
         periodos,
-        default=periodos
+        default=default_periodos
     )
 
-    df = df[df["Periodo"].isin(periodo_sel)]
+    # ✅ filtro seguro (NO rompe dashboard)
+    df_filtrado = df[df["Periodo"].isin(periodo_sel)]
+
+    if not df_filtrado.empty:
+        df = df_filtrado
+    else:
+        st.warning("No hay datos para los periodos seleccionados")
 
     st.divider()
 
     # ------------------------
-    # NAVEGACIÓN ✅ (NO SE BLOQUEA)
+    # NAVEGACIÓN
     # ------------------------
     st.markdown("### 🚦 Navegación")
 
