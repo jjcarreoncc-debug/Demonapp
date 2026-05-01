@@ -542,7 +542,7 @@ if archivo:
     # =========================
     # LOG
     # =========================
-   elif st.session_state.vista == "log":
+    elif st.session_state.vista == "log":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
@@ -575,13 +575,5 @@ if archivo:
 
         else:
             st.success("No hubo registros eliminados")
-
-    else:
-        st.info("Aún no hay cargas registradas") 
-        else:
-            st.success("No hubo registros eliminados")
-
-    else:
-        st.info("Aún no hay cargas registradas")
-    else:
+else:
     st.info("📂 Sube archivo")
