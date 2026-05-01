@@ -6,7 +6,7 @@ import streamlit_authenticator as stauth
 
 ####
 #  CREACION DEL LOGO
-st.sidebar.image("LOOGO-TIDS-CONSULTING (2)", width=150)
+st.sidebar.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.sidebar.markdown("TIDS CONSULTING ")
 ####
 
