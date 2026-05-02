@@ -63,7 +63,6 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # ------------------------
 # LOGIN VIEW (PORTADA)
 # ------------------------
-if authentication_status is None:
 
     if authentication_status is None:
 
