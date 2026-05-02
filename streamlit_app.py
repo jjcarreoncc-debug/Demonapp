@@ -63,17 +63,16 @@ if authentication_status is None:
     <style>
     .login-bg {
         position: fixed;
-        bottom: -80px;
-        right: -100px;
-        width: 900px;
-        opacity: 0.05;
+        bottom: 0;
+        right: 0;
+        width: 60%;
+        opacity: 0.08;
         pointer-events: none;
         z-index: 0;
     }
     </style>
-    <img src="imagen_presentacion1.png" class="login-bg">
+    <img src="imagen_presentacion.png" class="login-bg">
     """, unsafe_allow_html=True)
-
 # ------------------------
 # CONTROL LOGIN (CLAVE)
 # ------------------------
