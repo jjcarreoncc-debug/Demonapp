@@ -4,12 +4,14 @@ import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
 import base64
+
 # ------------------------
 # CONFIG
 # ------------------------
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+
 st.markdown("""
 <style>
-/* Fondo gris para egación */
 .-container {
     background-color: #f0f2f6;
     padding: 15px;
@@ -18,17 +20,20 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
-# LOGIN
+# FUNCIÓN BASE64
+# ------------------------
+def get_base64(img_file):
+    with open(img_file, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+# ------------------------
+# LOGIN CONFIG
 # ------------------------
 from streamlit_authenticator import Hasher
 
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
-
-names = ["Admin", "Ventas"]
-usernames = ["admin", "ventas"]
 
 credentials = {
     "usernames": {
@@ -44,18 +49,24 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 
-# Logo arriba
+# ------------------------
+# LOGO
+# ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-name, authentication_status, username = authenticator.login("Login", location="main")
-# Login
+
+# ------------------------
+# LOGIN (SOLO UNA VEZ)
+# ------------------------
 name, authentication_status, username = authenticator.login("Login", location="main")
 
+# ------------------------
+# LOGIN VIEW
+# ------------------------
 if authentication_status is None:
 
-    # CSS efecto fade (gota de agua)
-    st.markdown("""
+    st.markdown(f"""
     <style>
-    .banner {
+    .banner {{
         width: 100%;
         height: 120px;
         background: linear-gradient(
@@ -65,36 +76,31 @@ if authentication_status is None:
             rgba(255,255,255,0.8) 70%,
             rgba(255,255,255,1) 100%
         ),
-        url("data:image/png;base64,{}");
+        url("data:image/png;base64,{get_base64("imagen_presentacion1.png")}");
         background-size: cover;
         background-position: center;
-    }
+    }}
     </style>
-    """.format(get_base64("imagen_presentacion1.png")), unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    # Banner
     st.markdown('<div class="banner"></div>', unsafe_allow_html=True)
 
-    # Mensaje (después del banner)
     st.warning("Ingresa tus credenciales")
 
     st.stop()
+
 # ------------------------
-# CONTROL LOGIN
+# LOGIN ERROR
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
 
-elif authentication_status is None:
-    st.warning("Ingresa tus credenciales")
-    st.stop()
 # ------------------------
 # LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
-
 # ------------------------
 # SESSION STATE
 # ------------------------
