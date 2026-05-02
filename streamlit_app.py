@@ -257,6 +257,9 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
+
+
+
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
 # =========================
