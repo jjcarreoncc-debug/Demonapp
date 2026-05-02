@@ -263,7 +263,7 @@ if st.session_state.vista == "inicio":
 
     st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
 
-     st.image("imagen8.png", use_container_width=True)
+    st.image("imagen8.png", use_container_width=True)
     st.image("imagen8.png", width=1400)
     st.stop()
 # ------------------------
