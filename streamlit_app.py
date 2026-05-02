@@ -905,16 +905,16 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
 # VARIACIÓN FINAL
 #=========================
  
-    if len(df_g) >= 2:
-        v1 = df_g.iloc[-2]["Ventas"]
-        v2 = df_g.iloc[-1]["Ventas"]
-        var = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        var = 0
+   if len(df_g) >= 2:
+       v1 = df_g.iloc[-2]["Ventas"]
+       v2 = df_g.iloc[-1]["Ventas"]
+       var = (v2 - v1) / v1 if v1 != 0 else 0
+   else:
+       var = 0
 
-    texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
+   texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
 
-    fig = go.Figure()
+   fig = go.Figure()
  
     # =========================
     # SOMBRAS POR AÑO
