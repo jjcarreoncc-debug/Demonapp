@@ -224,16 +224,21 @@ st.plotly_chart(fig, use_container_width=True)
     # RANGO DE FECHAS
     # ------------------------
 st.markdown("### 📅 Rango de fechas")
-    fecha_min = df["Fecha"].min()
-    fecha_max = df["Fecha"].max()
 
-    fecha_ini, fecha_fin = st.date_input(
-        "Selecciona fecha inicial y final",
-        value=(fecha_min, fecha_max),
-        min_value=fecha_min,
-        max_value=fecha_max,
-        key="filtro_rango_fecha"
-    )
+fecha_min = df_base["Fecha"].min()
+fecha_max = df_base["Fecha"].max()
+
+rango_fechas = st.date_input(
+    "Selecciona fecha inicial y final",
+    value=(fecha_min, fecha_max),
+    min_value=fecha_min,
+    max_value=fecha_max,
+    key="filtro_rango_fecha"
+)
+
+# Validación segura
+if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
+    fecha_ini, fecha_fin = rango_fechas
 
     df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
             (df["Fecha"] <= pd.to_datetime(fecha_fin))]
@@ -242,8 +247,9 @@ st.markdown("### 📅 Rango de fechas")
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
-    st.divider()
 
+st.divider()
+    
     # ------------------------
     # NAVEGACIÓN
     # ------------------------
