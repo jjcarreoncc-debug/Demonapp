@@ -30,7 +30,7 @@ st.markdown("### TIDS CONSULTING")
 #--------------------------
 # UBICAR IMAGEN (CORREGIDO)
 #--------------------------
-st.image("assets/imagen_presentacion.png", use_container_width=True)
+st.image("imagen_presentacion1.png", use_container_width=True)
 st.markdown("---")
 
 # ------------------------
