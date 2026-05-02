@@ -54,13 +54,25 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 st.markdown("<br>", unsafe_allow_html=True)
 name, authentication_status, username = authenticator.login("Login", location="main")
+st.write("DEBUG status:", authentication_status)
 
 if authentication_status is None:
-    # empuja la imagen hacia abajo
-    for _ in range(6):
-        st.write("")
-    
-    st.image("imagen_presentacion1.png", use_container_width=True)
+    st.write("DEBUG: entrando al bloque de imagen")
+
+    st.markdown("""
+    <style>
+    .footer-img {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        opacity: 0.15;
+        z-index: -1;
+    }
+    </style>
+    <img src="imagen_presentacion.png" class="footer-img">
+    """, unsafe_allow_html=True)
+
 # Login
 
 # ------------------------
