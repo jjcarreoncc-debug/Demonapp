@@ -16,7 +16,7 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsaf			e_allow_html=True)
+#""", unsaf			e_allow_html=True)
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
