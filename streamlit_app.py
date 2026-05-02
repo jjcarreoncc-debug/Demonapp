@@ -53,26 +53,16 @@ authenticator = stauth.Authenticate(
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 st.markdown("<br>", unsafe_allow_html=True)
-
-# Login
 name, authentication_status, username = authenticator.login("Login", location="main")
 
-# Imagen abajo tipo marca de agua SOLO en login
 if authentication_status is None:
-    st.markdown("""
-    <style>
-    .login-bg {
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        width: 60%;
-        opacity: 0.08;
-        pointer-events: none;
-        z-index: 0;
-    }
-    </style>
-    <img src="imagen_presentacion1.png" class="login-bg">
-    """, unsafe_allow_html=True)
+    # empuja la imagen hacia abajo
+    for _ in range(6):
+        st.write("")
+    
+    st.image("imagen_presentacion1.png", use_container_width=True)
+# Login
+
 # ------------------------
 # CONTROL LOGIN (CLAVE)
 # ------------------------
