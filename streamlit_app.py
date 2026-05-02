@@ -581,7 +581,6 @@ elif vista == "recomendaciones":
 # =======================
 # RESUMEN
 # =======================
-
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
@@ -718,15 +717,51 @@ elif st.session_state.vista == "resumen":
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
             # =========================
-            # 📊 GRÁFICA
+            # 📊 GRÁFICA MEJORADA
             # =========================
             with st.expander(f"📊 Ver gráfica - {nombre}"):
+
+                import plotly.graph_objects as go
 
                 df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
                 df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
                 df_g = df_g.sort_values("Periodo_dt")
 
-                fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
+                if len(df_g) >= 2:
+                    v1 = df_g.iloc[-2]["Ventas"]
+                    v2 = df_g.iloc[-1]["Ventas"]
+                    var = (v2 - v1) / v1 if v1 != 0 else 0
+                else:
+                    var = 0
+
+                texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Scatter(
+                    x=df_g["Periodo"],
+                    y=df_g["Ventas"],
+                    mode="lines+markers+text",
+                    text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+                    textposition="top center"
+                ))
+
+                fig.add_trace(go.Scatter(
+                    x=[df_g.iloc[-1]["Periodo"]],
+                    y=[df_g.iloc[-1]["Ventas"]],
+                    mode="markers+text",
+                    marker=dict(size=12),
+                    text=[f"{texto_estado}\n{var:.1%}"],
+                    textposition="bottom center"
+                ))
+
+                fig.update_layout(
+                    title=f"{nombre} | Variación: {var:.1%}",
+                    xaxis_title="Periodo",
+                    yaxis_title="Ventas",
+                    showlegend=False
+                )
+
                 st.plotly_chart(fig, use_container_width=True, key=f"graf_res_{i}")
 
             st.markdown("---")
