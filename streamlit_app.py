@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -17,7 +16,7 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsafe_allow_html=True)  # ✅ CORREGIDO (tenías texto roto aquí)
+""", unsafe_allow_html=True)
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
@@ -26,12 +25,6 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
-
-#--------------------------
-# UBICAR IMAGEN (CORREGIDO)
-#--------------------------
-st.image("imagen_presentacion1.png", use_container_width=True)
-st.markdown("---")
 
 # ------------------------
 # LOGIN
@@ -153,56 +146,69 @@ with st.sidebar:
 
     df = df_base.copy()
 
-    # PAÍS
     if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
-        )
+        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
+                              default=sorted(df["Pais"].dropna().unique()))
         df = df[df["Pais"].isin(pais)]
 
-    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique()),
-            key="filtro_region"
-        )
+        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
+                                default=sorted(df["Region"].dropna().unique()))
         df = df[df["Region"].isin(region)]
 
-    # PRODUCTO
     if "Producto" in df.columns:
-        producto = st.multiselect(
-            "Producto",
-            sorted(df["Producto"].dropna().unique()),
-            default=sorted(df["Producto"].dropna().unique()),
-            key="filtro_producto"
-        )
+        producto = st.multiselect("Producto", sorted(df["Producto"].dropna().unique()),
+                                  default=sorted(df["Producto"].dropna().unique()))
         df = df[df["Producto"].isin(producto)]
 
-    # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique()),
-            key="filtro_canal"
-        )
+        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
+                               default=sorted(df["Canal"].dropna().unique()))
         df = df[df["Canal"].isin(canal)]
 
-    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-            key="filtro_vendedor"
-        )
+        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
+                                  default=sorted(df["Vendedor_Ruta"].dropna().unique()))
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
+    if "Tipo_cliente" in df.columns:
+        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
+                                      default=sorted(df["Tipo_cliente"].dropna().unique()))
+        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+
+# ------------------------
+# FOOTER FIJO (RAÍZ)
+# ------------------------
+import os
+import base64
+
+ruta = os.path.join(os.getcwd(), "imagen_presentacion.png")
+
+if os.path.exists(ruta):
+    with open(ruta, "rb") as img:
+        img_base64 = base64.b64encode(img.read()).decode()
+
+    st.markdown(f"""
+    <style>
+    .footer-fijo {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 220px;
+        background-image: url("data:image/png;base64,{img_base64}");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.15;
+        z-index: -1;
+        pointer-events: none;
+    }}
+    </style>
+
+    <div class="footer-fijo"></div>
+    """, unsafe_allow_html=True)
+else:
+    st.warning("No se encontró imagen_presentacion.png en la raíz")
     # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
         tipo_cliente = st.multiselect(
