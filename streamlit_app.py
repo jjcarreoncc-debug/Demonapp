@@ -16,8 +16,7 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsafe_allow_html=True)
-
+""", unsaf				e_allow_html=True)
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
@@ -25,7 +24,16 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
-
+#--------------------------
+# UBICAR IMAGEN
+#--------------------------
+from PIL import Image
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
+st.image(logo, width=200)  # ajusta tamaño según prefieras
+st.markdown("---")  # separador
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
 # ------------------------
@@ -53,7 +61,6 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
-
 # ------------------------
 # CONTROL LOGIN (CLAVE)
 # ------------------------
@@ -133,9 +140,9 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
 # ------------------------
-# FILTROS
+# ------------------------
+# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
 df_base = df.copy()
 
@@ -146,79 +153,57 @@ with st.sidebar:
 
     df = df_base.copy()
 
+    # PAÍS
     if "Pais" in df.columns:
-        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
-                              default=sorted(df["Pais"].dropna().unique()))
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique()),
+            key="filtro_pais"
+        )
         df = df[df["Pais"].isin(pais)]
 
+    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
-                                default=sorted(df["Region"].dropna().unique()))
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique()),
+            key="filtro_region"
+        )
         df = df[df["Region"].isin(region)]
 
+    # PRODUCTO
     if "Producto" in df.columns:
-        producto = st.multiselect("Producto", sorted(df["Producto"].dropna().unique()),
-                                  default=sorted(df["Producto"].dropna().unique()))
+        producto = st.multiselect(
+            "Producto",
+            sorted(df["Producto"].dropna().unique()),
+            default=sorted(df["Producto"].dropna().unique()),
+            key="filtro_producto"
+        )
         df = df[df["Producto"].isin(producto)]
 
+    # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
-                               default=sorted(df["Canal"].dropna().unique()))
+        canal = st.multiselect(
+            "Canal",
+            sorted(df["Canal"].dropna().unique()),
+            default=sorted(df["Canal"].dropna().unique()),
+            key="filtro_canal"
+        )
         df = df[df["Canal"].isin(canal)]
 
+    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
-                                  default=sorted(df["Vendedor_Ruta"].dropna().unique()))
+        vendedor = st.multiselect(
+            "Vendedor",
+            sorted(df["Vendedor_Ruta"].dropna().unique()),
+            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
+            key="filtro_vendedor"
+        )
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
-                                      default=sorted(df["Tipo_cliente"].dropna().unique()))
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-
-# ------------------------
-# FOOTER FIJO (RAÍZ)
-# ------------------------
-import os
-import base64
-
-ruta = os.path.join(os.getcwd(), "imagen_presentacion.png")
-
-if os.path.exists(ruta):
-    with open(ruta, "rb") as img:
-        img_base64 = base64.b64encode(img.read()).decode()
-
-    st.markdown(f"""
-    <style>
-    .footer-fijo {{
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 220px;
-        background-image: url("data:image/png;base64,{img_base64}");
-        background-size: cover;
-        background-position: center;
-        opacity: 0.15;
-        z-index: -1;
-        pointer-events: none;
-    }}
-    </style>
-
-    <div class="footer-fijo"></div>
-    """, unsafe_allow_html=True)
-else:
-    st.warning("No se encontró imagen_presentacion.png en la raíz")
     # TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique()),
-            key="filtro_tipo_cliente"
-        )
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-# TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
         tipo_cliente = st.multiselect(
             "Tipo cliente",
@@ -492,6 +477,7 @@ df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 ventas = df["Ventas"].sum()
 ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
+
 # ------------------------
 # DASHBOARD
 # ------------------------
@@ -506,8 +492,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True, key="grafica_principal")
-
+    st.plotly_chart(fig, use_container_width=True)
 
 elif vista == "volatilidad":
 
@@ -525,7 +510,6 @@ elif vista == "volatilidad":
     else:
         st.success(f"Volatilidad baja ({ratio:.2f})")
 
-
 elif vista == "responsables":
 
     if st.button("⬅️ Volver Responsable"):
@@ -537,7 +521,6 @@ elif vista == "responsables":
         df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
         st.dataframe(df_r)
 
-
 elif vista == "causas":
 
     if st.button("⬅️ Volver Causa"):
@@ -548,7 +531,6 @@ elif vista == "causas":
     if "Producto" in df.columns:
         df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
         st.dataframe(df_c)
-
 
 # 🔥 NUEVAS VISTAS CONECTADAS
 
@@ -565,8 +547,7 @@ elif vista == "reporte":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.bar(df_m, x="Periodo", y="Ventas")
-    st.plotly_chart(fig, use_container_width=True, key="grafica_reporte")
-
+    st.plotly_chart(fig, use_container_width=True)
 
 elif vista == "log":
 
@@ -577,7 +558,6 @@ elif vista == "log":
 
     st.write("Filas cargadas:", len(df))
     st.dataframe(df.head(20))
-
 
 elif vista == "recomendaciones":
 
