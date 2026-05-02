@@ -74,7 +74,7 @@ authenticator.logout("Cerrar sesión", "sidebar")
 # SESSION STATE
 # ------------------------
 if "vista" not in st.session_state:
-    st.session_state.vista = "principal"
+    st.session_state.vista = "inicio"
 # ------------------------
 # BASE DE DATOS
 # ------------------------
@@ -255,6 +255,17 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
+    # ------------------------
+# PANTALLA INICIAL
+# ------------------------
+
+if st.session_state.vista == "inicio":
+
+    st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
+    
+    st.image("imagen8.png", use_container_width=True)
+
+    st.stop()
 # ------------------------
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
@@ -265,7 +276,17 @@ if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
+# ------------------------
+# PANTALLA INICIAL (NO TOCAR LO DEMÁS)
+# ------------------------
 
+if st.session_state.get("filtro_pais") is None:
+
+    st.markdown("## 👈 Selecciona filtros en el panel izquierdo")
+    st.image("imagen8.png", use_container_width=True)
+
+    st.stop()
+    
     st.title("📌 Recomendaciones Estratégicas")
 
     recomendaciones = []
@@ -360,7 +381,7 @@ if st.session_state.vista == "recomendaciones":
                 ])
 
             fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="grafica_1")
 
         st.markdown("---")
 # ------------------------
@@ -395,7 +416,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafica_2")
 
 # VOLATILIDAD
 elif vista == "volatilidad":
@@ -482,7 +503,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafica_3")
 
 elif vista == "volatilidad":
 
