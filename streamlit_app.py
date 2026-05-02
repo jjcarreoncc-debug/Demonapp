@@ -36,8 +36,9 @@ st.markdown("### TIDS CONSULTING")
 # IMAGEN DE PRESENTACIÓN
 # ------------------------
 img_presentacion = Image.open("imagen_presentacion1.png")
-st.image(img_presentacion, use_column_width=True)
-st.markdown("---")  # separador
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
+st.markdown("### TIDS CONSULTING")
+
 
 # ------------------------
 # LOGIN
