@@ -63,7 +63,7 @@ if authentication_status is None:
     with col2:
         img = Image.open("imagen7.png")
         # más ancho para no perder nitidez
-        st.image(img, width=1000)
+        st.image(img, width=5000)
 
     st.stop()
 # LOGIN OK
