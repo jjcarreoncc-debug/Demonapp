@@ -64,15 +64,14 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # LOGIN VIEW (PORTADA)
 # ------------------------
 
-    if authentication_status is None:
+if authentication_status is None:
 
     col1, col2, col3 = st.columns([1,4,1])
 
     with col2:
         st.image("imagen_presentacion1.png", use_container_width=True)
 
-    st.stop()
-    
+    st.stop()    
 
 # ------------------------
 # LOGIN ERROR
