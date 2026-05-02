@@ -52,8 +52,19 @@ name, authentication_status, username = authenticator.login("Login", location="m
 
 # Imagen fija abajo SOLO en login
 if authentication_status is None:
-    st.image("imagen_presentacion1.png", use_container_width=True)
-    
+    st.markdown(
+        """
+        <style>
+        .stImage img {
+            width: 100%;
+            max-height: 120px;
+            object-fit: cover;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    st.image("imagen_presentacion1.png", use_container_width=True)   
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
