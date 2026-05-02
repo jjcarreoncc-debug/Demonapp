@@ -52,25 +52,11 @@ name, authentication_status, username = authenticator.login("Login", location="m
 
 # Imagen fija abajo SOLO en login
 if authentication_status is None:
-
     st.markdown(
-        """
-        <style>
-        .banner-login img {
-            width: 100%;
-            max-height: 100px;
-            object-fit: cover;
-        }
-        </style>
-        """,
+        "<style>img {max-height:100px; object-fit:cover;}</style>",
         unsafe_allow_html=True
     )
-
-    st.markdown(
-        '<div class="banner-login"><img src="imagen_presentacion1.png"></div>',
-        unsafe_allow_html=True
-        st.image("imagen_presentacion1.png")
-    )
+    st.image("imagen_presentacion1.png", use_container_width=True)
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
