@@ -899,42 +899,85 @@ elif st.session_state.vista == "resumen":
 
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
-            # GRÁFICA
-            with st.expander(f"📊 Ver gráfica - {nombre}"):
+    # GRÁFICA
+    with st.expander(f"📊 Ver gráfica - {nombre}"):
 
-                import plotly.graph_objects as go
+    import plotly.graph_objects as go
 
-                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
-                df_g = df_g.sort_values("Periodo_dt")
+    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
+    df_g = df_g.sort_values("Periodo_dt")
 
-                fig = go.Figure()
+    # =========================
+    # VARIACIÓN FINAL
+    # =========================
+    if len(df_g) >= 2:
+        v1 = df_g.iloc[-2]["Ventas"]
+        v2 = df_g.iloc[-1]["Ventas"]
+        var = (v2 - v1) / v1 if v1 != 0 else 0
+    else:
+        var = 0
 
-                fig.add_trace(go.Scatter(
-                    x=df_g["Periodo"],
-                    y=df_g["Ventas"],
-                    mode="lines+markers+text",
-                    text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-                    textposition="top center"
-                ))
+    texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
 
-                st.plotly_chart(fig, use_container_width=True, key=f"graf_res_{i}")
+    fig = go.Figure()
 
-            st.markdown("---")
+    # =========================
+    # SOMBRAS POR AÑO
+    # =========================
+    df_g["Año"] = df_g["Periodo_dt"].dt.year
+    años = df_g["Año"].unique()
 
-        # TABLA FINAL
-        st.markdown("### 📋 Tabla completa")
+    for j, año in enumerate(años):
+        df_year = df_g[df_g["Año"] == año]
 
-        df_display = df_tabla.copy()
-        df_display["Variación"] = df_display["Variación"].apply(lambda x: format_color(x, "var"))
-        df_display["Impacto $"] = df_display["Impacto $"].apply(lambda x: format_color(x, "money"))
-
-        st.dataframe(
-            df_display.sort_values("Impacto $", ascending=False),
-            use_container_width=True
+        fig.add_vrect(
+            x0=df_year["Periodo"].iloc[0],
+            x1=df_year["Periodo"].iloc[-1],
+            fillcolor="lightgrey" if j % 2 == 0 else "white",
+            opacity=0.2,
+            line_width=0,
         )
 
-    
+        # Línea de corte (como las negras que tenías)
+        fig.add_vline(
+            x=df_year["Periodo"].iloc[0],
+            line_width=2,
+            line_dash="dash",
+            line_color="black"
+        )
+
+    # =========================
+    # LÍNEA PRINCIPAL + VALORES
+    # =========================
+    fig.add_trace(go.Scatter(
+        x=df_g["Periodo"],
+        y=df_g["Ventas"],
+        mode="lines+markers+text",
+        text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+        textposition="top center"
+    ))
+
+    # =========================
+    # ÚLTIMO PUNTO CON INSIGHT
+    # =========================
+    fig.add_trace(go.Scatter(
+        x=[df_g.iloc[-1]["Periodo"]],
+        y=[df_g.iloc[-1]["Ventas"]],
+        mode="markers+text",
+        marker=dict(size=12),
+        text=[f"{texto_estado}\n{var:.1%}"],
+        textposition="bottom center"
+    ))
+
+    fig.update_layout(
+        title=f"{nombre} | Variación: {var:.1%}",
+        xaxis_title="Periodo",
+        yaxis_title="Ventas",
+        showlegend=False
+    )
+
+    st.plotly_chart(fig, use_container_width=True, key=f"alert_{i}")        
     # =========================
     # BOTÓN A ALERTAS 🔥
     # =========================
