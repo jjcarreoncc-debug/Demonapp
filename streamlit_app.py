@@ -265,7 +265,19 @@ if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "principal"
+# ------------------------
+# PANTALLA INICIAL (NO TOCAR LO DEMÁS)
+# ------------------------
 
+if (
+    "filtro_pais" not in st.session_state or
+    "filtro_region" not in st.session_state
+):
+
+    st.markdown("## 👈 Selecciona filtros en el panel izquierdo")
+    st.image("imagen8.png", use_container_width=True)
+    st.stop()
+    
     st.title("📌 Recomendaciones Estratégicas")
 
     recomendaciones = []
