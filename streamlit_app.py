@@ -16,29 +16,26 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsaf				e_allow_html=True)
+""", unsafe_allow_html=True)
+
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-#  SIEMPRE ARRIBA
+# SIEMPRE ARRIBA
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
-#--------------------------
-# UBICAR IMAGEN
-#--------------------------
-from PIL import Image
-img = Image.open("assets/imagen_presentacion.png")
-st.image(img, use_column_width=True)
-st.image(logo, width=200)  # ajusta tamaño según prefieras
-st.markdown("---")  # separador
-img = Image.open("assets/imagen_presentacion.png")
-st.image(img, use_column_width=True)
+
+# ------------------------
+# IMAGEN 2 (CORREGIDA)
+# ------------------------
+st.image("assets/imagen_presentacion.png", use_container_width=True)
+st.markdown("---")
+
 # ------------------------
 # LOGIN
 # ------------------------
 from streamlit_authenticator import Hasher
-import streamlit_authenticator as stauth
 
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
@@ -61,8 +58,9 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
+
 # ------------------------
-# CONTROL LOGIN (CLAVE)
+# CONTROL LOGIN
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
@@ -140,9 +138,9 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
 # ------------------------
-# ------------------------
-# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
+# FILTROS
 # ------------------------
 df_base = df.copy()
 
@@ -153,66 +151,35 @@ with st.sidebar:
 
     df = df_base.copy()
 
-    # PAÍS
     if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
-        )
+        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
+                              default=sorted(df["Pais"].dropna().unique()))
         df = df[df["Pais"].isin(pais)]
 
-    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique()),
-            key="filtro_region"
-        )
+        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
+                                default=sorted(df["Region"].dropna().unique()))
         df = df[df["Region"].isin(region)]
 
-    # PRODUCTO
     if "Producto" in df.columns:
-        producto = st.multiselect(
-            "Producto",
-            sorted(df["Producto"].dropna().unique()),
-            default=sorted(df["Producto"].dropna().unique()),
-            key="filtro_producto"
-        )
+        producto = st.multiselect("Producto", sorted(df["Producto"].dropna().unique()),
+                                  default=sorted(df["Producto"].dropna().unique()))
         df = df[df["Producto"].isin(producto)]
 
-    # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique()),
-            key="filtro_canal"
-        )
+        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
+                               default=sorted(df["Canal"].dropna().unique()))
         df = df[df["Canal"].isin(canal)]
 
-    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-            key="filtro_vendedor"
-        )
+        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
+                                  default=sorted(df["Vendedor_Ruta"].dropna().unique()))
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
-    # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique()),
-            key="filtro_tipo_cliente"
-        )
+        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
+                                      default=sorted(df["Tipo_cliente"].dropna().unique()))
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
