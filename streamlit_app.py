@@ -969,7 +969,7 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
 # =========================
 # DETALLE
 # =========================
-elif st.session_state.vista == "detalle":
+if st.session_state.vista == "detalle":
 
     if st.button("⬅️ Volver"):
         st.session_state.vista = "inicio"
