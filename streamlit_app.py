@@ -581,6 +581,7 @@ elif vista == "recomendaciones":
 # =======================
 # RESUMEN
 # =======================
+
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
@@ -717,7 +718,7 @@ elif st.session_state.vista == "resumen":
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
             # =========================
-            # 📊 GRÁFICA MEJORADA
+            # 📊 GRÁFICA MEJORADA (SOMBRAS + CORTES)
             # =========================
             with st.expander(f"📊 Ver gráfica - {nombre}"):
 
@@ -727,6 +728,7 @@ elif st.session_state.vista == "resumen":
                 df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
                 df_g = df_g.sort_values("Periodo_dt")
 
+                # variación
                 if len(df_g) >= 2:
                     v1 = df_g.iloc[-2]["Ventas"]
                     v2 = df_g.iloc[-1]["Ventas"]
@@ -738,6 +740,29 @@ elif st.session_state.vista == "resumen":
 
                 fig = go.Figure()
 
+                # ===== SOMBRAS POR AÑO =====
+                df_g["Año"] = df_g["Periodo_dt"].dt.year
+                años = df_g["Año"].unique()
+
+                for j, año in enumerate(años):
+                    df_year = df_g[df_g["Año"] == año]
+
+                    fig.add_vrect(
+                        x0=df_year["Periodo"].iloc[0],
+                        x1=df_year["Periodo"].iloc[-1],
+                        fillcolor="lightgrey" if j % 2 == 0 else "white",
+                        opacity=0.2,
+                        line_width=0,
+                    )
+
+                    fig.add_vline(
+                        x=df_year["Periodo"].iloc[0],
+                        line_width=2,
+                        line_dash="dash",
+                        line_color="black"
+                    )
+
+                # ===== LÍNEA =====
                 fig.add_trace(go.Scatter(
                     x=df_g["Periodo"],
                     y=df_g["Ventas"],
@@ -746,6 +771,7 @@ elif st.session_state.vista == "resumen":
                     textposition="top center"
                 ))
 
+                # ===== ÚLTIMO PUNTO =====
                 fig.add_trace(go.Scatter(
                     x=[df_g.iloc[-1]["Periodo"]],
                     y=[df_g.iloc[-1]["Ventas"]],
