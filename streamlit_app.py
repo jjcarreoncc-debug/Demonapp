@@ -46,6 +46,7 @@ authenticator = stauth.Authenticate(
 
 # Logo arriba
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+name, authentication_status, username = authenticator.login("Login", location="main")
 if authentication_status is None:
     st.image("imagen_presentacion1.png", use_container_width=True)
     st.warning("Ingresa tus credenciales")
