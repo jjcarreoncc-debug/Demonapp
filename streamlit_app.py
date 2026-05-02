@@ -56,7 +56,7 @@ if authentication_status is None:
         "<style>img {max-height:100px; object-fit:cover;}</style>",
         unsafe_allow_html=True
     )
-    st.image("imagen_presentacion1.png", use_container_width=True)
+    st.image("imagen_presentacion1.png", width=300)
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
