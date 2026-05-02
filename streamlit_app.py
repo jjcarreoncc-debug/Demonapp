@@ -28,17 +28,14 @@ st.markdown("""
 # ------------------------
 # LOGO Y ENCABEZADO
 # ------------------------
-#logo = Image.open("LOOGO-TIDS-CONSULTING(2).jpg")  # usa el logo que ya subiste
-#st.image(logo, width=150)
-#st.markdown("### TIDS CONSULTING")
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
+st.markdown("### TIDS CONSULTING")
 
 # ------------------------
 # IMAGEN DE PRESENTACIÓN
 # ------------------------
-img_presentacion = Image.open("imagen_presentacion1.png")
-st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
-st.markdown("### TIDS CONSULTING")
-
+st.image("imagen_presentacion1.png", use_container_width=True)
+st.markdown("---")  # separador
 
 # ------------------------
 # LOGIN
