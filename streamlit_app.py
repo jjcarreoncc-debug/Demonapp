@@ -69,7 +69,7 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 if authentication_status is None:
 
     # Logo arriba
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=180)
+    
 
     # Login (ya lo tienes arriba por authenticator)
 
