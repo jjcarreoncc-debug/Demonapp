@@ -54,10 +54,19 @@ if authentication_status is False:
     st.stop()
 
 if authentication_status is None:
-   from PIL import Image
-   img = Image.open("imagen_presentacion1.png")
-   st.image(img, use_container_width=True)
+    from PIL import Image
 
+    # Espacio para bajarla un poco (opcional)
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # Columnas para mover a la derecha
+    col1, col2 = st.columns([1,3])
+
+    with col2:
+        img = Image.open("imagen_presentacion1.png")
+        st.image(img, use_container_width=True)
+
+    st.stop()
        
    st.stop()
 
