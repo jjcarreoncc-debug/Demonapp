@@ -578,6 +578,56 @@ elif vista == "recomendaciones":
         st.warning("Margen medio: optimizar operación")
     else:
         st.success("Margen saludable: escalar negocio")
+#### alertas 
+
+elif st.session_state.vista == "alertas":
+
+    st.title("🚨 Dashboard de Alertas")
+
+    if st.button("⬅️ Volver a Resumen"):
+        st.session_state.vista = "resumen"
+        st.rerun()
+
+    df_res = df.copy()
+    tabla = []
+
+    for dim in ["Canal", "Pais", "Region", "Producto"]:
+        if dim in df_res.columns:
+
+            df_t = df_res.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
+            df_t["Periodo"] = pd.to_datetime(df_t["Periodo"])
+            df_t = df_t.sort_values("Periodo")
+
+            for k, g in df_t.groupby(dim):
+
+                if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+
+                    v1 = g.iloc[-2]["Ventas"]
+                    v2 = g.iloc[-1]["Ventas"]
+
+                    var = (v2 - v1) / v1
+                    impacto = (v2 - v1)
+
+                    tabla.append([dim, k, var, impacto])
+
+    df_alertas = pd.DataFrame(
+        tabla,
+        columns=["Dimensión", "Elemento", "Variación", "Impacto $"]
+    )
+
+    if not df_alertas.empty:
+
+        df_alertas = df_alertas[abs(df_alertas["Variación"]) > 0.3]
+
+        if not df_alertas.empty:
+            st.dataframe(df_alertas, use_container_width=True)
+        else:
+            st.info("No hay alertas relevantes")
+
+    else:
+        st.info("No hay datos suficientes")
+
+    st.stop()        
 # =======================
 # RESUMEN
 # =======================
@@ -779,6 +829,7 @@ elif st.session_state.vista == "resumen":
             use_container_width=True
         )
 
+    
     # =========================
     # BOTÓN A ALERTAS 🔥
     # =========================
