@@ -684,7 +684,8 @@ elif st.session_state.vista == "alertas":
             # =========================
             # GRÁFICA
             # =========================
-            with st.expander(f"📊 Ver gráfica - {nombre}"):
+            
+with st.expander(f"📊 Ver gráfica - {nombre}"):
 
                 import plotly.graph_objects as go
 
@@ -899,7 +900,7 @@ elif st.session_state.vista == "resumen":
 
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
-    # GRÁFICA
+# GRÁFICA
 with st.expander(f"📊 Ver gráfica - {nombre}"):
 
    import plotly.graph_objects as go
