@@ -61,7 +61,7 @@ if authentication_status is None:
     col1, col2 = st.columns([1,3])
 
     with col2:
-        img = Image.open("imagen1.png")
+        img = Image.open("imagen7.png")
         # más ancho para no perder nitidez
         st.image(img, width=1400)
 
