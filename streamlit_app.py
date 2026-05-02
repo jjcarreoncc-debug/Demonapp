@@ -29,8 +29,8 @@ st.markdown("""
 # LOGO Y ENCABEZADO
 # ------------------------
 #logo = Image.open("LOOGO-TIDS-CONSULTING(2).jpg")  # usa el logo que ya subiste
-st.image(logo, width=150)
-st.markdown("### TIDS CONSULTING")
+#st.image(logo, width=150)
+#st.markdown("### TIDS CONSULTING")
 
 # ------------------------
 # IMAGEN DE PRESENTACIÓN
