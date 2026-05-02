@@ -374,7 +374,7 @@ if st.session_state.vista == "recomendaciones":
                 ])
 
             fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
-            st.plotly_chart(fig, use_container_width=True, key="grafica_1")
+            st.plotly_chart(fig, use_container_width=True, key=f"graf_{dim}_{nombre}")
 
         st.markdown("---")
 # ------------------------
