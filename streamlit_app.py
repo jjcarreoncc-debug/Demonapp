@@ -1,221 +1,39 @@
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import sqlite3
-from PIL import Image
-import streamlit_authenticator as stauth
-from streamlit_authenticator import Hasher
 
-# ------------------------
-# CONFIGURACIÓN DE PÁGINA
-# ------------------------
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
-# ------------------------
-# ESTILO
-# ------------------------
-st.markdown("""
-<style>
-.container {
-    background-color: #f0f2f6;
-    padding: 15px;
-    border-radius: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ------------------------
-# LOGIN
-# ------------------------
-passwords = ["1234", "abcd"]
-hashed_passwords = Hasher(passwords).generate()
-
-credentials = {
-    "usernames": {
-        "admin": {"name": "Admin", "password": hashed_passwords[0]},
-        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
-    }
-}
-
-authenticator = stauth.Authenticate(
-    credentials,
-    "mi_dashboard",
-    "abcdef",
-    cookie_expiry_days=1
-)
-
-name, authentication_status, username = authenticator.login("Login", location="main")
-
-# ------------------------
-# CONTROL LOGIN
-# ------------------------
-if authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-    st.stop()
-
-elif authentication_status is None:
-    st.warning("Ingresa tus credenciales")
-    st.stop()
-
-# ------------------------
-# HEADER (SOLO LOGUEADO)
-# ------------------------
-col1, col2 = st.columns([1, 6])
-
-with col1:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=100)
-
-with col2:
-    st.markdown("## TIDS CONSULTING")
-
-# Banner suave
-st.markdown("""
-<style>
-.banner {
-    background-image: url("imagen_presentacion1.png");
-    background-size: cover;
-    background-position: center;
-    height: 160px;
-    border-radius: 10px;
-    opacity: 0.2;
-    margin-bottom: 15px;
-}
-</style>
-
-<div class="banner"></div>
-""", unsafe_allow_html=True)
-
-# Sidebar usuario
-st.sidebar.write(f"👋 Bienvenido {name}")
-authenticator.logout("Cerrar sesión", "sidebar")
-
-# ------------------------
-# SESSION STATE
-# ------------------------
-if "vista" not in st.session_state:
-    st.session_state.vista = "principal"
-
-# ------------------------
-# BASE DE DATOS
-# ------------------------
-conn = sqlite3.connect("data.db")
-conn.execute("""
-CREATE TABLE IF NOT EXISTS ventas (
-    Fecha TEXT,
-    Nombre_Producto TEXT,
-    Numero_Producto TEXT,
-    Ventas_Cantidad REAL,
-    Pais TEXT,
-    Region TEXT,
-    Canal TEXT,
-    Vendedor_Ruta TEXT,
-    Tipo_cliente TEXT,
-    Precio_Venta REAL,
-    Costos_Venta REAL
-)
-""")
-
-# ------------------------
-# CARGA ARCHIVO
-# ------------------------
-archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
-
-if not archivo:
-    st.info("📂 Sube un archivo para comenzar")
-    st.stop()
-
-df = pd.read_excel(archivo)
-df.columns = df.columns.str.strip()
-
-# ------------------------
-# LIMPIEZA
-# ------------------------
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df = df.dropna(subset=["Fecha"])
-
-for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-    if col in df.columns:
-        df[col] = (
-            df[col].astype(str)
-            .str.replace(",", "")
-            .str.strip()
-        )
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-
-# ------------------------
-# MÉTRICAS
-# ------------------------
-df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-df["Ganancia"] = df["Ventas"] - df["Costos"]
-df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-# ------------------------
-# FILTROS EN SIDEBAR
-# ------------------------
-df_base = df.copy()
-
-with st.sidebar:
-    st.divider()
-    st.markdown("### 🎯 Filtros")
-
-    df = df_base.copy()
-
-    # PAÍS
-    if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
-        )
-        df = df[df["Pais"].isin(pais)]
-
-    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique())
-        )
+        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
+                                default=sorted(df["Region"].dropna().unique()))
         df = df[df["Region"].isin(region)]
 
-    # PRODUCTO
     if "Nombre_Producto" in df.columns:
-        producto = st.multiselect(
-            "Producto",
-            sorted(df["Nombre_Producto"].dropna().unique()),
-            default=sorted(df["Nombre_Producto"].dropna().unique())
-        )
+        producto = st.multiselect("Producto", sorted(df["Nombre_Producto"].dropna().unique()),
+                                  default=sorted(df["Nombre_Producto"].dropna().unique()))
         df = df[df["Nombre_Producto"].isin(producto)]
 
-    # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique())
-        )
+        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
+                               default=sorted(df["Canal"].dropna().unique()))
         df = df[df["Canal"].isin(canal)]
 
-    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique())
-        )
+        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
+                                  default=sorted(df["Vendedor_Ruta"].dropna().unique()))
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
-    # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique())
-        )
+        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
+                                      default=sorted(df["Tipo_cliente"].dropna().unique()))
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
-
 # ------------------------
+# DASHBOARD BÁSICO
+# ------------------------
+st.markdown("## 📊 Ventas por Periodo")
+
+ventas_periodo = df.groupby("Periodo")["Ventas"].sum().reset_index()
+
+fig = px.line(ventas_periodo, x="Periodo", y="Ventas", markers=True)
+st.plotly_chart(fig, use_container_width=True)
+    # ------------------------
     # RANGO DE FECHAS
     # ------------------------
     st.markdown("### 📅 Rango de fechas")
