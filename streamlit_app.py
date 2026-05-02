@@ -59,7 +59,7 @@ if authentication_status is None:
    st.image(img, use_container_width=True)
 
        
-    st.stop()
+   st.stop()
 
 # ------------------------
 # LOGIN OK
