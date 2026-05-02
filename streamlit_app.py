@@ -74,7 +74,7 @@ authenticator.logout("Cerrar sesión", "sidebar")
 # SESSION STATE
 # ------------------------
 if "vista" not in st.session_state:
-    st.session_state.vista = "principal"
+    st.session_state.vista = "inicio"
 # ------------------------
 # BASE DE DATOS
 # ------------------------
@@ -255,6 +255,16 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
+    # ------------------------
+# PANTALLA INICIAL
+# ------------------------
+
+if st.session_state.vista == "inicio":
+
+    st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
+    st.image("imagen8.png", use_container_width=True)
+
+    st.stop()
 # ------------------------
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
