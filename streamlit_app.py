@@ -7,34 +7,38 @@ import streamlit_authenticator as stauth
 # ------------------------
 # CONFIG
 # ------------------------
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
-# 🔹 ÚNICO CAMBIO: MARCA DE AGUA
 st.markdown("""
 <style>
-.watermark {
-    position: fixed;
-    bottom: -120px;
-    right: -150px;
-    width: 1100px;
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.block-container {
-    position: relative;
-    z-index: 1;
+/* Fondo gris para egación */
+.-container {
+    background-color: #f0f2f6;
+    padding: 15px;
+    border-radius: 10px;
 }
 </style>
+""", unsaf				e_allow_html=True)
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
-<img src="imagen_presentacion.png" class="watermark">
-""", unsafe_allow_html=True)
-
+# ------------------------
+#  SIEMPRE ARRIBA
+# ------------------------
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
+st.markdown("### TIDS CONSULTING")
+#--------------------------
+# UBICAR IMAGEN
+#--------------------------
+from PIL import Image
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
+st.image(logo, width=200)  # ajusta tamaño según prefieras
+st.markdown("---")  # separador
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
 # ------------------------
 from streamlit_authenticator import Hasher
+import streamlit_authenticator as stauth
 
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
@@ -57,9 +61,8 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
-
 # ------------------------
-# CONTROL LOGIN
+# CONTROL LOGIN (CLAVE)
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
@@ -70,15 +73,10 @@ elif authentication_status is None:
     st.stop()
 
 # ------------------------
-# SIDEBAR
+# LOGIN OK
 # ------------------------
-with st.sidebar:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=180)
-    st.markdown("### TIDS CONSULTING")
-    st.write(f"👋 Bienvenido {name}")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    authenticator.logout("Cerrar sesión", "sidebar")
+st.sidebar.write(f"👋 Bienvenido {name}")
+authenticator.logout("Cerrar sesión", "sidebar")
 
 # ------------------------
 # SESSION STATE
@@ -142,15 +140,9 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-ventas = df["Ventas"].sum()
-ganancia = df["Ganancia"].sum()
-margen = (ganancia / ventas * 100) if ventas != 0 else 0
-
-df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
-
 # ------------------------
-# SIDEBAR FILTROS + NAV
+# ------------------------
+# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
 df_base = df.copy()
 
@@ -161,110 +153,119 @@ with st.sidebar:
 
     df = df_base.copy()
 
+    # PAÍS
     if "Pais" in df.columns:
-        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()), default=sorted(df["Pais"].dropna().unique()))
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique()),
+            key="filtro_pais"
+        )
         df = df[df["Pais"].isin(pais)]
 
+    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()), default=sorted(df["Region"].dropna().unique()))
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique()),
+            key="filtro_region"
+        )
         df = df[df["Region"].isin(region)]
 
+    # PRODUCTO
+    if "Producto" in df.columns:
+        producto = st.multiselect(
+            "Producto",
+            sorted(df["Producto"].dropna().unique()),
+            default=sorted(df["Producto"].dropna().unique()),
+            key="filtro_producto"
+        )
+        df = df[df["Producto"].isin(producto)]
+
+    # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()), default=sorted(df["Canal"].dropna().unique()))
+        canal = st.multiselect(
+            "Canal",
+            sorted(df["Canal"].dropna().unique()),
+            default=sorted(df["Canal"].dropna().unique()),
+            key="filtro_canal"
+        )
         df = df[df["Canal"].isin(canal)]
 
+    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()), default=sorted(df["Vendedor_Ruta"].dropna().unique()))
+        vendedor = st.multiselect(
+            "Vendedor",
+            sorted(df["Vendedor_Ruta"].dropna().unique()),
+            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
+            key="filtro_vendedor"
+        )
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
+    # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()), default=sorted(df["Tipo_cliente"].dropna().unique()))
+        tipo_cliente = st.multiselect(
+            "Tipo cliente",
+            sorted(df["Tipo_cliente"].dropna().unique()),
+            default=sorted(df["Tipo_cliente"].dropna().unique()),
+            key="filtro_tipo_cliente"
+        )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
+    # ------------------------
+    # RANGO DE FECHAS
+    # ------------------------
+    st.markdown("### 📅 Rango de fechas")
+    fecha_min = df["Fecha"].min()
+    fecha_max = df["Fecha"].max()
+
+    fecha_ini, fecha_fin = st.date_input(
+        "Selecciona fecha inicial y final",
+        value=(fecha_min, fecha_max),
+        min_value=fecha_min,
+        max_value=fecha_max,
+        key="filtro_rango_fecha"
+    )
+
+    df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+            (df["Fecha"] <= pd.to_datetime(fecha_fin))]
+
+    # recalcular Periodo
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+    st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
     st.divider()
+
+    # ------------------------
+    # NAVEGACIÓN
+    # ------------------------
     st.markdown("### 🚦 Navegación")
 
-    if st.button("📊 Principal"):
+    if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
 
-    if st.button("🚦 Volatilidad"):
+    if st.button("🚦 Volatilidad", key="nav_volatilidad"):
         st.session_state.vista = "volatilidad"
 
-    if st.button("👤 Responsables"):
+    if st.button("👤 Responsables", key="nav_responsables"):
         st.session_state.vista = "responsables"
 
-    if st.button("🧠 Causas"):
+    if st.button("🧠 Causas", key="nav_causas"):
         st.session_state.vista = "causas"
 
-    if st.button("📋 Log"):
+    if st.button("📋 Log", key="nav_log"):
         st.session_state.vista = "log"
 
-    if st.button("📌 Recomendaciones"):
+    if st.button("🔎 Detalle", key="nav_detalle"):
+        st.session_state.vista = "detalle"
+
+    if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
         st.session_state.vista = "recomendaciones"
 
+    if st.button("🧠 Resumen", key="nav_resumen"):
+        st.session_state.vista = "resumen"
 # ------------------------
-# DASHBOARD
-# ------------------------
-vista = st.session_state.vista
-
-if vista == "principal":
-
-    st.markdown("## 📊 Dashboard Ejecutivo")
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Ventas", f"${ventas:,.0f}")
-    c2.metric("Ganancia", f"${ganancia:,.0f}")
-    c3.metric("Margen", f"{margen:.1f}%")
-
-    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
-
-elif vista == "volatilidad":
-
-    st.markdown("## 🚦 Volatilidad")
-
-    ratio = ganancia / ventas if ventas != 0 else 0
-
-    if ratio > 0.3:
-        st.error(f"Alta volatilidad ({ratio:.2f})")
-    elif ratio > 0.15:
-        st.warning(f"Volatilidad media ({ratio:.2f})")
-    else:
-        st.success(f"Volatilidad baja ({ratio:.2f})")
-
-elif vista == "responsables":
-
-    st.markdown("## 👤 Responsables")
-
-    if "Vendedor_Ruta" in df.columns:
-        df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
-        st.dataframe(df_r)
-
-elif vista == "causas":
-
-    st.markdown("## 🧠 Causas")
-
-    if "Producto" in df.columns:
-        df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
-        st.dataframe(df_c)
-
-elif vista == "log":
-
-    st.markdown("## 📋 Log")
-    st.write("Filas cargadas:", len(df))
-    st.dataframe(df.head(20))
-
-elif vista == "recomendaciones":
-
-    st.markdown("## 📌 Recomendaciones")
-
-    if margen < 20:
-        st.error("Margen bajo: revisar costos o precios")
-    elif margen < 35:
-        st.warning("Margen medio: optimizar operación")
-    else:
-        st.success("Margen saludable: escalar negocio")
-
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
 # =========================
@@ -806,3 +807,4 @@ elif st.session_state.vista == "log":
 
         else:
             st.s
+
