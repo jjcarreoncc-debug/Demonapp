@@ -50,13 +50,7 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # Login
 name, authentication_status, username = authenticator.login("Login", location="main")
 
-# Imagen fija abajo SOLO en login
-if authentication_status is None:
-    st.markdown(
-        "<style>img {max-height:100px; object-fit:cover;}</style>",
-        unsafe_allow_html=True
-    )
-    st.image("imagen_presentacion1.png", width=300)
+st.image("imagen_presentacion1.png", width=300)
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
