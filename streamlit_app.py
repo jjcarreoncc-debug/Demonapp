@@ -264,10 +264,6 @@ elif vista == "recomendaciones":
         st.warning("Margen medio: optimizar operación")
     else:
         st.success("Margen saludable: escalar negocio")
-✅ LISTO
-
-👉 Este es tu código estable
-👉 Solo tiene la marca de agua
 
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
