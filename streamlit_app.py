@@ -261,12 +261,10 @@ with st.sidebar:
 
 if st.session_state.vista == "inicio":
 
-    st.markdown
-    ("## 👈 Selecciona opciones en el panel izquierdo")
-
-    
+    st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
     st.image("imagen8.png", width=1400)
-    
+
+    st.stop()    
 # ------------------------
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
 # =========================
@@ -280,13 +278,7 @@ if st.session_state.vista == "recomendaciones":
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
-
-if st.session_state.get("filtro_pais") is None:
-
-    st.markdown("## 👈 Selecciona filtros en el panel izquierdo")
-    st.image("imagen8.png", use_container_width=True)
-
-    
+ 
     
     st.title("📌 Recomendaciones Estratégicas")
 
