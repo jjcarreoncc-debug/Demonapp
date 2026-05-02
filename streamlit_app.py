@@ -63,7 +63,7 @@ if authentication_status is None:
     col1, col2 = st.columns([2,5])
 
     with col2:
-        img = Image.open("imagen_presentacion1.png")
+        img = Image.open("imagen3.png")
         st.image(img, width=5000)  # tamaño controlado
 
      
