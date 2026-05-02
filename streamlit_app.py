@@ -656,7 +656,7 @@ elif st.session_state.vista == "resumen":
     )
 
     # =========================
-    # INSIGHTS AUTOMÁTICOS (🔥 NUEVO)
+    # INSIGHTS AUTOMÁTICOS
     # =========================
     if not df_tabla.empty:
 
@@ -680,19 +680,12 @@ elif st.session_state.vista == "resumen":
             """)
 
     # =========================
-    # ALERTAS (🔥 NUEVO)
+    # BOTÓN ALERTAS (NUEVO)
     # =========================
-    if not df_tabla.empty:
+    st.markdown("## 🚨 Alertas")
 
-        st.markdown("## 🚨 Alertas relevantes")
-
-        alertas = df_tabla[abs(df_tabla["Variación"]) > 0.3]
-
-        for _, row in alertas.iterrows():
-            if row["Variación"] > 0:
-                st.warning(f"📈 Crecimiento inusual en {row['Elemento']} ({row['Variación']:.1%})")
-            else:
-                st.warning(f"📉 Caída fuerte en {row['Elemento']} ({row['Variación']:.1%})")
+    if st.button("Ver dashboard de alertas"):
+        st.session_state.vista = "alertas"
 
     # =========================
     # TOP IMPACTOS + INTERACTIVO
@@ -716,9 +709,7 @@ elif st.session_state.vista == "resumen":
 
             df_det = df[df[dim] == nombre]
 
-            # =========================
             # DETALLE TABLA
-            # =========================
             with st.expander(f"🔍 Ver detalle - {nombre}"):
 
                 tabla_det = []
@@ -754,9 +745,7 @@ elif st.session_state.vista == "resumen":
 
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
-            # =========================
-            # GRÁFICA (YA PRO)
-            # =========================
+            # GRÁFICA
             with st.expander(f"📊 Ver gráfica - {nombre}"):
 
                 import plotly.graph_objects as go
@@ -816,9 +805,7 @@ elif st.session_state.vista == "resumen":
 
             st.markdown("---")
 
-        # =========================
         # TABLA FINAL
-        # =========================
         st.markdown("### 📋 Tabla completa")
 
         df_display = df_tabla.copy()
