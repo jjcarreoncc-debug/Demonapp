@@ -64,7 +64,8 @@ if authentication_status is None:
 
     with col2:
         img = Image.open("imagen_presentacion1.png")
-        st.image(img, use_container_width=True)
+        st.image(img, width=500)  # tamaño controlado
+
      
     st.stop()
 
