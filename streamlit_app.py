@@ -262,7 +262,10 @@ with st.sidebar:
 if st.session_state.vista == "inicio":
 
     st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
-    
+
+    col1, col2 = st.columns([1.5, 3])
+
+with col2:
     st.image("imagen8.png", use_container_width=True)
 
     st.stop()
