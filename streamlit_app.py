@@ -1,4 +1,5 @@
-import streamlit as st
+
+    import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3
@@ -13,7 +14,7 @@ from streamlit_authenticator import Hasher
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-# HEADER GLOBAL (SIEMPRE VISIBLE)
+# HEADER GLOBAL
 # ------------------------
 col1, col2 = st.columns([1, 6])
 
@@ -57,7 +58,7 @@ elif authentication_status is None:
     st.stop()
 
 # ------------------------
-# BANNER (SEGURO CON BASE64)
+# BANNER BASE64
 # ------------------------
 def get_base64_image(file):
     with open(file, "rb") as img:
@@ -81,7 +82,7 @@ st.markdown(f"""
 <div class="banner"></div>
 """, unsafe_allow_html=True)
 
-# Sidebar usuario
+# Sidebar
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
@@ -147,7 +148,7 @@ df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
 # ------------------------
-# FILTROS EN SIDEBAR
+# FILTROS
 # ------------------------
 df_base = df.copy()
 
@@ -157,38 +158,61 @@ with st.sidebar:
 
     df = df_base.copy()
 
+    # 📅 RANGO DE FECHAS
+    st.markdown("### 📅 Rango de fechas")
+    fecha_min = df_base["Fecha"].min()
+    fecha_max = df_base["Fecha"].max()
+
+    rango_fechas = st.date_input(
+        "Selecciona fecha inicial y final",
+        value=(fecha_min, fecha_max),
+        min_value=fecha_min,
+        max_value=fecha_max
+    )
+
+    if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
+        fecha_ini, fecha_fin = rango_fechas
+        df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+                (df["Fecha"] <= pd.to_datetime(fecha_fin))]
+
+    # PAÍS
     if "Pais" in df.columns:
         pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
                               default=sorted(df["Pais"].dropna().unique()))
         df = df[df["Pais"].isin(pais)]
 
+    # REGIÓN
     if "Region" in df.columns:
         region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
                                 default=sorted(df["Region"].dropna().unique()))
         df = df[df["Region"].isin(region)]
 
+    # PRODUCTO
     if "Nombre_Producto" in df.columns:
         producto = st.multiselect("Producto", sorted(df["Nombre_Producto"].dropna().unique()),
                                   default=sorted(df["Nombre_Producto"].dropna().unique()))
         df = df[df["Nombre_Producto"].isin(producto)]
 
+    # CANAL
     if "Canal" in df.columns:
         canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
                                default=sorted(df["Canal"].dropna().unique()))
         df = df[df["Canal"].isin(canal)]
 
+    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
         vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
                                   default=sorted(df["Vendedor_Ruta"].dropna().unique()))
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
+    # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
         tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
                                       default=sorted(df["Tipo_cliente"].dropna().unique()))
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
 # ------------------------
-# DASHBOARD BÁSICO
+# DASHBOARD
 # ------------------------
 st.markdown("## 📊 Ventas por Periodo")
 
@@ -196,7 +220,6 @@ ventas_periodo = df.groupby("Periodo")["Ventas"].sum().reset_index()
 
 fig = px.line(ventas_periodo, x="Periodo", y="Ventas", markers=True)
 st.plotly_chart(fig, use_container_width=True)
-    
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
