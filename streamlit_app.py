@@ -65,12 +65,14 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # ------------------------
 if authentication_status is None:
 
-    st.markdown('<div class="centered-image">', unsafe_allow_html=True)
+    if authentication_status is None:
 
-    st.image("imagen_presentacion1.png", use_container_width=True)
+    col1, col2, col3 = st.columns([1,4,1])
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    with col2:
+        st.image("imagen_presentacion1.png", use_container_width=True)
 
+    st.stop()
     
 
 # ------------------------
