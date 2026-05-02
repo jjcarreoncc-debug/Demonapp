@@ -16,29 +16,14 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsaf				e_allow_html=True)
+""", unsafe_allow_html=True)
+
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
-# ------------------------
-#  SIEMPRE ARRIBA
-# ------------------------
-st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
-st.markdown("### TIDS CONSULTING")
-#--------------------------
-# UBICAR IMAGEN
-#--------------------------
-from PIL import Image
-img = Image.open("assets/imagen_presentacion.png")
-st.image(img, use_column_width=True)
-st.image(logo, width=200)  # ajusta tamaño según prefieras
-st.markdown("---")  # separador
-img = Image.open("assets/imagen_presentacion.png")
-st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
 # ------------------------
 from streamlit_authenticator import Hasher
-import streamlit_authenticator as stauth
 
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
@@ -60,7 +45,35 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 
+# ------------------------
+# LOGIN CON DISEÑO (SOLO LOGIN)
+# ------------------------
+
+# Logo arriba
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# Login
 name, authentication_status, username = authenticator.login("Login", location="main")
+
+# Imagen abajo tipo marca de agua SOLO en login
+if authentication_status is None:
+    st.markdown("""
+    <style>
+    .login-bg {
+        position: fixed;
+        bottom: -80px;
+        right: -100px;
+        width: 900px;
+        opacity: 0.05;
+        pointer-events: none;
+        z-index: 0;
+    }
+    </style>
+    <img src="imagen_presentacion.png" class="login-bg">
+    """, unsafe_allow_html=True)
+
 # ------------------------
 # CONTROL LOGIN (CLAVE)
 # ------------------------
@@ -104,7 +117,6 @@ CREATE TABLE IF NOT EXISTS ventas (
     Costos_Venta REAL
 )
 """)
-
 # ------------------------
 # CARGA ARCHIVO
 # ------------------------
