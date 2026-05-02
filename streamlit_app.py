@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -16,7 +17,8 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsaf				e_allow_html=True)
+""", unsafe_allow_html=True)  # ✅ CORREGIDO (tenías texto roto aquí)
+
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
@@ -24,16 +26,13 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # ------------------------
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
 st.markdown("### TIDS CONSULTING")
+
 #--------------------------
-# UBICAR IMAGEN
+# UBICAR IMAGEN (CORREGIDO)
 #--------------------------
-from PIL import Image
-img = Image.open("assets/imagen_presentacion.png")
-st.image(img, use_column_width=True)
-st.image(logo, width=200)  # ajusta tamaño según prefieras
-st.markdown("---")  # separador
-img = Image.open("assets/imagen_presentacion.png")
-st.image(img, use_column_width=True)
+st.image("assets/imagen_presentacion.png", use_container_width=True)
+st.markdown("---")
+
 # ------------------------
 # LOGIN
 # ------------------------
@@ -61,6 +60,7 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
+
 # ------------------------
 # CONTROL LOGIN (CLAVE)
 # ------------------------
@@ -140,9 +140,9 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
 # ------------------------
-# ------------------------
-# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
+# FILTROS
 # ------------------------
 df_base = df.copy()
 
@@ -204,6 +204,15 @@ with st.sidebar:
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
     # TIPO CLIENTE
+    if "Tipo_cliente" in df.columns:
+        tipo_cliente = st.multiselect(
+            "Tipo cliente",
+            sorted(df["Tipo_cliente"].dropna().unique()),
+            default=sorted(df["Tipo_cliente"].dropna().unique()),
+            key="filtro_tipo_cliente"
+        )
+        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+# TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
         tipo_cliente = st.multiselect(
             "Tipo cliente",
