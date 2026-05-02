@@ -57,7 +57,7 @@ if authentication_status is None:
     from PIL import Image
 
     # Espacio para bajarla un poco (opcional)
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    #st.markdown("<", unsafe_allow_html=True)
 
     # Columnas para mover a la derecha
     col1, col2 = st.columns([2,8])
