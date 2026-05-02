@@ -581,6 +581,7 @@ elif vista == "recomendaciones":
 # =======================
 # RESUMEN
 # =======================
+
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
@@ -589,7 +590,7 @@ elif st.session_state.vista == "resumen":
     st.title("🧠 Resumen Ejecutivo")
 
     # =========================
-    # PROYECCIÓN + TENDENCIA (ALINEADO)
+    # PROYECCIÓN + TENDENCIA
     # =========================
     st.subheader("📈 Proyección")
 
@@ -627,7 +628,7 @@ elif st.session_state.vista == "resumen":
     tabla = []
 
     # =========================
-    # GENERACIÓN DE TABLA
+    # GENERAR TABLA BASE
     # =========================
     for dim in ["Canal", "Pais", "Region", "Producto"]:
         if dim in df_res.columns:
@@ -656,7 +657,7 @@ elif st.session_state.vista == "resumen":
     )
 
     # =========================
-    # RESUMEN EJECUTIVO (TOP)
+    # TOP IMPACTOS + INTERACTIVO
     # =========================
     if not df_tabla.empty:
 
@@ -664,17 +665,77 @@ elif st.session_state.vista == "resumen":
 
         top = df_tabla.sort_values("Impacto $", ascending=False).head(5)
 
-        for _, row in top.iterrows():
-            if row["Impacto $"] > 0:
-                st.success(f"🟢 {row['Elemento']} impulsa crecimiento (${row['Impacto $']:,.0f})")
+        for i, row in top.iterrows():
+
+            dim = row["Dimensión"]
+            nombre = row["Elemento"]
+            impacto = row["Impacto $"]
+
+            # MENSAJE
+            if impacto > 0:
+                st.success(f"🟢 {nombre} impulsa crecimiento (${impacto:,.0f})")
             else:
-                st.error(f"🔴 {row['Elemento']} afecta resultado (${row['Impacto $']:,.0f})")
+                st.error(f"🔴 {nombre} afecta resultado (${impacto:,.0f})")
 
-        st.markdown("---")
+            df_det = df[df[dim] == nombre]
+
+            # =========================
+            # 🔍 DETALLE TABLA
+            # =========================
+            with st.expander(f"🔍 Ver detalle - {nombre}"):
+
+                tabla_det = []
+
+                for subdim in ["Producto", "Region", "Canal"]:
+                    if subdim in df_det.columns and subdim != dim:
+
+                        df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+                        df_sub = df_sub.sort_values("Periodo")
+
+                        for k2, g2 in df_sub.groupby(subdim):
+                            if len(g2) >= 2 and g2.iloc[-2]["Ventas"] != 0:
+
+                                v1_sub = g2.iloc[-2]["Ventas"]
+                                v2_sub = g2.iloc[-1]["Ventas"]
+                                var_sub = (v2_sub - v1_sub) / v1_sub
+
+                                semaforo = "🟢" if var_sub > 0 else "🔴"
+
+                                tabla_det.append([
+                                    subdim,
+                                    k2,
+                                    v1_sub,
+                                    v2_sub,
+                                    f"{semaforo} {var_sub:.1%}"
+                                ])
+
+                if tabla_det:
+                    df_tabla_det = pd.DataFrame(
+                        tabla_det,
+                        columns=["Dimensión", "Elemento", "Anterior", "Actual", "Variación"]
+                    )
+
+                    st.dataframe(df_tabla_det.head(5), use_container_width=True)
+
+            # =========================
+            # 📊 GRÁFICA
+            # =========================
+            with st.expander(f"📊 Ver gráfica - {nombre}"):
+
+                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
+                df_g = df_g.sort_values("Periodo_dt")
+
+                fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
+                st.plotly_chart(fig, use_container_width=True, key=f"graf_res_{i}")
+
+            st.markdown("---")
 
         # =========================
-        # TABLA FINAL
+        # TABLA GENERAL
         # =========================
+        st.markdown("### 📋 Tabla completa")
+
         df_display = df_tabla.copy()
         df_display["Variación"] = df_display["Variación"].apply(lambda x: format_color(x, "var"))
         df_display["Impacto $"] = df_display["Impacto $"].apply(lambda x: format_color(x, "money"))
