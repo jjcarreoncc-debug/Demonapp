@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
-
+import base64
 # ------------------------
 # CONFIG
 # ------------------------
@@ -46,6 +46,62 @@ authenticator = stauth.Authenticate(
 
 # Logo arriba
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+import streamlit as st
+import base64
+import os
+
+# ------------------------
+# DEBUG ARCHIVOS
+# ------------------------
+st.write("DEBUG archivos en carpeta:")
+st.write(os.listdir())
+
+# ------------------------
+# FUNCIÓN BASE64
+# ------------------------
+def get_base64(img_file):
+    try:
+        with open(img_file, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except Exception as e:
+        st.error(f"Error cargando imagen: {e}")
+        return None
+
+# ------------------------
+# CARGAR IMAGEN
+# ------------------------
+img_base64 = get_base64("imagen_presentacion1.png")
+
+# ------------------------
+# DEBUG BASE64
+# ------------------------
+if img_base64:
+    st.write("DEBUG: imagen cargada correctamente")
+else:
+    st.write("DEBUG: imagen NO cargó")
+
+# ------------------------
+# MOSTRAR IMAGEN COMO BANNER
+# ------------------------
+if img_base64:
+    st.markdown(f"""
+    <style>
+    .banner {{
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background-image: url("data:image/png;base64,{img_base64}");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.9;
+    }}
+    </style>
+
+    <div class="banner"></div>
+    """, unsafe_allow_html=True)
 
 # Login
 name, authentication_status, username = authenticator.login("Login", location="main")
