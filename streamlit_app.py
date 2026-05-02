@@ -50,7 +50,23 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # Login
 name, authentication_status, username = authenticator.login("Login", location="main")
 
-st.image("imagen_presentacion1.png", width=8000)
+if authentication_status is None:
+    col1, col2, col3 = st.columns([0.01, 1, 0.01])
+
+    with col2:
+        st.markdown(
+            """
+            <style>
+            img {
+                width: 100%;
+                height: 80px;
+                object-fit: cover;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+        st.image("imagen_presentacion1.png")
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
