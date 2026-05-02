@@ -629,11 +629,7 @@ elif st.session_state.vista == "alertas":
             nombre = row["Elemento"]
             var = row["Variación"]
 
-            if var > 0:
-                st.warning(f"📈 Crecimiento inusual en {nombre} ({var:.1%})")
-            else:
-                st.warning(f"📉 Caída fuerte en {nombre} ({var:.1%})")
-
+            st.warning(f"...")
             df_det = df[df[dim] == nombre]
 
             # =========================
@@ -643,7 +639,7 @@ elif st.session_state.vista == "alertas":
 
                 tabla_det = []
 
-                for subdim in ["Producto", "Region", "Canal"]:
+                for subdim in ["Producto", "    Region", "Canal"]:
                     if subdim in df_det.columns and subdim != dim:
 
                         df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
