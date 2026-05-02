@@ -11,58 +11,23 @@ import base64
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-# MARCA DE AGUA
+# MARCA DE AGUA (FUNCIONAL)
 # ------------------------
-def get_base64_image(image_path):
-    with open(image_path, "rb") as f:
+def get_base64_image(path):
+    with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-img_base64 = get_base64_image("imagen_presentacion.png")
+img = get_base64_image("imagen_presentacion.png")
 
 st.markdown(f"""
 <style>
-
-/* Marca de agua */
-.stApp::before {{
-    content: "";
-    position: fixed;
-    top: 55%;
-    left: 65%;
-    transform: translate(-50%, -50%);
-    width: 700px;
-    height: 300px;
-    background-image: url("data:image/png;base64,{img_base64}");
+.stApp {{
+    background-image: url("data:image/png;base64,{img}");
     background-repeat: no-repeat;
-    background-size: contain;
-    opacity: 0.10;
-    pointer-events: none;
-    z-index: 0;
+    background-position: 70% 60%;
+    background-size: 600px;
+    background-attachment: fixed;
 }}
-
-/* Contenido encima */
-.main {{
-    position: relative;
-    z-index: 1;
-}}
-
-/* Sidebar spacing */
-section[data-testid="stSidebar"] {{
-    padding-top: 40px;
-}}
-
-/* Logo sidebar */
-.sidebar-logo {{
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}}
-
-/* Logout spacing */
-.logout-btn {{
-    margin-top: 20px;
-    margin-bottom: 20px;
-}}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -108,15 +73,13 @@ elif authentication_status is None:
 # SIDEBAR (LOGO + USER)
 # ------------------------
 with st.sidebar:
-    st.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("### TIDS CONSULTING")
 
     st.write(f"👋 Bienvenido {name}")
 
-    st.markdown('<div class="logout-btn">', unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     authenticator.logout("Cerrar sesión", "sidebar")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------
 # SESSION STATE
@@ -299,7 +262,6 @@ with st.sidebar:
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
-
 
 
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
