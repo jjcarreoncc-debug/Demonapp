@@ -50,7 +50,7 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # Login
 name, authentication_status, username = authenticator.login("Login", location="main")
 
-st.image("imagen_presentacion1.png", width=300)
+st.image("imagen_presentacion1.png", width=1000)
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
