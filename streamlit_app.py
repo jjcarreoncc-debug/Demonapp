@@ -149,9 +149,8 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
 # ------------------------
-# FILTROS
+# FILTROS EN SIDEBAR
 # ------------------------
 df_base = df.copy()
 
@@ -161,50 +160,61 @@ with st.sidebar:
 
     df = df_base.copy()
 
+    # PAÍS
     if "Pais" in df.columns:
-        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
-                              default=sorted(df["Pais"].dropna().unique()))
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique())
+        )
         df = df[df["Pais"].isin(pais)]
 
+    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
-                                default=sorted(df["Region"].dropna().unique()))
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique())
+        )
         df = df[df["Region"].isin(region)]
 
+    # PRODUCTO
     if "Nombre_Producto" in df.columns:
-        producto = st.multiselect("Producto", sorted(df["Nombre_Producto"].dropna().unique()),
-                                  default=sorted(df["Nombre_Producto"].dropna().unique()))
+        producto = st.multiselect(
+            "Producto",
+            sorted(df["Nombre_Producto"].dropna().unique()),
+            default=sorted(df["Nombre_Producto"].dropna().unique())
+        )
         df = df[df["Nombre_Producto"].isin(producto)]
 
+    # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
-                               default=sorted(df["Canal"].dropna().unique()))
+        canal = st.multiselect(
+            "Canal",
+            sorted(df["Canal"].dropna().unique()),
+            default=sorted(df["Canal"].dropna().unique())
+        )
         df = df[df["Canal"].isin(canal)]
 
+    # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
-                                  default=sorted(df["Vendedor_Ruta"].dropna().unique()))
+        vendedor = st.multiselect(
+            "Vendedor",
+            sorted(df["Vendedor_Ruta"].dropna().unique()),
+            default=sorted(df["Vendedor_Ruta"].dropna().unique())
+        )
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
+    # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
-                                      default=sorted(df["Tipo_cliente"].dropna().unique()))
+        tipo_cliente = st.multiselect(
+            "Tipo cliente",
+            sorted(df["Tipo_cliente"].dropna().unique()),
+            default=sorted(df["Tipo_cliente"].dropna().unique())
+        )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
-# ------------------------
-# EJEMPLO DASHBOARD
-# ------------------------
-st.markdown("## 📊 Ventas por Periodo")
 
-ventas_periodo = df.groupby("Periodo")["Ventas"].sum().reset_index()
-
-fig = px.line(ventas_periodo, x="Periodo", y="Ventas", markers=True)
-st.plotly_chart(fig, use_container_width=True)
-
-# TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()), default=sorted(df["Tipo_cliente"].dropna().unique()), key="filtro_tipo_cliente")
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 # ------------------------
     # RANGO DE FECHAS
     # ------------------------
