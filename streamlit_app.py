@@ -86,7 +86,7 @@ if authentication_status is None:
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="banner"></div>', unsafe_allow_html=True)
-
+    st.stop()
     st.warning("Ingresa tus credenciales")
 
     st.stop()
