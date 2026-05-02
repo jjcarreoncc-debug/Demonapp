@@ -63,16 +63,23 @@ st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 # ------------------------
 # LOGIN VIEW (PORTADA)
 # ------------------------
-
+# ------------------------
+# LOGIN VIEW (BANNER TIPO WORD)
+# ------------------------
 if authentication_status is None:
 
-    col1, col2, col3 = st.columns([1,4,1])
+    # Logo arriba
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=180)
 
-    with col2:
-        st.image("imagen_presentacion1.png", use_container_width=True)
+    # Login (ya lo tienes arriba por authenticator)
 
-    st.stop()    
+    # Espacio
+    st.markdown("<br>", unsafe_allow_html=True)
 
+    # Imagen tipo banner ancho completo
+    st.image("imagen_presentacion1.png", use_container_width=True)
+
+    st.stop()
 # ------------------------
 # LOGIN ERROR
 # ------------------------
