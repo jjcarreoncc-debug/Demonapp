@@ -581,7 +581,6 @@ elif vista == "recomendaciones":
 # =======================
 # RESUMEN
 # =======================
-
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
@@ -657,6 +656,45 @@ elif st.session_state.vista == "resumen":
     )
 
     # =========================
+    # INSIGHTS AUTOMÁTICOS (🔥 NUEVO)
+    # =========================
+    if not df_tabla.empty:
+
+        st.markdown("## 🧠 Insights automáticos")
+
+        top_crece = df_tabla.sort_values("Impacto $", ascending=False).head(1)
+        top_cae = df_tabla.sort_values("Impacto $").head(1)
+
+        if not top_crece.empty:
+            row = top_crece.iloc[0]
+            st.success(f"""
+            🔥 El crecimiento está impulsado por **{row['Elemento']}** 
+            en {row['Dimensión']} con impacto de ${row['Impacto $']:,.0f}
+            """)
+
+        if not top_cae.empty:
+            row = top_cae.iloc[0]
+            st.error(f"""
+            ⚠️ La principal caída viene de **{row['Elemento']}**
+            en {row['Dimensión']} con impacto de ${row['Impacto $']:,.0f}
+            """)
+
+    # =========================
+    # ALERTAS (🔥 NUEVO)
+    # =========================
+    if not df_tabla.empty:
+
+        st.markdown("## 🚨 Alertas relevantes")
+
+        alertas = df_tabla[abs(df_tabla["Variación"]) > 0.3]
+
+        for _, row in alertas.iterrows():
+            if row["Variación"] > 0:
+                st.warning(f"📈 Crecimiento inusual en {row['Elemento']} ({row['Variación']:.1%})")
+            else:
+                st.warning(f"📉 Caída fuerte en {row['Elemento']} ({row['Variación']:.1%})")
+
+    # =========================
     # TOP IMPACTOS + INTERACTIVO
     # =========================
     if not df_tabla.empty:
@@ -671,7 +709,6 @@ elif st.session_state.vista == "resumen":
             nombre = row["Elemento"]
             impacto = row["Impacto $"]
 
-            # MENSAJE
             if impacto > 0:
                 st.success(f"🟢 {nombre} impulsa crecimiento (${impacto:,.0f})")
             else:
@@ -680,7 +717,7 @@ elif st.session_state.vista == "resumen":
             df_det = df[df[dim] == nombre]
 
             # =========================
-            # 🔍 DETALLE TABLA
+            # DETALLE TABLA
             # =========================
             with st.expander(f"🔍 Ver detalle - {nombre}"):
 
@@ -718,7 +755,7 @@ elif st.session_state.vista == "resumen":
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
             # =========================
-            # 📊 GRÁFICA MEJORADA (SOMBRAS + CORTES)
+            # GRÁFICA (YA PRO)
             # =========================
             with st.expander(f"📊 Ver gráfica - {nombre}"):
 
@@ -728,7 +765,6 @@ elif st.session_state.vista == "resumen":
                 df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
                 df_g = df_g.sort_values("Periodo_dt")
 
-                # variación
                 if len(df_g) >= 2:
                     v1 = df_g.iloc[-2]["Ventas"]
                     v2 = df_g.iloc[-1]["Ventas"]
@@ -740,7 +776,6 @@ elif st.session_state.vista == "resumen":
 
                 fig = go.Figure()
 
-                # ===== SOMBRAS POR AÑO =====
                 df_g["Año"] = df_g["Periodo_dt"].dt.year
                 años = df_g["Año"].unique()
 
@@ -758,11 +793,9 @@ elif st.session_state.vista == "resumen":
                     fig.add_vline(
                         x=df_year["Periodo"].iloc[0],
                         line_width=2,
-                        line_dash="dash",
-                        line_color="black"
+                        line_dash="dash"
                     )
 
-                # ===== LÍNEA =====
                 fig.add_trace(go.Scatter(
                     x=df_g["Periodo"],
                     y=df_g["Ventas"],
@@ -771,29 +804,20 @@ elif st.session_state.vista == "resumen":
                     textposition="top center"
                 ))
 
-                # ===== ÚLTIMO PUNTO =====
                 fig.add_trace(go.Scatter(
                     x=[df_g.iloc[-1]["Periodo"]],
                     y=[df_g.iloc[-1]["Ventas"]],
                     mode="markers+text",
-                    marker=dict(size=12),
                     text=[f"{texto_estado}\n{var:.1%}"],
                     textposition="bottom center"
                 ))
-
-                fig.update_layout(
-                    title=f"{nombre} | Variación: {var:.1%}",
-                    xaxis_title="Periodo",
-                    yaxis_title="Ventas",
-                    showlegend=False
-                )
 
                 st.plotly_chart(fig, use_container_width=True, key=f"graf_res_{i}")
 
             st.markdown("---")
 
         # =========================
-        # TABLA GENERAL
+        # TABLA FINAL
         # =========================
         st.markdown("### 📋 Tabla completa")
 
