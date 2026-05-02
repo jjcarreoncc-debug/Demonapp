@@ -250,37 +250,36 @@ if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
 
 st.divider()
     
-    # ------------------------
-    # NAVEGACIÓN
-    # ------------------------
-    st.markdown("### 🚦 Navegación")
-
-    if st.button("📊 Principal", key="nav_principal"):
-        st.session_state.vista = "principal"
-
-    if st.button("🚦 Volatilidad", key="nav_volatilidad"):
-        st.session_state.vista = "volatilidad"
-
-    if st.button("👤 Responsables", key="nav_responsables"):
-        st.session_state.vista = "responsables"
-
-    if st.button("🧠 Causas", key="nav_causas"):
-        st.session_state.vista = "causas"
-
-    if st.button("📋 Log", key="nav_log"):
-        st.session_state.vista = "log"
-
-    if st.button("🔎 Detalle", key="nav_detalle"):
-        st.session_state.vista = "detalle"
-
-    if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
-        st.session_state.vista = "recomendaciones"
-
-    if st.button("🧠 Resumen", key="nav_resumen"):
-        st.session_state.vista = "resumen"
 # ------------------------
-# MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
-# =========================
+# NAVEGACIÓN
+# ------------------------
+st.markdown("### 🚦 Navegación")
+
+if st.button("📊 Principal", key="nav_principal"):
+    st.session_state.vista = "principal"
+
+if st.button("🚦 Volatilidad", key="nav_volatilidad"):
+    st.session_state.vista = "volatilidad"
+
+if st.button("👤 Responsables", key="nav_responsables"):
+    st.session_state.vista = "responsables"
+
+if st.button("🧠 Causas", key="nav_causas"):
+    st.session_state.vista = "causas"
+
+if st.button("📋 Log", key="nav_log"):
+    st.session_state.vista = "log"
+
+if st.button("🔎 Detalle", key="nav_detalle"):
+    st.session_state.vista = "detalle"
+
+if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
+    st.session_state.vista = "recomendaciones"
+
+if st.button("🧠 Resumen", key="nav_resumen"):
+    st.session_state.vista = "resumen"
+
+
 # =========================
 # RECOMENDACIONES (FINAL REAL)
 # =========================
@@ -320,7 +319,7 @@ if st.session_state.vista == "recomendaciones":
 
     # Generar recomendaciones por dimensión
     resumen_dim = {}
-    for dim in ["Pais", "Region", "Canal", "Producto"]:
+    for dim in ["Pais", "Region", "Canal", "Nombre_Producto"]:  # ✅ corregido
         if dim in df.columns:
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
@@ -344,7 +343,7 @@ if st.session_state.vista == "recomendaciones":
 
         # 🔹 Botón Ver detalle
         with st.expander("🔍 Ver detalle"):
-            for subdim in ["Producto", "Region", "Canal"]:
+            for subdim in ["Nombre_Producto", "Region", "Canal"]:  # ✅ corregido
                 if subdim in df_det.columns and subdim != dim:
                     df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
                     df_sub = df_sub.sort_values("Periodo")
@@ -386,6 +385,8 @@ if st.session_state.vista == "recomendaciones":
             st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("---")
+
+
 # ------------------------
 # VALIDACIÓN
 # ------------------------
