@@ -10,28 +10,6 @@ import base64
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
-st.markdown("""
-<style>
-.block-container {
-    padding-top: 0rem;
-    padding-bottom: 0rem;
-}
-.centered-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ------------------------
-# FUNCIÓN BASE64
-# ------------------------
-def get_base64(img_file):
-    with open(img_file, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-
 # ------------------------
 # LOGIN CONFIG
 # ------------------------
@@ -55,49 +33,34 @@ authenticator = stauth.Authenticate(
 )
 
 # ------------------------
-# LOGIN (SOLO UNA VEZ)
+# LOGO ARRIBA CENTRADO
 # ------------------------
-name, authentication_status, username = authenticator.login("Login", location="main")
-st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 # ------------------------
-# LOGIN VIEW (PORTADA)
+# LOGIN CENTRADO
 # ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    name, authentication_status, username = authenticator.login("Login", location="main")
+
 # ------------------------
-# LOGIN VIEW (BANNER TIPO WORD)
-# ------------------------
-if authentication_status is None:
-
-    # Logo arriba
-    
-
-    # Login (ya lo tienes arriba por authenticator)
-
-    # Espacio
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Imagen tipo banner ancho completo
-    st.image("imagen_presentacion1.png", use_container_width=True)
-
-    st.stop()
-# ------------------------
-# LOGIN ERROR
+# LOGIN CONTROL
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
 
-# ------------------------
-# LOGO (SOLO DESPUÉS DE LOGIN)
-# ------------------------
-#st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+if authentication_status is None:
+    st.stop()
 
 # ------------------------
 # LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
-
 # ------------------------
 # SESSION STATE
 # ------------------------
