@@ -492,7 +492,6 @@ df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 ventas = df["Ventas"].sum()
 ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
-
 # ------------------------
 # DASHBOARD
 # ------------------------
@@ -507,7 +506,8 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafica_principal")
+
 
 elif vista == "volatilidad":
 
@@ -525,6 +525,7 @@ elif vista == "volatilidad":
     else:
         st.success(f"Volatilidad baja ({ratio:.2f})")
 
+
 elif vista == "responsables":
 
     if st.button("⬅️ Volver Responsable"):
@@ -536,6 +537,7 @@ elif vista == "responsables":
         df_r = df.groupby("Vendedor_Ruta")["Ventas"].sum().reset_index()
         st.dataframe(df_r)
 
+
 elif vista == "causas":
 
     if st.button("⬅️ Volver Causa"):
@@ -546,6 +548,7 @@ elif vista == "causas":
     if "Producto" in df.columns:
         df_c = df.groupby("Producto")["Ventas"].sum().reset_index()
         st.dataframe(df_c)
+
 
 # 🔥 NUEVAS VISTAS CONECTADAS
 
@@ -562,7 +565,8 @@ elif vista == "reporte":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.bar(df_m, x="Periodo", y="Ventas")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafica_reporte")
+
 
 elif vista == "log":
 
@@ -573,6 +577,7 @@ elif vista == "log":
 
     st.write("Filas cargadas:", len(df))
     st.dataframe(df.head(20))
+
 
 elif vista == "recomendaciones":
 
