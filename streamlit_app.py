@@ -54,6 +54,11 @@ if authentication_status is False:
     st.stop()
 
 if authentication_status is None:
+   from PIL import Image
+   img = Image.open("imagen_presentacion1.png")
+   st.image(img, use_container_width=True)
+
+       
     st.stop()
 
 # ------------------------
