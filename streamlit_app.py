@@ -1,41 +1,75 @@
-import streamlit as st
+mport streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
+import base64
 
 # ------------------------
 # CONFIG
 # ------------------------
-st.markdown("""
-<style>
-/* Fondo gris para sección */
-.container {
-    background-color: #f0f2f6;
-    padding: 15px;
-    border-radius: 10px;
-}
-</style>
-""", unsafe_allow_html=True)
-
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-#  HEADER (LOGO + BANNER)
+# MARCA DE AGUA
 # ------------------------
-st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=180)
-st.markdown("### TIDS CONSULTING")
+def get_base64_image(image_path):
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
-# 🔥 IMAGEN 2 COMO BANNER (AQUÍ ESTÁ EL CAMBIO REAL)
-st.image("imagen_presentacion.png", use_container_width=True)
+img_base64 = get_base64_image("imagen_presentacion.png")
 
-st.markdown("---")
+st.markdown(f"""
+<style>
+
+/* Marca de agua */
+.stApp::before {{
+    content: "";
+    position: fixed;
+    top: 55%;
+    left: 65%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    height: 300px;
+    background-image: url("data:image/png;base64,{img_base64}");
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.10;
+    pointer-events: none;
+    z-index: 0;
+}}
+
+/* Contenido encima */
+.main {{
+    position: relative;
+    z-index: 1;
+}}
+
+/* Sidebar spacing */
+section[data-testid="stSidebar"] {{
+    padding-top: 40px;
+}}
+
+/* Logo sidebar */
+.sidebar-logo {{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}}
+
+/* Logout spacing */
+.logout-btn {{
+    margin-top: 20px;
+    margin-bottom: 20px;
+}}
+
+</style>
+""", unsafe_allow_html=True)
 
 # ------------------------
 # LOGIN
 # ------------------------
 from streamlit_authenticator import Hasher
-import streamlit_authenticator as stauth
 
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
@@ -71,10 +105,18 @@ elif authentication_status is None:
     st.stop()
 
 # ------------------------
-# LOGIN OK
+# SIDEBAR (LOGO + USER)
 # ------------------------
-st.sidebar.write(f"👋 Bienvenido {name}")
-authenticator.logout("Cerrar sesión", "sidebar")
+with st.sidebar:
+    st.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.write(f"👋 Bienvenido {name}")
+
+    st.markdown('<div class="logout-btn">', unsafe_allow_html=True)
+    authenticator.logout("Cerrar sesión", "sidebar")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ------------------------
 # SESSION STATE
