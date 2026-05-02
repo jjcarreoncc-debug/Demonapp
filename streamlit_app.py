@@ -50,6 +50,8 @@ name, authentication_status, username = authenticator.login("Login", location="m
 if authentication_status is None:
     st.image("imagen_presentacion1.png", use_container_width=True)
     st.warning("Ingresa tus credenciales")
+    st.image("imagen_presentacion1.png", use_container_width=True)
+    
     
 
 if authentication_status is False:
