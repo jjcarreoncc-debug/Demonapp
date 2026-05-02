@@ -1,34 +1,50 @@
-
-import streamlit as st
+    import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3
-import base64
-from PIL import Image
 import streamlit_authenticator as stauth
-from streamlit_authenticator import Hasher
 
 # ------------------------
-# CONFIGURACIÓN DE PÁGINA
+# CONFIG
 # ------------------------
+st.markdown("""
+<style>
+/* Fondo gris para egación */
+.-container {
+    background-color: #f0f2f6;
+    padding: 15px;
+    border-radius: 10px;
+}
+</style>
+""", unsaf				e_allow_html=True)
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-# HEADER GLOBAL
+#  SIEMPRE ARRIBA
 # ------------------------
-col1, col2 = st.columns([1, 6])
-
-with col1:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=160)
-
-with col2:
-    st.markdown("## TIDS CONSULTING")
-
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=150)
+st.markdown("### TIDS CONSULTING")
+#--------------------------
+# UBICAR IMAGEN
+#--------------------------
+from PIL import Image
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
+st.image(logo, width=200)  # ajusta tamaño según prefieras
+st.markdown("---")  # separador
+img = Image.open("assets/imagen_presentacion.png")
+st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
 # ------------------------
+from streamlit_authenticator import Hasher
+import streamlit_authenticator as stauth
+
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
+
+names = ["Admin", "Ventas"]
+usernames = ["admin", "ventas"]
 
 credentials = {
     "usernames": {
@@ -45,9 +61,8 @@ authenticator = stauth.Authenticate(
 )
 
 name, authentication_status, username = authenticator.login("Login", location="main")
-
 # ------------------------
-# CONTROL LOGIN
+# CONTROL LOGIN (CLAVE)
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
@@ -58,31 +73,8 @@ elif authentication_status is None:
     st.stop()
 
 # ------------------------
-# BANNER BASE64
+# LOGIN OK
 # ------------------------
-def get_base64_image(file):
-    with open(file, "rb") as img:
-        return base64.b64encode(img.read()).decode()
-
-img_base64 = get_base64_image("imagen_presentacion1.png")
-
-st.markdown(f"""
-<style>
-.banner {{
-    background-image: url("data:image/png;base64,{img_base64}");
-    background-size: cover;
-    background-position: center;
-    height: 160px;
-    border-radius: 10px;
-    opacity: 0.2;
-    margin-bottom: 15px;
-}}
-</style>
-
-<div class="banner"></div>
-""", unsafe_allow_html=True)
-
-# Sidebar
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
@@ -96,6 +88,7 @@ if "vista" not in st.session_state:
 # BASE DE DATOS
 # ------------------------
 conn = sqlite3.connect("data.db")
+
 conn.execute("""
 CREATE TABLE IF NOT EXISTS ventas (
     Fecha TEXT,
@@ -133,7 +126,8 @@ df = df.dropna(subset=["Fecha"])
 for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
     if col in df.columns:
         df[col] = (
-            df[col].astype(str)
+            df[col]
+            .astype(str)
             .str.replace(",", "")
             .str.strip()
         )
@@ -146,99 +140,93 @@ df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
 df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
 df["Ganancia"] = df["Ventas"] - df["Costos"]
 df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
 # ------------------------
-# FILTROS
+# ------------------------
+# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
 df_base = df.copy()
 
 with st.sidebar:
+
     st.divider()
     st.markdown("### 🎯 Filtros")
 
     df = df_base.copy()
 
-    # 📅 RANGO DE FECHAS
-    st.markdown("### 📅 Rango de fechas")
-    fecha_min = df_base["Fecha"].min()
-    fecha_max = df_base["Fecha"].max()
-
-    rango_fechas = st.date_input(
-        "Selecciona fecha inicial y final",
-        value=(fecha_min, fecha_max),
-        min_value=fecha_min,
-        max_value=fecha_max
-    )
-
-    if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
-        fecha_ini, fecha_fin = rango_fechas
-        df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-                (df["Fecha"] <= pd.to_datetime(fecha_fin))]
-
     # PAÍS
     if "Pais" in df.columns:
-        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
-                              default=sorted(df["Pais"].dropna().unique()))
+        pais = st.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique()),
+            key="filtro_pais"
+        )
         df = df[df["Pais"].isin(pais)]
 
     # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
-                                default=sorted(df["Region"].dropna().unique()))
+        region = st.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique()),
+            key="filtro_region"
+        )
         df = df[df["Region"].isin(region)]
 
     # PRODUCTO
-    if "Nombre_Producto" in df.columns:
-        producto = st.multiselect("Producto", sorted(df["Nombre_Producto"].dropna().unique()),
-                                  default=sorted(df["Nombre_Producto"].dropna().unique()))
-        df = df[df["Nombre_Producto"].isin(producto)]
+    if "Producto" in df.columns:
+        producto = st.multiselect(
+            "Producto",
+            sorted(df["Producto"].dropna().unique()),
+            default=sorted(df["Producto"].dropna().unique()),
+            key="filtro_producto"
+        )
+        df = df[df["Producto"].isin(producto)]
 
     # CANAL
     if "Canal" in df.columns:
-        canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()),
-                               default=sorted(df["Canal"].dropna().unique()))
+        canal = st.multiselect(
+            "Canal",
+            sorted(df["Canal"].dropna().unique()),
+            default=sorted(df["Canal"].dropna().unique()),
+            key="filtro_canal"
+        )
         df = df[df["Canal"].isin(canal)]
 
     # VENDEDOR
     if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()),
-                                  default=sorted(df["Vendedor_Ruta"].dropna().unique()))
+        vendedor = st.multiselect(
+            "Vendedor",
+            sorted(df["Vendedor_Ruta"].dropna().unique()),
+            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
+            key="filtro_vendedor"
+        )
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
     # TIPO CLIENTE
     if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()),
-                                      default=sorted(df["Tipo_cliente"].dropna().unique()))
+        tipo_cliente = st.multiselect(
+            "Tipo cliente",
+            sorted(df["Tipo_cliente"].dropna().unique()),
+            default=sorted(df["Tipo_cliente"].dropna().unique()),
+            key="filtro_tipo_cliente"
+        )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
-# ------------------------
-# DASHBOARD
-# ------------------------
-st.markdown("## 📊 Ventas por Periodo")
-
-ventas_periodo = df.groupby("Periodo")["Ventas"].sum().reset_index()
-
-fig = px.line(ventas_periodo, x="Periodo", y="Ventas", markers=True)
-st.plotly_chart(fig, use_container_width=True)
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
-st.markdown("### 📅 Rango de fechas")
+    st.markdown("### 📅 Rango de fechas")
+    fecha_min = df["Fecha"].min()
+    fecha_max = df["Fecha"].max()
 
-fecha_min = df_base["Fecha"].min()
-fecha_max = df_base["Fecha"].max()
-
-rango_fechas = st.date_input(
-    "Selecciona fecha inicial y final",
-    value=(fecha_min, fecha_max),
-    min_value=fecha_min,
-    max_value=fecha_max,
-    key="filtro_rango_fecha"
-)
-
-# Validación segura
-if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
-    fecha_ini, fecha_fin = rango_fechas
+    fecha_ini, fecha_fin = st.date_input(
+        "Selecciona fecha inicial y final",
+        value=(fecha_min, fecha_max),
+        min_value=fecha_min,
+        max_value=fecha_max,
+        key="filtro_rango_fecha"
+    )
 
     df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
             (df["Fecha"] <= pd.to_datetime(fecha_fin))]
@@ -247,39 +235,39 @@ if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
     st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
+    st.divider()
 
-st.divider()
-    
+    # ------------------------
+    # NAVEGACIÓN
+    # ------------------------
+    st.markdown("### 🚦 Navegación")
+
+    if st.button("📊 Principal", key="nav_principal"):
+        st.session_state.vista = "principal"
+
+    if st.button("🚦 Volatilidad", key="nav_volatilidad"):
+        st.session_state.vista = "volatilidad"
+
+    if st.button("👤 Responsables", key="nav_responsables"):
+        st.session_state.vista = "responsables"
+
+    if st.button("🧠 Causas", key="nav_causas"):
+        st.session_state.vista = "causas"
+
+    if st.button("📋 Log", key="nav_log"):
+        st.session_state.vista = "log"
+
+    if st.button("🔎 Detalle", key="nav_detalle"):
+        st.session_state.vista = "detalle"
+
+    if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
+        st.session_state.vista = "recomendaciones"
+
+    if st.button("🧠 Resumen", key="nav_resumen"):
+        st.session_state.vista = "resumen"
 # ------------------------
-# NAVEGACIÓN
-# ------------------------
-st.markdown("### 🚦 Navegación")
-
-if st.button("📊 Principal", key="nav_principal"):
-    st.session_state.vista = "principal"
-
-if st.button("🚦 Volatilidad", key="nav_volatilidad"):
-    st.session_state.vista = "volatilidad"
-
-if st.button("👤 Responsables", key="nav_responsables"):
-    st.session_state.vista = "responsables"
-
-if st.button("🧠 Causas", key="nav_causas"):
-    st.session_state.vista = "causas"
-
-if st.button("📋 Log", key="nav_log"):
-    st.session_state.vista = "log"
-
-if st.button("🔎 Detalle", key="nav_detalle"):
-    st.session_state.vista = "detalle"
-
-if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
-    st.session_state.vista = "recomendaciones"
-
-if st.button("🧠 Resumen", key="nav_resumen"):
-    st.session_state.vista = "resumen"
-
-
+# MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
+# =========================
 # =========================
 # RECOMENDACIONES (FINAL REAL)
 # =========================
@@ -319,7 +307,7 @@ if st.session_state.vista == "recomendaciones":
 
     # Generar recomendaciones por dimensión
     resumen_dim = {}
-    for dim in ["Pais", "Region", "Canal", "Nombre_Producto"]:  # ✅ corregido
+    for dim in ["Pais", "Region", "Canal", "Producto"]:
         if dim in df.columns:
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
@@ -343,7 +331,7 @@ if st.session_state.vista == "recomendaciones":
 
         # 🔹 Botón Ver detalle
         with st.expander("🔍 Ver detalle"):
-            for subdim in ["Nombre_Producto", "Region", "Canal"]:  # ✅ corregido
+            for subdim in ["Producto", "Region", "Canal"]:
                 if subdim in df_det.columns and subdim != dim:
                     df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
                     df_sub = df_sub.sort_values("Periodo")
@@ -385,8 +373,6 @@ if st.session_state.vista == "recomendaciones":
             st.plotly_chart(fig, use_container_width=True)
 
         st.markdown("---")
-
-
 # ------------------------
 # VALIDACIÓN
 # ------------------------
@@ -820,4 +806,3 @@ elif st.session_state.vista == "log":
             )
 
         else:
-            st.s
