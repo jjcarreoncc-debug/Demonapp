@@ -52,9 +52,9 @@ with col2:
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
-
 if authentication_status is None:
-st.markdown("<div style='margin-top:-60px;'>", unsafe_allow_html=True)
+
+    st.markdown("<div style='margin-top:-60px;'>", unsafe_allow_html=True)
 
     st.image("imagen1.png", use_container_width=True)
 
