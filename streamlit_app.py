@@ -53,20 +53,27 @@ if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
 if authentication_status is None:
-    from PIL import Image
+    import base64
 
-    # Espacio opcional
-    #st.markdown("<br><br>", unsafe_allow_html=True)
+    def get_base64(img):
+        with open(img, "rb") as f:
+            return base64.b64encode(f.read()).decode()
 
-    # Columnas para mover a la derecha
-    col1, col2 = st.columns([1,3])
+    img = get_base64("imagen1.png")
 
-    with col2:
-        img = Image.open("imagen1.png")
-        st.image(img, width=1000)
+    st.markdown(f"""
+    <style>
+    .stApp {{
+        background-color: white;
+        background-image: url("data:image/png;base64,{img}");
+        background-repeat: no-repeat;
+        background-position: bottom right;
+        background-size: contain;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
 
-    st.stop()# ------------------------
-
+    st.stop()
 # LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
