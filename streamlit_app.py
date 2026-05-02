@@ -581,53 +581,18 @@ elif vista == "recomendaciones":
 # =======================
 # RESUMEN
 # =======================
-elif st.session_state.vista == "resumen":
+elif st.session_state.vista == "alertas":
 
-    if st.button("⬅️ Volver Resumen"):
+    if st.button("⬅️ Volver"):
         st.session_state.vista = "inicio"
 
-    st.title("🧠 Resumen Ejecutivo")
-
-    # =========================
-    # PROYECCIÓN + TENDENCIA
-    # =========================
-    st.subheader("📈 Proyección")
-
-    if len(df_m) > 2:
-        tendencia = df_m["Ventas"].diff().mean()
-        df_m["Proyección"] = df_m["Ventas"].iloc[-1] + tendencia
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            fig1 = px.line(df_m, x="Periodo", y="Ventas", markers=True, title="Ventas")
-            st.plotly_chart(fig1, use_container_width=True)
-
-        with col2:
-            fig2 = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True, title="Proyección")
-            st.plotly_chart(fig2, use_container_width=True)
-
-    # =========================
-    # FORMATOS
-    # =========================
-    def format_color(val, tipo):
-        try:
-            val = float(val)
-            if tipo == "var":
-                return f"🔴 {val:.2%}" if val < 0 else f"🟢 {val:.2%}"
-            elif tipo == "money":
-                return f"🔴 ${val:,.0f}" if val < 0 else f"🟢 ${val:,.0f}"
-        except:
-            return val
-        return val
-
-    st.markdown("## 📊 Análisis adicional de desempeño")
+    st.title("🚨 Dashboard de Alertas")
 
     df_res = df.copy()
     tabla = []
 
     # =========================
-    # GENERAR TABLA BASE
+    # GENERAR ALERTAS
     # =========================
     for dim in ["Canal", "Pais", "Region", "Producto"]:
         if dim in df_res.columns:
@@ -646,176 +611,65 @@ elif st.session_state.vista == "resumen":
                     var = (v2 - v1) / v1
                     impacto = (v2 - v1)
 
-                    estado = "🟢 Crece" if var > 0 else "🔴 Cae"
+                    tabla.append([dim, k, var, impacto])
 
-                    tabla.append([dim, k, v1, v2, var, impacto, estado])
-
-    df_tabla = pd.DataFrame(
+    df_alertas = pd.DataFrame(
         tabla,
-        columns=["Dimensión", "Elemento", "Anterior", "Actual", "Variación", "Impacto $", "Estado"]
+        columns=["Dimensión", "Elemento", "Variación", "Impacto $"]
     )
 
     # =========================
-    # INSIGHTS AUTOMÁTICOS
+    # CONTENIDO
     # =========================
-    if not df_tabla.empty:
+    if not df_alertas.empty:
 
-        st.markdown("## 🧠 Insights automáticos")
+        # FILTRO ALERTAS
+        df_alertas = df_alertas[
+            (abs(df_alertas["Variación"]) > 0.3)
+        ]
 
-        top_crece = df_tabla.sort_values("Impacto $", ascending=False).head(1)
-        top_cae = df_tabla.sort_values("Impacto $").head(1)
+        if not df_alertas.empty:
 
-        if not top_crece.empty:
-            row = top_crece.iloc[0]
-            st.success(f"""
-            🔥 El crecimiento está impulsado por **{row['Elemento']}** 
-            en {row['Dimensión']} con impacto de ${row['Impacto $']:,.0f}
-            """)
+            st.markdown("### 📊 Alertas relevantes")
 
-        if not top_cae.empty:
-            row = top_cae.iloc[0]
-            st.error(f"""
-            ⚠️ La principal caída viene de **{row['Elemento']}**
-            en {row['Dimensión']} con impacto de ${row['Impacto $']:,.0f}
-            """)
+            # =========================
+            # TABLA
+            # =========================
+            df_tabla = df_alertas.copy()
 
-    # =========================
-    # BOTÓN ALERTAS (NUEVO)
-    # =========================
-    st.markdown("## 🚨 Alertas")
+            df_tabla["Variación"] = df_tabla["Variación"].apply(
+                lambda x: f"🟢 {x:.1%}" if x > 0 else f"🔴 {x:.1%}"
+            )
 
-    if st.button("Ver dashboard de alertas"):
-        st.session_state.vista = "alertas"
+            df_tabla["Impacto $"] = df_tabla["Impacto $"].apply(
+                lambda x: f"${x:,.0f}"
+            )
 
-    # =========================
-    # TOP IMPACTOS + INTERACTIVO
-    # =========================
-    if not df_tabla.empty:
+            st.dataframe(
+                df_tabla.sort_values("Impacto $", ascending=False),
+                use_container_width=True
+            )
 
-        st.markdown("### 🔝 Principales impactos")
-
-        top = df_tabla.sort_values("Impacto $", ascending=False).head(5)
-
-        for i, row in top.iterrows():
-
-            dim = row["Dimensión"]
-            nombre = row["Elemento"]
-            impacto = row["Impacto $"]
-
-            if impacto > 0:
-                st.success(f"🟢 {nombre} impulsa crecimiento (${impacto:,.0f})")
-            else:
-                st.error(f"🔴 {nombre} afecta resultado (${impacto:,.0f})")
-
-            df_det = df[df[dim] == nombre]
-
-            # DETALLE TABLA
-            with st.expander(f"🔍 Ver detalle - {nombre}"):
-
-                tabla_det = []
-
-                for subdim in ["Producto", "Region", "Canal"]:
-                    if subdim in df_det.columns and subdim != dim:
-
-                        df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                        df_sub = df_sub.sort_values("Periodo")
-
-                        for k2, g2 in df_sub.groupby(subdim):
-                            if len(g2) >= 2 and g2.iloc[-2]["Ventas"] != 0:
-
-                                v1_sub = g2.iloc[-2]["Ventas"]
-                                v2_sub = g2.iloc[-1]["Ventas"]
-                                var_sub = (v2_sub - v1_sub) / v1_sub
-
-                                semaforo = "🟢" if var_sub > 0 else "🔴"
-
-                                tabla_det.append([
-                                    subdim,
-                                    k2,
-                                    v1_sub,
-                                    v2_sub,
-                                    f"{semaforo} {var_sub:.1%}"
-                                ])
-
-                if tabla_det:
-                    df_tabla_det = pd.DataFrame(
-                        tabla_det,
-                        columns=["Dimensión", "Elemento", "Anterior", "Actual", "Variación"]
-                    )
-
-                    st.dataframe(df_tabla_det.head(5), use_container_width=True)
-
+            # =========================
             # GRÁFICA
-            with st.expander(f"📊 Ver gráfica - {nombre}"):
+            # =========================
+            import plotly.express as px
 
-                import plotly.graph_objects as go
+            fig = px.bar(
+                df_alertas.sort_values("Impacto $", ascending=False).head(10),
+                x="Elemento",
+                y="Impacto $",
+                color="Variación",
+                title="Top impactos de alertas"
+            )
 
-                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
-                df_g = df_g.sort_values("Periodo_dt")
+            st.plotly_chart(fig, use_container_width=True)
 
-                if len(df_g) >= 2:
-                    v1 = df_g.iloc[-2]["Ventas"]
-                    v2 = df_g.iloc[-1]["Ventas"]
-                    var = (v2 - v1) / v1 if v1 != 0 else 0
-                else:
-                    var = 0
+        else:
+            st.info("No hay alertas relevantes con variación significativa")
 
-                texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
-
-                fig = go.Figure()
-
-                df_g["Año"] = df_g["Periodo_dt"].dt.year
-                años = df_g["Año"].unique()
-
-                for j, año in enumerate(años):
-                    df_year = df_g[df_g["Año"] == año]
-
-                    fig.add_vrect(
-                        x0=df_year["Periodo"].iloc[0],
-                        x1=df_year["Periodo"].iloc[-1],
-                        fillcolor="lightgrey" if j % 2 == 0 else "white",
-                        opacity=0.2,
-                        line_width=0,
-                    )
-
-                    fig.add_vline(
-                        x=df_year["Periodo"].iloc[0],
-                        line_width=2,
-                        line_dash="dash"
-                    )
-
-                fig.add_trace(go.Scatter(
-                    x=df_g["Periodo"],
-                    y=df_g["Ventas"],
-                    mode="lines+markers+text",
-                    text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-                    textposition="top center"
-                ))
-
-                fig.add_trace(go.Scatter(
-                    x=[df_g.iloc[-1]["Periodo"]],
-                    y=[df_g.iloc[-1]["Ventas"]],
-                    mode="markers+text",
-                    text=[f"{texto_estado}\n{var:.1%}"],
-                    textposition="bottom center"
-                ))
-
-                st.plotly_chart(fig, use_container_width=True, key=f"graf_res_{i}")
-
-            st.markdown("---")
-
-        # TABLA FINAL
-        st.markdown("### 📋 Tabla completa")
-
-        df_display = df_tabla.copy()
-        df_display["Variación"] = df_display["Variación"].apply(lambda x: format_color(x, "var"))
-        df_display["Impacto $"] = df_display["Impacto $"].apply(lambda x: format_color(x, "money"))
-
-        st.dataframe(
-            df_display.sort_values("Impacto $", ascending=False),
-            use_container_width=True
-        )
+    else:
+        st.info("No hay datos suficientes para generar alertas")
 
     st.stop()
 # =========================
