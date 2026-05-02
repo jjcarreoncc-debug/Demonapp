@@ -47,15 +47,37 @@ authenticator = stauth.Authenticate(
 # Logo arriba
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 name, authentication_status, username = authenticator.login("Login", location="main")
-if authentication_status is None:
-    st.image("imagen_presentacion1.png", use_container_width=True)
-    st.warning("Ingresa tus credenciales")
-    st.image("imagen_presentacion1.png", use_container_width=True)
-    
-    
+# Login
+name, authentication_status, username = authenticator.login("Login", location="main")
 
-if authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
+if authentication_status is None:
+
+    # CSS efecto fade (gota de agua)
+    st.markdown("""
+    <style>
+    .banner {
+        width: 100%;
+        height: 120px;
+        background: linear-gradient(
+            to bottom,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.4) 40%,
+            rgba(255,255,255,0.8) 70%,
+            rgba(255,255,255,1) 100%
+        ),
+        url("data:image/png;base64,{}");
+        background-size: cover;
+        background-position: center;
+    }
+    </style>
+    """.format(get_base64("imagen_presentacion1.png")), unsafe_allow_html=True)
+
+    # Banner
+    st.markdown('<div class="banner"></div>', unsafe_allow_html=True)
+
+    # Mensaje (después del banner)
+    st.warning("Ingresa tus credenciales")
+
     st.stop()
 # ------------------------
 # CONTROL LOGIN
