@@ -280,7 +280,6 @@ if st.session_state.vista == "recomendaciones":
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
-----------------------
 
 if st.session_state.get("filtro_pais") is None:
 
