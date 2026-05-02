@@ -901,9 +901,10 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
    df_g = df_g.sort_values("Periodo_dt")
 
-    # =========================
-    # VARIACIÓN FINAL
-    # =========================
+# =========================
+# VARIACIÓN FINAL
+#=========================
+ 
     if len(df_g) >= 2:
         v1 = df_g.iloc[-2]["Ventas"]
         v2 = df_g.iloc[-1]["Ventas"]
@@ -914,7 +915,7 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
     texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
 
     fig = go.Figure()
-
+ 
     # =========================
     # SOMBRAS POR AÑO
     # =========================
