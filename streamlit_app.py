@@ -269,13 +269,11 @@ if st.session_state.vista == "recomendaciones":
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # ------------------------
 
-if (
-    "filtro_pais" not in st.session_state or
-    "filtro_region" not in st.session_state
-):
+if st.session_state.get("filtro_pais") is None:
 
     st.markdown("## 👈 Selecciona filtros en el panel izquierdo")
     st.image("imagen8.png", use_container_width=True)
+
     st.stop()
     
     st.title("📌 Recomendaciones Estratégicas")
