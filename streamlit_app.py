@@ -16,7 +16,7 @@ st.markdown("""
     border-radius: 10px;
 }
 </style>
-""", unsafe_allow_html=True)
+""", unsaf			e_allow_html=True)
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
@@ -28,15 +28,15 @@ st.markdown("### TIDS CONSULTING")
 # UBICAR IMAGEN
 #--------------------------
 from PIL import Image
-img = Image.open("imagen_presentacion1.png")
+img = Image.open("assets/imagen_presentacion.png")
 st.image(img, use_column_width=True)
-st.image(LOOGO-TIDS-CONSULTING(2).jpg, width=200)  # ajusta tamaño según prefieras
+st.image(logo, width=200)  # ajusta tamaño según prefieras
 st.markdown("---")  # separador
-img = Image.open("imagen_presentacion1.png")
+img = Image.open("assets/imagen_presentacion.png")
 st.image(img, use_column_width=True)
 # ------------------------
 # LOGIN
-# ------------------------        
+# ------------------------
 from streamlit_authenticator import Hasher
 import streamlit_authenticator as stauth
 
@@ -806,4 +806,4 @@ elif st.session_state.vista == "log":
             )
 
         else:
-            st.success("No hubo registros eliminados")    
+            st.s
