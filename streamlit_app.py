@@ -58,6 +58,7 @@ authenticator = stauth.Authenticate(
 # LOGIN (SOLO UNA VEZ)
 # ------------------------
 name, authentication_status, username = authenticator.login("Login", location="main")
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 # ------------------------
 # LOGIN VIEW (PORTADA)
@@ -70,7 +71,7 @@ if authentication_status is None:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.stop()
+    
 
 # ------------------------
 # LOGIN ERROR
@@ -82,7 +83,7 @@ if authentication_status is False:
 # ------------------------
 # LOGO (SOLO DESPUÉS DE LOGIN)
 # ------------------------
-st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+#st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 # ------------------------
 # LOGIN OK
