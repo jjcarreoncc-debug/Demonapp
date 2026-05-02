@@ -12,10 +12,15 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 st.markdown("""
 <style>
-.-container {
-    background-color: #f0f2f6;
-    padding: 15px;
-    border-radius: 10px;
+.block-container {
+    padding-top: 0rem;
+    padding-bottom: 0rem;
+}
+.centered-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -50,22 +55,20 @@ authenticator = stauth.Authenticate(
 )
 
 # ------------------------
-# LOGO
-# ------------------------
-st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
-# ------------------------
 # LOGIN (SOLO UNA VEZ)
 # ------------------------
 name, authentication_status, username = authenticator.login("Login", location="main")
 
 # ------------------------
-# LOGIN VIEW
+# LOGIN VIEW (PORTADA)
 # ------------------------
 if authentication_status is None:
-    st.image("imagen_presentacion1.png", width=200)
-    st.stop()
-    st.warning("Ingresa tus credenciales")
+
+    st.markdown('<div class="centered-image">', unsafe_allow_html=True)
+
+    st.image("imagen_presentacion1.png", use_container_width=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.stop()
 
@@ -77,16 +80,21 @@ if authentication_status is False:
     st.stop()
 
 # ------------------------
+# LOGO (SOLO DESPUÉS DE LOGIN)
+# ------------------------
+st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+
+# ------------------------
 # LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
+
 # ------------------------
 # SESSION STATE
 # ------------------------
 if "vista" not in st.session_state:
     st.session_state.vista = "principal"
-
 # ------------------------
 # BASE DE DATOS
 # ------------------------
