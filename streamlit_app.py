@@ -200,7 +200,7 @@ st.plotly_chart(fig, use_container_width=True)
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
-    st.markdown("### 📅 Rango de fechas")
+st.markdown("### 📅 Rango de fechas")
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
