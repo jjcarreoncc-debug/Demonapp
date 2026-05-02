@@ -28,7 +28,7 @@ st.markdown("""
 # ------------------------
 # LOGO Y ENCABEZADO
 # ------------------------
-logo = Image.open("LOOGO-TIDS-CONSULTING(2).png")  # usa el logo que ya subiste
+logo = Image.open("LOOGO-TIDS-CONSULTING(2).jpg")  # usa el logo que ya subiste
 st.image(logo, width=150)
 st.markdown("### TIDS CONSULTING")
 
