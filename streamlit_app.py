@@ -1,3 +1,166 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import sqlite3
+import base64
+from PIL import Image
+import streamlit_authenticator as stauth
+from streamlit_authenticator import Hasher
+
+# ------------------------
+# CONFIGURACIÓN DE PÁGINA
+# ------------------------
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+
+# ------------------------
+# HEADER GLOBAL (SIEMPRE VISIBLE)
+# ------------------------
+col1, col2 = st.columns([1, 6])
+
+with col1:
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=160)
+
+with col2:
+    st.markdown("## TIDS CONSULTING")
+
+# ------------------------
+# LOGIN
+# ------------------------
+passwords = ["1234", "abcd"]
+hashed_passwords = Hasher(passwords).generate()
+
+credentials = {
+    "usernames": {
+        "admin": {"name": "Admin", "password": hashed_passwords[0]},
+        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
+    }
+}
+
+authenticator = stauth.Authenticate(
+    credentials,
+    "mi_dashboard",
+    "abcdef",
+    cookie_expiry_days=1
+)
+
+name, authentication_status, username = authenticator.login("Login", location="main")
+
+# ------------------------
+# CONTROL LOGIN
+# ------------------------
+if authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+    st.stop()
+
+elif authentication_status is None:
+    st.warning("Ingresa tus credenciales")
+    st.stop()
+
+# ------------------------
+# BANNER (SEGURO CON BASE64)
+# ------------------------
+def get_base64_image(file):
+    with open(file, "rb") as img:
+        return base64.b64encode(img.read()).decode()
+
+img_base64 = get_base64_image("imagen_presentacion1.png")
+
+st.markdown(f"""
+<style>
+.banner {{
+    background-image: url("data:image/png;base64,{img_base64}");
+    background-size: cover;
+    background-position: center;
+    height: 160px;
+    border-radius: 10px;
+    opacity: 0.2;
+    margin-bottom: 15px;
+}}
+</style>
+
+<div class="banner"></div>
+""", unsafe_allow_html=True)
+
+# Sidebar usuario
+st.sidebar.write(f"👋 Bienvenido {name}")
+authenticator.logout("Cerrar sesión", "sidebar")
+
+# ------------------------
+# SESSION STATE
+# ------------------------
+if "vista" not in st.session_state:
+    st.session_state.vista = "principal"
+
+# ------------------------
+# BASE DE DATOS
+# ------------------------
+conn = sqlite3.connect("data.db")
+conn.execute("""
+CREATE TABLE IF NOT EXISTS ventas (
+    Fecha TEXT,
+    Nombre_Producto TEXT,
+    Numero_Producto TEXT,
+    Ventas_Cantidad REAL,
+    Pais TEXT,
+    Region TEXT,
+    Canal TEXT,
+    Vendedor_Ruta TEXT,
+    Tipo_cliente TEXT,
+    Precio_Venta REAL,
+    Costos_Venta REAL
+)
+""")
+
+# ------------------------
+# CARGA ARCHIVO
+# ------------------------
+archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+if not archivo:
+    st.info("📂 Sube un archivo para comenzar")
+    st.stop()
+
+df = pd.read_excel(archivo)
+df.columns = df.columns.str.strip()
+
+# ------------------------
+# LIMPIEZA
+# ------------------------
+df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+df = df.dropna(subset=["Fecha"])
+
+for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+    if col in df.columns:
+        df[col] = (
+            df[col].astype(str)
+            .str.replace(",", "")
+            .str.strip()
+        )
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+# ------------------------
+# MÉTRICAS
+# ------------------------
+df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+df["Ganancia"] = df["Ventas"] - df["Costos"]
+df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+# ------------------------
+# FILTROS EN SIDEBAR
+# ------------------------
+df_base = df.copy()
+
+with st.sidebar:
+    st.divider()
+    st.markdown("### 🎯 Filtros")
+
+    df = df_base.copy()
+
+    if "Pais" in df.columns:
+        pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()),
+                              default=sorted(df["Pais"].dropna().unique()))
+        df = df[df["Pais"].isin(pais)]
 
     if "Region" in df.columns:
         region = st.multiselect("Región", sorted(df["Region"].dropna().unique()),
@@ -33,6 +196,7 @@ ventas_periodo = df.groupby("Periodo")["Ventas"].sum().reset_index()
 
 fig = px.line(ventas_periodo, x="Periodo", y="Ventas", markers=True)
 st.plotly_chart(fig, use_container_width=True)
+    
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
