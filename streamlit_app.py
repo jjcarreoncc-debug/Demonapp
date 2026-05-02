@@ -267,7 +267,7 @@ if st.session_state.vista == "inicio":
 
 with col2:
     st.image("imagen8.png", use_container_width=True)
-
+    st.image("imagen8.png", width=1400)
     st.stop()
 # ------------------------
 # MINI DASHBOARD DE DEBUG CON VENTAS, COSTOS Y PRECIO
