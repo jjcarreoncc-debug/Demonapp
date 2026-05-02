@@ -274,7 +274,7 @@ if st.session_state.vista == "inicio":
 if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        st.session_state.vista = "inicio"
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
@@ -432,7 +432,7 @@ elif vista == "volatilidad":
 elif vista == "responsables":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        st.session_state.vista = "inicio"
 
     st.markdown("## 👤 Responsables")
 
@@ -444,7 +444,7 @@ elif vista == "responsables":
 elif vista == "causas":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        st.session_state.vista = "inicio"
 
     st.markdown("## 🧠 Causas")
 
@@ -456,7 +456,9 @@ elif vista == "causas":
 elif vista == "detalle":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+
+        
+        st.session_state.vista = "inicio"
 
     st.markdown("## 🔎 Detalle")
     st.dataframe(df)
@@ -660,7 +662,7 @@ elif st.session_state.vista == "resumen":
 elif st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        st.session_state.vista = "inicio"
 
     st.title("📌 Recomendaciones Estratégicas")
 
@@ -770,7 +772,7 @@ elif st.session_state.vista == "recomendaciones":
 elif st.session_state.vista == "detalle":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "principal"
+        st.session_state.vista = "inicio"
 
     st.title("🔎 Análisis Detallado")
     st.dataframe(df)
