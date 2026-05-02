@@ -79,7 +79,7 @@ if authentication_status is None:
         url("data:image/png;base64,{get_base64("imagen_presentacion1.png")}");
         background-size: cover;
         background-position: center;
-        st.stop()
+        
 
     }}
     </style>
