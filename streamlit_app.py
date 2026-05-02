@@ -63,7 +63,7 @@ name, authentication_status, username = authenticator.login("Login", location="m
 # LOGIN VIEW
 # ------------------------
 if authentication_status is None:
-st.image("imagen_presentacon1.png", width=200)
+st.image("imagen_presentacion1.png", width=200)
     st.stop()
     st.warning("Ingresa tus credenciales")
 
