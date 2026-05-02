@@ -70,7 +70,7 @@ if authentication_status is None:
         z-index: -1;
     }
     </style>
-    <img src="imagen_presentacion.png" class="footer-img">
+    <img src="imagen_presentacion1.png" class="footer-img">
     """, unsafe_allow_html=True)
 
 # Login
