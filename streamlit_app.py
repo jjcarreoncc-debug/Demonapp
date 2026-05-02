@@ -58,12 +58,12 @@ if authentication_status is None:
     # un poco de espacio (opcional)
     st.markdown("<br>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1,8])
+    col1, col2 = st.columns([2,6])
 
     with col2:
         img = Image.open("imagen7.png")
         # más ancho para no perder nitidez
-        st.image(img, width=1700)
+        st.image(img, width=2000)
 
     st.stop()
 # LOGIN OK
