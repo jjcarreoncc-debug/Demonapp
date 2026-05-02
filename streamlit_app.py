@@ -579,8 +579,6 @@ elif vista == "recomendaciones":
     else:
         st.success("Margen saludable: escalar negocio")
 #### alertas 
-
-
 elif st.session_state.vista == "alertas":
 
     st.title("🚨 Dashboard de Alertas")
@@ -621,7 +619,6 @@ elif st.session_state.vista == "alertas":
 
     if not df_alertas.empty:
 
-        # FILTRO ALERTAS
         df_alertas = df_alertas[abs(df_alertas["Variación"]) > 0.3]
 
         st.markdown("## 🚨 Alertas detectadas")
@@ -631,11 +628,7 @@ elif st.session_state.vista == "alertas":
             dim = row["Dimensión"]
             nombre = row["Elemento"]
             var = row["Variación"]
-            impacto = row["Impacto $"]
 
-            # =========================
-            # MENSAJE
-            # =========================
             if var > 0:
                 st.warning(f"📈 Crecimiento inusual en {nombre} ({var:.1%})")
             else:
@@ -682,10 +675,9 @@ elif st.session_state.vista == "alertas":
                     st.dataframe(df_tabla_det.head(5), use_container_width=True)
 
             # =========================
-            # GRÁFICA
+            # GRÁFICA (ARREGLADA)
             # =========================
-            
-with st.expander(f"📊 Ver gráfica - {nombre}"):
+            with st.expander(f"📊 Ver gráfica - {nombre}"):
 
                 import plotly.graph_objects as go
 
@@ -695,7 +687,6 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
 
                 fig = go.Figure()
 
-                # Línea con valores
                 fig.add_trace(go.Scatter(
                     x=df_g["Periodo"],
                     y=df_g["Ventas"],
@@ -713,7 +704,7 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
 
                 st.plotly_chart(fig, use_container_width=True, key=f"alert_{i}")
 
-        st.markdown("---")
+            st.markdown("---")
 
         # =========================
         # TABLA GENERAL
@@ -734,6 +725,7 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
         st.info("No hay alertas relevantes")
 
     st.stop()
+
 # =======================
 # RESUMEN
 # =======================
