@@ -895,27 +895,26 @@ elif st.session_state.vista == "resumen":
 # GRÁFICA
 with st.expander(f"📊 Ver gráfica - {nombre}"):
 
-   import plotly.graph_objects as go
+    import plotly.graph_objects as go
 
-   df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-   df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
-   df_g = df_g.sort_values("Periodo_dt")
+    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
+    df_g = df_g.sort_values("Periodo_dt")
 
-# =========================
-# VARIACIÓN FINAL
-#=========================
- 
-   if len(df_g) >= 2:
-       v1 = df_g.iloc[-2]["Ventas"]
-       v2 = df_g.iloc[-1]["Ventas"]
-       var = (v2 - v1) / v1 if v1 != 0 else 0
-   else:
-       var = 0
+    # =========================
+    # VARIACIÓN FINAL
+    # =========================
+    if len(df_g) >= 2:
+        v1 = df_g.iloc[-2]["Ventas"]
+        v2 = df_g.iloc[-1]["Ventas"]
+        var = (v2 - v1) / v1 if v1 != 0 else 0
+    else:
+        var = 0
 
-   texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
+    texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
 
-   fig = go.Figure()
- 
+    fig = go.Figure()
+
     # =========================
     # SOMBRAS POR AÑO
     # =========================
@@ -933,7 +932,6 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
             line_width=0,
         )
 
-        # Línea de corte (como las negras que tenías)
         fig.add_vline(
             x=df_year["Periodo"].iloc[0],
             line_width=2,
@@ -971,18 +969,7 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
         showlegend=False
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"alert_{i}")        
-    # =========================
-    # BOTÓN A ALERTAS 🔥
-    # =========================
-    st.markdown("---")
-    st.markdown("## 🚨 Alertas")
-
-    if st.button("Ver dashboard de alertas"):
-        st.session_state.vista = "alertas"
-        st.rerun()
-
-    st.stop()
+    st.plotly_chart(fig, use_container_width=True, key=f"alert_{i}")
 # =========================
 # DETALLE
 # =========================
