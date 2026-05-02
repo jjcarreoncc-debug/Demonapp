@@ -63,29 +63,7 @@ name, authentication_status, username = authenticator.login("Login", location="m
 # LOGIN VIEW
 # ------------------------
 if authentication_status is None:
-
-    st.markdown(f"""
-    <style>
-    .banner {{
-        width: 100%;
-        height: 120px;
-        background: linear-gradient(
-            to bottom,
-            rgba(255,255,255,0) 0%,
-            rgba(255,255,255,0.4) 40%,
-            rgba(255,255,255,0.8) 70%,
-            rgba(255,255,255,1) 100%
-        ),
-        url("data:image/png;base64,{get_base64("imagen_presentacion1.png")}");
-        background-size: cover;
-        background-position: center;
-        
-
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="banner"></div>', unsafe_allow_html=True)
+st.image("imagen_presentacon1.png", width=200)
     st.stop()
     st.warning("Ingresa tus credenciales")
 
