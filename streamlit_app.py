@@ -895,7 +895,7 @@ elif st.session_state.vista == "resumen":
 # GRÁFICA
 with st.expander(f"📊 Ver gráfica - {nombre}"):
 
-   import plotly.graph_objects as go
+import plotly.graph_objects as go
 
     df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
     df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
