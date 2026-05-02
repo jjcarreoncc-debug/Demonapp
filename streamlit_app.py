@@ -60,7 +60,7 @@ if authentication_status is None:
     #st.markdown("<", unsafe_allow_html=True)
 
     # Columnas para mover a la derecha
-    col1, col2 = st.columns([1,10])
+    col1, col2 = st.columns([1,3])
 
     with col2:
         img = Image.open("imagen1.png")
