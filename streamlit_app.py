@@ -71,7 +71,7 @@ if authentication_status is None:
         z-index: 0;
     }
     </style>
-    <img src="imagen_presentacion.png" class="login-bg">
+    <img src="imagen_presentacion1.png" class="login-bg">
     """, unsafe_allow_html=True)
 # ------------------------
 # CONTROL LOGIN (CLAVE)
