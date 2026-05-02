@@ -19,7 +19,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
 # ------------------------
 # LOGIN
 # ------------------------
@@ -45,20 +44,14 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 
-# ------------------------
-# LOGIN CON DISEÑO (SOLO LOGIN)
-# ------------------------
-
 # Logo arriba
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
-st.markdown("<br>", unsafe_allow_html=True)
+# Login
 name, authentication_status, username = authenticator.login("Login", location="main")
-st.write("DEBUG status:", authentication_status)
 
+# Imagen fija abajo SOLO en login
 if authentication_status is None:
-    st.write("DEBUG: entrando al bloque de imagen")
-
     st.markdown("""
     <style>
     .footer-img {
@@ -66,17 +59,15 @@ if authentication_status is None:
         bottom: 0;
         left: 0;
         width: 100%;
-        opacity: 0.15;
-        z-index: -1;
+        opacity: 0.12;
+        z-index: 1;
     }
     </style>
-    <img src="imagen_presentacion1.png" class="footer-img">
+    <img src="imagen_presentacion.png" class="footer-img">
     """, unsafe_allow_html=True)
 
-# Login
-
 # ------------------------
-# CONTROL LOGIN (CLAVE)
+# CONTROL LOGIN
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
@@ -85,7 +76,6 @@ if authentication_status is False:
 elif authentication_status is None:
     st.warning("Ingresa tus credenciales")
     st.stop()
-
 # ------------------------
 # LOGIN OK
 # ------------------------
