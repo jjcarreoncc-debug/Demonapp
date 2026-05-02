@@ -52,24 +52,20 @@ with col2:
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
-
 if authentication_status is None:
     from PIL import Image
 
-    # Espacio para bajarla un poco (opcional)
-    #st.markdown("<", unsafe_allow_html=True)
+    # un poco de espacio (opcional)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # Columnas para mover a la derecha
-    col1, col2 = st.columns([1,8])
+    col1, col2 = st.columns([1,3])
 
     with col2:
         img = Image.open("imagen1.png")
-        st.image(img, width=500)  # tamaño controlado
+        # más ancho para no perder nitidez
+        st.image(img, width=1400)
 
-     
     st.stop()
-
-# ------------------------
 # LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
