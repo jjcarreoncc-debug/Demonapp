@@ -69,6 +69,7 @@ if authentication_status is None:
     st.markdown(
         '<div class="banner-login"><img src="imagen_presentacion1.png"></div>',
         unsafe_allow_html=True
+        st.image("imagen_presentacion1.png")
     )
 # ------------------------
 # CONTROL LOGIN
