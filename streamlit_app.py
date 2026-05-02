@@ -59,6 +59,7 @@ if authentication_status is None:
             width: 100%;
             max-height: 120px;
             object-fit: cover;
+            st.image("imagen_presentacion1.png", use_container_width=True)   
         }
         </style>
         """,
