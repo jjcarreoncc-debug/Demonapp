@@ -372,7 +372,7 @@ if (
                 ])
 
             fig = px.line(df_g, x="Periodo", y="Ventas", markers=True)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key="grafica_1")
 
         st.markdown("---")
 # ------------------------
@@ -407,7 +407,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafica_2")
 
 # VOLATILIDAD
 elif vista == "volatilidad":
@@ -494,7 +494,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="grafica_3")
 
 elif vista == "volatilidad":
 
