@@ -52,7 +52,6 @@ with col2:
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
-
 if authentication_status is None:
     from PIL import Image
 
@@ -67,6 +66,7 @@ if authentication_status is None:
         st.image(img, width=1000)
 
     st.stop()# ------------------------
+
 # LOGIN OK
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
