@@ -406,7 +406,7 @@ if vista == "principal":
     # FILTROS (si ya los tienes arriba, puedes omitir)
     # =========================
     df_f = df.copy()
-
+    st.write(type(pais), pais)
     if pais != "Todos":
         df_f = df_f[df_f["Pais"] == pais]
 
