@@ -197,13 +197,6 @@ if menu == "Dashboard":
 
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-    if menu == "Dashboard":
-
-    st.header("📊 Dashboard Ejecutivo")
-
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
-
-    # 👇 ESTE ES EL CAMBIO CLAVE
     if archivo:
         st.session_state.archivo = archivo
         st.session_state.menu = "Inicio"
@@ -215,10 +208,9 @@ if menu == "Dashboard":
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
-
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
-        
+     
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
