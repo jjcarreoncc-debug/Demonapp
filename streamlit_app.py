@@ -230,6 +230,9 @@ elif menu == "Dashboard":
         # ------------------------
         # LIMPIEZA
         # ------------------------
+        if "Fecha" not in df.columns:
+            st.warning("⚠️ La columna 'Fecha' no existe en el archivo")
+            st.stop()
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
 
