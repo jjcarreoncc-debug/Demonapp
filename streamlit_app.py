@@ -278,7 +278,7 @@ elif menu == "Dashboard":
     
     df_g = df_g.sort_values("Periodo_dt")
 
-        if not df_g.empty:
+       if not df_g.empty:
             import plotly.graph_objects as go
             fig = go.Figure()
             fig.add_trace(go.Scatter(
