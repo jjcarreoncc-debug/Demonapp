@@ -718,7 +718,7 @@ elif vista == "responsables":
 elif vista == "causas":
 
     if st.button("⬅️ Volver Causa "):
-        st.session_state.vista = "inicio":
+        st.session_state.vista = "inicio"
 
     st.markdown("## 🧠 Causas")
 
