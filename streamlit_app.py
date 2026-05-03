@@ -277,26 +277,28 @@ for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
     # ------------------------
     # SOLO PLOT SI HAY DATOS
     # ------------------------
-    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()  # <- crear df_g aquí
+    #df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()  # <- crear df_g aquí
 
-    if not df_g.empty:
-        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-        df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
-        df_g = df_g.sort_values("Periodo_dt")
+    #if not df_g.empty:
+    #    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+    #    df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
+    
+    #df_g = df_g.sort_values("Periodo_dt")
 
-        if not df_g.empty:
-            import plotly.graph_objects as go
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=df_g["Periodo_dt"],
-                y=df_g["Ventas"],
-                mode="lines+markers"
-            ))
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.warning("No hay datos válidos después de limpiar")
-    else:
-        st.warning("No hay datos para graficar")
+    #    if not df_g.empty:
+    #        import plotly.graph_objects as go
+    #        fig = go.Figure()
+    #        fig.add_trace(go.Scatter(
+    #            x=df_g["Periodo_dt"],
+    #            y=df_g["Ventas"],
+    #            mode="lines+markers"
+    
+    #))
+    #        st.plotly_chart(fig, use_container_width=True)
+    #    else:
+    #        st.warning("No hay datos válidos después de limpiar")
+    #else:
+    #    st.warning("No hay datos para graficar")
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
@@ -501,7 +503,7 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     if df.empty:
         st.warning("No hay datos con esos filtros")
-        st.stop()
+        st.stop()    
     
     # ------------------------
     # ASEGURAR COLUMNAS (ANTES DE TODO)
@@ -544,7 +546,7 @@ if st.session_state.vista == "recomendaciones":
         for k, g in df_t.groupby(col):
             if g["Periodo"].nunique() >= 2 and g.iloc[-2]["Ventas"] != 0:
                 v1 = g.iloc[-2]["Ventas"]
-                v2 = g.iloc[-1]["Ventas"]
+                v2 = g.iloc[-1]["Ventas"]    
                 var = (v2 - v1) / v1
                 impacto = abs(var * v2)
                 p1 = g.iloc[-2]["Periodo"]
