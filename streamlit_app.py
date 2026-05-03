@@ -80,6 +80,15 @@ with col2:
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     name, authentication_status, username = authenticator.login("Login", location="main")
+if authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+    st.stop()
+
+if authentication_status is None:
+    st.stop()
+
+# ✅ AQUÍ defines el rol
+rol = "Admin" if username == "admin" else "Usuario"    
 
 # ------------------------
 # CONTROL LOGIN
