@@ -506,6 +506,15 @@ if st.session_state.vista == "recomendaciones":
 # ------------------------
 # ORDENAR
 # ------------------------
+# 🔥 ASEGURAR COLUMNAS (PEGAR AQUÍ)
+if "Ventas" not in df.columns:
+    if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta"]):
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+
+if "Periodo" not in df.columns:
+    if "Fecha" in df.columns:
+        df["Periodo"] = pd.to_datetime(df["Fecha"], errors="coerce").dt.to_period("M").astype(str)
+
 if recomendaciones:
     recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
 
