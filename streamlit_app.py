@@ -107,7 +107,26 @@ if rol == "Admin":
     menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"])
 else:
     menu = st.sidebar.radio("Menú", ["Dashboard"])
+st.sidebar.divider()
+st.sidebar.markdown("### 🎯 Filtros")
 
+if 'df' in locals():
+
+    if "Pais" in df.columns:
+        pais = st.sidebar.multiselect(
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique())
+        )
+        df = df[df["Pais"].isin(pais)]
+
+    if "Region" in df.columns:
+        region = st.sidebar.multiselect(
+            "Región",
+            sorted(df["Region"].dropna().unique()),
+            default=sorted(df["Region"].dropna().unique())
+        )
+        df = df[df["Region"].isin(region)]
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
