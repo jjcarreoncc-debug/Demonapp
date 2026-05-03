@@ -397,7 +397,7 @@ margen = (ganancia / ventas * 100) if ventas != 0 else 0
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
-
+vista = st.session_state.vista
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
