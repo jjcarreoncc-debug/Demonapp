@@ -7,7 +7,7 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
-
+if "Region" in df.columns:
 # ------------------------
 # CONFIG
 # ------------------------
@@ -242,7 +242,7 @@ with st.sidebar:
         df = df[df["Pais"].isin(pais)]
 
     # REGIÓN
-    if "Region" in df.columns:
+    if 'df' in locals() and "Region" in df.columns:
         region = st.multiselect(
             "Región",
             sorted(df["Region"].dropna().unique()),
