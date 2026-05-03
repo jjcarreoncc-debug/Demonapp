@@ -115,7 +115,7 @@ if rol == "Admin":
     opciones = ["Inicio", "Dashboard", "Mantenimiento"]
 else:
     opciones = ["Inicio", "Dashboard"]
-
+        
 # 👇 radio controlado
 menu = st.sidebar.radio(
     "Menú",
@@ -267,6 +267,28 @@ elif menu == "Dashboard":
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
+menu = st.sidebar.radio("Menú", ["Inicio", "Dashboard"])
+# ------------------------
+# DATA GLOBAL
+# ------------------------
+df = None
+
+if "archivo" in st.session_state:
+
+    df = pd.read_excel(st.session_state.archivo)
+    df.columns = df.columns.str.strip()
+
+    if "Fecha" in df.columns:
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+
+    if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]):
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+        df["Ganancia"] = df["Ventas"] - df["Costos"]
+
+    if "Fecha" in df.columns:
+        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 with st.sidebar:
 
     st.divider()
