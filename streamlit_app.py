@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
@@ -581,10 +582,9 @@ else:
             st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
         st.markdown(f"""
-        - Periodo anterior ({p1}): ${v1:,.0f}  
-        - Periodo actual ({p2}): ${v2:,.0f}  
-        - Variación: {var*100:.1f}%
-        """)
+            f"- Periodo anterior ({p1}): ${v1:,.0f}\n"
+            f"- Periodo actual ({p2}): ${v2:,.0f}\n"
+            f"- Variación: {var*100:.1f}%"
 
         # ------------------------
         # FILTRO BASE
