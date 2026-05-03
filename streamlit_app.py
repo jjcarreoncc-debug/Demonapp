@@ -885,7 +885,8 @@ elif st.session_state.vista == "resumen":
                     fig.add_vrect(
                         x0=df_year["Periodo"].iloc[0],
                         x1=df_year["Periodo"].iloc[-1],
-                        fillcolor="lightgrey" if j % 2 == 0 else "white",
+                        fillcolor="lightblue" if j % 2 == 0 else "lightgrey"
+                        opacity=0.15
                         opacity=0.2,
                         line_width=0,
                     )
@@ -902,6 +903,13 @@ elif st.session_state.vista == "resumen":
                     text=[f"${v:,.0f}" for v in df_g["Ventas"]],
                     textposition="top center"
                 ))
+                fig.add_trace(go.Scatter(
+                    x=[df_g.iloc[-1]["Periodo"]],
+                    y=[df_g.iloc[-1]["Ventas"]],
+                    mode="markers+text",
+                    text=[f"{texto_estado}\n{var:.1%}"],
+                    textposition="bottom center"
+            ))
 
                 st.plotly_chart(fig, use_container_width=True)
 
