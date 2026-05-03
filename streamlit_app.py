@@ -229,6 +229,7 @@ elif menu == "Dashboard":
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
 
+        if "Pais" in df.columns:
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
                 df[col] = (
