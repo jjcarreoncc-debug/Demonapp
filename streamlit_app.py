@@ -424,7 +424,7 @@ if st.session_state.get("vista") == "inicio":
 if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "inicio"
+        st.session_state.get("vista") == "inicio":
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
@@ -705,7 +705,7 @@ elif vista == "volatilidad":
 elif vista == "responsables":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "inicio"
+        st.st.session_state.get("vista") == "inicio":
 
     st.markdown("## 👤 Responsables")
 
@@ -717,7 +717,7 @@ elif vista == "responsables":
 elif vista == "causas":
 
     if st.button("⬅️ Volver"):
-        st.session_state.vista = "inicio"
+        st.st.session_state.get("vista") == "inicio":
 
     st.markdown("## 🧠 Causas")
 
@@ -731,7 +731,7 @@ elif vista == "detalle":
     if st.button("⬅️ Volver"):
 
         
-        st.session_state.vista = "inicio"
+        st.st.session_state.get("vista") == "inicio":
 
     st.markdown("## 🔎 Detalle")
     # =========================
@@ -1056,7 +1056,7 @@ elif st.session_state.vista == "alertas":
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
-        st.session_state.vista = "inicio"
+        st.st.session_state.get("vista") == "inicio":
         st.rerun()
 
     st.title("🧠 Resumen Ejecutivo")
@@ -1247,7 +1247,7 @@ elif st.session_state.vista == "detalle":
 
     # BOTÓN
     if st.button("⬅️ Volver", key="volver_detalle"):
-        st.session_state.vista = "inicio"
+        st.st.session_state.get("vista") == "inicio":
         st.rerun()
 
     st.title("🔎 Análisis Detallado")
