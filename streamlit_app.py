@@ -1077,19 +1077,24 @@ if "Region" in df_f.columns:
 if df.empty:
     st.warning("No hay datos con esos filtros")
     st.stop()
-
 # ------------------------
 # RECÁLCULO
 # ------------------------
-df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-ventas = df["Ventas"].sum()
-ganancia = df["Ganancia"].sum()
+if all(col in df.columns for col in ["Periodo", "Ventas", "Ganancia"]):
+    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+else:
+    df_m = pd.DataFrame()
+    st.warning("Faltan columnas para cálculo (Periodo, Ventas, Ganancia)")
+
+ventas = df["Ventas"].sum() if "Ventas" in df.columns else 0
+ganancia = df["Ganancia"].sum() if "Ganancia" in df.columns else 0
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# DASHBOARD PRINCIAPL
+# DASHBOARD PRINCIPAL
 # ------------------------
+
 vista = st.session_state.vista
 
 if vista == "principal":
@@ -1100,8 +1105,11 @@ if vista == "principal":
     c2.metric("Ganancia", f"${ganancia:,.0f}")
     c3.metric("Margen", f"{margen:.1f}%")
 
-    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True, key="grafica_3")
+    if not df_m.empty:
+        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        st.plotly_chart(fig, use_container_width=True, key="grafica_3")
+    else:
+        st.warning("No hay datos para graficar")
 
 elif vista == "volatilidad":
 
@@ -1155,8 +1163,11 @@ elif vista == "reporte":
     c2.metric("Ganancia", f"${ganancia:,.0f}")
     c3.metric("Margen", f"{margen:.1f}%")
 
-    fig = px.bar(df_m, x="Periodo", y="Ventas")
-    st.plotly_chart(fig, use_container_width=True)
+    if not df_m.empty:
+        fig = px.bar(df_m, x="Periodo", y="Ventas")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("No hay datos para graficar")
 
 elif vista == "log":
 
@@ -1193,7 +1204,7 @@ elif st.session_state.vista == "alertas":
 
     df_res = df.copy()
     tabla = []
-
+    
     # =========================
     # GENERAR BASE
     # =========================
