@@ -476,10 +476,12 @@ with st.sidebar:
     if st.button("🔎 Detalle", key="nav_detalle"):
         st.session_state.vista = "detalle"
         st.rerun()
+        
 
     if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
         st.session_state.vista = "recomendaciones"
         st.rerun()
+        st.stop()
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
