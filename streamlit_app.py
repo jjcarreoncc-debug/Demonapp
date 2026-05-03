@@ -734,7 +734,7 @@ elif st.session_state.vista == "resumen":
     st.title("🧠 Resumen Ejecutivo")
 
     # =========================
-    # ASEGURAR DATA
+    # DATA
     # =========================
     df_m = df.groupby("Periodo")["Ventas"].sum().reset_index()
     df_m = df_m.sort_values("Periodo")
@@ -751,15 +751,15 @@ elif st.session_state.vista == "resumen":
         col1, col2 = st.columns(2)
 
         with col1:
-            fig1 = px.line(df_m, x="Periodo", y="Ventas", markers=True, title="Ventas")
+            fig1 = px.line(df_m, x="Periodo", y="Ventas", markers=True)
             st.plotly_chart(fig1, use_container_width=True)
 
         with col2:
-            fig2 = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True, title="Proyección")
+            fig2 = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
             st.plotly_chart(fig2, use_container_width=True)
 
     # =========================
-    # FORMATOS
+    # FORMATO
     # =========================
     def format_color(val, tipo):
         try:
@@ -778,7 +778,7 @@ elif st.session_state.vista == "resumen":
     tabla = []
 
     # =========================
-    # GENERAR TABLA
+    # TABLA BASE
     # =========================
     for dim in ["Canal", "Pais", "Region", "Producto"]:
         if dim in df_res.columns:
@@ -807,7 +807,7 @@ elif st.session_state.vista == "resumen":
     )
 
     # =========================
-    # INSIGHTS AUTOMÁTICOS
+    # INSIGHTS
     # =========================
     if not df_tabla.empty:
 
@@ -818,17 +818,19 @@ elif st.session_state.vista == "resumen":
 
         if not top_crece.empty:
             row = top_crece.iloc[0]
-            st.success(f"""
-            🔥 El crecimiento está impulsado por **{row['Elemento']}** 
-            en {row['Dimensión']} con impacto de ${row['Impacto $']:,.0f}
-            """)
+            st.success(f"🔥 Crecimiento impulsado por {row['Elemento']} (${row['Impacto $']:,.0f})")
 
         if not top_cae.empty:
             row = top_cae.iloc[0]
-            st.error(f"""
-            ⚠️ La principal caída viene de **{row['Elemento']}**
-            en {row['Dimensión']} con impacto de ${row['Impacto $']:,.0f}
-            """)
+            st.error(f"⚠️ Caída principal en {row['Elemento']} (${row['Impacto $']:,.0f})")
+
+    # =========================
+    # BOTÓN ALERTAS (NUEVO)
+    # =========================
+    st.markdown("---")
+    if st.button("🚨 Ver dashboard de alertas"):
+        st.session_state.vista = "alertas"
+        st.rerun()
 
     # =========================
     # TOP IMPACTOS
@@ -846,126 +848,64 @@ elif st.session_state.vista == "resumen":
             impacto = row["Impacto $"]
 
             if impacto > 0:
-                st.success(f"🟢 {nombre} impulsa crecimiento (${impacto:,.0f})")
+                st.success(f"🟢 {nombre} impulsa (${impacto:,.0f})")
             else:
-                st.error(f"🔴 {nombre} afecta resultado (${impacto:,.0f})")
+                st.error(f"🔴 {nombre} afecta (${impacto:,.0f})")
 
             df_det = df[df[dim] == nombre]
 
+            # =========================
             # DETALLE
-            with st.expander(f"🔍 Ver detalle - {nombre}"):
+            # =========================
+            with st.expander(f"🔍 Detalle - {nombre}"):
 
-                tabla_det = []
+                df_detalle = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+                st.dataframe(df_detalle)
 
-                for subdim in ["Producto", "Region", "Canal"]:
-                    if subdim in df_det.columns and subdim != dim:
+            # =========================
+            # GRÁFICA (ARREGLADA + SOMBRAS)
+            # =========================
+            with st.expander(f"📊 Gráfica - {nombre}"):
 
-                        df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                        df_sub = df_sub.sort_values("Periodo")
+                import plotly.graph_objects as go
 
-                        for k2, g2 in df_sub.groupby(subdim):
-                            if len(g2) >= 2 and g2.iloc[-2]["Ventas"] != 0:
+                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
+                df_g = df_g.sort_values("Periodo_dt")
 
-                                v1_sub = g2.iloc[-2]["Ventas"]
-                                v2_sub = g2.iloc[-1]["Ventas"]
-                                var_sub = (v2_sub - v1_sub) / v1_sub
+                fig = go.Figure()
 
-                                semaforo = "🟢" if var_sub > 0 else "🔴"
+                # SOMBRAS
+                df_g["Año"] = df_g["Periodo_dt"].dt.year
+                años = df_g["Año"].unique()
 
-                                tabla_det.append([
-                                    subdim,
-                                    k2,
-                                    v1_sub,
-                                    v2_sub,
-                                    f"{semaforo} {var_sub:.1%}"
-                                ])
+                for j, año in enumerate(años):
+                    df_year = df_g[df_g["Año"] == año]
 
-                if tabla_det:
-                    df_tabla_det = pd.DataFrame(
-                        tabla_det,
-                        columns=["Dimensión", "Elemento", "Anterior", "Actual", "Variación"]
+                    fig.add_vrect(
+                        x0=df_year["Periodo"].iloc[0],
+                        x1=df_year["Periodo"].iloc[-1],
+                        fillcolor="lightgrey" if j % 2 == 0 else "white",
+                        opacity=0.2,
+                        line_width=0,
                     )
 
-                    st.dataframe(df_tabla_det.head(5), use_container_width=True)
+                    fig.add_vline(
+                        x=df_year["Periodo"].iloc[0],
+                        line_dash="dash"
+                    )
 
-# GRÁFICA
-with st.expander(f"📊 Ver gráfica - {nombre}"):
+                fig.add_trace(go.Scatter(
+                    x=df_g["Periodo"],
+                    y=df_g["Ventas"],
+                    mode="lines+markers+text",
+                    text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+                    textposition="top center"
+                ))
 
-    import plotly.graph_objects as go
+                st.plotly_chart(fig, use_container_width=True)
 
-    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
-    df_g = df_g.sort_values("Periodo_dt")
-
-    # =========================
-    # VARIACIÓN FINAL
-    # =========================
-    if len(df_g) >= 2:
-        v1 = df_g.iloc[-2]["Ventas"]
-        v2 = df_g.iloc[-1]["Ventas"]
-        var = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        var = 0
-
-    texto_estado = "🟢 Impulso" if var > 0 else "🔴 Caída"
-
-    fig = go.Figure()
-
-    # =========================
-    # SOMBRAS POR AÑO
-    # =========================
-    df_g["Año"] = df_g["Periodo_dt"].dt.year
-    años = df_g["Año"].unique()
-
-    for j, año in enumerate(años):
-        df_year = df_g[df_g["Año"] == año]
-
-        fig.add_vrect(
-            x0=df_year["Periodo"].iloc[0],
-            x1=df_year["Periodo"].iloc[-1],
-            fillcolor="lightgrey" if j % 2 == 0 else "white",
-            opacity=0.2,
-            line_width=0,
-        )
-
-        fig.add_vline(
-            x=df_year["Periodo"].iloc[0],
-            line_width=2,
-            line_dash="dash",
-            line_color="black"
-        )
-
-    # =========================
-    # LÍNEA PRINCIPAL + VALORES
-    # =========================
-    fig.add_trace(go.Scatter(
-        x=df_g["Periodo"],
-        y=df_g["Ventas"],
-        mode="lines+markers+text",
-        text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-        textposition="top center"
-    ))
-
-    # =========================
-    # ÚLTIMO PUNTO CON INSIGHT
-    # =========================
-    fig.add_trace(go.Scatter(
-        x=[df_g.iloc[-1]["Periodo"]],
-        y=[df_g.iloc[-1]["Ventas"]],
-        mode="markers+text",
-        marker=dict(size=12),
-        text=[f"{texto_estado}\n{var:.1%}"],
-        textposition="bottom center"
-    ))
-
-    fig.update_layout(
-        title=f"{nombre} | Variación: {var:.1%}",
-        xaxis_title="Periodo",
-        yaxis_title="Ventas",
-        showlegend=False
-    )
-
-    st.plotly_chart(fig, use_container_width=True, key=f"alert_{i}")
+    st.stop()
 # =========================
 # DETALLE
 # =========================
