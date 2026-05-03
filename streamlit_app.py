@@ -1263,6 +1263,7 @@ elif st.session_state.vista == "alertas":
 
     st.stop()
 
+
 # =======================
 # RESUMEN
 # =======================
@@ -1277,361 +1278,92 @@ elif st.session_state.vista == "resumen":
     # =========================
     # DATA
     # =========================
-# =========================
-# DATA
-# =========================
-if all(col in df.columns for col in ["Periodo", "Ventas"]):
-    df_m = df.groupby("Periodo")["Ventas"].sum().reset_index()
-    df_m = df_m.sort_values("Periodo")
-else:
-    df_m = pd.DataFrame()
-    st.warning("Faltan columnas para cálculo (Periodo, Ventas)")
-
-# =========================
-# PROYECCIÓN
-# =========================
-st.subheader("📈 Proyección")
-
-if not df_m.empty and len(df_m) > 2:
-    tendencia = df_m["Ventas"].diff().mean()
-    df_m["Proyección"] = df_m["Ventas"].iloc[-1] + tendencia
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        fig1 = px.line(df_m, x="Periodo", y="Ventas", markers=True)
-        st.plotly_chart(fig1, use_container_width=True)
-
-    with col2:
-        fig2 = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
-        st.plotly_chart(fig2, use_container_width=True)
-
-# =========================
-# FORMATO
-# =========================
-def format_color(val, tipo):
-    try:
-        val = float(val)
-        if tipo == "var":
-            return f"🔴 {val:.2%}" if val < 0 else f"🟢 {val:.2%}"
-        elif tipo == "money":
-            return f"🔴 ${val:,.0f}" if val < 0 else f"🟢 ${val:,.0f}"
-    except:
-        return val
-    return val
-
-st.markdown("## 📊 Análisis adicional de desempeño")
-
-df_res = df.copy()
-tabla = []
-
-# =========================
-# TABLA BASE
-# =========================
-for dim in ["Canal", "Pais", "Region", "Producto"]:
-    if dim in df_res.columns and "Periodo" in df_res.columns and "Ventas" in df_res.columns:
-
-        df_t = df_res.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
-        df_t["Periodo"] = pd.to_datetime(df_t["Periodo"], errors="coerce")
-        df_t = df_t.dropna(subset=["Periodo"])
-        df_t = df_t.sort_values("Periodo")
-
-        for k, g in df_t.groupby(dim):
-
-            if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
-
-                v1 = g.iloc[-2]["Ventas"]
-                v2 = g.iloc[-1]["Ventas"]
-
-                var = (v2 - v1) / v1
-                impacto = (v2 - v1)
-
-                estado = "🟢 Crece" if var > 0 else "🔴 Cae"
-
-                tabla.append([dim, k, v1, v2, var, impacto, estado])
-
-df_tabla = pd.DataFrame(
-    tabla,
-    columns=["Dimensión", "Elemento", "Anterior", "Actual", "Variación", "Impacto $", "Estado"]
-)
-
-# =========================
-# INSIGHTS
-# =========================
-if not df_tabla.empty:
-
-    st.markdown("## 🧠 Insights automáticos")
-
-    top_crece = df_tabla.sort_values("Impacto $", ascending=False).head(1)
-    top_cae = df_tabla.sort_values("Impacto $").head(1)
-
-    if not top_crece.empty:
-        row = top_crece.iloc[0]
-        st.success(f"🔥 Crecimiento impulsado por {row['Elemento']} (${row['Impacto $']:,.0f})")
-
-    if not top_cae.empty:
-        row = top_cae.iloc[0]
-        st.error(f"⚠️ Caída principal en {row['Elemento']} (${row['Impacto $']:,.0f})")
-
-# =========================
-# BOTÓN ALERTAS (NUEVO)
-# =========================
-st.markdown("---")
-if st.button("🚨 Ver dashboard de alertas"):
-    st.session_state.vista = "alertas"
-    st.rerun()
-
-# =========================
-# TOP IMPACTOS
-# =========================
-if not df_tabla.empty:
-
-    st.markdown("### 🔝 Principales impactos")
-
-    top = df_tabla.sort_values("Impacto $", ascending=False).head(5)
-
-    for i, row in top.iterrows():
-
-        dim = row["Dimensión"]
-        nombre = row["Elemento"]
-        impacto = row["Impacto $"]
-
-        if impacto > 0:
-            st.success(f"🟢 {nombre} impulsa (${impacto:,.0f})")
-        else:
-            st.error(f"🔴 {nombre} afecta (${impacto:,.0f})")
-
-        df_det = df[df[dim] == nombre]
-
-        # =========================
-        # DETALLE
-        # =========================
-        with st.expander(f"🔍 Detalle - {nombre}"):
-
-            if not df_det.empty and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
-                df_detalle = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-                st.dataframe(df_detalle)
-            else:
-                st.warning("No hay datos para este detalle")
-
-        # =========================
-        # GRÁFICA
-        # =========================
-        with st.expander(f"📊 Gráfica - {nombre}"):
-
-            import plotly.graph_objects as go
-
-            if not df_det.empty and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
-
-                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-                df_g = df_g.dropna(subset=["Periodo_dt"])
-                df_g = df_g.sort_values("Periodo_dt")
-
-                fig = go.Figure()
-
-                # SOMBRAS
-                df_g["Año"] = df_g["Periodo_dt"].dt.year
-                años = df_g["Año"].unique()
-
-                for j, año in enumerate(años):
-                    df_year = df_g[df_g["Año"] == año]
-
-                    fig.add_vrect(
-                        x0=df_year["Periodo_dt"].iloc[0],
-                        x1=df_year["Periodo_dt"].iloc[-1],
-                        fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-                        opacity=0.2,
-                        line_width=0,
-                    )
-
-                    fig.add_vline(
-                        x=df_year["Periodo_dt"].iloc[0],
-                        line_dash="dash"
-                    )
-
-                fig.add_trace(go.Scatter(
-                    x=df_g["Periodo_dt"],
-                    y=df_g["Ventas"],
-                    mode="lines+markers+text",
-                    text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-                    textposition="top center"
-                ))
-
-                st.plotly_chart(fig, use_container_width=True)
-
-            else:
-                st.warning("No hay datos para graficar")
-
-
-# =========================
-# DETALLE (LIMPIO Y ESTABLE)
-# =========================
-elif st.session_state.vista == "detalle":
-
-    # BOTÓN
-    if st.button("⬅️ Volver", key="volver_detalle"):
-        st.session_state.vista = "inicio"
-        st.rerun()
-
-    st.title("🔎 Análisis Detallado")
-
-    # =========================
-    # FILTROS
-    # =========================
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        pais = st.selectbox(
-            "País",
-            ["Todos"] + sorted(df["Pais"].dropna().unique()),
-            key="detalle_pais_1"
-        )
-
-    with col2:
-        canal = st.selectbox(
-            "Canal",
-            ["Todos"] + sorted(df["Canal"].dropna().unique()),
-            key="detalle_canal_1"
-        )
-
-    with col3:
-        region = st.selectbox(
-            "Región",
-            ["Todos"] + sorted(df["Region"].dropna().unique()),
-            key="detalle_region_1"
-        )
-
-    with col4:
-        producto = st.selectbox(
-            "Producto",
-            ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
-            key="detalle_producto_1"
-        )
-    # =========================
-    # FILTRADO
-    # =========================
-    df_f = df.copy()
-
-    if canal != "Todos" and "Canal" in df_f.columns:
-        df_f = df_f[df_f["Canal"] == canal]
-
-    if pais != "Todos" and "Pais" in df_f.columns:
-        df_f = df_f[df_f["Pais"] == pais]
-
-    if region != "Todos" and "Region" in df_f.columns:
-        df_f = df_f[df_f["Region"] == region]
-
-    if producto != "Todos" and "Nombre_Producto" in df_f.columns:
-        df_f = df_f[df_f["Nombre_Producto"] == producto]
-
-    # =========================
-    # DATA PARA GRÁFICA
-    # =========================
-    if all(col in df_f.columns for col in ["Periodo", "Ventas"]):
-        df_g = df_f.groupby("Periodo")["Ventas"].sum().reset_index()
-        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-        df_g = df_g.dropna(subset=["Periodo_dt"])
-        df_g = df_g.sort_values("Periodo_dt")
+    if all(col in df.columns for col in ["Periodo", "Ventas"]):
+        df_m = df.groupby("Periodo")["Ventas"].sum().reset_index()
+        df_m = df_m.sort_values("Periodo")
     else:
-        df_g = pd.DataFrame()
+        df_m = pd.DataFrame()
+        st.warning("Faltan columnas para cálculo (Periodo, Ventas)")
 
     # =========================
-    # KPIs
+    # PROYECCIÓN
     # =========================
-    col1, col2, col3 = st.columns(3)
+    st.subheader("📈 Proyección")
 
-    total = df_f["Ventas"].sum() if "Ventas" in df_f.columns else 0
+    if not df_m.empty and len(df_m) > 2:
+        tendencia = df_m["Ventas"].diff().mean()
+        df_m["Proyección"] = df_m["Ventas"].iloc[-1] + tendencia
 
-    if len(df_g) >= 2:
-        v1 = df_g.iloc[-2]["Ventas"]
-        v2 = df_g.iloc[-1]["Ventas"]
-        var = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        var = 0
+        col1, col2 = st.columns(2)
 
-    with col1:
-        st.metric("Ventas totales", f"${total:,.0f}")
+        with col1:
+            fig1 = px.line(df_m, x="Periodo", y="Ventas", markers=True)
+            st.plotly_chart(fig1, use_container_width=True)
 
-    with col2:
-        if not df_g.empty:
-            st.metric("Último periodo", f"${df_g.iloc[-1]['Ventas']:,.0f}")
-        else:
-            st.metric("Último periodo", "$0")
-
-    with col3:
-        st.metric("Variación", f"{var:.1%}")
+        with col2:
+            fig2 = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
+            st.plotly_chart(fig2, use_container_width=True)
 
     # =========================
-    # GRÁFICA CON SOMBRAS
+    # ANÁLISIS
     # =========================
-    import plotly.graph_objects as go
+    st.markdown("## 📊 Análisis adicional de desempeño")
 
-    fig = go.Figure()
+    df_res = df.copy()
+    tabla = []
 
-    if not df_g.empty:
+    for dim in ["Canal", "Pais", "Region", "Producto"]:
+        if dim in df_res.columns and "Periodo" in df_res.columns and "Ventas" in df_res.columns:
 
-        df_g["Año"] = df_g["Periodo_dt"].dt.year
-        años = df_g["Año"].unique()
+            df_t = df_res.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
+            df_t["Periodo"] = pd.to_datetime(df_t["Periodo"], errors="coerce")
+            df_t = df_t.dropna(subset=["Periodo"])
+            df_t = df_t.sort_values("Periodo")
 
-        for j, año in enumerate(años):
-            df_year = df_g[df_g["Año"] == año]
+            for k, g in df_t.groupby(dim):
 
-            fig.add_vrect(
-                x0=df_year["Periodo_dt"].iloc[0],
-                x1=df_year["Periodo_dt"].iloc[-1],
-                fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-                opacity=0.2,
-                line_width=0,
-            )
+                if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
 
-            fig.add_vline(
-                x=df_year["Periodo_dt"].iloc[0],
-                line_dash="dash"
-            )
+                    v1 = g.iloc[-2]["Ventas"]
+                    v2 = g.iloc[-1]["Ventas"]
 
-        fig.add_trace(go.Scatter(
-            x=df_g["Periodo_dt"],
-            y=df_g["Ventas"],
-            mode="lines+markers+text",
-            text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-            textposition="top center"
-        ))
+                    var = (v2 - v1) / v1
+                    impacto = (v2 - v1)
 
-    fig.update_layout(
-        title="Evolución de Ventas",
-        xaxis_title="Periodo",
-        yaxis_title="Ventas",
-        showlegend=False
+                    estado = "🟢 Crece" if var > 0 else "🔴 Cae"
+
+                    tabla.append([dim, k, v1, v2, var, impacto, estado])
+
+    df_tabla = pd.DataFrame(
+        tabla,
+        columns=["Dimensión", "Elemento", "Anterior", "Actual", "Variación", "Impacto $", "Estado"]
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    # =========================
+    # INSIGHTS
+    # =========================
+    if not df_tabla.empty:
+
+        st.markdown("## 🧠 Insights automáticos")
+
+        top_crece = df_tabla.sort_values("Impacto $", ascending=False).head(1)
+        top_cae = df_tabla.sort_values("Impacto $").head(1)
+
+        if not top_crece.empty:
+            row = top_crece.iloc[0]
+            st.success(f"🔥 Crecimiento impulsado por {row['Elemento']} (${row['Impacto $']:,.0f})")
+
+        if not top_cae.empty:
+            row = top_cae.iloc[0]
+            st.error(f"⚠️ Caída principal en {row['Elemento']} (${row['Impacto $']:,.0f})")
 
     # =========================
-    # INSIGHT SIMPLE
+    # BOTÓN ALERTAS
     # =========================
-    st.info(f"Filtro: Canal={canal} | País={pais} | Región={region}")
-
-    if var > 0:
-        st.success(f"📈 Crecimiento de {var:.1%}")
-    else:
-        st.error(f"📉 Caída de {var:.1%}")
-
-    # =========================
-    # TOP REGIONES
-    # =========================
-    if "Region" in df_f.columns and "Ventas" in df_f.columns:
-        st.markdown("### 🔝 Top regiones")
-        top = df_f.groupby("Region")["Ventas"].sum().sort_values(ascending=False).head(5)
-        st.bar_chart(top)
-
-    # =========================
-    # TABLA
-    # =========================
-    st.markdown("### 📋 Datos")
-    st.dataframe(df_f, use_container_width=True)
-
-
+    st.markdown("---")
+    if st.button("🚨 Ver dashboard de alertas"):
+        st.session_state.vista = "alertas"
+        st.rerun()
 # =========================
 # LOG
 # =========================
