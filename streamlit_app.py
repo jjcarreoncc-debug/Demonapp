@@ -583,42 +583,49 @@ with st.expander("📊 Ver gráfica"):
     import plotly.graph_objects as go
 
     df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+
+    if df_g.empty:
+        st.warning("No hay datos para graficar")
+        st.stop()
+
     df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
     df_g = df_g.sort_values("Periodo_dt")
 
+    # 🔥 PROYECCIÓN (segura)
     if len(df_g) >= 2:
         v1_g = df_g.iloc[-2]["Ventas"]
         v2_g = df_g.iloc[-1]["Ventas"]
 
-        var_g = (v2_g - v1_g) / v1_g if v1_g != 0 else 0
-        proy = v2_g * (1 + var_g)
+        if v1_g != 0:
+            var_g = (v2_g - v1_g) / v1_g
+            proy = v2_g * (1 + var_g)
 
-        sig = df_g["Periodo_dt"].iloc[-1] + pd.DateOffset(months=1)
+            sig = df_g["Periodo_dt"].iloc[-1] + pd.DateOffset(months=1)
 
-        df_g = pd.concat([
-            df_g,
-            pd.DataFrame({
+            df_extra = pd.DataFrame({
                 "Periodo": [sig.strftime("%Y-%m")],
                 "Ventas": [proy]
             })
-        ])
 
-        # 🔥 IMPORTANTE: recalcular fecha después del concat
-        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
-        df_g = df_g.sort_values("Periodo_dt")
+            df_g = pd.concat([df_g, df_extra], ignore_index=True)
 
+            # 🔥 MUY IMPORTANTE (esto te faltaba)
+            df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
+            df_g = df_g.sort_values("Periodo_dt")
+
+    # ------------------------
+    # GRÁFICA
+    # ------------------------
     fig = go.Figure()
 
-    # Línea principal
     fig.add_trace(go.Scatter(
         x=df_g["Periodo_dt"],
         y=df_g["Ventas"],
-        mode="lines+markers",
-        name="Ventas"
+        mode="lines+markers"
     ))
 
-    # 🔵 FRANJAS (como dashboard principal)
-    if len(df_g) >= 3:
+    # 🔵 Franjas (solo si hay suficientes datos)
+    if len(df_g) >= 4:
         for i in range(0, len(df_g)-1, 3):
             fig.add_vrect(
                 x0=df_g["Periodo_dt"].iloc[i],
@@ -628,23 +635,21 @@ with st.expander("📊 Ver gráfica"):
                 line_width=0
             )
 
-    # ⚫ LÍNEAS VERTICALES
-    for i in range(0, len(df_g), 6):
-        fig.add_vline(
-            x=df_g["Periodo_dt"].iloc[i],
-            line_dash="dash",
-            line_color="black"
-        )
+    # ⚫ Líneas verticales
+    if len(df_g) >= 6:
+        for i in range(0, len(df_g), 6):
+            fig.add_vline(
+                x=df_g["Periodo_dt"].iloc[i],
+                line_dash="dash",
+                line_color="black"
+            )
 
     fig.update_layout(
         title="Evolución",
-        xaxis_title="Periodo",
-        yaxis_title="Ventas",
-        hovermode="x unified",
-        showlegend=False
+        hovermode="x unified"
     )
 
-    st.plotly_chart(fig, use_container_width=True)            
+    st.plotly_chart(fig, use_container_width=True)
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
