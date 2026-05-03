@@ -494,8 +494,14 @@ if canal != "Todos":
 if producto != "Todos":
     df_f = df_f[df_f["Nombre_Producto"] == producto]
     st.dataframe(df)
-if region != "Todos":
-    df_f = df_f[df_f["Region"] == region]    
+if "Region" in df_f.columns:
+    if isinstance(region, list):
+        if region:
+            df_f = df_f[df_f["Region"].isin(region)]
+    else:
+        if region != "Todos":
+            df_f = df_f[df_f["Region"] == region]
+      
 
 # 🔥 DATA FINAL FILTRADA
 
