@@ -289,11 +289,13 @@ with st.sidebar:
             key="filtro_tipo_cliente"
         )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+# ------------------------
+# RANGO DE FECHAS
+# ------------------------
+if 'df' in locals():
 
-    # ------------------------
-    # RANGO DE FECHAS
-    # ------------------------
     st.markdown("### 📅 Rango de fechas")
+
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
@@ -314,6 +316,9 @@ with st.sidebar:
     st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
     st.divider()
 
+else:
+    st.info("📂 Carga un archivo para habilitar el filtro de fechas")
+    
     # ------------------------
     # NAVEGACIÓN
     # ------------------------
