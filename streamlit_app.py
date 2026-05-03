@@ -865,44 +865,52 @@ elif st.session_state.vista == "resumen":
             # =========================
             # GRÁFICA (ARREGLADA + SOMBRAS)
             # =========================
-            with st.expander(f"📊 Gráfica - {nombre}"):
+    with st.expander(f"📊 Gráfica - {nombre}"):
 
-    import plotly.graph_objects as go
+        import plotly.graph_objects as go
 
-    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
-    df_g = df_g.sort_values("Periodo_dt")
+        df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
+        df_g = df_g.sort_values("Periodo_dt")
+    
+        if len(df_g) >= 2:
+            v1 = df_g.iloc[-2]["Ventas"]
+            v2 = df_g.iloc[-1]["Ventas"]
+            var = (v2 - v1) / v1 if v1 != 0 else 0
+        else:
+            var = 0
+    
+        fig = go.Figure()
+    
+        df_g["Año"] = df_g["Periodo_dt"].dt.year
+        años = df_g["Año"].unique()
+    
+        for j, año in enumerate(años):
+            df_year = df_g[df_g["Año"] == año]
+    
+            fig.add_vrect(
+                x0=df_year["Periodo_dt"].iloc[0],
+                x1=df_year["Periodo_dt"].iloc[-1],
+                fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+                opacity=0.2,
+                line_width=0,
+            )
+    
+            fig.add_vline(
+                x=df_year["Periodo_dt"].iloc[0],
+                line_dash="dash"
+            )
+    
+        fig.add_trace(go.Scatter(
+            x=df_g["Periodo_dt"],
+            y=df_g["Ventas"],
+            mode="lines+markers+text",
+            text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+            textposition="top center"
+        ))
 
-    if len(df_g) >= 2:
-        v1 = df_g.iloc[-2]["Ventas"]
-        v2 = df_g.iloc[-1]["Ventas"]
-        var = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        var = 0
-
-    fig = go.Figure()
-
-    # =========================
-    # SOMBRAS
-    # =========================
-    df_g["Año"] = df_g["Periodo_dt"].dt.year
-    años = df_g["Año"].unique()
-
-    for j, año in enumerate(años):
-        df_year = df_g[df_g["Año"] == año]
-
-        fig.add_vrect(
-            x0=df_year["Periodo_dt"].iloc[0],   # 🔥 CORREGIDO
-            x1=df_year["Periodo_dt"].iloc[-1],  # 🔥 CORREGIDO
-            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-            opacity=0.2,
-            line_width=0,
-        )
-
-        fig.add_vline(
-            x=df_year["Periodo_dt"].iloc[0],  # 🔥 CORREGIDO
-            line_dash="dash"
-        )
+    st.plotly_chart(fig, use_container_width=True)
+            
 
     # =========================
     # GRÁFICA
