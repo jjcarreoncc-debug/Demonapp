@@ -14,18 +14,38 @@ from PIL import Image
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-# SESSION STATE
-# ------------------------
-if "vista" not in st.session_state:
-    st.session_state.vista = "carga"
-
-if "df" not in st.session_state:
-    st.session_state.df = None
-
-# ------------------------
 # BASE DE DATOS
 # ------------------------
 conn = sqlite3.connect("data.db", check_same_thread=False)
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS ventas (
+    Fecha TEXT,
+    Nombre_Producto TEXT,
+    Numero_Producto TEXT,
+    Ventas_Cantidad REAL,
+    Pais TEXT,
+    Region TEXT,
+    Canal TEXT,
+    Vendedor_Ruta TEXT,
+    Tipo_cliente TEXT,
+    Precio_Venta REAL,
+    Costos_Venta REAL
+)
+""")
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    nombre TEXT,
+    rol TEXT,
+    estado TEXT,
+    fecha_creacion TEXT
+)
+""")
+conn.commit()
 
 # ------------------------
 # LOGIN CONFIG
@@ -48,44 +68,125 @@ authenticator = stauth.Authenticate(
 )
 
 # ------------------------
+# LOGO
+# ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+
+# ------------------------
 # LOGIN
 # ------------------------
-name, authentication_status, username = authenticator.login("Login", "main")
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    name, authentication_status, username = authenticator.login("Login", location="main")
 
+# ------------------------
+# CONTROL LOGIN
+# ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
 
 if authentication_status is None:
+    col1, col2 = st.columns([2,6])
+    with col2:
+        img = Image.open("imagen7.png")
+        st.image(img, width=2000)
     st.stop()
 
-rol = "Admin" if username == "admin" else "Usuario"
-
 # ------------------------
-# SIDEBAR
+# SIDEBAR + MENÚ
 # ------------------------
-st.sidebar.title("🚦 Navegación")
+st.sidebar.title("📌 Navegación")
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
+
+rol = "Admin" if username == "admin" else "Usuario"
 
 if rol == "Admin":
     menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"])
 else:
     menu = st.sidebar.radio("Menú", ["Dashboard"])
 
-st.sidebar.divider()
+# ------------------------
+# FUNCIONES USUARIOS
+# ------------------------
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def obtener_usuarios():
+    return pd.read_sql("SELECT * FROM usuarios", conn)
+
+def crear_usuario(username, password, nombre, rol):
+    try:
+        conn.execute("""
+        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion)
+        VALUES (?, ?, ?, ?, 'Activo', ?)
+        """, (
+            username,
+            hash_password(password),
+            nombre,
+            rol,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+        conn.commit()
+        return True
+    except Exception as e:
+        return str(e)
+
+def desactivar_usuario(user_id):
+    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
+    conn.commit()
 
 # ------------------------
-# DASHBOARD - CARGA
+# MANTENIMIENTO
 # ------------------------
-if menu == "Dashboard" and st.session_state.vista == "carga":
+if menu == "Mantenimiento":
 
-    st.header("📂 Carga de archivo")
+    st.header("⚙️ Mantenimiento de Usuarios")
 
-    archivo = st.file_uploader("Sube tu Excel", type=["xlsx"])
+    with st.expander("➕ Crear Usuario"):
+        username_new = st.text_input("Usuario nuevo")
+        password_new = st.text_input("Contraseña", type="password")
+        nombre_new = st.text_input("Nombre")
+        rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
 
-    if archivo is not None:
+        if st.button("Guardar usuario"):
+            resultado = crear_usuario(username_new, password_new, nombre_new, rol_new)
 
+            if resultado == True:
+                st.success("Usuario creado")
+            else:
+                st.error(f"Error: {resultado}")
+
+    st.subheader("Usuarios registrados")
+    usuarios_df = obtener_usuarios()
+
+    if not usuarios_df.empty:
+        st.dataframe(usuarios_df)
+
+        user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"])
+
+        if st.button("Desactivar usuario"):
+            desactivar_usuario(user_id)
+            st.warning("Usuario desactivado")
+    else:
+        st.info("No hay usuarios aún")
+
+# ------------------------
+# DASHBOARD
+# ------------------------
+if menu == "Dashboard":
+
+    st.header("📊 Dashboard Ejecutivo")
+
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if not archivo:
+        st.info("📂 Sube un archivo para comenzar")
+
+    else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
@@ -94,7 +195,11 @@ if menu == "Dashboard" and st.session_state.vista == "carga":
 
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
-                df[col] = df[col].astype(str).str.replace(",", "").str.strip()
+                df[col] = (
+                    df[col].astype(str)
+                    .str.replace(",", "")
+                    .str.strip()
+                )
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
@@ -102,118 +207,181 @@ if menu == "Dashboard" and st.session_state.vista == "carga":
         df["Ganancia"] = df["Ventas"] - df["Costos"]
         df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-        st.session_state.df = df
-        st.session_state.vista = "inicio"
-        st.rerun()
+        # 🔥 YA NO ROMPE
+        if 'df' in locals():
+            df_base = df.copy()
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+
+        fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+        st.plotly_chart(fig, use_container_width=True)
+# ------------------------
+# DASHBOARD MENIU
+# ------------------------
+# ------------------------
+# DASHBOARD
+# ------------------------
+if menu == "Dashboard":
+
+    # ------------------------
+    # CARGA ARCHIVO
+    # ------------------------
+    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
+    if not archivo:
+        st.info("📂 Sube un archivo para comenzar")
 
     else:
-        st.info("📂 Sube un archivo para continuar")
+        df = pd.read_excel(archivo)
+        df.columns = df.columns.str.strip()
 
+        # ------------------------
+        # LIMPIEZA
+        # ------------------------
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+
+        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+            if col in df.columns:
+                df[col] = (
+                    df[col]
+                    .astype(str)
+                    .str.replace(",", "")
+                    .str.strip()
+                )
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        # ------------------------
+        # MÉTRICAS
+        # ------------------------
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+        df["Ganancia"] = df["Ventas"] - df["Costos"]
+        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+        # ------------------------
+        # 🔥 AQUÍ VA TU BLOQUE DE FILTROS
+        # ------------------------
+        if 'df' in locals():
+            df_base = df.copy()
+
+        # (pega aquí TODO tu bloque de filtros)
+
+        # ------------------------
+        # GRÁFICOS
+        # ------------------------
+        st.header("📊 Dashboard Ejecutivo")
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+    fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+    st.plotly_chart(fig, use_container_width=True)
 # ------------------------
-# DASHBOARD - INICIO
+# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
-if menu == "Dashboard" and st.session_state.vista == "inicio":
+if 'df' in locals():
+    df_base = df.copy()
 
-    # 🔥 VALIDACIÓN CLAVE
-    if st.session_state.df is None:
-        st.warning("⚠️ Primero debes cargar un archivo")
-        st.session_state.vista = "carga"
-        st.rerun()
 
-    df = st.session_state.df.copy()
+with st.sidebar:
 
-    st.title("📊 Panel de Análisis")
-
-    # FILTROS
-    st.sidebar.markdown("### 🎯 Filtros")
-
-    if "Fecha" in df.columns:
-        fecha_min = df["Fecha"].min()
-        fecha_max = df["Fecha"].max()
-
-        fecha_ini, fecha_fin = st.sidebar.date_input(
-            "📅 Rango de fechas",
-            value=(fecha_min, fecha_max)
-        )
-
-        df = df[
-            (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-            (df["Fecha"] <= pd.to_datetime(fecha_fin))
-        ]
-
+    st.divider()
+    st.markdown("### 🎯 Filtros")
+    if 'df' in locals():
+        df_base = df.copy()
+   # PAÍS
     if "Pais" in df.columns:
-        pais = st.sidebar.multiselect(
+        pais = st.multiselect(
             "País",
             sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
+            default=sorted(df["Pais"].dropna().unique()),
+            key="filtro_pais"
         )
         df = df[df["Pais"].isin(pais)]
 
+    # REGIÓN
     if "Region" in df.columns:
-        region = st.sidebar.multiselect(
+        region = st.multiselect(
             "Región",
             sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique())
+            default=sorted(df["Region"].dropna().unique()),
+            key="filtro_region"
         )
         df = df[df["Region"].isin(region)]
 
-    # BOTONES
-    col1, col2, col3 = st.columns(3)
+    # PRODUCTO
+    if "Producto" in df.columns:
+        producto = st.multiselect(
+            "Producto",
+            sorted(df["Producto"].dropna().unique()),
+            default=sorted(df["Producto"].dropna().unique()),
+            key="filtro_producto"
+        )
+        df = df[df["Producto"].isin(producto)]
 
-    if col1.button("📊 Detalle"):
-        st.session_state.vista = "detalle"
-        st.rerun()
+    # CANAL
+    if "Canal" in df.columns:
+        canal = st.multiselect(
+            "Canal",
+            sorted(df["Canal"].dropna().unique()),
+            default=sorted(df["Canal"].dropna().unique()),
+            key="filtro_canal"
+        )
+        df = df[df["Canal"].isin(canal)]
 
-    if col2.button("💡 Recomendaciones"):
-        st.session_state.vista = "recomendaciones"
-        st.rerun()
+    # VENDEDOR
+    if "Vendedor_Ruta" in df.columns:
+        vendedor = st.multiselect(
+            "Vendedor",
+            sorted(df["Vendedor_Ruta"].dropna().unique()),
+            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
+            key="filtro_vendedor"
+        )
+        df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
-    if col3.button("📈 KPIs"):
-        st.session_state.vista = "kpis"
-        st.rerun()
+    # TIPO CLIENTE
+    if "Tipo_cliente" in df.columns:
+        tipo_cliente = st.multiselect(
+            "Tipo cliente",
+            sorted(df["Tipo_cliente"].dropna().unique()),
+            default=sorted(df["Tipo_cliente"].dropna().unique()),
+            key="filtro_tipo_cliente"
+        )
+        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
-# ------------------------
-# DETALLE
-# ------------------------
-if menu == "Dashboard" and st.session_state.vista == "detalle":
+    # ------------------------
+    # RANGO DE FECHAS
+    # ------------------------
+    st.markdown("### 📅 Rango de fechas")
+    fecha_min = df["Fecha"].min()
+    fecha_max = df["Fecha"].max()
 
-    df = st.session_state.df
-    if df is None:
-        st.warning("Carga datos primero")
-        st.stop()
+    fecha_ini, fecha_fin = st.date_input(
+        "Selecciona fecha inicial y final",
+        value=(fecha_min, fecha_max),
+        min_value=fecha_min,
+        max_value=fecha_max,
+        key="filtro_rango_fecha"
+    )
 
-    st.header("📊 Detalle")
+    df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+            (df["Fecha"] <= pd.to_datetime(fecha_fin))]
 
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "inicio"
-        st.rerun()
+    # recalcular Periodo
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-    st.dataframe(df)
+    st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
+    st.divider()
 
-# ------------------------
-# RECOMENDACIONES
-# ------------------------
-if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
-
-    df = st.session_state.df
-    if df is None:
-        st.warning("Carga datos primero")
-        st.stop()
-
-    st.header("💡 Recomendaciones")
-
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "inicio"
-        st.rerun()
-
-    st.write("Aquí van tus recomendaciones")
-# ------------------------
+    # ------------------------
     # NAVEGACIÓN
     # ------------------------
-    
-with st.sidebar:
     st.markdown("### 🚦 Navegación")
-    
+
     if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
 
@@ -241,7 +409,7 @@ with st.sidebar:
 # PANTALLA INICIAL
 # ------------------------
 
-if st.session_state.get("vista") == "inicio":
+if st.session_state.vista == "inicio":
 
     st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
     st.image("imagen8.png", width=1400)
@@ -253,11 +421,10 @@ if st.session_state.get("vista") == "inicio":
 # =========================
 # RECOMENDACIONES (FINAL REAL)
 # =========================
-if st.session_state.get("vista") == "recomendaciones":
+if st.session_state.vista == "recomendaciones":
 
-    if st.button("⬅️ Volver Recomendaciones "):
-        
-        st.sesion_state.vista = "inicio"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "inicio"
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
@@ -363,32 +530,25 @@ if st.session_state.get("vista") == "recomendaciones":
 # ------------------------
 # VALIDACIÓN
 # ------------------------
-if 'df' in locals() and not df.empty:
+if df.empty:
     st.warning("No hay datos con esos filtros")
     st.stop()
 
 # ------------------------
 # RECÁLCULO
 # ------------------------
-if 'df' in locals():
+df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
 
-    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
-
-    ventas = df["Ventas"].sum()
-    ganancia = df["Ganancia"].sum()
-    margen = (ganancia / ventas * 100) if ventas != 0 else 0
-
-
+ventas = df["Ventas"].sum()
+ganancia = df["Ganancia"].sum()
+margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
 # DASHBOARD PRINCIPAL
-# ------------------------
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-
-vista = st.session_state.vista  # 🔥 ESTA LÍNEA FALTABA
-
+# ------------------------vista = st.session_state.vista
+vista = st.session_state.vista
 if vista == "principal":
+
     st.markdown("## 📊 Dashboard Ejecutivo")
 
     # =========================
@@ -544,8 +704,8 @@ elif vista == "volatilidad":
 # RESPONSABLES
 elif vista == "responsables":
 
-    if st.button("⬅️ Volver responsables "):
-        st.sesion_state.vista = "inicio"
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "inicio"
 
     st.markdown("## 👤 Responsables")
 
@@ -556,7 +716,7 @@ elif vista == "responsables":
 # CAUSAS
 elif vista == "causas":
 
-    if st.button("⬅️ Volver Causa "):
+    if st.button("⬅️ Volver"):
         st.session_state.vista = "inicio"
 
     st.markdown("## 🧠 Causas")
@@ -568,9 +728,10 @@ elif vista == "causas":
 # DETALLE
 elif vista == "detalle":
 
-    if st.button("⬅️ Volver detalle"):
+    if st.button("⬅️ Volver"):
 
-        st.st.session_state.vista = "inicio"
+        
+        st.session_state.vista = "inicio"
 
     st.markdown("## 🔎 Detalle")
     # =========================
@@ -895,7 +1056,7 @@ elif st.session_state.vista == "alertas":
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
-        st.sesion_state.vista = "inicio"
+        st.session_state.vista = "inicio"
         st.rerun()
 
     st.title("🧠 Resumen Ejecutivo")
