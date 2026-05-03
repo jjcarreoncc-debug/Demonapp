@@ -292,10 +292,9 @@ with st.sidebar:
 
     st.divider()
     st.markdown("### 🎯 Filtros")
-
-    df = df_base.copy()
-
-    # PAÍS
+    if 'df' in locals():
+        df_base = df.copy()
+   # PAÍS
     if "Pais" in df.columns:
         pais = st.multiselect(
             "País",
