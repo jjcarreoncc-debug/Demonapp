@@ -956,14 +956,26 @@ elif st.session_state.vista == "detalle":
     # =========================
     col1, col2, col3 = st.columns(3)
 
-    with col1:
-        canal = st.selectbox("Canal", ["Todos"] + sorted(df["Canal"].dropna().unique()))
+with col1:
+    pais = st.selectbox(
+        "País",
+        ["Todos"] + sorted(df["Pais"].dropna().unique()),
+        key="detalle_pais"
+    )
 
-    with col2:
-        pais = st.selectbox("País", ["Todos"] + sorted(df["Pais"].dropna().unique()))
+with col2:
+    canal = st.selectbox(
+        "Canal",
+        ["Todos"] + sorted(df["Canal"].dropna().unique()),
+        key="detalle_canal"
+    )
 
-    with col3:
-        region = st.selectbox("Región", ["Todos"] + sorted(df["Region"].dropna().unique()))
+with col3:
+    producto = st.selectbox(
+        "Producto",
+        ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
+        key="detalle_producto"
+    )
 
     # =========================
     # FILTRADO
