@@ -265,77 +265,80 @@ elif menu == "Dashboard":
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
-if 'df' in locals():
-    df_base = df.copy()
-
-
 with st.sidebar:
 
     st.divider()
     st.markdown("### 🎯 Filtros")
-    if 'df' in locals():
-        df_base = df.copy()
-   # PAÍS
-    if "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
-        )
-        df = df[df["Pais"].isin(pais)]
 
-    # REGIÓN
-    if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique()),
-            key="filtro_region"
-        )
-        df = df[df["Region"].isin(region)]
+    # 👇 usar df SOLO si existe archivo
+    if "archivo" in st.session_state:
 
-    # PRODUCTO
-    if "Producto" in df.columns:
-        producto = st.multiselect(
-            "Producto",
-            sorted(df["Producto"].dropna().unique()),
-            default=sorted(df["Producto"].dropna().unique()),
-            key="filtro_producto"
-        )
-        df = df[df["Producto"].isin(producto)]
+        df = pd.read_excel(st.session_state.archivo)
+        df.columns = df.columns.str.strip()
 
-    # CANAL
-    if "Canal" in df.columns:
-        canal = st.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique()),
-            key="filtro_canal"
-        )
-        df = df[df["Canal"].isin(canal)]
+        # PAÍS
+        if "Pais" in df.columns:
+            pais = st.multiselect(
+                "País",
+                sorted(df["Pais"].dropna().unique()),
+                default=sorted(df["Pais"].dropna().unique()),
+                key="filtro_pais"
+            )
+            df = df[df["Pais"].isin(pais)]
 
-    # VENDEDOR
-    if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-            key="filtro_vendedor"
-        )
-        df = df[df["Vendedor_Ruta"].isin(vendedor)]
+        # REGIÓN
+        if "Region" in df.columns:
+            region = st.multiselect(
+                "Región",
+                sorted(df["Region"].dropna().unique()),
+                default=sorted(df["Region"].dropna().unique()),
+                key="filtro_region"
+            )
+            df = df[df["Region"].isin(region)]
 
-    # TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique()),
-            key="filtro_tipo_cliente"
-        )
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+        # PRODUCTO
+        if "Producto" in df.columns:
+            producto = st.multiselect(
+                "Producto",
+                sorted(df["Producto"].dropna().unique()),
+                default=sorted(df["Producto"].dropna().unique()),
+                key="filtro_producto"
+            )
+            df = df[df["Producto"].isin(producto)]
 
-    # ------------------------
+        # CANAL
+        if "Canal" in df.columns:
+            canal = st.multiselect(
+                "Canal",
+                sorted(df["Canal"].dropna().unique()),
+                default=sorted(df["Canal"].dropna().unique()),
+                key="filtro_canal"
+            )
+            df = df[df["Canal"].isin(canal)]
+
+        # VENDEDOR
+        if "Vendedor_Ruta" in df.columns:
+            vendedor = st.multiselect(
+                "Vendedor",
+                sorted(df["Vendedor_Ruta"].dropna().unique()),
+                default=sorted(df["Vendedor_Ruta"].dropna().unique()),
+                key="filtro_vendedor"
+            )
+            df = df[df["Vendedor_Ruta"].isin(vendedor)]
+
+        # TIPO CLIENTE
+        if "Tipo_cliente" in df.columns:
+            tipo_cliente = st.multiselect(
+                "Tipo cliente",
+                sorted(df["Tipo_cliente"].dropna().unique()),
+                default=sorted(df["Tipo_cliente"].dropna().unique()),
+                key="filtro_tipo_cliente"
+            )
+            df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+
+    else:
+        st.info("📂 Carga un archivo en Inicio para habilitar filtros")
+# ------------------------
     # RANGO DE FECHAS
     # ------------------------
     st.markdown("### 📅 Rango de fechas")
