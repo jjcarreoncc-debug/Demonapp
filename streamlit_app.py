@@ -583,13 +583,13 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     # MOSTRAR RECOMENDACIONES
     # ------------------------
-    if not recomendaciones:
+if not recomendaciones:
     st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
 
 else:
     for r in recomendaciones:
 
-        # 🔥 SOPORTA AMBOS FORMATOS (6 y 9 VALORES)
+        # 🔥 SOPORTA AMBOS FORMATOS
         if len(r) == 9:
             dim, nombre, var, impacto, tipo, v1, v2, p1, p2 = r
         elif len(r) == 6:
@@ -597,7 +597,12 @@ else:
             tipo = "verde" if var > 0 else "rojo"
             p1, p2 = "-", "-"
         else:
-            continue  # ignora basura
+            continue
+
+        if tipo == "verde":
+            st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
+        else:
+            st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
         # ------------------------
         # TEXTO PRINCIPAL
