@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
-from streamlit_authenticator import Hasher
+from streamlit_authenticator import Hasherm
 import hashlib
 from datetime import datetime
 from PIL import Image
@@ -195,20 +195,17 @@ if menu == "Dashboard":
 
     st.header("📊 Dashboard Ejecutivo")
 
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+    # ❌ QUITAMOS el file_uploader de aquí
 
-    if archivo:
-        st.session_state.archivo = archivo
-
+    # 👇 usamos el archivo cargado desde Inicio
     archivo = st.session_state.get("archivo")
 
     if not archivo:
-        st.info("📂 Sube un archivo para comenzar")
+        st.warning("⚠️ Primero carga un archivo en Inicio")
 
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
-
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
 
