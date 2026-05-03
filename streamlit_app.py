@@ -3,19 +3,53 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
-import base64
+from streamlit_authenticator import Hasher
+import hashlib
+from datetime import datetime
+from PIL import Image
 
 # ------------------------
 # CONFIG
 # ------------------------
-
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+
+# ------------------------
+# BASE DE DATOS
+# ------------------------
+conn = sqlite3.connect("data.db", check_same_thread=False)
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS ventas (
+    Fecha TEXT,
+    Nombre_Producto TEXT,
+    Numero_Producto TEXT,
+    Ventas_Cantidad REAL,
+    Pais TEXT,
+    Region TEXT,
+    Canal TEXT,
+    Vendedor_Ruta TEXT,
+    Tipo_cliente TEXT,
+    Precio_Venta REAL,
+    Costos_Venta REAL
+)
+""")
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    nombre TEXT,
+    rol TEXT,
+    estado TEXT,
+    fecha_creacion TEXT
+)
+""")
+conn.commit()
 
 # ------------------------
 # LOGIN CONFIG
 # ------------------------
-from streamlit_authenticator import Hasher
-
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
 
@@ -34,104 +68,151 @@ authenticator = stauth.Authenticate(
 )
 
 # ------------------------
-# LOGO ARRIBA CENTRADO
+# LOGO
 # ------------------------
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 # ------------------------
-# LOGIN CENTRADO
+# LOGIN
 # ------------------------
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     name, authentication_status, username = authenticator.login("Login", location="main")
 
 # ------------------------
-# LOGIN CONTROL
+# CONTROL LOGIN
 # ------------------------
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
+
 if authentication_status is None:
-    from PIL import Image
-
-    # un poco de espacio (opcional)
-    #st.markdown("<br>", unsafe_allow_html=True)
-
     col1, col2 = st.columns([2,6])
-
     with col2:
         img = Image.open("imagen7.png")
-        # más ancho para no perder nitidez
         st.image(img, width=2000)
-
     st.stop()
-# LOGIN OK
+
+# ------------------------
+# SIDEBAR + MENÚ
 # ------------------------
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
-# ------------------------
-# SESSION STATE
-# ------------------------
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-# ------------------------
-# BASE DE DATOS
-# ------------------------
-conn = sqlite3.connect("data.db")
 
-conn.execute("""
-CREATE TABLE IF NOT EXISTS ventas (
-    Fecha TEXT,
-    Nombre_Producto TEXT,
-    Numero_Producto TEXT,
-    Ventas_Cantidad REAL,
-    Pais TEXT,
-    Region TEXT,
-    Canal TEXT,
-    Vendedor_Ruta TEXT,
-    Tipo_cliente TEXT,
-    Precio_Venta REAL,
-    Costos_Venta REAL
-)
-""")
-# ------------------------
-# CARGA ARCHIVO
-# ------------------------
-archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+rol = "Admin" if username == "admin" else "Usuario"
 
-if not archivo:
-    st.info("📂 Sube un archivo para comenzar")
-    st.stop()
-
-df = pd.read_excel(archivo)
-df.columns = df.columns.str.strip()
+if rol == "Admin":
+    menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"])
+else:
+    menu = st.sidebar.radio("Menú", ["Dashboard"])
 
 # ------------------------
-# LIMPIEZA
+# FUNCIONES USUARIOS
 # ------------------------
-df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-df = df.dropna(subset=["Fecha"])
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-    if col in df.columns:
-        df[col] = (
-            df[col]
-            .astype(str)
-            .str.replace(",", "")
-            .str.strip()
-        )
-        df[col] = pd.to_numeric(df[col], errors="coerce")
+def obtener_usuarios():
+    return pd.read_sql("SELECT * FROM usuarios", conn)
+
+def crear_usuario(username, password, nombre, rol):
+    try:
+        conn.execute("""
+        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion)
+        VALUES (?, ?, ?, ?, 'Activo', ?)
+        """, (
+            username,
+            hash_password(password),
+            nombre,
+            rol,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+        conn.commit()
+        return True
+    except:
+        return False
+
+def desactivar_usuario(user_id):
+    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
+    conn.commit()
 
 # ------------------------
-# MÉTRICAS
+# MANTENIMIENTO
 # ------------------------
-df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-df["Ganancia"] = df["Ventas"] - df["Costos"]
-df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+if menu == "Mantenimiento":
+
+    st.header("⚙️ Mantenimiento de Usuarios")
+
+    # ➕ Crear usuario
+    with st.expander("➕ Crear Usuario"):
+        username_new = st.text_input("Usuario nuevo")
+        password_new = st.text_input("Contraseña", type="password")
+        nombre_new = st.text_input("Nombre")
+        rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
+
+        if st.button("Guardar usuario"):
+            if crear_usuario(username_new, password_new, nombre_new, rol_new):
+                st.success("Usuario creado")
+            else:
+                st.error("Error o usuario ya existe")
+
+    # 📋 Listado
+    st.subheader("Usuarios registrados")
+    usuarios_df = obtener_usuarios()
+
+    if not usuarios_df.empty:
+        st.dataframe(usuarios_df)
+
+        user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"])
+
+        if st.button("Desactivar usuario"):
+            desactivar_usuario(user_id)
+            st.warning("Usuario desactivado")
+    else:
+        st.info("No hay usuarios aún")
+
 # ------------------------
+# DASHBOARD
+# ------------------------
+if menu == "Dashboard":
+
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if not archivo:
+        st.info("📂 Sube un archivo para comenzar")
+        st.stop()
+
+    df = pd.read_excel(archivo)
+    df.columns = df.columns.str.strip()
+
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    df = df.dropna(subset=["Fecha"])
+
+    for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+        if col in df.columns:
+            df[col] = (
+                df[col].astype(str)
+                .str.replace(",", "")
+                .str.strip()
+            )
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+    df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+    df["Ganancia"] = df["Ventas"] - df["Costos"]
+    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+    st.header("📊 Dashboard Ejecutivo")
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+    col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+    col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+
+    fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+    st.plotly_chart(fig, use_container_width=True)
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
