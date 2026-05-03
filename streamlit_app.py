@@ -600,9 +600,11 @@ if st.session_state.vista == "recomendaciones":
                             "Ventas": [proy]
                         })
                     ])
-
                 fig = px.line(df_g, x="Periodo_dt", y="Ventas", markers=True)
-                st.plotly_chart(fig, use_container_width=True, key=f"graf_{dim}_{nombre}")
+                fig.update_traces(fill='tozeroy')  # <-- Sombra debajo de la línea
+                st.plotly_chart(fig, use_container_width=True)
+                #fig = px.line(df_g, x="Periodo_dt", y="Ventas", markers=True)
+                #st.plotly_chart(fig, use_container_width=True, key=f"graf_{dim}_{nombre}")
 
             st.markdown("---")
 # ------------------------
