@@ -472,6 +472,12 @@ if st.session_state.vista == "recomendaciones":
 resumen_dim = {}
 
 # 🔒 Validar que existan columnas base
+# ------------------------
+# RECOMENDACIONES
+# ------------------------
+resumen_dim = {}
+recomendaciones = []
+
 if all(col in df.columns for col in ["Ventas", "Periodo"]):
 
     for dim in ["Pais", "Region", "Canal", "Producto"]:
@@ -479,11 +485,12 @@ if all(col in df.columns for col in ["Ventas", "Periodo"]):
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
 
+    # 👇 aquí sí tiene sentido ordenar
+    if recomendaciones:
+        recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
+
 else:
     st.warning("⚠️ Faltan columnas necesarias para generar recomendaciones")
-    if "recomendaciones" not in locals():
-    recomendaciones = []
-    recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
 
     # Mostrar recomendaciones
     for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
