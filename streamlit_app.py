@@ -229,8 +229,7 @@ if menu == "Dashboard":
     # ------------------------
     # CARGA ARCHIVO
     # ------------------------
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
-
+    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
     if not archivo:
         st.info("📂 Sube un archivo para comenzar")
 
