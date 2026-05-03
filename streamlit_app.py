@@ -7,6 +7,7 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
+
 # ------------------------
 # CONFIG
 # ------------------------
@@ -107,26 +108,7 @@ if rol == "Admin":
     menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"])
 else:
     menu = st.sidebar.radio("Menú", ["Dashboard"])
-st.sidebar.divider()
-st.sidebar.markdown("### 🎯 Filtros")
 
-if 'df' in locals():
-
-    if "Pais" in df.columns:
-        pais = st.sidebar.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
-        )
-        df = df[df["Pais"].isin(pais)]
-
-    if "Region" in df.columns:
-        region = st.sidebar.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique())
-        )
-        df = df[df["Region"].isin(region)]
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
@@ -237,18 +219,83 @@ if menu == "Dashboard":
         fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
         st.plotly_chart(fig, use_container_width=True)
 # ------------------------
+# DASHBOARD MENIU
+# ------------------------
+# ------------------------
+# DASHBOARD
+# ------------------------
+if menu == "Dashboard":
+
+    # ------------------------
+    # CARGA ARCHIVO
+    # ------------------------
+    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
+    if not archivo:
+        st.info("📂 Sube un archivo para comenzar")
+
+    else:
+        df = pd.read_excel(archivo)
+        df.columns = df.columns.str.strip()
+
+        # ------------------------
+        # LIMPIEZA
+        # ------------------------
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+
+        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+            if col in df.columns:
+                df[col] = (
+                    df[col]
+                    .astype(str)
+                    .str.replace(",", "")
+                    .str.strip()
+                )
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        # ------------------------
+        # MÉTRICAS
+        # ------------------------
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+        df["Ganancia"] = df["Ventas"] - df["Costos"]
+        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+        # ------------------------
+        # 🔥 AQUÍ VA TU BLOQUE DE FILTROS
+        # ------------------------
+        if 'df' in locals():
+            df_base = df.copy()
+
+        # (pega aquí TODO tu bloque de filtros)
+
+        # ------------------------
+        # GRÁFICOS
+        # ------------------------
+        st.header("📊 Dashboard Ejecutivo")
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+    fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+    st.plotly_chart(fig, use_container_width=True)
+# ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
-    if 'df' in locals():
-        df_base = df.copy()
+if 'df' in locals():
+    df_base = df.copy()
 
-        st.sidebar.divider()
-        st.sidebar.markdown("### 🎯 Filtros")
+
+with st.sidebar:
+
+    st.divider()
+    st.markdown("### 🎯 Filtros")
     if 'df' in locals():
         df_base = df.copy()
    # PAÍS
-    if 'df' in locals() and "Pais" in df.columns:
-        pais = st.sidebar.multiselect(
+    if "Pais" in df.columns:
+        pais = st.multiselect(
             "País",
             sorted(df["Pais"].dropna().unique()),
             default=sorted(df["Pais"].dropna().unique()),
@@ -257,8 +304,8 @@ if menu == "Dashboard":
         df = df[df["Pais"].isin(pais)]
 
     # REGIÓN
-    if 'df' in locals() and "Region" in df.columns:
-        region = st.sidebar. multiselect(
+    if "Region" in df.columns:
+        region = st.multiselect(
             "Región",
             sorted(df["Region"].dropna().unique()),
             default=sorted(df["Region"].dropna().unique()),
@@ -267,8 +314,8 @@ if menu == "Dashboard":
         df = df[df["Region"].isin(region)]
 
     # PRODUCTO
-    if 'df' in locals() and "Producto" in df.columns:
-        producto = st.sidebar.multiselect(
+    if "Producto" in df.columns:
+        producto = st.multiselect(
             "Producto",
             sorted(df["Producto"].dropna().unique()),
             default=sorted(df["Producto"].dropna().unique()),
@@ -277,8 +324,8 @@ if menu == "Dashboard":
         df = df[df["Producto"].isin(producto)]
 
     # CANAL
-    if 'df' in locals() and "Canal" in df.columns:
-        canal = st.sidebar.multiselect(
+    if "Canal" in df.columns:
+        canal = st.multiselect(
             "Canal",
             sorted(df["Canal"].dropna().unique()),
             default=sorted(df["Canal"].dropna().unique()),
@@ -287,8 +334,8 @@ if menu == "Dashboard":
         df = df[df["Canal"].isin(canal)]
 
     # VENDEDOR
-    if 'df' in locals() and "Vendedor_Ruta" in df.columns:
-        vendedor = st.sidebar.multiselect(
+    if "Vendedor_Ruta" in df.columns:
+        vendedor = st.multiselect(
             "Vendedor",
             sorted(df["Vendedor_Ruta"].dropna().unique()),
             default=sorted(df["Vendedor_Ruta"].dropna().unique()),
@@ -297,21 +344,19 @@ if menu == "Dashboard":
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
     # TIPO CLIENTE
-    if 'df' in locals() and "Tipo_cliente" in df.columns:
-        tipo_cliente = st.sidebar. multiselect(
+    if "Tipo_cliente" in df.columns:
+        tipo_cliente = st.multiselect(
             "Tipo cliente",
             sorted(df["Tipo_cliente"].dropna().unique()),
             default=sorted(df["Tipo_cliente"].dropna().unique()),
             key="filtro_tipo_cliente"
         )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-# ------------------------
-# RANGO DE FECHAS
-# ------------------------
-if 'df' in locals():
 
+    # ------------------------
+    # RANGO DE FECHAS
+    # ------------------------
     st.markdown("### 📅 Rango de fechas")
-
     fecha_min = df["Fecha"].min()
     fecha_max = df["Fecha"].max()
 
@@ -332,9 +377,6 @@ if 'df' in locals():
     st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
     st.divider()
 
-else:
-    st.info("📂 Carga un archivo para habilitar el filtro de fechas")
-    
     # ------------------------
     # NAVEGACIÓN
     # ------------------------
