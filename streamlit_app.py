@@ -267,26 +267,36 @@ elif menu == "Dashboard":
 # ------------------------
 # SOLO PLOT SI HAY DATOS
 # ------------------------
+for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
 
-df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()  # <- crear df_g primero
+    # ------------------------
+    # CREAR df_det PARA ESTA RECOMENDACIÓN
+    # ------------------------
+    df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-if not df_g.empty:
-    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-    df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
+    # ------------------------
+    # SOLO PLOT SI HAY DATOS
+    # ------------------------
+    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()  # <- crear df_g aquí
 
     if not df_g.empty:
-        import plotly.graph_objects as go
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=df_g["Periodo_dt"],
-            y=df_g["Ventas"],
-            mode="lines+markers"
-        ))
-        st.plotly_chart(fig, use_container_width=True)
+        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+        df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
+        df_g = df_g.sort_values("Periodo_dt")
+
+        if not df_g.empty:
+            import plotly.graph_objects as go
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=df_g["Periodo_dt"],
+                y=df_g["Ventas"],
+                mode="lines+markers"
+            ))
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("No hay datos válidos después de limpiar")
     else:
-        st.warning("No hay datos válidos después de limpiar")
-else:
-    st.warning("No hay datos para graficar")
+        st.warning("No hay datos para graficar")
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
