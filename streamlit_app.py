@@ -989,7 +989,7 @@ elif st.session_state.vista == "detalle":
         pais = st.selectbox(
             "País",
             ["Todos"] + sorted(df["Pais"].dropna().unique()),
-            key="detalle_pais"
+            key="detalle_pais_1"
         )
 
     with col2:
