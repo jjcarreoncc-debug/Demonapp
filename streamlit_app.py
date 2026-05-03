@@ -265,10 +265,7 @@ elif menu == "Dashboard":
         col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
 
-    # ------------------------
-    # CREAR df_det PARA ESTA RECOMENDACIÓN
-    # ------------------------
-    df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
+   
 
     # ------------------------
     # SOLO PLOT SI HAY DATOS
