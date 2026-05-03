@@ -367,11 +367,12 @@ with st.sidebar:
 
     else:
         st.info("📂 Carga un archivo en Inicio para habilitar filtros")
-# ------------------------
+    # ------------------------
     # RANGO DE FECHAS
     # ------------------------
-    st.markdown("### 📅 Rango de fechas")
-    if "Fecha" in df.columns:
+st.markdown("### Rango de fechas")
+
+if "Fecha" in df.columns:
 
     df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
@@ -392,16 +393,13 @@ with st.sidebar:
             (df["Fecha"] <= pd.to_datetime(fecha_fin))
         ]
 
-        st.caption(f"📅 {fecha_ini} → {fecha_fin}")
+        st.caption(f"{fecha_ini} → {fecha_fin}")
 
     else:
-        st.warning("⚠️ La columna Fecha no tiene valores válidos")
+        st.warning("La columna Fecha no tiene valores válidos")
 
 else:
-    st.warning("⚠️ No existe la columna 'Fecha'")
- #🔥 Checklist rápido (haz esto)
-    # ------------------------
-
+    st.warning("No existe la columna Fecha")   
 # ------------------------
 # VALIDAR QUE EXISTE df
 # ------------------------
