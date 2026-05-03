@@ -1056,7 +1056,7 @@ elif st.session_state.vista == "alertas":
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
-        st.st.session_state.get("vista") == "inicio":
+        st.sesion_state.vista = "inicio"
         st.rerun()
 
     st.title("🧠 Resumen Ejecutivo")
