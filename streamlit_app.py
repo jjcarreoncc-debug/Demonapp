@@ -374,7 +374,7 @@ if st.session_state.get("vista") == "inicio":
 # =========================
 # RECOMENDACIONES (FINAL REAL)
 # =========================
-if st.sesion_state.get("vista") == "recomendaciones":
+if st.session_state.get("vista") == "recomendaciones":
 
     if st.button("⬅️ Volver Recomendaciones "):
         
