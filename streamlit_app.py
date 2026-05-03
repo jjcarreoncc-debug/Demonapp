@@ -98,6 +98,39 @@ if authentication_status is None:
     st.stop()
 
 # ------------------------
+# CONTROL DE VISTAS
+# ------------------------
+
+# valor inicial
+if "vista" not in st.session_state:
+    st.session_state.vista = "principal"
+
+
+if st.session_state.vista == "principal":
+    st.header("📊 Dashboard Ejecutivo")
+    # tu dashboard aquí
+
+elif st.session_state.vista == "volatilidad":
+    st.header("🚦 Volatilidad")
+
+elif st.session_state.vista == "responsables":
+    st.header("👤 Responsables")
+
+elif st.session_state.vista == "causas":
+    st.header("🧠 Causas")
+
+elif st.session_state.vista == "log":
+    st.header("📋 Log")
+
+elif st.session_state.vista == "detalle":
+    st.header("🔎 Detalle")
+
+elif st.session_state.vista == "recomendaciones":
+    st.header("📌 Recomendaciones")
+
+elif st.session_state.vista == "resumen":
+    st.header("🧠 Resumen")
+# ------------------------
 # SIDEBAR + MENÚ
 # ------------------------
 st.sidebar.title("📌 Navegación")
