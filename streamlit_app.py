@@ -210,8 +210,9 @@ if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
 # ------------------------
     # NAVEGACIÓN
     # ------------------------
+    
+with st.sidebar:
     st.markdown("### 🚦 Navegación")
-    with st.sidebar:
     
     if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
