@@ -909,10 +909,8 @@ elif st.session_state.vista == "resumen":
                     text=[f"${v:,.0f}" for v in df_g["Ventas"]],
                     textposition="top center"
                 ))
-                fig.add_trace(go.Scatter(
-                
-                )
-               st.plotly_chart(fig, use_container_width=True)               
+                               
+                st.plotly_chart(fig, use_container_width=True)               
     st.stop()
 # =========================
 # DETALLE
