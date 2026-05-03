@@ -648,85 +648,86 @@ for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
     # ------------------------
     # DETALLE
     # ------------------------
-    with st.expander(f"🔍 Ver detalle - {nombre}"):
+    # =========================
+# DETALLE + GRÁFICA (CORRECTO)
+# =========================
 
-        if df_det.empty:
-            st.warning("No hay datos para este elemento")
+df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-        else:
-            for subdim in ["Producto", "Region", "Canal"]:
+with st.expander(f"🔍 Ver detalle - {nombre}"):
 
-                if all(col in df_det.columns for col in ["Periodo", "Ventas", subdim]) and subdim != dim:
+    if df_det.empty:
+        st.warning("No hay datos para este elemento")
 
-                    df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                    df_sub = df_sub.sort_values("Periodo")
+    else:
+        for subdim in ["Producto", "Region", "Canal"]:
 
-                    tabla = []
+            if all(col in df_det.columns for col in ["Periodo", "Ventas", subdim]) and subdim != dim:
 
-                    for k2, g2 in df_sub.groupby(subdim):
+                df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+                df_sub = df_sub.sort_values("Periodo")
 
-                        if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
+                tabla = []
 
-                            a1 = g2.iloc[-2]["Ventas"]
-                            a2 = g2.iloc[-1]["Ventas"]
-                            var2 = (a2 - a1) / a1
+                for k2, g2 in df_sub.groupby(subdim):
 
-                            tabla.append([k2, a1, a2, var2])
+                    if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
 
-                    if tabla:
-                        df_detalle = pd.DataFrame(
-                            tabla,
-                            columns=["Elemento", "Anterior", "Actual", "Variación"]
-                        )
+                        a1 = g2.iloc[-2]["Ventas"]
+                        a2 = g2.iloc[-1]["Ventas"]
+                        var2 = (a2 - a1) / a1
 
-                        df_detalle["Variación"] = df_detalle["Variación"].apply(
-                            lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
-                        )
+                        tabla.append([k2, a1, a2, var2])
 
-                        st.dataframe(df_detalle.head(5), use_container_width=True)
+                if tabla:
+                    df_detalle = pd.DataFrame(
+                        tabla,
+                        columns=["Elemento", "Anterior", "Actual", "Variación"]
+                    )
 
-    # ------------------------
-    # 📊 GRÁFICA
-    # ------------------------
-    with st.expander(f"📊 Ver gráfica - {nombre}"):
+                    df_detalle["Variación"] = df_detalle["Variación"].apply(
+                        lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
+                    )
 
-        if df_det.empty:
+                    st.dataframe(df_detalle.head(5), use_container_width=True)
+
+
+# =========================
+# 🔥 GRÁFICA (ESTA ES LA CLAVE)
+# =========================
+with st.expander(f"📊 Gráfica - {nombre}"):
+
+    import plotly.graph_objects as go
+
+    if not df_det.empty and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
+
+        df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+
+        if df_g.empty:
             st.warning("No hay datos para graficar")
 
         else:
-            if all(col in df_det.columns for col in ["Periodo", "Ventas"]):
+            df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+            df_g = df_g.dropna(subset=["Periodo_dt"])
+            df_g = df_g.sort_values("Periodo_dt")
 
-                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+            fig = go.Figure()
 
-                if not df_g.empty:
+            fig.add_trace(go.Scatter(
+                x=df_g["Periodo_dt"],
+                y=df_g["Ventas"],
+                mode="lines+markers"
+            ))
 
-                    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-                    df_g = df_g.dropna(subset=["Periodo_dt"])
-                    df_g = df_g.sort_values("Periodo_dt")
+            fig.update_layout(
+                title="Evolución de Ventas",
+                hovermode="x unified"
+            )
 
-                    import plotly.graph_objects as go
+            st.plotly_chart(fig, use_container_width=True)
 
-                    fig = go.Figure()
-                    fig.add_trace(go.Scatter(
-                        x=df_g["Periodo_dt"],
-                        y=df_g["Ventas"],
-                        mode="lines+markers"
-                    ))
-
-                    fig.update_layout(
-                        title="Evolución de Ventas",
-                        hovermode="x unified"
-                    )
-
-                    st.plotly_chart(fig, use_container_width=True)
-
-                else:
-                    st.warning("Datos vacíos después de agrupar")
-
-            else:
-                st.warning("Faltan columnas necesarias (Periodo o Ventas)")
-
-    st.markdown("---")
+    else:
+        st.warning("No hay datos válidos para graficar")
     # ------------------------
     # 🔥 GRÁFICA (MOVIDA DENTRO DEL LOOP)
     # ------------------------
