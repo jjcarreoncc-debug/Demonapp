@@ -718,9 +718,13 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
             st.warning("Faltan columnas necesarias (Periodo o Ventas)")
 
 st.markdown("---")
-    # ------------------------
+       # ------------------------
         # DETALLE
         # ------------------------
+      for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
+
+        df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
+
         with st.expander("🔍 Ver detalle"):
             st.write("👉 DENTRO DEL EXPANDER")
 
