@@ -270,8 +270,8 @@ if menu == "Dashboard":
         col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-    fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
-    st.plotly_chart(fig, use_container_width=True)
+        fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+        st.plotly_chart(fig, use_container_width=True)
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
