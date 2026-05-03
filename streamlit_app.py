@@ -917,7 +917,7 @@ elif st.session_state.vista == "resumen":
 # =========================
 if st.session_state.vista == "detalle":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver detalle"):
         st.session_state.vista = "inicio"
 
     st.title("🔎 Análisis Detallado")
@@ -928,7 +928,7 @@ if st.session_state.vista == "detalle":
 # =========================
 elif st.session_state.vista == "log":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver log"):
         st.session_state.vista = "principal"
         st.experimental_rerun()
 
