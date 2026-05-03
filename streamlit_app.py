@@ -517,6 +517,7 @@ if "Periodo" not in df.columns:
 
 if recomendaciones:
     recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
+st.write("DEBUG recomendaciones:", len(recomendaciones))
 
 # ------------------------
 # MOSTRAR
