@@ -107,12 +107,14 @@ if authentication_status is None:
 # SIDEBAR COMPLETO
 # ------------------------
 st.sidebar.title("🚦 Navegación")
-
-# usuario
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
-st.sidebar.divider()
+# MENÚ
+if rol == "Admin":
+    menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"])
+else:
+    menu = st.sidebar.radio("Menú", ["Dashboard"])
 
 # ------------------------
 # MENÚ (CORREGIDO)
