@@ -12,6 +12,8 @@ from PIL import Image
 # CONFIG
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
 
 # ------------------------
 # BASE DE DATOS
