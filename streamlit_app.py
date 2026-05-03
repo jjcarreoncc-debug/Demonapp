@@ -584,30 +584,37 @@ if st.session_state.vista == "recomendaciones":
     # MOSTRAR RECOMENDACIONES
     # ------------------------
     if not recomendaciones:
-       st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
+    st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
 
-    else:
-        # 🔥 LIMPIEZA PARA EVITAR ERROR
-        recomendaciones = [r for r in recomendaciones if len(r) == 9]
+else:
+    for r in recomendaciones:
 
-        for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
+        # 🔥 SOPORTA AMBOS FORMATOS (6 y 9 VALORES)
+        if len(r) == 9:
+            dim, nombre, var, impacto, tipo, v1, v2, p1, p2 = r
+        elif len(r) == 6:
+            dim, nombre, var, impacto, v1, v2 = r
+            tipo = "verde" if var > 0 else "rojo"
+            p1, p2 = "-", "-"
+        else:
+            continue  # ignora basura
+
+        # ------------------------
+        # TEXTO PRINCIPAL
+        # ------------------------
+        if tipo == "verde":
+            st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
+        else:
+            st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
+
+        st.markdown(f"""
+        - Periodo anterior ({p1}): ${v1:,.0f}  
+        - Periodo actual ({p2}): ${v2:,.0f}  
+        - Variación: {var*100:.1f}%
+        """)
     # ------------------------
-    # TEXTO PRINCIPAL
+    # FILTRAR DATOS PARA ESTA RECOMENDACIÓN
     # ------------------------
-            if tipo == "verde":
-                st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
-            else:
-                st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
-
-            st.markdown(f"""
-            - Periodo anterior ({p1}): ${v1:,.0f}  
-            - Periodo actual ({p2}): ${v2:,.0f}  
-            - Variación: {var*100:.1f}%
-            """)
-
-            # ------------------------
-            # FILTRAR DATOS PARA ESTA RECOMENDACIÓN
-            # ------------------------
             df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
             # ------------------------
