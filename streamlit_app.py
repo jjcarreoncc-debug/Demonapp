@@ -98,6 +98,7 @@ if authentication_status is None:
 # ------------------------
 # SIDEBAR + MENÚ
 # ------------------------
+st.sidebar.title("📌 Navegación")
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
@@ -131,8 +132,8 @@ def crear_usuario(username, password, nombre, rol):
         ))
         conn.commit()
         return True
-    except:
-        return False
+    except Exception as e:
+        return str(e)
 
 def desactivar_usuario(user_id):
     conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
@@ -145,7 +146,6 @@ if menu == "Mantenimiento":
 
     st.header("⚙️ Mantenimiento de Usuarios")
 
-    # ➕ Crear usuario
     with st.expander("➕ Crear Usuario"):
         username_new = st.text_input("Usuario nuevo")
         password_new = st.text_input("Contraseña", type="password")
@@ -153,12 +153,13 @@ if menu == "Mantenimiento":
         rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
 
         if st.button("Guardar usuario"):
-            if crear_usuario(username_new, password_new, nombre_new, rol_new):
+            resultado = crear_usuario(username_new, password_new, nombre_new, rol_new)
+
+            if resultado == True:
                 st.success("Usuario creado")
             else:
-                st.error("Error o usuario ya existe")
+                st.error(f"Error: {resultado}")
 
-    # 📋 Listado
     st.subheader("Usuarios registrados")
     usuarios_df = obtener_usuarios()
 
@@ -173,6 +174,49 @@ if menu == "Mantenimiento":
     else:
         st.info("No hay usuarios aún")
 
+# ------------------------
+# DASHBOARD
+# ------------------------
+if menu == "Dashboard":
+
+    st.header("📊 Dashboard Ejecutivo")
+
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if not archivo:
+        st.info("📂 Sube un archivo para comenzar")
+
+    else:
+        df = pd.read_excel(archivo)
+        df.columns = df.columns.str.strip()
+
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+
+        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+            if col in df.columns:
+                df[col] = (
+                    df[col].astype(str)
+                    .str.replace(",", "")
+                    .str.strip()
+                )
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+        df["Ganancia"] = df["Ventas"] - df["Costos"]
+        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+        # 🔥 YA NO ROMPE
+        df_base = df.copy()
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+
+        fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+        st.plotly_chart(fig, use_container_width=True)
 # ------------------------
 # DASHBOARD MENIU
 # ------------------------
