@@ -432,12 +432,12 @@ if st.session_state.vista == "inicio":
 # =========================
 if st.session_state.vista == "recomendaciones":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver Recomendaciones    "):
         st.session_state.vista = "inicio"
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
- 
+
     
     st.title("📌 Recomendaciones Estratégicas")
 
@@ -938,11 +938,11 @@ elif vista == "log":
     st.dataframe(df.head(20))
 
 elif vista == "recomendaciones":
-
+    
     if st.button("⬅️ Volver Recomendacion"):
-        st.session_state.vista = "principal"
+        st.session_state.vista = "inicio"
 
-    st.markdown("## 📌 Recomendaciones")
+    st.markdown("## 📌 Recomendacioneszzzz")
 
     if margen < 20:
         st.error("Margen bajo: revisar costos o precios")
@@ -950,6 +950,7 @@ elif vista == "recomendaciones":
         st.warning("Margen medio: optimizar operación")
     else:
         st.success("Margen saludable: escalar negocio")
+
 #### alertas 
 elif st.session_state.vista == "alertas":
 
