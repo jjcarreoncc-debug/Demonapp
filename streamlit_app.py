@@ -969,6 +969,7 @@ with col1:
     )
 
 with col2:
+    st.write(df.columns)
     canal = st.selectbox(
         "Canal",
         ["Todos"] + sorted(df["Canal"].dropna().unique()),
