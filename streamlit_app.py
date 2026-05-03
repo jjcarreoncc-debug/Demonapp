@@ -581,11 +581,11 @@ else:
         else:
             st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
-        st.markdown(f"""
+        st.markdown(
             f"- Periodo anterior ({p1}): ${v1:,.0f}\n"
             f"- Periodo actual ({p2}): ${v2:,.0f}\n"
             f"- Variación: {var*100:.1f}%"
-
+        )
         # ------------------------
         # FILTRO BASE
         # ------------------------
