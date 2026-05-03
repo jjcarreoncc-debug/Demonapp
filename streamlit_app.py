@@ -913,19 +913,19 @@ elif st.session_state.vista == "resumen":
                 st.plotly_chart(fig, use_container_width=True)               
     st.stop()
 # =========================
-# DETALLE
+# DETALLE (LIMPIO Y ESTABLE)
 # =========================
 elif st.session_state.vista == "detalle":
 
-    # VOLVER
-    if st.button("⬅️ Volver detalle", key="volver_detalle"):
+    # BOTÓN VOLVER
+    if st.button("⬅️ Volver", key="volver_detalle"):
         st.session_state.vista = "inicio"
         st.rerun()
 
     st.title("🔎 Análisis Detallado")
 
     # =========================
-    # FILTROS
+    # FILTROS BÁSICOS
     # =========================
     col1, col2, col3 = st.columns(3)
 
@@ -936,7 +936,7 @@ elif st.session_state.vista == "detalle":
         pais = st.selectbox("País", ["Todos"] + sorted(df["Pais"].dropna().unique()))
 
     with col3:
-        producto = st.selectbox("Producto", ["Todos"] + sorted(df["Producto"].dropna().unique()))
+        region = st.selectbox("Región", ["Todos"] + sorted(df["Region"].dropna().unique()))
 
     # =========================
     # FILTRADO
@@ -949,8 +949,8 @@ elif st.session_state.vista == "detalle":
     if pais != "Todos":
         df_f = df_f[df_f["Pais"] == pais]
 
-    if producto != "Todos":
-        df_f = df_f[df_f["Producto"] == producto]
+    if region != "Todos":
+        df_f = df_f[df_f["Region"] == region]
 
     # =========================
     # DATA PARA GRÁFICA
@@ -960,7 +960,7 @@ elif st.session_state.vista == "detalle":
     df_g = df_g.sort_values("Periodo_dt")
 
     # =========================
-    # KPI
+    # KPIs
     # =========================
     col1, col2, col3 = st.columns(3)
 
@@ -990,39 +990,48 @@ elif st.session_state.vista == "detalle":
 
     fig = go.Figure()
 
-    df_g["Año"] = df_g["Periodo_dt"].dt.year
-    años = df_g["Año"].unique()
+    if not df_g.empty:
 
-    for j, año in enumerate(años):
-        df_year = df_g[df_g["Año"] == año]
+        df_g["Año"] = df_g["Periodo_dt"].dt.year
+        años = df_g["Año"].unique()
 
-        fig.add_vrect(
-            x0=df_year["Periodo_dt"].iloc[0],
-            x1=df_year["Periodo_dt"].iloc[-1],
-            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-            opacity=0.2,
-            line_width=0,
-        )
+        for j, año in enumerate(años):
+            df_year = df_g[df_g["Año"] == año]
 
-        fig.add_vline(
-            x=df_year["Periodo_dt"].iloc[0],
-            line_dash="dash"
-        )
+            fig.add_vrect(
+                x0=df_year["Periodo_dt"].iloc[0],
+                x1=df_year["Periodo_dt"].iloc[-1],
+                fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+                opacity=0.2,
+                line_width=0,
+            )
 
-    fig.add_trace(go.Scatter(
-        x=df_g["Periodo_dt"],
-        y=df_g["Ventas"],
-        mode="lines+markers+text",
-        text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-        textposition="top center"
-    ))
+            fig.add_vline(
+                x=df_year["Periodo_dt"].iloc[0],
+                line_dash="dash"
+            )
+
+        fig.add_trace(go.Scatter(
+            x=df_g["Periodo_dt"],
+            y=df_g["Ventas"],
+            mode="lines+markers+text",
+            text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+            textposition="top center"
+        ))
+
+    fig.update_layout(
+        title="Evolución de Ventas",
+        xaxis_title="Periodo",
+        yaxis_title="Ventas",
+        showlegend=False
+    )
 
     st.plotly_chart(fig, use_container_width=True)
 
     # =========================
-    # INSIGHT
+    # INSIGHT SIMPLE
     # =========================
-    st.info(f"Filtro aplicado: Canal={canal} | País={pais} | Producto={producto}")
+    st.info(f"Filtro: Canal={canal} | País={pais} | Región={region}")
 
     if var > 0:
         st.success(f"📈 Crecimiento de {var:.1%}")
@@ -1030,20 +1039,17 @@ elif st.session_state.vista == "detalle":
         st.error(f"📉 Caída de {var:.1%}")
 
     # =========================
-    # TOP PRODUCTOS
+    # TOP REGIONES
     # =========================
-    st.markdown("### 🔝 Top productos")
+    st.markdown("### 🔝 Top regiones")
 
-    top = df_f.groupby("Producto")["Ventas"].sum().sort_values(ascending=False).head(5)
+    top = df_f.groupby("Region")["Ventas"].sum().sort_values(ascending=False).head(5)
     st.bar_chart(top)
-
-    if not top.empty:
-        st.success(f"🔥 Producto líder: {top.index[0]} (${top.iloc[0]:,.0f})")
 
     # =========================
     # TABLA
     # =========================
-    st.markdown("### 📋 Datos filtrados")
+    st.markdown("### 📋 Datos")
     st.dataframe(df_f, use_container_width=True)
 # =========================
 # LOG
