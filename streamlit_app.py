@@ -718,55 +718,62 @@ with st.expander(f"📊 Ver gráfica - {nombre}"):
             st.warning("Faltan columnas necesarias (Periodo o Ventas)")
 
 st.markdown("---")
-       # ------------------------
-        # DETALLE
-        # ------------------------
-     for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
+# ------------------------
+# DETALLE
+# ------------------------
+for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
 
-        df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
+    df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-        with st.expander("🔍 Ver detalle"):
-            st.write("👉 DENTRO DEL EXPANDER")
+    with st.expander("🔍 Ver detalle"):
+        st.write("👉 DENTRO DEL EXPANDER")
 
-            for subdim in ["Producto", "Region", "Canal"]:
-                if subdim in df_det.columns and subdim != dim:
+        for subdim in ["Producto", "Region", "Canal"]:
+            if subdim in df_det.columns and subdim != dim and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
 
-                    df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                    df_sub = df_sub.sort_values("Periodo")
+                df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+                df_sub = df_sub.sort_values("Periodo")
 
-                    tabla = []
+                tabla = []
 
-                    for k2, g2 in df_sub.groupby(subdim):
+                for k2, g2 in df_sub.groupby(subdim):
 
-                        if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
+                    if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
 
-                            a1 = g2.iloc[-2]["Ventas"]
-                            a2 = g2.iloc[-1]["Ventas"]
-                            var2 = (a2 - a1) / a1
+                        a1 = g2.iloc[-2]["Ventas"]
+                        a2 = g2.iloc[-1]["Ventas"]
+                        var2 = (a2 - a1) / a1
 
-                            tabla.append([k2, a1, a2, var2])
+                        tabla.append([k2, a1, a2, var2])
 
-                    if tabla:
-                        df_detalle = pd.DataFrame(
-                            tabla,
-                            columns=["Elemento", "Anterior", "Actual", "Variación"]
-                        )
+                if tabla:
+                    df_detalle = pd.DataFrame(
+                        tabla,
+                        columns=["Elemento", "Anterior", "Actual", "Variación"]
+                    )
 
-                        df_detalle["Variación"] = df_detalle["Variación"].apply(
-                            lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
-                        )
+                    df_detalle["Variación"] = df_detalle["Variación"].apply(
+                        lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
+                    )
 
-                        st.dataframe(df_detalle.head(5), use_container_width=True)
+                    st.dataframe(df_detalle.head(5), use_container_width=True)
 
-        # ------------------------
-        # 🔥 GRÁFICA (MOVIDA DENTRO DEL LOOP)
-        # ------------------------
-        st.write("Filas df_det:", len(df_det))
+    # ------------------------
+    # 🔥 GRÁFICA (MOVIDA DENTRO DEL LOOP)
+    # ------------------------
+    st.write("Filas df_det:", len(df_det))
 
-        with st.expander("📊 Ver gráfica"):
+    with st.expander("📊 Ver gráfica"):
 
-            import plotly.graph_objects as go
+        import plotly.graph_objects as go
 
+        if df_det.empty:
+            st.warning("No hay datos para graficar")
+
+        elif "Periodo" not in df_det.columns or "Ventas" not in df_det.columns:
+            st.warning("Faltan columnas necesarias (Periodo o Ventas)")
+
+        else:
             df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
 
             if df_g.empty:
@@ -841,8 +848,7 @@ st.markdown("---")
                     key=f"graf_{dim}_{str(nombre).replace(' ', '_')}"
                 )
 
-        st.markdown("---")
-   
+    st.markdown("---")       
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
