@@ -535,8 +535,10 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     # INICIALIZA RECOMENDACIONES
     # ------------------------
-    recomendaciones = []
-    resumen_dim = {}
+    if "recomendaciones" not in locals():
+        recomendaciones = []
+        
+        resumen_dim = {}
 
     # ------------------------
     # FUNCIÓN GENERADORA
