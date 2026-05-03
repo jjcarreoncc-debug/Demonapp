@@ -481,6 +481,8 @@ if all(col in df.columns for col in ["Ventas", "Periodo"]):
 
 else:
     st.warning("⚠️ Faltan columnas necesarias para generar recomendaciones")
+    if "recomendaciones" not in locals():
+    recomendaciones = []
     recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
 
     # Mostrar recomendaciones
