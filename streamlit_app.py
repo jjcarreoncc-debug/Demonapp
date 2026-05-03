@@ -588,7 +588,9 @@ if not recomendaciones:
 else:
     for r in recomendaciones:
 
-        # 🔥 SOPORTA AMBOS FORMATOS
+        # ------------------------
+        # DESEMPAQUETAR
+        # ------------------------
         if len(r) == 9:
             dim, nombre, var, impacto, tipo, v1, v2, p1, p2 = r
         elif len(r) == 6:
@@ -599,7 +601,7 @@ else:
             continue
 
         # ------------------------
-        # TEXTO PRINCIPAL
+        # TEXTO
         # ------------------------
         if tipo == "verde":
             st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
@@ -613,24 +615,30 @@ else:
         """)
 
         # ------------------------
-        # FILTRO DETALLE
+        # FILTRO BASE
         # ------------------------
-        #df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()] 
+        df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
+
         # ------------------------
         # DETALLE
         # ------------------------
         with st.expander(f"🔍 Ver detalle - {nombre}"):
+
             for subdim in ["Producto", "Region", "Canal"]:
                 if subdim in df_det.columns and subdim != dim:
+
                     df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
                     df_sub = df_sub.sort_values("Periodo")
 
                     tabla = []
+
                     for k2, g2 in df_sub.groupby(subdim):
                         if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
+
                             a1 = g2.iloc[-2]["Ventas"]
                             a2 = g2.iloc[-1]["Ventas"]
                             var2 = (a2 - a1) / a1
+
                             tabla.append([k2, a1, a2, var2])
 
                     if tabla:
@@ -645,34 +653,43 @@ else:
 
                         st.dataframe(df_detalle.head(5), use_container_width=True)
 
-            # ------------------------
-            # GRÁFICA
-            # ------------------------
-            with st.expander(f"📊 Ver gráfica - {nombre}"):
+        # ------------------------
+        # GRÁFICA
+        # ------------------------
+        with st.expander(f"📊 Ver gráfica - {nombre}"):
 
+            if df_det.empty:
+                st.warning("No hay datos para este elemento")
+
+            else:
                 df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+
                 if not df_g.empty:
+
                     df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-                    df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
+                    df_g = df_g.dropna(subset=["Periodo_dt"])
                     df_g = df_g.sort_values("Periodo_dt")
 
-                    if not df_g.empty:
-                        import plotly.graph_objects as go
-                        fig = go.Figure()
-                        fig.add_trace(go.Scatter(
-                            x=df_g["Periodo_dt"],
-                            y=df_g["Ventas"],
-                            mode="lines+markers",
-                            fill='tozeroy'  # 🔹 sombra debajo de la línea
-                        ))
-                        fig.update_layout(title="Evolución", hovermode="x unified")
-                        st.plotly_chart(fig, use_container_width=True)
-                    else:
-                        st.warning("Datos inválidos para graficar")
+                    import plotly.graph_objects as go
+
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(
+                        x=df_g["Periodo_dt"],
+                        y=df_g["Ventas"],
+                        mode="lines+markers"
+                    ))
+
+                    fig.update_layout(
+                        title="Evolución de Ventas",
+                        hovermode="x unified"
+                    )
+
+                    st.plotly_chart(fig, use_container_width=True)
+
                 else:
                     st.warning("No hay datos para graficar")
 
-            st.markdown("---")
+        st.markdown("---")
     # ------------------------
         # DETALLE
         # ------------------------
