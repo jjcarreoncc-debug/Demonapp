@@ -915,14 +915,136 @@ elif st.session_state.vista == "resumen":
 # =========================
 # DETALLE
 # =========================
-if st.session_state.vista == "detalle":
+elif st.session_state.vista == "detalle":
 
-    if st.button("⬅️ Volver detalle"):
+    # VOLVER
+    if st.button("⬅️ Volver detalle", key="volver_detalle"):
         st.session_state.vista = "inicio"
+        st.rerun()
 
     st.title("🔎 Análisis Detallado")
-    st.dataframe(df)
 
+    # =========================
+    # FILTROS
+    # =========================
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        canal = st.selectbox("Canal", ["Todos"] + sorted(df["Canal"].dropna().unique()))
+
+    with col2:
+        pais = st.selectbox("País", ["Todos"] + sorted(df["Pais"].dropna().unique()))
+
+    with col3:
+        producto = st.selectbox("Producto", ["Todos"] + sorted(df["Producto"].dropna().unique()))
+
+    # =========================
+    # FILTRADO
+    # =========================
+    df_f = df.copy()
+
+    if canal != "Todos":
+        df_f = df_f[df_f["Canal"] == canal]
+
+    if pais != "Todos":
+        df_f = df_f[df_f["Pais"] == pais]
+
+    if producto != "Todos":
+        df_f = df_f[df_f["Producto"] == producto]
+
+    # =========================
+    # DATA PARA GRÁFICA
+    # =========================
+    df_g = df_f.groupby("Periodo")["Ventas"].sum().reset_index()
+    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
+    df_g = df_g.sort_values("Periodo_dt")
+
+    # =========================
+    # KPI
+    # =========================
+    col1, col2, col3 = st.columns(3)
+
+    total = df_f["Ventas"].sum()
+
+    if len(df_g) >= 2:
+        v1 = df_g.iloc[-2]["Ventas"]
+        v2 = df_g.iloc[-1]["Ventas"]
+        var = (v2 - v1) / v1 if v1 != 0 else 0
+    else:
+        var = 0
+
+    with col1:
+        st.metric("Ventas totales", f"${total:,.0f}")
+
+    with col2:
+        if not df_g.empty:
+            st.metric("Último periodo", f"${df_g.iloc[-1]['Ventas']:,.0f}")
+
+    with col3:
+        st.metric("Variación", f"{var:.1%}")
+
+    # =========================
+    # GRÁFICA CON SOMBRAS
+    # =========================
+    import plotly.graph_objects as go
+
+    fig = go.Figure()
+
+    df_g["Año"] = df_g["Periodo_dt"].dt.year
+    años = df_g["Año"].unique()
+
+    for j, año in enumerate(años):
+        df_year = df_g[df_g["Año"] == año]
+
+        fig.add_vrect(
+            x0=df_year["Periodo_dt"].iloc[0],
+            x1=df_year["Periodo_dt"].iloc[-1],
+            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+            opacity=0.2,
+            line_width=0,
+        )
+
+        fig.add_vline(
+            x=df_year["Periodo_dt"].iloc[0],
+            line_dash="dash"
+        )
+
+    fig.add_trace(go.Scatter(
+        x=df_g["Periodo_dt"],
+        y=df_g["Ventas"],
+        mode="lines+markers+text",
+        text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+        textposition="top center"
+    ))
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # INSIGHT
+    # =========================
+    st.info(f"Filtro aplicado: Canal={canal} | País={pais} | Producto={producto}")
+
+    if var > 0:
+        st.success(f"📈 Crecimiento de {var:.1%}")
+    else:
+        st.error(f"📉 Caída de {var:.1%}")
+
+    # =========================
+    # TOP PRODUCTOS
+    # =========================
+    st.markdown("### 🔝 Top productos")
+
+    top = df_f.groupby("Producto")["Ventas"].sum().sort_values(ascending=False).head(5)
+    st.bar_chart(top)
+
+    if not top.empty:
+        st.success(f"🔥 Producto líder: {top.index[0]} (${top.iloc[0]:,.0f})")
+
+    # =========================
+    # TABLA
+    # =========================
+    st.markdown("### 📋 Datos filtrados")
+    st.dataframe(df_f, use_container_width=True)
 # =========================
 # LOG
 # =========================
