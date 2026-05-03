@@ -706,7 +706,7 @@ elif vista == "volatilidad":
 elif vista == "responsables":
 
     if st.button("⬅️ Volver responsables "):
-        st.sesion_state.vista = "inicio":
+        st.sesion_state.vista = "inicio"
 
     st.markdown("## 👤 Responsables")
 
