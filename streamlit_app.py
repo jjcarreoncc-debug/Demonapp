@@ -973,7 +973,7 @@ elif st.session_state.vista == "resumen":
 # =========================
 elif st.session_state.vista == "detalle":
 
-    # BOTÓN VOLVER
+    # BOTÓN
     if st.button("⬅️ Volver", key="volver_detalle"):
         st.session_state.vista = "inicio"
         st.rerun()
@@ -981,33 +981,38 @@ elif st.session_state.vista == "detalle":
     st.title("🔎 Análisis Detallado")
 
     # =========================
-    # FILTROS BÁSICOS
+    # FILTROS
     # =========================
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
-with col1:
-    pais = st.selectbox(
-        "País",
-        ["Todos"] + sorted(df["Pais"].dropna().unique()),
-        key="detalle_pais"
-    )
+    with col1:
+        pais = st.selectbox(
+            "País",
+            ["Todos"] + sorted(df["Pais"].dropna().unique()),
+            key="detalle_pais"
+        )
 
-with col2:
-    st.write(df.columns)
-    canal = st.selectbox(
-        "Canal",
-        ["Todos"] + sorted(df["Canal"].dropna().unique()),
-        key="detalle_canal"
-    )
+    with col2:
+        canal = st.selectbox(
+            "Canal",
+            ["Todos"] + sorted(df["Canal"].dropna().unique()),
+            key="detalle_canal"
+        )
 
-with col3:
-    producto = st.selectbox(
-        "Producto",
-        ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
-        key="detalle_producto"
-    )
+    with col3:
+        region = st.selectbox(
+            "Región",
+            ["Todos"] + sorted(df["Region"].dropna().unique()),
+            key="detalle_region"
+        )
 
-    # =========================
+    with col4:
+        producto = st.selectbox(
+            "Producto",
+            ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
+            key="detalle_producto"
+        )
+# =========================
     # FILTRADO
     # =========================
     df_f = df.copy()
