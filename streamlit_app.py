@@ -596,7 +596,7 @@ if st.session_state.vista == "recomendaciones":
 # =========================
 # RECOMENDACIONES (LIMPIO Y FUNCIONAL)
 # =========================
-
+recomendaciones = recomendaciones if 'recomendaciones' in locals() else []
 if not recomendaciones:
     st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
 
