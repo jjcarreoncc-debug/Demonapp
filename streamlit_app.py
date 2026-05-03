@@ -1136,11 +1136,13 @@ elif st.session_state.vista == "alertas":
     # =========================
     for dim in ["Canal", "Pais", "Region", "Producto"]:
         if dim in df_res.columns:
-
+            continue    
+        if "Periodo" not in df_res.columns or "Ventas" not in df_res.columns:
+        continue    
             df_t = df_res.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
             df_t["Periodo"] = pd.to_datetime(df_t["Periodo"])
             df_t = df_t.sort_values("Periodo")
-
+##################################################################################################
             for k, g in df_t.groupby(dim):
 
                 if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
