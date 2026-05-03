@@ -238,92 +238,52 @@ if menu == "Dashboard":
 
         df_base = df.copy()
 
-        # 🔒 PROTECCIÓN GLOBAL
-        if 'df' in locals():
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
 
-            if 'df' in locals() and "Pais" in df.columns:
-                paises = df["Pais"].unique()
+        fig = px.line(df, x="Periodo", y="Ventas")
+        st.plotly_chart(fig, use_container_width=True)
 
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
-            col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
-            col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-
-            fig = px.line(df, x="Periodo", y="Ventas")
-            st.plotly_chart(fig, use_container_width=True)
 # ------------------------
-# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
+# FILTROS (ARREGLADOS)
 # ------------------------
-if 'df' in locals():
-    df_base = df.copy()
-
-
 with st.sidebar:
 
     st.divider()
     st.markdown("### 🎯 Filtros")
+
     if 'df' in locals():
+
         df_base = df.copy()
-   # PAÍS
-    if 'df' in locals() and "Pais" in df.columns:
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
-        )
-        df = df[df["Pais"].isin(pais)]
 
-    # REGIÓN
-    if "Region" in df.columns:
-        region = st.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique()),
-            key="filtro_region"
-        )
-        df = df[df["Region"].isin(region)]
+        if "Pais" in df.columns:
+            pais = st.multiselect("País", sorted(df["Pais"].dropna().unique()), default=sorted(df["Pais"].dropna().unique()))
+            df = df[df["Pais"].isin(pais)]
 
-    # PRODUCTO
-    if "Producto" in df.columns:
-        producto = st.multiselect(
-            "Producto",
-            sorted(df["Producto"].dropna().unique()),
-            default=sorted(df["Producto"].dropna().unique()),
-            key="filtro_producto"
-        )
-        df = df[df["Producto"].isin(producto)]
+        if "Region" in df.columns:
+            region = st.multiselect("Región", sorted(df["Region"].dropna().unique()), default=sorted(df["Region"].dropna().unique()))
+            df = df[df["Region"].isin(region)]
 
-    # CANAL
-    if "Canal" in df.columns:
-        canal = st.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique()),
-            key="filtro_canal"
-        )
-        df = df[df["Canal"].isin(canal)]
+        if "Producto" in df.columns:
+            producto = st.multiselect("Producto", sorted(df["Producto"].dropna().unique()), default=sorted(df["Producto"].dropna().unique()))
+            df = df[df["Producto"].isin(producto)]
 
-    # VENDEDOR
-    if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-            key="filtro_vendedor"
-        )
-        df = df[df["Vendedor_Ruta"].isin(vendedor)]
+        if "Canal" in df.columns:
+            canal = st.multiselect("Canal", sorted(df["Canal"].dropna().unique()), default=sorted(df["Canal"].dropna().unique()))
+            df = df[df["Canal"].isin(canal)]
 
-    # TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique()),
-            key="filtro_tipo_cliente"
-        )
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+        if "Vendedor_Ruta" in df.columns:
+            vendedor = st.multiselect("Vendedor", sorted(df["Vendedor_Ruta"].dropna().unique()), default=sorted(df["Vendedor_Ruta"].dropna().unique()))
+            df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
+        if "Tipo_cliente" in df.columns:
+            tipo_cliente = st.multiselect("Tipo cliente", sorted(df["Tipo_cliente"].dropna().unique()), default=sorted(df["Tipo_cliente"].dropna().unique()))
+            df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+
+    else:
+        st.info("📂 Carga un archivo para habilitar filtros")
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
