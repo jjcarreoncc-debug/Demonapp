@@ -1098,7 +1098,7 @@ with col3:
 # =========================
 # LOG
 # =========================
-elif st.session_state.vista == "log":
+if st.session_state.vista == "log":
 
     if st.button("⬅️ Volver log"):
         st.session_state.vista = "principal"
