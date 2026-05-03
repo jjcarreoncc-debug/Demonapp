@@ -220,11 +220,11 @@ if menu == "Dashboard":
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
-if 'df' in locals():
-    df_base = df.copy()
+    if 'df' in locals():
+        df_base = df.copy()
 
-st.sidebar.divider()
-st.sidebar.markdown("### 🎯 Filtros")
+        st.sidebar.divider()
+        st.sidebar.markdown("### 🎯 Filtros")
     if 'df' in locals():
         df_base = df.copy()
    # PAÍS
