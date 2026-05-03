@@ -370,6 +370,19 @@ with st.sidebar:
     # ------------------------
     st.markdown("### 📅 Rango de fechas")
     # ------------------------
+
+# ------------------------
+# VALIDAR QUE EXISTE df
+# ------------------------
+if 'df' not in locals() or df is None:
+    st.warning("⚠️ No hay archivo cargado o df no existe")
+    st.stop()
+
+# ------------------------
+# LIMPIAR NOMBRES DE COLUMNAS
+# ------------------------
+df.columns = df.columns.str.strip()
+##########################
 # VALIDAR FECHA
 # ------------------------
 if "Fecha" in df.columns:
