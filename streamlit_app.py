@@ -461,6 +461,33 @@ elif vista == "detalle":
         st.session_state.vista = "inicio"
 
     st.markdown("## 🔎 Detalle")
+    # =========================
+# FILTROS EN DETALLE
+# =========================
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    pais = st.selectbox("País", ["Todos"] + sorted(df["Pais"].dropna().unique()))
+
+with col2:
+    canal = st.selectbox("Canal", ["Todos"] + sorted(df["Canal"].dropna().unique()))
+
+with col3:
+    producto = st.selectbox("Producto", ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()))
+
+# =========================
+# APLICAR FILTROS
+# =========================
+df_f = df.copy()
+
+if pais != "Todos":
+    df_f = df_f[df_f["Pais"] == pais]
+
+if canal != "Todos":
+    df_f = df_f[df_f["Canal"] == canal]
+
+if producto != "Todos":
+    df_f = df_f[df_f["Nombre_Producto"] == producto]
     st.dataframe(df)
 
 # 🔥 DATA FINAL FILTRADA
