@@ -104,11 +104,25 @@ authenticator.logout("Cerrar sesión", "sidebar")
 
 rol = "Admin" if username == "admin" else "Usuario"
 
-if rol == "Admin":
-    menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"], index=1)
-else:
-    menu = st.sidebar.radio("Menú", ["Dashboard"])
+# 👇 estado inicial
+if "menu" not in st.session_state:
+    st.session_state.menu = "Inicio"
 
+# 👇 opciones
+if rol == "Admin":
+    opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+else:
+    opciones = ["Inicio", "Dashboard"]
+
+# 👇 radio controlado
+menu = st.sidebar.radio(
+    "Menú",
+    opciones,
+    index=opciones.index(st.session_state.menu)
+)
+
+# 👇 guardar selección
+st.session_state.menu = menu
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
