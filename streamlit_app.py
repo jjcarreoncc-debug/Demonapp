@@ -369,9 +369,24 @@ with st.sidebar:
     # RANGO DE FECHAS
     # ------------------------
     st.markdown("### 📅 Rango de fechas")
-    fecha_min = df["Fecha"].min()
-    fecha_max = df["Fecha"].max()
+    # ------------------------
+# VALIDAR FECHA
+# ------------------------
+if "Fecha" in df.columns:
 
+    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+
+    if df["Fecha"].notna().any():
+        fecha_min = df["Fecha"].min()
+        fecha_max = df["Fecha"].max()
+    else:
+        st.warning("⚠️ La columna Fecha no tiene valores válidos")
+        fecha_min, fecha_max = None, None
+
+else:
+    st.warning("⚠️ El archivo no tiene columna 'Fecha'")
+    fecha_min, fecha_max = None, None
+    
     fecha_ini, fecha_fin = st.date_input(
         "Selecciona fecha inicial y final",
         value=(fecha_min, fecha_max),
