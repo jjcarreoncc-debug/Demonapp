@@ -1491,7 +1491,7 @@ if not df_tabla.empty:
         # =========================
         # GRÁFICA
         # =========================
-        with st.expander(f"📊 Gráfica - {nombre}"):
+                with st.expander(f"📊 Gráfica - {nombre}"):
 
             import plotly.graph_objects as go
 
@@ -1537,7 +1537,7 @@ if not df_tabla.empty:
             else:
                 st.warning("No hay datos para graficar")
 
-st.stop()    
+
 # =========================
 # DETALLE (LIMPIO Y ESTABLE)
 # =========================
@@ -1558,31 +1558,30 @@ elif st.session_state.vista == "detalle":
     with col1:
         pais = st.selectbox(
             "País",
-            ["Todos"] + sorted(df["Pais"].dropna().unique()) if "Pais" in df.columns else ["Todos"],
+            ["Todos"] + sorted(df["Pais"].dropna().unique()),
             key="detalle_pais_1"
         )
 
     with col2:
         canal = st.selectbox(
             "Canal",
-            ["Todos"] + sorted(df["Canal"].dropna().unique()) if "Canal" in df.columns else ["Todos"],
+            ["Todos"] + sorted(df["Canal"].dropna().unique()),
             key="detalle_canal_1"
         )
 
     with col3:
         region = st.selectbox(
             "Región",
-            ["Todos"] + sorted(df["Region"].dropna().unique()) if "Region" in df.columns else ["Todos"],
+            ["Todos"] + sorted(df["Region"].dropna().unique()),
             key="detalle_region_1"
         )
 
     with col4:
         producto = st.selectbox(
             "Producto",
-            ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()) if "Nombre_Producto" in df.columns else ["Todos"],
+            ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
             key="detalle_producto_1"
         )
-
     # =========================
     # FILTRADO
     # =========================
