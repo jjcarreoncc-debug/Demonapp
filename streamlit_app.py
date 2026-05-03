@@ -731,7 +731,7 @@ elif vista == "detalle":
 
     if st.button("⬅️ Volver detalle"):
 
-        st.st.session_state.vista = "inicio":
+        st.st.session_state.vista = "inicio"
 
     st.markdown("## 🔎 Detalle")
     # =========================
