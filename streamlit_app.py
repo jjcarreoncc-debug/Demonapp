@@ -484,7 +484,7 @@ if st.session_state.get("vista") == "recomendaciones":
 # ------------------------
 # VALIDACIÓN
 # ------------------------
-if df.empty:
+if 'df' in locals() and not df.empty:
     st.warning("No hay datos con esos filtros")
     st.stop()
 
