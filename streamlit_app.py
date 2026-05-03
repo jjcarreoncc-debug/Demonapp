@@ -465,20 +465,36 @@ elif vista == "detalle":
     # =========================
 # FILTROS EN DETALLE
 # =========================
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    pais = st.selectbox("País", ["Todos"] + sorted(df["Pais"].dropna().unique()))
+    pais = st.selectbox(
+        "País",
+        ["Todos"] + sorted(df["Pais"].dropna().unique()),
+        key="detalle_pais"
+    )
 
 with col2:
     canal = st.selectbox(
-    "Canal",
-    ["Todos"] + sorted(df["Canal"].dropna().unique()),
-    key="detalle_canal_unique_1"
-)
+        "Canal",
+        ["Todos"] + sorted(df["Canal"].dropna().unique()),
+        key="detalle_canal"
+    )
 
 with col3:
-    producto = st.selectbox("Producto", ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()))
+    region = st.selectbox(
+        "Región",
+        ["Todos"] + sorted(df["Region"].dropna().unique()),
+        key="detalle_region"
+    )
+
+with col4:
+    producto = st.selectbox(
+        "Producto",
+        ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
+        key="detalle_producto"
+    )
+
 
 # =========================
 # APLICAR FILTROS
