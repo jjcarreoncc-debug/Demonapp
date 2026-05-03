@@ -241,7 +241,7 @@ if menu == "Dashboard":
         # 🔒 PROTECCIÓN GLOBAL
         if 'df' in locals():
 
-            if "Pais" in df.columns:
+            if 'df' in locals() and "Pais" in df.columns:
                 paises = df["Pais"].unique()
 
             col1, col2, col3 = st.columns(3)
@@ -265,7 +265,7 @@ with st.sidebar:
     if 'df' in locals():
         df_base = df.copy()
    # PAÍS
-    if "Pais" in df.columns:
+    if 'df' in locals() and "Pais" in df.columns:
         pais = st.multiselect(
             "País",
             sorted(df["Pais"].dropna().unique()),
