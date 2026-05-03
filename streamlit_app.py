@@ -592,7 +592,11 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     # MOSTRAR RECOMENDACIONES
     # ------------------------
-recomendaciones = st.session_state.get("recomendaciones", [])
+
+# =========================
+# RECOMENDACIONES (LIMPIO Y FUNCIONAL)
+# =========================
+
 if not recomendaciones:
     st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
 
@@ -619,206 +623,127 @@ else:
         else:
             st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
-        st.markdown(
-            f"- Periodo anterior ({p1}): ${v1:,.0f}\n"
-            f"- Periodo actual ({p2}): ${v2:,.0f}\n"
-            f"- Variación: {var*100:.1f}%"
-        )
+        st.markdown(f"""
+- Periodo anterior ({p1}): ${v1:,.0f}  
+- Periodo actual ({p2}): ${v2:,.0f}  
+- Variación: {var*100:.1f}%
+""")
+
         # ------------------------
-        # FILTRO BASE
+        # DATA BASE
         # ------------------------
         df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-        # ------------------------
-        # DETALLE
-        # ------------------------
-        
-        # ------------------------
-        # GRÁFICA
-        # ------------------------
-        # ------------------------
-# DETALLE + GRÁFICA
-# ------------------------
-# 🔍 DETALLE
+        # =========================
+        # 🔍 DETALLE
+        # =========================
+        with st.expander(f"🔍 Ver detalle - {nombre}"):
 
-for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
-
-    df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
-
-    # ------------------------
-    # DETALLE
-    # ------------------------
-    # =========================
-# DETALLE + GRÁFICA (CORRECTO)
-# =========================
-
-df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
-
-with st.expander(f"🔍 Ver detalle - {nombre}"):
-
-    if df_det.empty:
-        st.warning("No hay datos para este elemento")
-
-    else:
-        for subdim in ["Producto", "Region", "Canal"]:
-
-            if all(col in df_det.columns for col in ["Periodo", "Ventas", subdim]) and subdim != dim:
-
-                df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                df_sub = df_sub.sort_values("Periodo")
-
-                tabla = []
-
-                for k2, g2 in df_sub.groupby(subdim):
-
-                    if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
-
-                        a1 = g2.iloc[-2]["Ventas"]
-                        a2 = g2.iloc[-1]["Ventas"]
-                        var2 = (a2 - a1) / a1
-
-                        tabla.append([k2, a1, a2, var2])
-
-                if tabla:
-                    df_detalle = pd.DataFrame(
-                        tabla,
-                        columns=["Elemento", "Anterior", "Actual", "Variación"]
-                    )
-
-                    df_detalle["Variación"] = df_detalle["Variación"].apply(
-                        lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
-                    )
-
-                    st.dataframe(df_detalle.head(5), use_container_width=True)
-
-
-# =========================
-# 🔥 GRÁFICA (ESTA ES LA CLAVE)
-# =========================
-with st.expander(f"📊 Gráfica - {nombre}"):
-
-    import plotly.graph_objects as go
-
-    if not df_det.empty and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
-
-        df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-
-        if df_g.empty:
-            st.warning("No hay datos para graficar")
-
-        else:
-            df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-            df_g = df_g.dropna(subset=["Periodo_dt"])
-            df_g = df_g.sort_values("Periodo_dt")
-
-            fig = go.Figure()
-
-            fig.add_trace(go.Scatter(
-                x=df_g["Periodo_dt"],
-                y=df_g["Ventas"],
-                mode="lines+markers"
-            ))
-
-            fig.update_layout(
-                title="Evolución de Ventas",
-                hovermode="x unified"
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
-
-    else:
-        st.warning("No hay datos válidos para graficar")
-    # ------------------------
-    # 🔥 GRÁFICA (MOVIDA DENTRO DEL LOOP)
-    # ------------------------
-    st.write("Filas df_det:", len(df_det))
-
-    with st.expander("📊 Ver gráfica"):
-
-        import plotly.graph_objects as go
-
-        if df_det.empty:
-            st.warning("No hay datos para graficar")
-
-        elif "Periodo" not in df_det.columns or "Ventas" not in df_det.columns:
-            st.warning("Faltan columnas necesarias (Periodo o Ventas)")
-
-        else:
-            df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-
-            if df_g.empty:
-                st.warning("No hay datos para graficar")
+            if df_det.empty:
+                st.warning("No hay datos para este elemento")
 
             else:
-                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str), errors="coerce")
-                df_g = df_g.dropna(subset=["Periodo_dt"])
-                df_g = df_g.sort_values("Periodo_dt")
+                for subdim in ["Producto", "Region", "Canal"]:
 
-                # 🔥 PROYECCIÓN
-                if len(df_g) >= 2:
-                    v1_g = df_g.iloc[-2]["Ventas"]
-                    v2_g = df_g.iloc[-1]["Ventas"]
+                    if all(col in df_det.columns for col in ["Periodo", "Ventas", subdim]) and subdim != dim:
 
-                    if v1_g != 0:
-                        var_g = (v2_g - v1_g) / v1_g
-                        proy = v2_g * (1 + var_g)
+                        df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+                        df_sub = df_sub.sort_values("Periodo")
 
-                        sig = df_g["Periodo_dt"].iloc[-1] + pd.DateOffset(months=1)
+                        tabla = []
 
-                        df_extra = pd.DataFrame({
-                            "Periodo": [sig.strftime("%Y-%m")],
-                            "Ventas": [proy]
-                        })
+                        for k2, g2 in df_sub.groupby(subdim):
 
-                        df_g = pd.concat([df_g, df_extra], ignore_index=True)
+                            if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
 
-                        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str), errors="coerce")
-                        df_g = df_g.dropna(subset=["Periodo_dt"])
-                        df_g = df_g.sort_values("Periodo_dt")
+                                a1 = g2.iloc[-2]["Ventas"]
+                                a2 = g2.iloc[-1]["Ventas"]
+                                var2 = (a2 - a1) / a1
 
-                # ------------------------
-                # GRÁFICA
-                # ------------------------
-                fig = go.Figure()
+                                tabla.append([k2, a1, a2, var2])
 
-                fig.add_trace(go.Scatter(
-                    x=df_g["Periodo_dt"],
-                    y=df_g["Ventas"],
-                    mode="lines+markers"
-                ))
+                        if tabla:
+                            df_detalle = pd.DataFrame(
+                                tabla,
+                                columns=["Elemento", "Anterior", "Actual", "Variación"]
+                            )
 
-                # 🔵 Franjas
-                if len(df_g) >= 4:
-                    for i in range(0, len(df_g)-1, 3):
+                            df_detalle["Variación"] = df_detalle["Variación"].apply(
+                                lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
+                            )
+
+                            st.dataframe(df_detalle.head(5), use_container_width=True)
+
+        # =========================
+        # 📊 GRÁFICA (CON SOMBRAS Y LÍNEAS)
+        # =========================
+        with st.expander(f"📊 Gráfica - {nombre}"):
+
+            import plotly.graph_objects as go
+
+            if not df_det.empty and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
+
+                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+
+                if not df_g.empty:
+
+                    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+                    df_g = df_g.dropna(subset=["Periodo_dt"])
+                    df_g = df_g.sort_values("Periodo_dt")
+
+                    fig = go.Figure()
+
+                    # 🔵 SOMBRAS POR AÑO
+                    df_g["Año"] = df_g["Periodo_dt"].dt.year
+                    años = df_g["Año"].unique()
+
+                    for j, año in enumerate(años):
+                        df_year = df_g[df_g["Año"] == año]
+
                         fig.add_vrect(
-                            x0=df_g["Periodo_dt"].iloc[i],
-                            x1=df_g["Periodo_dt"].iloc[min(i+2, len(df_g)-1)],
-                            fillcolor="lightblue",
-                            opacity=0.15,
-                            line_width=0
+                            x0=df_year["Periodo_dt"].iloc[0],
+                            x1=df_year["Periodo_dt"].iloc[-1],
+                            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+                            opacity=0.2,
+                            line_width=0,
                         )
 
-                # ⚫ Líneas
-                if len(df_g) >= 6:
-                    for i in range(0, len(df_g), 6):
+                        # ⚫ LÍNEA DIVISORIA
                         fig.add_vline(
-                            x=df_g["Periodo_dt"].iloc[i],
+                            x=df_year["Periodo_dt"].iloc[0],
                             line_dash="dash",
                             line_color="black"
                         )
 
-                fig.update_layout(
-                    title="Evolución",
-                    hovermode="x unified"
-                )
+                    # 📈 LÍNEA PRINCIPAL
+                    fig.add_trace(go.Scatter(
+                        x=df_g["Periodo_dt"],
+                        y=df_g["Ventas"],
+                        mode="lines+markers+text",
+                        text=[f"${v:,.0f}" for v in df_g["Ventas"]],
+                        textposition="top center"
+                    ))
 
-                st.plotly_chart(
-                    fig,
-                    use_container_width=True,
-                    key=f"graf_{dim}_{str(nombre).replace(' ', '_')}"
-                )
+                    fig.update_layout(
+                        title="Evolución de Ventas",
+                        hovermode="x unified",
+                        showlegend=False
+                    )
 
-    st.markdown("---")       
+                    st.plotly_chart(
+                        fig,
+                        use_container_width=True,
+                        key=f"graf_{dim}_{str(nombre).replace(' ','_')}"
+                    )
+
+                else:
+                    st.warning("Datos vacíos para graficar")
+
+            else:
+                st.warning("Faltan columnas necesarias")
+
+        st.markdown("---")
+
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
