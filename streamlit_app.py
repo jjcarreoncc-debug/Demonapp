@@ -191,13 +191,24 @@ if menu == "Mantenimiento":
 # ------------------------
 # DASHBOARD
 # ------------------------
-if menu == "Dashboard":
+if menu == "Inicio":
+
+    st.title("🏠 Inicio")
+
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if archivo:
+        st.session_state.archivo = archivo
+        st.success("✅ Archivo cargado correctamente")
+
+    if "archivo" in st.session_state:
+        st.info("📊 Ya hay un archivo cargado. Ve a '📊 Principal'")
+
+
+elif menu == "Dashboard":
 
     st.header("📊 Dashboard Ejecutivo")
 
-    # ❌ QUITAMOS el file_uploader de aquí
-
-    # 👇 usamos el archivo cargado desde Inicio
     archivo = st.session_state.get("archivo")
 
     if not archivo:
