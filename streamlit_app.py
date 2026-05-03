@@ -96,9 +96,6 @@ if authentication_status is None:
     st.stop()
 
 # ------------------------
-# SIDEBAR + MENÚ
-# ------------------------
-# ------------------------
 # SIDEBAR COMPLETO
 # ------------------------
 st.sidebar.title("🚦 Navegación")
@@ -114,8 +111,8 @@ st.sidebar.divider()
 # ------------------------
 if rol == "Admin":
     menu = st.sidebar.radio("Menú", ["📊 Dashboard", "⚙️ Mantenimiento"])
-else:
-    menu = st.sidebar.radio("Menú", ["📊 Dashboard"])
+#else:
+#   menu = st.sidebar.radio("Menú", ["📊 Dashboard"])
 
 st.sidebar.divider()
 
