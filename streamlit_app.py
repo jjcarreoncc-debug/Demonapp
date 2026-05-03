@@ -1491,7 +1491,7 @@ if not df_tabla.empty:
         # =========================
         # GRÁFICA
         # =========================
-                with st.expander(f"📊 Gráfica - {nombre}"):
+        with st.expander(f"📊 Gráfica - {nombre}"):
 
             import plotly.graph_objects as go
 
