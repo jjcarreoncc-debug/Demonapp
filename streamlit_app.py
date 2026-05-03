@@ -885,7 +885,7 @@ elif st.session_state.vista == "resumen":
                     fig.add_vrect(
                         x0=df_year["Periodo"].iloc[0],
                         x1=df_year["Periodo"].iloc[-1],
-                        fillcolor="lightblue" if j % 2 == 0 else "lightgrey"
+                        fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
                         opacity=0.15
                         opacity=0.2,
                         line_width=0,
