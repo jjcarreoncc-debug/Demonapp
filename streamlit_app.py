@@ -545,7 +545,7 @@ if st.session_state.vista == "recomendaciones":
             # ------------------------
             
             with st.expander("🔍 Ver detalle"):
-            st.write("👉 DENTRO DEL EXPANDER")
+                st.write("👉 DENTRO DEL EXPANDER")
                 for subdim in ["Producto", "Region", "Canal"]:
                     if subdim in df_det.columns and subdim != dim:
 
