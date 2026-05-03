@@ -399,7 +399,7 @@ with st.sidebar:
 
 else:
     st.warning("⚠️ No existe la columna 'Fecha'")
-🔥 Checklist rápido (haz esto)
+ #🔥 Checklist rápido (haz esto)
     # ------------------------
 
 # ------------------------
