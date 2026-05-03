@@ -409,7 +409,7 @@ with st.sidebar:
 # PANTALLA INICIAL
 # ------------------------
 
-if st.session_state.vista == "inicio":
+if st.session_state.get("vista") == "inicio":
 
     st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
     st.image("imagen8.png", width=1400)
