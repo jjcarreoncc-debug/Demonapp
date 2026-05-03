@@ -578,6 +578,8 @@ if st.session_state.vista == "recomendaciones":
 # ------------------------
 # GRÁFICA RECOMENDACIONES 
 # ------------------------
+st.write("Filas df_det:", len(df_det))
+st.write(df_det.head())
 with st.expander("📊 Ver gráfica"):
 
     import plotly.graph_objects as go
