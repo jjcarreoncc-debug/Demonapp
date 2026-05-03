@@ -1138,7 +1138,7 @@ elif st.session_state.vista == "alertas":
         if dim in df_res.columns:
             continue    
         if "Periodo" not in df_res.columns or "Ventas" not in df_res.columns:
-        continue    
+            continue    
             df_t = df_res.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
             df_t["Periodo"] = pd.to_datetime(df_t["Periodo"])
             df_t = df_t.sort_values("Periodo")
