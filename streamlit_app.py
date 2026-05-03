@@ -229,17 +229,7 @@ if menu == "Dashboard":
     # ------------------------
     # CARGA ARCHIVO
     # ------------------------
-    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
-    if not archivo:
-        st.info("📂 Sube un archivo para comenzar")
-
-    else:
-        st.session_state.menu = "Inicio"
-        st.rerun()
-        df = pd.read_excel(archivo)
-        df.columns = df.columns.str.strip()
-
-        # ------------------------
+    }   # ------------------------
         # LIMPIEZA
         # ------------------------
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
