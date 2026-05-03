@@ -498,7 +498,7 @@ if 'df' in locals():
     ventas = df["Ventas"].sum()
     ganancia = df["Ganancia"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
-df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+
 
 
 # ------------------------
