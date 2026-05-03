@@ -651,7 +651,11 @@ with st.expander("📊 Ver gráfica"):
         hovermode="x unified"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+    fig,
+    use_container_width=True,
+    key=f"graf_{dim}_{nombre}"
+)
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
