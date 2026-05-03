@@ -581,7 +581,7 @@ if st.session_state.vista == "recomendaciones":
             with st.expander("📊 Ver gráfica"):
 
                 df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-                df_g["Periodo_dt"] = df_g["Periodo"].dt.to_timestamp()
+                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
                 df_g = df_g.sort_values("Periodo_dt")
 
                 if len(df_g) >= 2:
