@@ -208,7 +208,8 @@ if menu == "Dashboard":
         df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
         # 🔥 YA NO ROMPE
-        df_base = df.copy()
+        if 'df' in locals():
+            df_base = df.copy()
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
@@ -264,7 +265,8 @@ if menu == "Dashboard":
         # ------------------------
         # 🔥 AQUÍ VA TU BLOQUE DE FILTROS
         # ------------------------
-        df_base = df.copy()
+        if 'df' in locals():
+            df_base = df.copy()
 
         # (pega aquí TODO tu bloque de filtros)
 
@@ -282,7 +284,9 @@ if menu == "Dashboard":
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
-df_base = df.copy()
+if 'df' in locals():
+    df_base = df.copy()
+
 
 with st.sidebar:
 
