@@ -14,10 +14,10 @@ from PIL import Image
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
-# SESSION STATE (FLUJO)
+# SESSION STATE
 # ------------------------
 if "vista" not in st.session_state:
-    st.session_state.vista = "carga"  # carga -> inicio -> detalle/recomendaciones
+    st.session_state.vista = "carga"
 
 if "df" not in st.session_state:
     st.session_state.df = None
@@ -26,35 +26,6 @@ if "df" not in st.session_state:
 # BASE DE DATOS
 # ------------------------
 conn = sqlite3.connect("data.db", check_same_thread=False)
-
-conn.execute("""
-CREATE TABLE IF NOT EXISTS ventas (
-    Fecha TEXT,
-    Nombre_Producto TEXT,
-    Numero_Producto TEXT,
-    Ventas_Cantidad REAL,
-    Pais TEXT,
-    Region TEXT,
-    Canal TEXT,
-    Vendedor_Ruta TEXT,
-    Tipo_cliente TEXT,
-    Precio_Venta REAL,
-    Costos_Venta REAL
-)
-""")
-
-conn.execute("""
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    nombre TEXT,
-    rol TEXT,
-    estado TEXT,
-    fecha_creacion TEXT
-)
-""")
-conn.commit()
 
 # ------------------------
 # LOGIN CONFIG
@@ -77,18 +48,9 @@ authenticator = stauth.Authenticate(
 )
 
 # ------------------------
-# LOGO
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
-# ------------------------
 # LOGIN
 # ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    name, authentication_status, username = authenticator.login("Login", location="main")
+name, authentication_status, username = authenticator.login("Login", "main")
 
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
@@ -97,7 +59,6 @@ if authentication_status is False:
 if authentication_status is None:
     st.stop()
 
-# Rol
 rol = "Admin" if username == "admin" else "Usuario"
 
 # ------------------------
@@ -115,68 +76,6 @@ else:
 st.sidebar.divider()
 
 # ------------------------
-# FUNCIONES USUARIOS
-# ------------------------
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def obtener_usuarios():
-    return pd.read_sql("SELECT * FROM usuarios", conn)
-
-def crear_usuario(username, password, nombre, rol):
-    try:
-        conn.execute("""
-        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion)
-        VALUES (?, ?, ?, ?, 'Activo', ?)
-        """, (
-            username,
-            hash_password(password),
-            nombre,
-            rol,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ))
-        conn.commit()
-        return True
-    except Exception as e:
-        return str(e)
-
-def desactivar_usuario(user_id):
-    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
-    conn.commit()
-
-# ------------------------
-# MANTENIMIENTO
-# ------------------------
-if menu == "Mantenimiento":
-
-    st.header("⚙️ Mantenimiento de Usuarios")
-
-    with st.expander("➕ Crear Usuario"):
-        username_new = st.text_input("Usuario nuevo")
-        password_new = st.text_input("Contraseña", type="password")
-        nombre_new = st.text_input("Nombre")
-        rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
-
-        if st.button("Guardar usuario"):
-            resultado = crear_usuario(username_new, password_new, nombre_new, rol_new)
-            if resultado is True:
-                st.success("Usuario creado")
-            else:
-                st.error(f"Error: {resultado}")
-
-    st.subheader("Usuarios registrados")
-    usuarios_df = obtener_usuarios()
-
-    if not usuarios_df.empty:
-        st.dataframe(usuarios_df)
-        user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"])
-        if st.button("Desactivar usuario"):
-            desactivar_usuario(user_id)
-            st.warning("Usuario desactivado")
-    else:
-        st.info("No hay usuarios aún")
-
-# ------------------------
 # DASHBOARD - CARGA
 # ------------------------
 if menu == "Dashboard" and st.session_state.vista == "carga":
@@ -190,7 +89,6 @@ if menu == "Dashboard" and st.session_state.vista == "carga":
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
-        # LIMPIEZA
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
 
@@ -199,13 +97,11 @@ if menu == "Dashboard" and st.session_state.vista == "carga":
                 df[col] = df[col].astype(str).str.replace(",", "").str.strip()
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # MÉTRICAS
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
         df["Ganancia"] = df["Ventas"] - df["Costos"]
         df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-        # Guardar y pasar a inicio
         st.session_state.df = df
         st.session_state.vista = "inicio"
         st.rerun()
@@ -214,15 +110,21 @@ if menu == "Dashboard" and st.session_state.vista == "carga":
         st.info("📂 Sube un archivo para continuar")
 
 # ------------------------
-# DASHBOARD - INICIO (FILTROS + BOTONES)
+# DASHBOARD - INICIO
 # ------------------------
 if menu == "Dashboard" and st.session_state.vista == "inicio":
 
-    df = st.session_state.df
+    # 🔥 VALIDACIÓN CLAVE
+    if st.session_state.df is None:
+        st.warning("⚠️ Primero debes cargar un archivo")
+        st.session_state.vista = "carga"
+        st.rerun()
+
+    df = st.session_state.df.copy()
 
     st.title("📊 Panel de Análisis")
 
-    # -------- FILTROS SIDEBAR --------
+    # FILTROS
     st.sidebar.markdown("### 🎯 Filtros")
 
     if "Fecha" in df.columns:
@@ -231,9 +133,7 @@ if menu == "Dashboard" and st.session_state.vista == "inicio":
 
         fecha_ini, fecha_fin = st.sidebar.date_input(
             "📅 Rango de fechas",
-            value=(fecha_min, fecha_max),
-            min_value=fecha_min,
-            max_value=fecha_max
+            value=(fecha_min, fecha_max)
         )
 
         df = df[
@@ -257,15 +157,7 @@ if menu == "Dashboard" and st.session_state.vista == "inicio":
         )
         df = df[df["Region"].isin(region)]
 
-    if "Nombre_Producto" in df.columns:
-        producto = st.sidebar.multiselect(
-            "Producto",
-            sorted(df["Nombre_Producto"].dropna().unique()),
-            default=sorted(df["Nombre_Producto"].dropna().unique())
-        )
-        df = df[df["Nombre_Producto"].isin(producto)]
-
-    # -------- BOTONES --------
+    # BOTONES
     col1, col2, col3 = st.columns(3)
 
     if col1.button("📊 Detalle"):
@@ -286,6 +178,9 @@ if menu == "Dashboard" and st.session_state.vista == "inicio":
 if menu == "Dashboard" and st.session_state.vista == "detalle":
 
     df = st.session_state.df
+    if df is None:
+        st.warning("Carga datos primero")
+        st.stop()
 
     st.header("📊 Detalle")
 
@@ -301,6 +196,9 @@ if menu == "Dashboard" and st.session_state.vista == "detalle":
 if menu == "Dashboard" and st.session_state.vista == "kpis":
 
     df = st.session_state.df
+    if df is None:
+        st.warning("Carga datos primero")
+        st.stop()
 
     st.header("📈 KPIs")
 
@@ -314,7 +212,7 @@ if menu == "Dashboard" and st.session_state.vista == "kpis":
     col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
 
     fig = px.bar(df, x="Periodo", y="Ventas")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig)
 
 # ------------------------
 # RECOMENDACIONES
@@ -322,6 +220,9 @@ if menu == "Dashboard" and st.session_state.vista == "kpis":
 if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
 
     df = st.session_state.df
+    if df is None:
+        st.warning("Carga datos primero")
+        st.stop()
 
     st.header("💡 Recomendaciones")
 
@@ -329,8 +230,8 @@ if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
         st.session_state.vista = "inicio"
         st.rerun()
 
-    st.write("Aquí puedes agregar lógica de recomendaciones")
-    # ------------------------
+    st.write("Aquí van tus recomendaciones")
+# ------------------------
     # NAVEGACIÓN
     # ------------------------
     st.markdown("### 🚦 Navegación")
