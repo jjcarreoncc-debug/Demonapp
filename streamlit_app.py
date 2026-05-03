@@ -588,74 +588,76 @@ with st.expander("📊 Ver gráfica"):
 
     if df_g.empty:
         st.warning("No hay datos para graficar")
-        
 
-    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
-    df_g = df_g.sort_values("Periodo_dt")
+    else:
+        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str), errors="coerce")
+        df_g = df_g.dropna(subset=["Periodo_dt"])
+        df_g = df_g.sort_values("Periodo_dt")
 
-    # 🔥 PROYECCIÓN (segura)
-    if len(df_g) >= 2:
-        v1_g = df_g.iloc[-2]["Ventas"]
-        v2_g = df_g.iloc[-1]["Ventas"]
+        # 🔥 PROYECCIÓN
+        if len(df_g) >= 2:
+            v1_g = df_g.iloc[-2]["Ventas"]
+            v2_g = df_g.iloc[-1]["Ventas"]
 
-        if v1_g != 0:
-            var_g = (v2_g - v1_g) / v1_g
-            proy = v2_g * (1 + var_g)
+            if v1_g != 0:
+                var_g = (v2_g - v1_g) / v1_g
+                proy = v2_g * (1 + var_g)
 
-            sig = df_g["Periodo_dt"].iloc[-1] + pd.DateOffset(months=1)
+                sig = df_g["Periodo_dt"].iloc[-1] + pd.DateOffset(months=1)
 
-            df_extra = pd.DataFrame({
-                "Periodo": [sig.strftime("%Y-%m")],
-                "Ventas": [proy]
-            })
+                df_extra = pd.DataFrame({
+                    "Periodo": [sig.strftime("%Y-%m")],
+                    "Ventas": [proy]
+                })
 
-            df_g = pd.concat([df_g, df_extra], ignore_index=True)
+                df_g = pd.concat([df_g, df_extra], ignore_index=True)
 
-            # 🔥 MUY IMPORTANTE (esto te faltaba)
-            df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
-            df_g = df_g.sort_values("Periodo_dt")
+                # recalcular fechas
+                df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str), errors="coerce")
+                df_g = df_g.dropna(subset=["Periodo_dt"])
+                df_g = df_g.sort_values("Periodo_dt")
 
-    # ------------------------
-    # GRÁFICA
-    # ------------------------
-    fig = go.Figure()
+        # ------------------------
+        # GRÁFICA
+        # ------------------------
+        fig = go.Figure()
 
-    fig.add_trace(go.Scatter(
-        x=df_g["Periodo_dt"],
-        y=df_g["Ventas"],
-        mode="lines+markers"
-    ))
+        fig.add_trace(go.Scatter(
+            x=df_g["Periodo_dt"],
+            y=df_g["Ventas"],
+            mode="lines+markers"
+        ))
 
-    # 🔵 Franjas (solo si hay suficientes datos)
-    if len(df_g) >= 4:
-        for i in range(0, len(df_g)-1, 3):
-            fig.add_vrect(
-                x0=df_g["Periodo_dt"].iloc[i],
-                x1=df_g["Periodo_dt"].iloc[min(i+2, len(df_g)-1)],
-                fillcolor="lightblue",
-                opacity=0.15,
-                line_width=0
-            )
+        # 🔵 Franjas
+        if len(df_g) >= 4:
+            for i in range(0, len(df_g)-1, 3):
+                fig.add_vrect(
+                    x0=df_g["Periodo_dt"].iloc[i],
+                    x1=df_g["Periodo_dt"].iloc[min(i+2, len(df_g)-1)],
+                    fillcolor="lightblue",
+                    opacity=0.15,
+                    line_width=0
+                )
 
-    # ⚫ Líneas verticales
-    if len(df_g) >= 6:
-        for i in range(0, len(df_g), 6):
-            fig.add_vline(
-                x=df_g["Periodo_dt"].iloc[i],
-                line_dash="dash",
-                line_color="black"
-            )
+        # ⚫ Líneas
+        if len(df_g) >= 6:
+            for i in range(0, len(df_g), 6):
+                fig.add_vline(
+                    x=df_g["Periodo_dt"].iloc[i],
+                    line_dash="dash",
+                    line_color="black"
+                )
 
-    fig.update_layout(
-        title="Evolución",
-        hovermode="x unified"
-    )
+        fig.update_layout(
+            title="Evolución",
+            hovermode="x unified"
+        )
 
-    st.plotly_chart(
-    fig,
-    use_container_width=True,
-    key=f"graf_{dim}_{nombre}"
-)
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+            key=f"graf_{dim}_{str(nombre).replace(' ', '_')}"
+        )
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
