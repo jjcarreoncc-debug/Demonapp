@@ -267,13 +267,7 @@ elif menu == "Dashboard":
 
    
 
-    # ------------------------
-    # SOLO PLOT SI HAY DATOS
-    # ------------------------
-df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-
-
-    
+   
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
