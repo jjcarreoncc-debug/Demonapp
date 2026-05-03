@@ -584,7 +584,7 @@ with st.expander("📊 Ver gráfica"):
 
     import plotly.graph_objects as go
 
-    df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+    df_g = df_det.groupby("Periodo")["Ventas prueba chequeo"].sum().reset_index()
 
     if df_g.empty:
         st.warning("No hay datos para graficar")
