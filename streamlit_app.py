@@ -191,6 +191,10 @@ if menu == "Mantenimiento":
 # ------------------------
 # DASHBOARD
 # ------------------------
+# ------------------------
+# VISTAS
+# ------------------------
+
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
@@ -215,39 +219,42 @@ elif menu == "Dashboard":
         st.warning("⚠️ Primero carga un archivo en Inicio")
 
     else:
-        df = pd.read_excel(archivo)
-        df.columns = df.columns.str.strip()
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-        df = df.dropna(subset=["Fecha"])
+        import pandas as pd
+        import plotly.express as px
 
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-        df = df.dropna(subset=["Fecha"])
-     
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
+        # ------------------------
+        # LIMPIEZA
+        # ------------------------
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
 
-        if "Pais" in df.columns:
+        # ------------------------
+        # LIMPIEZA NUMÉRICA
+        # ------------------------
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
                 df[col] = (
-                        df[col].astype(str)
+                    df[col]
+                    .astype(str)
                     .str.replace(",", "")
                     .str.strip()
                 )
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
+        # ------------------------
+        # MÉTRICAS
+        # ------------------------
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
         df["Ganancia"] = df["Ventas"] - df["Costos"]
         df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-        # 🔥 YA NO ROMPE
-        if 'df' in locals():
-            df_base = df.copy()
-
+        # ------------------------
+        # DASHBOARD
+        # ------------------------
         col1, col2, col3 = st.columns(3)
         col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
