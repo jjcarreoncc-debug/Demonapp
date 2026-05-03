@@ -395,22 +395,139 @@ ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# DASHBOARD
-# ------------------------
-vista = st.session_state.vista
+# DASHBOARD PRINCIPAL
+# ------------------------vista = st.session_state.vista
 
-# PRINCIPAL
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
 
+    # =========================
+    # FILTROS (si ya los tienes arriba, puedes omitir)
+    # =========================
+    df_f = df.copy()
+
+    if pais != "Todos":
+        df_f = df_f[df_f["Pais"] == pais]
+
+    if canal != "Todos":
+        df_f = df_f[df_f["Canal"] == canal]
+
+    if region != "Todos":
+        df_f = df_f[df_f["Region"] == region]
+
+    if producto != "Todos":
+        df_f = df_f[df_f["Nombre_Producto"] == producto]
+
+    # =========================
+    # CALCULOS BASE (CENTRALIZADO)
+    # =========================
+    df_f["Ventas"] = df_f["Ventas_Cantidad"] * df_f["Precio_Venta"]
+    df_f["Costos"] = df_f["Ventas_Cantidad"] * df_f["Costos_Venta"]
+    df_f["Ganancia"] = df_f["Ventas"] - df_f["Costos"]
+
+    ventas = df_f["Ventas"].sum()
+    costos = df_f["Costos"].sum()
+    ganancia = df_f["Ganancia"].sum()
+    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
+
+    # =========================
+    # DATA MENSUAL
+    # =========================
+    df_m = df_f.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+    df_m = df_m.sort_values("Periodo")
+
+    # =========================
+    # VARIACIÓN
+    # =========================
+    if len(df_m) >= 2:
+        v1 = df_m.iloc[-2]["Ventas"]
+        v2 = df_m.iloc[-1]["Ventas"]
+        var = (v2 - v1) / v1 if v1 != 0 else 0
+    else:
+        var = 0
+
+    # =========================
+    # KPIs PRO
+    # =========================
     c1, c2, c3 = st.columns(3)
-    c1.metric("Ventas", f"${ventas:,.0f}")
+
+    c1.metric("Ventas", f"${ventas:,.0f}", f"{var:.1%}")
     c2.metric("Ganancia", f"${ganancia:,.0f}")
     c3.metric("Margen", f"{margen:.1f}%")
 
-    fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
-    st.plotly_chart(fig, use_container_width=True, key="grafica_2")
+    # =========================
+    # ALERTAS AUTOMÁTICAS
+    # =========================
+    if margen < 0:
+        st.error("🚨 Margen negativo: revisar costos")
+
+    if var < 0:
+        st.warning("⚠️ Caída en ventas vs periodo anterior")
+
+    # =========================
+    # GRÁFICA PRO
+    # =========================
+    import plotly.graph_objects as go
+
+    fig = go.Figure()
+
+    # SOMBRAS POR AÑO
+    df_m["Periodo_dt"] = pd.to_datetime(df_m["Periodo"])
+    df_m["Año"] = df_m["Periodo_dt"].dt.year
+    años = df_m["Año"].unique()
+
+    for j, año in enumerate(años):
+        df_year = df_m[df_m["Año"] == año]
+
+        fig.add_vrect(
+            x0=df_year["Periodo"].iloc[0],
+            x1=df_year["Periodo"].iloc[-1],
+            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+            opacity=0.15,
+            line_width=0,
+        )
+
+        fig.add_vline(
+            x=df_year["Periodo"].iloc[0],
+            line_dash="dash"
+        )
+
+    # LINEAS
+    fig.add_trace(go.Scatter(
+        x=df_m["Periodo"],
+        y=df_m["Ventas"],
+        mode="lines+markers",
+        name="Ventas"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df_m["Periodo"],
+        y=df_m["Ganancia"],
+        mode="lines+markers",
+        name="Ganancia"
+    ))
+
+    fig.update_layout(
+        title="📈 Evolución del negocio",
+        xaxis_title="Periodo",
+        yaxis_title="Valor",
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # TOP CANAL
+    # =========================
+    st.markdown("### 🔝 Canal con mayor impacto")
+
+    if not df_f.empty:
+        top_canal = df_f.groupby("Canal")["Ventas"].sum().sort_values(ascending=False).head(1)
+
+        for canal_top, val in top_canal.items():
+            st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
+
+    
 
 # VOLATILIDAD
 elif vista == "volatilidad":
@@ -541,7 +658,7 @@ ganancia = df["Ganancia"].sum()
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
 # ------------------------
-# DASHBOARD
+# DASHBOARD PRINCIAPL
 # ------------------------
 vista = st.session_state.vista
 
