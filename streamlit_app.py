@@ -370,36 +370,38 @@ with st.sidebar:
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
-st.markdown("### Rango de fechas")
+with st.sidebar:
 
-if "Fecha" in df.columns:
+    st.markdown("### 📅 Rango de fechas")
 
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    if "Fecha" in df.columns:
 
-    if df["Fecha"].notna().any():
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
 
-        fecha_min = df["Fecha"].min()
-        fecha_max = df["Fecha"].max()
+        if df["Fecha"].notna().any():
 
-        fecha_ini, fecha_fin = st.date_input(
-            "Selecciona fecha inicial y final",
-            value=(fecha_min, fecha_max),
-            min_value=fecha_min,
-            max_value=fecha_max
-        )
+            fecha_min = df["Fecha"].min()
+            fecha_max = df["Fecha"].max()
 
-        df = df[
-            (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-            (df["Fecha"] <= pd.to_datetime(fecha_fin))
-        ]
+            fecha_ini, fecha_fin = st.date_input(
+                "Selecciona fecha inicial y final",
+                value=(fecha_min, fecha_max),
+                min_value=fecha_min,
+                max_value=fecha_max
+            )
 
-        st.caption(f"{fecha_ini} → {fecha_fin}")
+            df = df[
+                (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+                (df["Fecha"] <= pd.to_datetime(fecha_fin))
+            ]
+
+            st.caption(f"{fecha_ini} → {fecha_fin}")
+
+        else:
+            st.warning("La columna Fecha no tiene valores válidos")
 
     else:
-        st.warning("La columna Fecha no tiene valores válidos")
-
-else:
-    st.warning("No existe la columna Fecha")   
+        st.warning("No existe la columna Fecha")
 # ------------------------
 # VALIDAR QUE EXISTE df
 # ------------------------
