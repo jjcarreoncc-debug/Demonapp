@@ -599,11 +599,6 @@ else:
         else:
             continue
 
-        if tipo == "verde":
-            st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
-        else:
-            st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
-
         # ------------------------
         # TEXTO PRINCIPAL
         # ------------------------
@@ -617,12 +612,11 @@ else:
         - Periodo actual ({p2}): ${v2:,.0f}  
         - Variación: {var*100:.1f}%
         """)
-    # ------------------------
-    # FILTRAR DATOS PARA ESTA RECOMENDACIÓN
-    # ------------------------
-       df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-            # ------------------------
+        # ------------------------
+        # FILTRO DETALLE
+        # ------------------------
+        df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]            # ------------------------
             # DETALLE
             # ------------------------
             with st.expander(f"🔍 Ver detalle - {nombre}"):
