@@ -189,13 +189,11 @@ if menu == "Dashboard":
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
-
-        # ------------------------
-        # LIMPIEZA
-        # ------------------------
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
-
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str) 
+        
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
                 df[col] = (
