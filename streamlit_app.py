@@ -7,7 +7,6 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
-if "Region" in df.columns:
 # ------------------------
 # CONFIG
 # ------------------------
