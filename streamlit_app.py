@@ -423,8 +423,9 @@ if st.session_state.get("vista") == "inicio":
 # =========================
 if st.session_state.vista == "recomendaciones":
 
-    if st.button("⬅️ Volver"):
-        st.session_state.get("vista") == "inicio":
+    if st.button("⬅️ Volver Recomendaciones "):
+        
+        st.session_state.vista = "inicio"
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
@@ -704,8 +705,8 @@ elif vista == "volatilidad":
 # RESPONSABLES
 elif vista == "responsables":
 
-    if st.button("⬅️ Volver"):
-        st.st.session_state.get("vista") == "inicio":
+    if st.button("⬅️ Volver responsables "):
+        st.session_state.vista = "inicio"
 
     st.markdown("## 👤 Responsables")
 
@@ -716,8 +717,8 @@ elif vista == "responsables":
 # CAUSAS
 elif vista == "causas":
 
-    if st.button("⬅️ Volver"):
-        st.st.session_state.get("vista") == "inicio":
+    if st.button("⬅️ Volver Causa "):
+        st.st.session_state.vista = "inicio":
 
     st.markdown("## 🧠 Causas")
 
@@ -728,10 +729,9 @@ elif vista == "causas":
 # DETALLE
 elif vista == "detalle":
 
-    if st.button("⬅️ Volver"):
+    if st.button("⬅️ Volver detalle"):
 
-        
-        st.st.session_state.get("vista") == "inicio":
+        st.st.session_state.vista = "inicio":
 
     st.markdown("## 🔎 Detalle")
     # =========================
