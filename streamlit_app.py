@@ -504,7 +504,8 @@ if 'df' in locals():
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
-vista = st.session_state.vista
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
