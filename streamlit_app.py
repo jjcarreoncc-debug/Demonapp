@@ -592,6 +592,7 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     # MOSTRAR RECOMENDACIONES
     # ------------------------
+recomendaciones = st.session_state.get("recomendaciones", [])
 if not recomendaciones:
     st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
 
