@@ -507,13 +507,12 @@ if st.session_state.vista == "recomendaciones":
     # ASEGURAR COLUMNAS (ANTES DE TODO)
     # ------------------------
     if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]):
-        
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
         df["Ganancia"] = df["Ventas"] - df["Costos"]
 
         if "Fecha" in df.columns:
-            df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+            df["Periodo"] = pd.to_datetime(df["Fecha"], errors="coerce").dt.to_period("M").astype(str)
 
     else:
         st.warning("⚠️ El archivo no tiene las columnas necesarias")
@@ -527,6 +526,12 @@ if st.session_state.vista == "recomendaciones":
         st.stop()
 
     # ------------------------
+    # INICIALIZA RECOMENDACIONES
+    # ------------------------
+    recomendaciones = []
+    resumen_dim = {}
+
+    # ------------------------
     # FUNCIÓN GENERADORA
     # ------------------------
     def generar(df, col):
@@ -537,84 +542,125 @@ if st.session_state.vista == "recomendaciones":
         detalle_cae = []
 
         for k, g in df_t.groupby(col):
-
             if g["Periodo"].nunique() >= 2 and g.iloc[-2]["Ventas"] != 0:
-
                 v1 = g.iloc[-2]["Ventas"]
                 v2 = g.iloc[-1]["Ventas"]
-
                 var = (v2 - v1) / v1
                 impacto = abs(var * v2)
-
                 p1 = g.iloc[-2]["Periodo"]
                 p2 = g.iloc[-1]["Periodo"]
 
                 if var < -0.10:
                     recomendaciones.append((col, k, var, impacto, "rojo", v1, v2, p1, p2))
                     detalle_cae.append((k, var))
-
                 elif var > 0.10:
                     recomendaciones.append((col, k, var, impacto, "verde", v1, v2, p1, p2))
                     detalle_crece.append((k, var))
 
         return detalle_crece, detalle_cae
-    
+
     # ------------------------
-    # INICIALIZA AQUI
-    # ------------------------
-    resumen_dim = {}
-    recomendaciones = []   # ✅ SOLO AQUÍ
-    
-    # ------------------------
-    # GENERAR RECOMENDACIONES
+    # GENERAR RECOMENDACIONES POR DIMENSIÓN
     # ------------------------
     for dim in ["Pais", "Region", "Canal", "Producto"]:
         if dim in df.columns:
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
-    st.session_state.recomendaciones = recomendaciones       
 
+    # ------------------------
+    # GUARDAR EN SESSION_STATE
+    # ------------------------
+    st.session_state.recomendaciones = recomendaciones
 
-# ------------------------
-# ORDENAR
-# ------------------------
+    # ------------------------
+    # ORDENAR
+    # ------------------------
+    if recomendaciones:
+        recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
 
-# 🔥 ASEGURAR COLUMNAS (PEGAR AQUÍ)
-if "Ventas" not in df.columns:
-    if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta"]):
-        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+    st.write("DEBUG recomendaciones:", len(recomendaciones))
 
-if "Periodo" not in df.columns:
-    if "Fecha" in df.columns:
-        df["Periodo"] = pd.to_datetime(df["Fecha"], errors="coerce").dt.to_period("M").astype(str)
+    # ------------------------
+    # MOSTRAR RECOMENDACIONES
+    # ------------------------
+    if not recomendaciones:
+        st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
 
-if recomendaciones:
-    recomendaciones = sorted(recomendaciones, key=lambda x: x[3], reverse=True)
-st.write("DEBUG recomendaciones:", len(recomendaciones))
+    else:
+        for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
 
-# ------------------------
-# MOSTRAR
-# ------------------------
-if not recomendaciones:
-    st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
+            # ------------------------
+            # TEXTO PRINCIPAL
+            # ------------------------
+            if tipo == "verde":
+                st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
+            else:
+                st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
 
-else:
-    for dim, nombre, var, impacto, tipo, v1, v2, p1, p2 in recomendaciones:
+            st.markdown(f"""
+            - Periodo anterior ({p1}): ${v1:,.0f}  
+            - Periodo actual ({p2}): ${v2:,.0f}  
+            - Variación: {var*100:.1f}%
+            """)
 
-        if tipo == "verde":
-            st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
-        else:
-            st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
+            # ------------------------
+            # FILTRAR DATOS PARA ESTA RECOMENDACIÓN
+            # ------------------------
+            df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-        st.markdown(f"""
-        - Periodo anterior ({p1}): ${v1:,.0f}  
-        - Periodo actual ({p2}): ${v2:,.0f}  
-        - Variación: {var*100:.1f}%
-        """)
+            # ------------------------
+            # DETALLE
+            # ------------------------
+            with st.expander(f"🔍 Ver detalle - {nombre}"):
+                for subdim in ["Producto", "Region", "Canal"]:
+                    if subdim in df_det.columns and subdim != dim:
+                        df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+                        df_sub = df_sub.sort_values("Periodo")
 
-        df_det = df[df[dim] == nombre]
+                        tabla = []
+                        for k2, g2 in df_sub.groupby(subdim):
+                            if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
+                                a1 = g2.iloc[-2]["Ventas"]
+                                a2 = g2.iloc[-1]["Ventas"]
+                                var2 = (a2 - a1) / a1
+                                tabla.append([k2, a1, a2, var2])
 
-        # ------------------------
+                        if tabla:
+                            df_detalle = pd.DataFrame(tabla, columns=["Elemento", "Anterior", "Actual", "Variación"])
+                            df_detalle["Variación"] = df_detalle["Variación"].apply(
+                                lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
+                            )
+                            st.dataframe(df_detalle.head(5), use_container_width=True)
+
+            # ------------------------
+            # GRÁFICA
+            # ------------------------
+            with st.expander(f"📊 Ver gráfica - {nombre}"):
+
+                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
+                if not df_g.empty:
+                    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+                    df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
+                    df_g = df_g.sort_values("Periodo_dt")
+
+                    if not df_g.empty:
+                        import plotly.graph_objects as go
+                        fig = go.Figure()
+                        fig.add_trace(go.Scatter(
+                            x=df_g["Periodo_dt"],
+                            y=df_g["Ventas"],
+                            mode="lines+markers",
+                            fill='tozeroy'  # 🔹 sombra debajo de la línea
+                        ))
+                        fig.update_layout(title="Evolución", hovermode="x unified")
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("Datos inválidos para graficar")
+                else:
+                    st.warning("No hay datos para graficar")
+
+            st.markdown("---")
+    # ------------------------
         # DETALLE
         # ------------------------
         with st.expander("🔍 Ver detalle"):
