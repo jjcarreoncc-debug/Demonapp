@@ -239,7 +239,7 @@ if menu == "Dashboard":
 
     # REGIÓN
     if 'df' in locals() and "Region" in df.columns:
-        region = st.multiselect(
+        region = st.sidebar. multiselect(
             "Región",
             sorted(df["Region"].dropna().unique()),
             default=sorted(df["Region"].dropna().unique()),
@@ -249,7 +249,7 @@ if menu == "Dashboard":
 
     # PRODUCTO
     if 'df' in locals() and "Producto" in df.columns:
-        producto = st.multiselect(
+        producto = st.sidebar.multiselect(
             "Producto",
             sorted(df["Producto"].dropna().unique()),
             default=sorted(df["Producto"].dropna().unique()),
@@ -259,7 +259,7 @@ if menu == "Dashboard":
 
     # CANAL
     if 'df' in locals() and "Canal" in df.columns:
-        canal = st.multiselect(
+        canal = st.sidebar.multiselect(
             "Canal",
             sorted(df["Canal"].dropna().unique()),
             default=sorted(df["Canal"].dropna().unique()),
@@ -269,7 +269,7 @@ if menu == "Dashboard":
 
     # VENDEDOR
     if 'df' in locals() and "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
+        vendedor = st.sidebar.multiselect(
             "Vendedor",
             sorted(df["Vendedor_Ruta"].dropna().unique()),
             default=sorted(df["Vendedor_Ruta"].dropna().unique()),
@@ -279,7 +279,7 @@ if menu == "Dashboard":
 
     # TIPO CLIENTE
     if 'df' in locals() and "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
+        tipo_cliente = st.sidebar. multiselect(
             "Tipo cliente",
             sorted(df["Tipo_cliente"].dropna().unique()),
             default=sorted(df["Tipo_cliente"].dropna().unique()),
