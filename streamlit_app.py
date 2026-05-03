@@ -632,42 +632,43 @@ else:
         # ------------------------
         # DETALLE
         # ------------------------
-        with st.expander(f"🔍 Ver detalle - {nombre}"):
-
-            for subdim in ["Producto", "Region", "Canal"]:
-                if subdim in df_det.columns and subdim != dim:
-
-                    df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                    df_sub = df_sub.sort_values("Periodo")
-
-                    tabla = []
-
-                    for k2, g2 in df_sub.groupby(subdim):
-                        if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
-
-                            a1 = g2.iloc[-2]["Ventas"]
-                            a2 = g2.iloc[-1]["Ventas"]
-                            var2 = (a2 - a1) / a1
-
-                            tabla.append([k2, a1, a2, var2])
-
-                    if tabla:
-                        df_detalle = pd.DataFrame(
-                            tabla,
-                            columns=["Elemento", "Anterior", "Actual", "Variación"]
-                        )
-
-                        df_detalle["Variación"] = df_detalle["Variación"].apply(
-                            lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
-                        )
-
-                        st.dataframe(df_detalle.head(5), use_container_width=True)
-
+        
         # ------------------------
         # GRÁFICA
         # ------------------------
-        with st.expander(f"📊 Ver gráfica - {nombre}"):
+        with st.expander(f"🔍 Ver detalle - {nombre}"):
 
+    for subdim in ["Producto", "Region", "Canal"]:
+
+        if all(col in df_det.columns for col in ["Periodo", "Ventas", subdim]) and subdim != dim:
+
+            df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
+            df_sub = df_sub.sort_values("Periodo")
+
+            tabla = []
+
+            for k2, g2 in df_sub.groupby(subdim):
+
+                if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
+
+                    a1 = g2.iloc[-2]["Ventas"]
+                    a2 = g2.iloc[-1]["Ventas"]
+                    var2 = (a2 - a1) / a1
+
+                    tabla.append([k2, a1, a2, var2])
+
+            if tabla:
+                df_detalle = pd.DataFrame(
+                    tabla,
+                    columns=["Elemento", "Anterior", "Actual", "Variación"]
+                )
+
+                df_detalle["Variación"] = df_detalle["Variación"].apply(
+                    lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
+                )
+
+                st.dataframe(df_detalle.head(5), use_container_width=True)
+        
             if df_det.empty:
                 st.warning("No hay datos para este elemento")
 
