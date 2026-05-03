@@ -264,16 +264,33 @@ elif menu == "Dashboard":
         col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-        # ------------------------
-        # SOLO PLOT SI HAY DATOS 
-        # ------------------------
-if not df_g.empty and df_g["Ventas"].notna().all() and df_g["Periodo_dt"].notna().all():
-    st.plotly_chart(fig, use_container_width=True)
-else:
-    st.warning("No hay datos válidos para graficar")
-    
-        fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
+# ------------------------
+# VALIDAR Y GRAFICAR
+# ------------------------
+if not df_g.empty:
+
+    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+    df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
+
+    if not df_g.empty:
+
+        import plotly.graph_objects as go
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(
+            x=df_g["Periodo_dt"],
+            y=df_g["Ventas"],
+            mode="lines+markers"
+        ))
+
         st.plotly_chart(fig, use_container_width=True)
+
+    else:
+        st.warning("No hay datos válidos después de limpiar")
+
+else:
+    st.warning("No hay datos para graficar")      
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
