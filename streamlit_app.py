@@ -908,7 +908,7 @@ elif st.session_state.vista == "resumen":
                     mode="lines+markers+text",
                     text=[f"${v:,.0f}" for v in df_g["Ventas"]],
                     textposition="top center"
-                ))
+                )
                 fig.add_trace(go.Scatter(
                 st.plotly_chart(fig, use_container_width=True)
 
