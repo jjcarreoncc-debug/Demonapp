@@ -1541,7 +1541,7 @@ st.stop()
 # =========================
 # DETALLE (LIMPIO Y ESTABLE)
 # =========================
-elif st.session_state.vista == "detalle":
+elif st.session_state.vista = "detalle":
 
     # BOTÓN
     if st.button("⬅️ Volver", key="volver_detalle"):
