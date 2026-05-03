@@ -219,68 +219,6 @@ if menu == "Dashboard":
         fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
         st.plotly_chart(fig, use_container_width=True)
 # ------------------------
-# DASHBOARD MENIU
-# ------------------------
-# ------------------------
-# DASHBOARD
-# ------------------------
-if menu == "Dashboard":
-
-    # ------------------------
-    # CARGA ARCHIVO
-    # ------------------------
-    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
-    if not archivo:
-        st.info("📂 Sube un archivo para comenzar")
-
-    else:
-        df = pd.read_excel(archivo)
-        df.columns = df.columns.str.strip()
-
-        # ------------------------
-        # LIMPIEZA
-        # ------------------------
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-        df = df.dropna(subset=["Fecha"])
-
-        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
-            if col in df.columns:
-                df[col] = (
-                    df[col]
-                    .astype(str)
-                    .str.replace(",", "")
-                    .str.strip()
-                )
-                df[col] = pd.to_numeric(df[col], errors="coerce")
-
-        # ------------------------
-        # MÉTRICAS
-        # ------------------------
-        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-        df["Ganancia"] = df["Ventas"] - df["Costos"]
-        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-        # ------------------------
-        # 🔥 AQUÍ VA TU BLOQUE DE FILTROS
-        # ------------------------
-        if 'df' in locals():
-            df_base = df.copy()
-
-        # (pega aquí TODO tu bloque de filtros)
-
-        # ------------------------
-        # GRÁFICOS
-        # ------------------------
-        st.header("📊 Dashboard Ejecutivo")
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
-        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
-        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-    fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
-    st.plotly_chart(fig, use_container_width=True)
-# ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
 if 'df' in locals():
