@@ -14,6 +14,15 @@ from PIL import Image
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
+# SESSION STATE (FLUJO)
+# ------------------------
+if "vista" not in st.session_state:
+    st.session_state.vista = "carga"  # carga -> inicio -> detalle/recomendaciones
+
+if "df" not in st.session_state:
+    st.session_state.df = None
+
+# ------------------------
 # BASE DE DATOS
 # ------------------------
 conn = sqlite3.connect("data.db", check_same_thread=False)
@@ -80,6 +89,7 @@ with col2:
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     name, authentication_status, username = authenticator.login("Login", location="main")
+
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
@@ -87,128 +97,23 @@ if authentication_status is False:
 if authentication_status is None:
     st.stop()
 
-# ✅ AQUÍ defines el rol
-rol = "Admin" if username == "admin" else "Usuario"    
+# Rol
+rol = "Admin" if username == "admin" else "Usuario"
 
 # ------------------------
-# CONTROL LOGIN
-# ------------------------
-if authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-    st.stop()
-
-if authentication_status is None:
-    col1, col2 = st.columns([2,6])
-    with col2:
-        img = Image.open("imagen7.png")
-        st.image(img, width=2000)
-    st.stop()
-# ------------------------
-# SIDEBAR COMPLETO
+# SIDEBAR
 # ------------------------
 st.sidebar.title("🚦 Navegación")
 st.sidebar.write(f"👋 Bienvenido {name}")
 authenticator.logout("Cerrar sesión", "sidebar")
 
-# MENÚ
 if rol == "Admin":
     menu = st.sidebar.radio("Menú", ["Dashboard", "Mantenimiento"])
 else:
     menu = st.sidebar.radio("Menú", ["Dashboard"])
 
-# ------------------------
-# MENÚ (CORREGIDO)
-# ------------------------
-if rol == "Admin":
-    menu = st.sidebar.radio("Menú", ["📊 Dashboard", "⚙️ Mantenimiento"])
-else:
-    menu = st.sidebar.radio("Menú", ["📊 Dashboard"])
-
 st.sidebar.divider()
 
-# ------------------------
-# FILTROS (CORREGIDOS)
-# ------------------------
-if menu == "📊 Dashboard":
-
-    st.sidebar.markdown("### 🎯 Filtros")
-
-    # 👇 MENSAJE SI NO HAY DATA
-    if 'df' not in locals():
-        st.sidebar.info("📂 Carga un archivo para activar filtros")
-
-    else:
-
-        # 📅 FECHAS
-        if "Fecha" in df.columns:
-            fecha_min = df["Fecha"].min()
-            fecha_max = df["Fecha"].max()
-
-            fecha_ini, fecha_fin = st.sidebar.date_input(
-                "📅 Rango de fechas",
-                value=(fecha_min, fecha_max),
-                min_value=fecha_min,
-                max_value=fecha_max
-            )
-
-            df = df[
-                (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-                (df["Fecha"] <= pd.to_datetime(fecha_fin))
-            ]
-
-        # 🌎 PAÍS
-        if "Pais" in df.columns:
-            pais = st.sidebar.multiselect(
-                "País",
-                sorted(df["Pais"].dropna().unique()),
-                default=sorted(df["Pais"].dropna().unique())
-            )
-            df = df[df["Pais"].isin(pais)]
-
-        # 🗺 REGIÓN
-        if "Region" in df.columns:
-            region = st.sidebar.multiselect(
-                "Región",
-                sorted(df["Region"].dropna().unique()),
-                default=sorted(df["Region"].dropna().unique())
-            )
-            df = df[df["Region"].isin(region)]
-
-        # 📦 PRODUCTO
-        if "Nombre_Producto" in df.columns:
-            producto = st.sidebar.multiselect(
-                "Producto",
-                sorted(df["Nombre_Producto"].dropna().unique()),
-                default=sorted(df["Nombre_Producto"].dropna().unique())
-            )
-            df = df[df["Nombre_Producto"].isin(producto)]
-
-        # 📡 CANAL
-        if "Canal" in df.columns:
-            canal = st.sidebar.multiselect(
-                "Canal",
-                sorted(df["Canal"].dropna().unique()),
-                default=sorted(df["Canal"].dropna().unique())
-            )
-            df = df[df["Canal"].isin(canal)]
-
-        # 👨‍💼 VENDEDOR
-        if "Vendedor_Ruta" in df.columns:
-            vendedor = st.sidebar.multiselect(
-                "Vendedor",
-                sorted(df["Vendedor_Ruta"].dropna().unique()),
-                default=sorted(df["Vendedor_Ruta"].dropna().unique())
-            )
-            df = df[df["Vendedor_Ruta"].isin(vendedor)]
-
-        # 👤 TIPO CLIENTE
-        if "Tipo_cliente" in df.columns:
-            tipo_cliente = st.sidebar.multiselect(
-                "Tipo cliente",
-                sorted(df["Tipo_cliente"].dropna().unique()),
-                default=sorted(df["Tipo_cliente"].dropna().unique())
-            )
-            df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
@@ -254,8 +159,7 @@ if menu == "Mantenimiento":
 
         if st.button("Guardar usuario"):
             resultado = crear_usuario(username_new, password_new, nombre_new, rol_new)
-
-            if resultado == True:
+            if resultado is True:
                 st.success("Usuario creado")
             else:
                 st.error(f"Error: {resultado}")
@@ -265,9 +169,7 @@ if menu == "Mantenimiento":
 
     if not usuarios_df.empty:
         st.dataframe(usuarios_df)
-
         user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"])
-
         if st.button("Desactivar usuario"):
             desactivar_usuario(user_id)
             st.warning("Usuario desactivado")
@@ -275,161 +177,159 @@ if menu == "Mantenimiento":
         st.info("No hay usuarios aún")
 
 # ------------------------
-# DASHBOARD MENIU
+# DASHBOARD - CARGA
 # ------------------------
-if menu == "Dashboard":
+if menu == "Dashboard" and st.session_state.vista == "carga":
 
-    # ------------------------
-    # CARGA ARCHIVO
-    # ------------------------
-    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
-    if not archivo:
-        st.info("📂 Sube un archivo para comenzar")
+    st.header("📂 Carga de archivo")
 
-    else:
+    archivo = st.file_uploader("Sube tu Excel", type=["xlsx"])
+
+    if archivo is not None:
+
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
+
+        # LIMPIEZA
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
-        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str) 
-        
+
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
-                df[col] = (
-                    df[col]
-                    .astype(str)
-                    .str.replace(",", "")
-                    .str.strip()
-                )
+                df[col] = df[col].astype(str).str.replace(",", "").str.strip()
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # ------------------------
         # MÉTRICAS
-        # ------------------------
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
         df["Ganancia"] = df["Ventas"] - df["Costos"]
         df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
-        # ------------------------
-        # 🔥 AQUÍ VA TU BLOQUE DE FILTROS
-        # ------------------------
-        if 'df' in locals():
-            df_base = df.copy()
+        # Guardar y pasar a inicio
+        st.session_state.df = df
+        st.session_state.vista = "inicio"
+        st.rerun()
 
-        # (pega aquí TODO tu bloque de filtros)
+    else:
+        st.info("📂 Sube un archivo para continuar")
 
-        # ------------------------
-        # GRÁFICOS
-        # ------------------------
-        st.header("📊 Dashboard Ejecutivo")
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
-        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
-        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-    
-        fig = px.bar(df, x="Periodo", y="Ventas", title="Ventas por Periodo")
-        st.plotly_chart(fig, use_container_width=True)
 # ------------------------
-# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
+# DASHBOARD - INICIO (FILTROS + BOTONES)
 # ------------------------
-if 'df' in locals():
-    df_base = df.copy()
+if menu == "Dashboard" and st.session_state.vista == "inicio":
 
+    df = st.session_state.df
 
-with st.sidebar:
+    st.title("📊 Panel de Análisis")
 
-    st.divider()
-    st.markdown("### 🎯 Filtros")
-    if 'df' in locals():
-        df_base = df.copy()
-   # PAÍS
-if 'df' in locals():
+    # -------- FILTROS SIDEBAR --------
+    st.sidebar.markdown("### 🎯 Filtros")
+
+    if "Fecha" in df.columns:
+        fecha_min = df["Fecha"].min()
+        fecha_max = df["Fecha"].max()
+
+        fecha_ini, fecha_fin = st.sidebar.date_input(
+            "📅 Rango de fechas",
+            value=(fecha_min, fecha_max),
+            min_value=fecha_min,
+            max_value=fecha_max
+        )
+
+        df = df[
+            (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+            (df["Fecha"] <= pd.to_datetime(fecha_fin))
+        ]
 
     if "Pais" in df.columns:
-        pais = st.multiselect(
+        pais = st.sidebar.multiselect(
             "País",
             sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
+            default=sorted(df["Pais"].dropna().unique())
         )
         df = df[df["Pais"].isin(pais)]
 
-    # REGIÓN
     if "Region" in df.columns:
-        region = st.multiselect(
+        region = st.sidebar.multiselect(
             "Región",
             sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique()),
-            key="filtro_region"
+            default=sorted(df["Region"].dropna().unique())
         )
         df = df[df["Region"].isin(region)]
 
-    # PRODUCTO
-    if "Producto" in df.columns:
-        producto = st.multiselect(
+    if "Nombre_Producto" in df.columns:
+        producto = st.sidebar.multiselect(
             "Producto",
-            sorted(df["Producto"].dropna().unique()),
-            default=sorted(df["Producto"].dropna().unique()),
-            key="filtro_producto"
+            sorted(df["Nombre_Producto"].dropna().unique()),
+            default=sorted(df["Nombre_Producto"].dropna().unique())
         )
-        df = df[df["Producto"].isin(producto)]
+        df = df[df["Nombre_Producto"].isin(producto)]
 
-    # CANAL
-    if "Canal" in df.columns:
-        canal = st.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique()),
-            key="filtro_canal"
-        )
-        df = df[df["Canal"].isin(canal)]
+    # -------- BOTONES --------
+    col1, col2, col3 = st.columns(3)
 
-    # VENDEDOR
-    if "Vendedor_Ruta" in df.columns:
-        vendedor = st.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-            key="filtro_vendedor"
-        )
-        df = df[df["Vendedor_Ruta"].isin(vendedor)]
+    if col1.button("📊 Detalle"):
+        st.session_state.vista = "detalle"
+        st.rerun()
 
-    # TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique()),
-            key="filtro_tipo_cliente"
-        )
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-    # ------------------------
-    # RANGO DE FECHAS
-    # ------------------------
-    st.markdown("### 📅 Rango de fechas")
-    fecha_min = df["Fecha"].min()
-    fecha_max = df["Fecha"].max()
+    if col2.button("💡 Recomendaciones"):
+        st.session_state.vista = "recomendaciones"
+        st.rerun()
 
-    fecha_ini, fecha_fin = st.date_input(
-        "Selecciona fecha inicial y final",
-        value=(fecha_min, fecha_max),
-        min_value=fecha_min,
-        max_value=fecha_max,
-        key="filtro_rango_fecha"
-    )
+    if col3.button("📈 KPIs"):
+        st.session_state.vista = "kpis"
+        st.rerun()
 
-    df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-            (df["Fecha"] <= pd.to_datetime(fecha_fin))]
+# ------------------------
+# DETALLE
+# ------------------------
+if menu == "Dashboard" and st.session_state.vista == "detalle":
 
-    # recalcular Periodo
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+    df = st.session_state.df
 
-    st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
-    st.divider()
+    st.header("📊 Detalle")
 
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "inicio"
+        st.rerun()
+
+    st.dataframe(df)
+
+# ------------------------
+# KPIs
+# ------------------------
+if menu == "Dashboard" and st.session_state.vista == "kpis":
+
+    df = st.session_state.df
+
+    st.header("📈 KPIs")
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "inicio"
+        st.rerun()
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Ventas", f"${df['Ventas'].sum():,.0f}")
+    col2.metric("Costos", f"${df['Costos'].sum():,.0f}")
+    col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+
+    fig = px.bar(df, x="Periodo", y="Ventas")
+    st.plotly_chart(fig, use_container_width=True)
+
+# ------------------------
+# RECOMENDACIONES
+# ------------------------
+if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
+
+    df = st.session_state.df
+
+    st.header("💡 Recomendaciones")
+
+    if st.button("⬅️ Volver"):
+        st.session_state.vista = "inicio"
+        st.rerun()
+
+    st.write("Aquí puedes agregar lógica de recomendaciones")
     # ------------------------
     # NAVEGACIÓN
     # ------------------------
