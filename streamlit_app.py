@@ -879,9 +879,9 @@ elif st.session_state.vista == "resumen":
                     var = (v2 - v1) / v1 if v1 != 0 else 0
                 else:
                     var = 0
-               fig = go.Figure()
+                fig = go.Figure()
 
-                # SOMBRAS
+                    # SOMBRAS
                 df_g["Año"] = df_g["Periodo_dt"].dt.year
                 años = df_g["Año"].unique()
 
