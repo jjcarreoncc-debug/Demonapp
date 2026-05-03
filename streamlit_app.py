@@ -620,7 +620,7 @@ else:
     # ------------------------
     # FILTRAR DATOS PARA ESTA RECOMENDACIÓN
     # ------------------------
-            df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
+       df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
             # ------------------------
             # DETALLE
