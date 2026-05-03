@@ -246,6 +246,8 @@ with st.sidebar:
     if 'df' in locals():
         df_base = df.copy()
    # PAÍS
+if 'df' in locals():
+
     if "Pais" in df.columns:
         pais = st.multiselect(
             "País",
@@ -304,7 +306,6 @@ with st.sidebar:
             key="filtro_tipo_cliente"
         )
         df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
