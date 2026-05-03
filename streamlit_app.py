@@ -191,30 +191,6 @@ if menu == "Dashboard" and st.session_state.vista == "detalle":
     st.dataframe(df)
 
 # ------------------------
-# KPIs
-# ------------------------
-if menu == "Dashboard" and st.session_state.vista == "kpis":
-
-    df = st.session_state.df
-    if df is None:
-        st.warning("Carga datos primero")
-        st.stop()
-
-    st.header("📈 KPIs")
-
-    if st.button("⬅️ Volver"):
-        st.session_state.vista = "inicio"
-        st.rerun()
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Ventas", f"${df['Ventas'].sum():,.0f}")
-    col2.metric("Costos", f"${df['Costos'].sum():,.0f}")
-    col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-
-    fig = px.bar(df, x="Periodo", y="Ventas")
-    st.plotly_chart(fig)
-
-# ------------------------
 # RECOMENDACIONES
 # ------------------------
 if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
@@ -235,7 +211,8 @@ if menu == "Dashboard" and st.session_state.vista == "recomendaciones":
     # NAVEGACIÓN
     # ------------------------
     st.markdown("### 🚦 Navegación")
-
+    with st.sidebar:
+    
     if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
 
