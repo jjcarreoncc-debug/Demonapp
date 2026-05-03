@@ -374,11 +374,11 @@ if st.session_state.get("vista") == "inicio":
 # =========================
 # RECOMENDACIONES (FINAL REAL)
 # =========================
-if st.session_state.vista == "recomendaciones":
+if st.sesion_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver Recomendaciones "):
         
-        st.session_state.vista = "inicio"
+        st.sesion_state.vista = "inicio"
 # ------------------------
 # PANTALLA INICIAL (NO TOCAR LO DEMÁS)
 # --
