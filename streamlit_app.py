@@ -406,7 +406,8 @@ if vista == "principal":
     # FILTROS (si ya los tienes arriba, puedes omitir)
     # =========================
     df_f = df.copy()
-    st.write(type(pais), pais)
+    
+    
     if pais and "Todos" not in pais:
         df_f = df_f[df_f["Pais"].isin(pais)]
 
@@ -414,7 +415,7 @@ if vista == "principal":
         df_f = df_f[df_f["Canal"].isin(canal)]
 
     if region and "Todos" not in region:
-        df_f = df_f[df_f["Region"].isin(region)
+        df_f = df_f[df_f["Region"].isin(region)]
     
     if producto != "Todos":
         df_f = df_f[df_f["Nombre_Producto"] == producto]
