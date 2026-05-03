@@ -1247,7 +1247,7 @@ elif st.session_state.vista == "detalle":
 
     # BOTÓN
     if st.button("⬅️ Volver", key="volver_detalle"):
-        st.st.session_state.get("vista") == "inicio":
+        st.session_state.vista = "inicio":
         st.rerun()
 
     st.title("🔎 Análisis Detallado")
