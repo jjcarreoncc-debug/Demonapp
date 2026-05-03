@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
-from streamlit_authenticator import Hasherm
+from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
