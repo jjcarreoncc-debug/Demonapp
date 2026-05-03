@@ -199,8 +199,8 @@ if menu == "Dashboard":
 
     if archivo:
         st.session_state.archivo = archivo
-        st.session_state.menu = "Inicio"
-        st.rerun()
+
+    archivo = st.session_state.get("archivo")
 
     if not archivo:
         st.info("📂 Sube un archivo para comenzar")
@@ -208,6 +208,10 @@ if menu == "Dashboard":
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
+
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
+
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
      
