@@ -234,6 +234,8 @@ if menu == "Dashboard":
         st.info("📂 Sube un archivo para comenzar")
 
     else:
+        st.session_state.menu = "Inicio"
+        st.rerun()
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
