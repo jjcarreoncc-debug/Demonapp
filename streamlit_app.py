@@ -184,6 +184,7 @@ if menu == "Dashboard":
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"], key="upload1")
 
     if archivo:
+
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
@@ -209,20 +210,17 @@ if menu == "Dashboard":
 
         fig = px.bar(df, x="Periodo", y="Ventas")
         st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("📂 Sube un archivo para comenzar")
 
 # ------------------------
 # DASHBOARD 2
 # ------------------------
 if menu == "Dashboard":
 
-    st.subheader("📊 Dashboard adicional")
+    archivo = st.file_uploader("Archivo 1", type=["xlsx"], key="file1")
 
-    archivo2 = st.file_uploader("Archivo 1", type=["xlsx"], key="upload2")
+    if archivo:
 
-    if archivo2:
-        df = pd.read_excel(archivo2)
+        df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
@@ -240,15 +238,19 @@ if menu == "Dashboard":
 
         df_base = df.copy()
 
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
-        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
-        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+        # 🔒 PROTECCIÓN GLOBAL
+        if 'df' in locals():
 
-        fig = px.line(df, x="Periodo", y="Ventas")
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("📂 Sube un archivo para el segundo dashboard")
+            if "Pais" in df.columns:
+                paises = df["Pais"].unique()
+
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
+            col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+            col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+
+            fig = px.line(df, x="Periodo", y="Ventas")
+            st.plotly_chart(fig, use_container_width=True)
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
