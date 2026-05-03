@@ -272,11 +272,6 @@ elif menu == "Dashboard":
     # ------------------------
 df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
 
-if not df_g.empty:
-
-    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-    df_g = df_g.dropna(subset=["Periodo_dt", "Ventas"])
-    df_g = df_g.sort_values("Periodo_dt")
 
     if not df_g.empty:
         import plotly.graph_objects as go
