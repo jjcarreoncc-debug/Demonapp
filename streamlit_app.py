@@ -586,7 +586,7 @@ with st.expander("📊 Ver gráfica"):
 
     if df_g.empty:
         st.warning("No hay datos para graficar")
-        st.stop()
+        
 
     df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"].astype(str))
     df_g = df_g.sort_values("Periodo_dt")
