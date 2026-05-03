@@ -503,9 +503,19 @@ if st.session_state.vista == "recomendaciones":
                     detalle_crece.append((k, var))
 
         return detalle_crece, detalle_cae
+    # ------------------------
+    # GENERAR RECOMENDACIONES
+    # ------------------------
+    for dim in ["Pais", "Region", "Canal", "Producto"]:
+        if dim in df.columns:
+            crece, cae = generar(df, dim)
+            resumen_dim[dim] = {"crece": crece, "cae": cae}
+
+
 # ------------------------
 # ORDENAR
 # ------------------------
+
 # 🔥 ASEGURAR COLUMNAS (PEGAR AQUÍ)
 if "Ventas" not in df.columns:
     if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta"]):
@@ -661,14 +671,7 @@ else:
                 )
 
         st.markdown("---")
-    # ------------------------
-    # GENERAR RECOMENDACIONES
-    # ------------------------
-    for dim in ["Pais", "Region", "Canal", "Producto"]:
-        if dim in df.columns:
-            crece, cae = generar(df, dim)
-            resumen_dim[dim] = {"crece": crece, "cae": cae}
-
+   
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------vista = st.session_state.vista
