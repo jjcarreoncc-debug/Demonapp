@@ -417,7 +417,7 @@ if vista == "principal":
     if region and "Todos" not in region:
         df_f = df_f[df_f["Region"].isin(region)]
     
-    if producto != "Todos":
+    if producto != "Todos" not in productos 
         
         df_f = df_f[df_f["Producto"].isin(producto)]
     # =========================
