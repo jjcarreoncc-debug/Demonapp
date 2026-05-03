@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
+
 from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
@@ -451,8 +452,12 @@ else:
     # ------------------------
     # NAVEGACIÓN
     # ------------------------
-    st.markdown("### 🚦 Navegación")
 
+    st.markdown("### 🚦 Navegación")
+with st.sidebar:
+    st.divider()
+    st.markdown("### 🎯 Filtros")
+    
     if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
 
@@ -476,6 +481,7 @@ else:
 
     if st.button("🧠 Resumen", key="nav_resumen"):
         st.session_state.vista = "resumen"
+
 # ------------------------
 # PANTALLA INICIAL
 # ------------------------
