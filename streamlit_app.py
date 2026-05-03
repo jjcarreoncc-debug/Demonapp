@@ -418,8 +418,8 @@ if vista == "principal":
         df_f = df_f[df_f["Region"].isin(region)]
     
     if producto != "Todos":
-        df_f = df_f[df_f["Nombre_Producto"] == producto]
-
+        
+        df_f = df_f[df_f["Producto"].isin(producto)]
     # =========================
     # CALCULOS BASE (CENTRALIZADO)
     # =========================
