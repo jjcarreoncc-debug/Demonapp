@@ -466,12 +466,6 @@ if st.session_state.vista == "recomendaciones":
         st.stop()
 
     # ------------------------
-    # VARIABLES
-    # ------------------------
-    resumen_dim = {}
-    recomendaciones = []   # ✅ SOLO AQUÍ
-
-    # ------------------------
     # FUNCIÓN GENERADORA
     # ------------------------
     def generar(df, col):
@@ -503,6 +497,13 @@ if st.session_state.vista == "recomendaciones":
                     detalle_crece.append((k, var))
 
         return detalle_crece, detalle_cae
+    
+    # ------------------------
+    # INICIALIZA AQUI
+    # ------------------------
+    resumen_dim = {}
+    recomendaciones = []   # ✅ SOLO AQUÍ
+    
     # ------------------------
     # GENERAR RECOMENDACIONES
     # ------------------------
