@@ -511,6 +511,7 @@ if st.session_state.vista == "recomendaciones":
         if dim in df.columns:
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
+     st.session_state.recomendaciones = recomendaciones       
 
 
 # ------------------------
