@@ -103,7 +103,6 @@ if authentication_status is None:
         img = Image.open("imagen7.png")
         st.image(img, width=2000)
     st.stop()
-
 # ------------------------
 # SIDEBAR COMPLETO
 # ------------------------
@@ -116,92 +115,98 @@ authenticator.logout("Cerrar sesión", "sidebar")
 st.sidebar.divider()
 
 # ------------------------
-# MENÚ
+# MENÚ (CORREGIDO)
 # ------------------------
 if rol == "Admin":
     menu = st.sidebar.radio("Menú", ["📊 Dashboard", "⚙️ Mantenimiento"])
-#else:
-#   menu = st.sidebar.radio("Menú", ["📊 Dashboard"])
+else:
+    menu = st.sidebar.radio("Menú", ["📊 Dashboard"])
 
 st.sidebar.divider()
 
 # ------------------------
-# FILTROS (SOLO EN DASHBOARD)
+# FILTROS (CORREGIDOS)
 # ------------------------
-if menu == "📊 Dashboard" and 'df' in locals():
+if menu == "📊 Dashboard":
 
     st.sidebar.markdown("### 🎯 Filtros")
 
-    # 📅 FECHAS
-    if "Fecha" in df.columns:
-        fecha_min = df["Fecha"].min()
-        fecha_max = df["Fecha"].max()
+    # 👇 MENSAJE SI NO HAY DATA
+    if 'df' not in locals():
+        st.sidebar.info("📂 Carga un archivo para activar filtros")
 
-        fecha_ini, fecha_fin = st.sidebar.date_input(
-            "📅 Rango de fechas",
-            value=(fecha_min, fecha_max),
-            min_value=fecha_min,
-            max_value=fecha_max
-        )
+    else:
 
-        df = df[
-            (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-            (df["Fecha"] <= pd.to_datetime(fecha_fin))
-        ]
+        # 📅 FECHAS
+        if "Fecha" in df.columns:
+            fecha_min = df["Fecha"].min()
+            fecha_max = df["Fecha"].max()
 
-    # 🌎 PAÍS
-    if "Pais" in df.columns:
-        pais = st.sidebar.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique())
-        )
-        df = df[df["Pais"].isin(pais)]
+            fecha_ini, fecha_fin = st.sidebar.date_input(
+                "📅 Rango de fechas",
+                value=(fecha_min, fecha_max),
+                min_value=fecha_min,
+                max_value=fecha_max
+            )
 
-    # 🗺 REGIÓN
-    if "Region" in df.columns:
-        region = st.sidebar.multiselect(
-            "Región",
-            sorted(df["Region"].dropna().unique()),
-            default=sorted(df["Region"].dropna().unique())
-        )
-        df = df[df["Region"].isin(region)]
+            df = df[
+                (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+                (df["Fecha"] <= pd.to_datetime(fecha_fin))
+            ]
 
-    # 📦 PRODUCTO
-    if "Nombre_Producto" in df.columns:
-        producto = st.sidebar.multiselect(
-            "Producto",
-            sorted(df["Nombre_Producto"].dropna().unique()),
-            default=sorted(df["Nombre_Producto"].dropna().unique())
-        )
-        df = df[df["Nombre_Producto"].isin(producto)]
+        # 🌎 PAÍS
+        if "Pais" in df.columns:
+            pais = st.sidebar.multiselect(
+                "País",
+                sorted(df["Pais"].dropna().unique()),
+                default=sorted(df["Pais"].dropna().unique())
+            )
+            df = df[df["Pais"].isin(pais)]
 
-    # 📡 CANAL
-    if "Canal" in df.columns:
-        canal = st.sidebar.multiselect(
-            "Canal",
-            sorted(df["Canal"].dropna().unique()),
-            default=sorted(df["Canal"].dropna().unique())
-        )
-        df = df[df["Canal"].isin(canal)]
+        # 🗺 REGIÓN
+        if "Region" in df.columns:
+            region = st.sidebar.multiselect(
+                "Región",
+                sorted(df["Region"].dropna().unique()),
+                default=sorted(df["Region"].dropna().unique())
+            )
+            df = df[df["Region"].isin(region)]
 
-    # 👨‍💼 VENDEDOR
-    if "Vendedor_Ruta" in df.columns:
-        vendedor = st.sidebar.multiselect(
-            "Vendedor",
-            sorted(df["Vendedor_Ruta"].dropna().unique()),
-            default=sorted(df["Vendedor_Ruta"].dropna().unique())
-        )
-        df = df[df["Vendedor_Ruta"].isin(vendedor)]
+        # 📦 PRODUCTO
+        if "Nombre_Producto" in df.columns:
+            producto = st.sidebar.multiselect(
+                "Producto",
+                sorted(df["Nombre_Producto"].dropna().unique()),
+                default=sorted(df["Nombre_Producto"].dropna().unique())
+            )
+            df = df[df["Nombre_Producto"].isin(producto)]
 
-    # 👤 TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
-        tipo_cliente = st.sidebar.multiselect(
-            "Tipo cliente",
-            sorted(df["Tipo_cliente"].dropna().unique()),
-            default=sorted(df["Tipo_cliente"].dropna().unique())
-        )
-        df = df[df["Tipo_cliente"].isin(tipo_cliente)]
+        # 📡 CANAL
+        if "Canal" in df.columns:
+            canal = st.sidebar.multiselect(
+                "Canal",
+                sorted(df["Canal"].dropna().unique()),
+                default=sorted(df["Canal"].dropna().unique())
+            )
+            df = df[df["Canal"].isin(canal)]
+
+        # 👨‍💼 VENDEDOR
+        if "Vendedor_Ruta" in df.columns:
+            vendedor = st.sidebar.multiselect(
+                "Vendedor",
+                sorted(df["Vendedor_Ruta"].dropna().unique()),
+                default=sorted(df["Vendedor_Ruta"].dropna().unique())
+            )
+            df = df[df["Vendedor_Ruta"].isin(vendedor)]
+
+        # 👤 TIPO CLIENTE
+        if "Tipo_cliente" in df.columns:
+            tipo_cliente = st.sidebar.multiselect(
+                "Tipo cliente",
+                sorted(df["Tipo_cliente"].dropna().unique()),
+                default=sorted(df["Tipo_cliente"].dropna().unique())
+            )
+            df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
