@@ -223,16 +223,13 @@ if menu == "Dashboard":
 if 'df' in locals():
     df_base = df.copy()
 
-
-with st.sidebar:
-
-    st.divider()
-    st.markdown("### 🎯 Filtros")
+st.sidebar.divider()
+st.sidebar.markdown("### 🎯 Filtros")
     if 'df' in locals():
         df_base = df.copy()
    # PAÍS
     if 'df' in locals() and "Pais" in df.columns:
-        pais = st.multiselect(
+        pais = st.sidebar.multiselect(
             "País",
             sorted(df["Pais"].dropna().unique()),
             default=sorted(df["Pais"].dropna().unique()),
