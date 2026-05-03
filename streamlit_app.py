@@ -522,13 +522,33 @@ if df.empty:
     st.stop()
 
 # ------------------------
-# RECÁLCULO
+# ASEGURAR COLUMNAS
 # ------------------------
-df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]):
+    
+    df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+    df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+    df["Ganancia"] = df["Ventas"] - df["Costos"]
 
-ventas = df["Ventas"].sum()
-ganancia = df["Ganancia"].sum()
-margen = (ganancia / ventas * 100) if ventas != 0 else 0
+    if "Fecha" in df.columns:
+        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+
+    # ------------------------
+    # RECÁLCULO
+    # ------------------------
+    if all(col in df.columns for col in ["Ventas", "Ganancia", "Periodo"]):
+
+        df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+
+        ventas = df["Ventas"].sum()
+        ganancia = df["Ganancia"].sum()
+        margen = (ganancia / ventas * 100) if ventas != 0 else 0
+
+    else:
+        st.warning("⚠️ Faltan columnas calculadas (Ventas, Ganancia o Periodo)")
+
+else:
+    st.warning("⚠️ El archivo no tiene las columnas necesarias")
 
 # ------------------------
 # DASHBOARD PRINCIPAL
