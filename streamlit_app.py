@@ -1538,11 +1538,10 @@ if not df_tabla.empty:
                 st.warning("No hay datos para graficar")
 
 st.stop()    
-
-#=======================
+# =========================
 # DETALLE (LIMPIO Y ESTABLE)
 # =========================
-elif st.session_state.vista = "detalle":
+elif st.session_state.vista == "detalle":
 
     # BOTÓN
     if st.button("⬅️ Volver", key="volver_detalle"):
@@ -1559,61 +1558,65 @@ elif st.session_state.vista = "detalle":
     with col1:
         pais = st.selectbox(
             "País",
-            ["Todos"] + sorted(df["Pais"].dropna().unique()),
+            ["Todos"] + sorted(df["Pais"].dropna().unique()) if "Pais" in df.columns else ["Todos"],
             key="detalle_pais_1"
         )
 
     with col2:
         canal = st.selectbox(
             "Canal",
-            ["Todos"] + sorted(df["Canal"].dropna().unique()),
+            ["Todos"] + sorted(df["Canal"].dropna().unique()) if "Canal" in df.columns else ["Todos"],
             key="detalle_canal_1"
         )
 
     with col3:
         region = st.selectbox(
             "Región",
-            ["Todos"] + sorted(df["Region"].dropna().unique()),
+            ["Todos"] + sorted(df["Region"].dropna().unique()) if "Region" in df.columns else ["Todos"],
             key="detalle_region_1"
         )
 
     with col4:
         producto = st.selectbox(
             "Producto",
-            ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
+            ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()) if "Nombre_Producto" in df.columns else ["Todos"],
             key="detalle_producto_1"
         )
-# =========================
+
+    # =========================
     # FILTRADO
     # =========================
     df_f = df.copy()
 
-    if canal != "Todos":
+    if canal != "Todos" and "Canal" in df_f.columns:
         df_f = df_f[df_f["Canal"] == canal]
 
-    if pais != "Todos":
+    if pais != "Todos" and "Pais" in df_f.columns:
         df_f = df_f[df_f["Pais"] == pais]
 
-    if isinstance(region, list):
-        if region:
-            df_f = df_f[df_f["Region"].isin(region)]
-    else:
-        if region != "Todos":
-            df_f = df_f[df_f["Region"] == region]
+    if region != "Todos" and "Region" in df_f.columns:
+        df_f = df_f[df_f["Region"] == region]
+
+    if producto != "Todos" and "Nombre_Producto" in df_f.columns:
+        df_f = df_f[df_f["Nombre_Producto"] == producto]
 
     # =========================
     # DATA PARA GRÁFICA
     # =========================
-    df_g = df_f.groupby("Periodo")["Ventas"].sum().reset_index()
-    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"])
-    df_g = df_g.sort_values("Periodo_dt")
+    if all(col in df_f.columns for col in ["Periodo", "Ventas"]):
+        df_g = df_f.groupby("Periodo")["Ventas"].sum().reset_index()
+        df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
+        df_g = df_g.dropna(subset=["Periodo_dt"])
+        df_g = df_g.sort_values("Periodo_dt")
+    else:
+        df_g = pd.DataFrame()
 
     # =========================
     # KPIs
     # =========================
     col1, col2, col3 = st.columns(3)
 
-    total = df_f["Ventas"].sum()
+    total = df_f["Ventas"].sum() if "Ventas" in df_f.columns else 0
 
     if len(df_g) >= 2:
         v1 = df_g.iloc[-2]["Ventas"]
@@ -1628,6 +1631,8 @@ elif st.session_state.vista = "detalle":
     with col2:
         if not df_g.empty:
             st.metric("Último periodo", f"${df_g.iloc[-1]['Ventas']:,.0f}")
+        else:
+            st.metric("Último periodo", "$0")
 
     with col3:
         st.metric("Variación", f"{var:.1%}")
@@ -1690,16 +1695,18 @@ elif st.session_state.vista = "detalle":
     # =========================
     # TOP REGIONES
     # =========================
-    st.markdown("### 🔝 Top regiones")
-
-    top = df_f.groupby("Region")["Ventas"].sum().sort_values(ascending=False).head(5)
-    st.bar_chart(top)
+    if "Region" in df_f.columns and "Ventas" in df_f.columns:
+        st.markdown("### 🔝 Top regiones")
+        top = df_f.groupby("Region")["Ventas"].sum().sort_values(ascending=False).head(5)
+        st.bar_chart(top)
 
     # =========================
     # TABLA
     # =========================
     st.markdown("### 📋 Datos")
     st.dataframe(df_f, use_container_width=True)
+
+
 # =========================
 # LOG
 # =========================
@@ -1707,7 +1714,7 @@ if st.session_state.vista == "log":
 
     if st.button("⬅️ Volver log"):
         st.session_state.vista = "principal"
-        st.experimental_rerun()
+        st.rerun()
 
     st.title("📋 Log de Carga")
 
@@ -1716,13 +1723,13 @@ if st.session_state.vista == "log":
     if log:
         col1, col2, col3 = st.columns(3)
 
-        col1.metric("Filas originales", log["original"])
-        col2.metric("Filas cargadas", log["final"])
-        col3.metric("Filas eliminadas", log["eliminadas"])
+        col1.metric("Filas originales", log.get("original", 0))
+        col2.metric("Filas cargadas", log.get("final", 0))
+        col3.metric("Filas eliminadas", log.get("eliminadas", 0))
 
         st.markdown("### 🧹 Registros eliminados")
 
-        if not log["df_eliminadas"].empty:
+        if not log.get("df_eliminadas", pd.DataFrame()).empty:
             st.dataframe(log["df_eliminadas"])
 
             csv = log["df_eliminadas"].to_csv(index=False).encode("utf-8")
@@ -1733,6 +1740,5 @@ if st.session_state.vista == "log":
                 file_name="errores_carga.csv",
                 mime="text/csv"
             )
-
         else:
-            st.s
+            st.success("No hubo errores en la carga")
