@@ -904,13 +904,6 @@ elif st.session_state.vista == "resumen":
                     textposition="top center"
                 ))
                 fig.add_trace(go.Scatter(
-                    x=[df_g.iloc[-1]["Periodo"]],
-                    y=[df_g.iloc[-1]["Ventas"]],
-                    mode="markers+text",
-                    text=[f"{texto_estado}\n{var:.1%}"],
-                    textposition="bottom center"
-            ))
-
                 st.plotly_chart(fig, use_container_width=True)
 
     st.stop()
