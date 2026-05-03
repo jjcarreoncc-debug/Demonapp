@@ -1002,8 +1002,12 @@ with col3:
     if pais != "Todos":
         df_f = df_f[df_f["Pais"] == pais]
 
-    if region != "Todos":
-        df_f = df_f[df_f["Region"] == region]
+    if isinstance(region, list):
+        if region:
+            df_f = df_f[df_f["Region"].isin(region)]
+    else:
+        if region != "Todos":
+            df_f = df_f[df_f["Region"] == region]
 
     # =========================
     # DATA PARA GRÁFICA
