@@ -229,7 +229,7 @@ if menu == "Dashboard":
     # ------------------------
     # CARGA ARCHIVO
     # ------------------------
-    }   # ------------------------
+    # ------------------------
         # LIMPIEZA
         # ------------------------
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
