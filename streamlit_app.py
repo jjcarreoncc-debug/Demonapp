@@ -8,6 +8,7 @@ import base64
 # ------------------------
 # CONFIG
 # ------------------------
+
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
 # ------------------------
@@ -493,6 +494,8 @@ if canal != "Todos":
 if producto != "Todos":
     df_f = df_f[df_f["Nombre_Producto"] == producto]
     st.dataframe(df)
+if region != "Todos":
+    df_f = df_f[df_f["Region"] == region]    
 
 # 🔥 DATA FINAL FILTRADA
 
