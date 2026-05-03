@@ -470,7 +470,12 @@ with col1:
     pais = st.selectbox("País", ["Todos"] + sorted(df["Pais"].dropna().unique()))
 
 with col2:
-    canal = st.selectbox("Canal", ["Todos"] + sorted(df["Canal"].dropna().unique()))
+    canal = st.selectbox(
+    "Canal",
+    ["Todos"] + sorted(df["Canal"].dropna().unique()),
+    key="detalle_canal"
+)
+#    canal = st.selectbox("Canal", ["Todos"] + sorted(df["Canal"].dropna().unique()))
 
 with col3:
     producto = st.selectbox("Producto", ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()))
