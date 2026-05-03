@@ -473,7 +473,7 @@ with col2:
     canal = st.selectbox(
     "Canal",
     ["Todos"] + sorted(df["Canal"].dropna().unique()),
-    key="detalle_canal"
+    key="detalle_canal_unique_1"
 )
 
 with col3:
