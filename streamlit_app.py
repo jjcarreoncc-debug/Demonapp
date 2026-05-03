@@ -469,7 +469,7 @@ if st.session_state.vista == "recomendaciones":
     # VARIABLES
     # ------------------------
     resumen_dim = {}
-    
+    recomendaciones = []   # ✅ SOLO AQUÍ
 
     # ------------------------
     # FUNCIÓN GENERADORA
