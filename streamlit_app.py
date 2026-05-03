@@ -232,7 +232,7 @@ with st.sidebar:
     if 'df' in locals():
         df_base = df.copy()
    # PAÍS
-    if "Pais" in df.columns:
+    if 'df' in locals() and "Pais" in df.columns:
         pais = st.multiselect(
             "País",
             sorted(df["Pais"].dropna().unique()),
@@ -252,7 +252,7 @@ with st.sidebar:
         df = df[df["Region"].isin(region)]
 
     # PRODUCTO
-    if "Producto" in df.columns:
+    if 'df' in locals() and "Producto" in df.columns:
         producto = st.multiselect(
             "Producto",
             sorted(df["Producto"].dropna().unique()),
@@ -262,7 +262,7 @@ with st.sidebar:
         df = df[df["Producto"].isin(producto)]
 
     # CANAL
-    if "Canal" in df.columns:
+    if 'df' in locals() and "Canal" in df.columns:
         canal = st.multiselect(
             "Canal",
             sorted(df["Canal"].dropna().unique()),
@@ -272,7 +272,7 @@ with st.sidebar:
         df = df[df["Canal"].isin(canal)]
 
     # VENDEDOR
-    if "Vendedor_Ruta" in df.columns:
+    if 'df' in locals() and "Vendedor_Ruta" in df.columns:
         vendedor = st.multiselect(
             "Vendedor",
             sorted(df["Vendedor_Ruta"].dropna().unique()),
@@ -282,7 +282,7 @@ with st.sidebar:
         df = df[df["Vendedor_Ruta"].isin(vendedor)]
 
     # TIPO CLIENTE
-    if "Tipo_cliente" in df.columns:
+    if 'df' in locals() and "Tipo_cliente" in df.columns:
         tipo_cliente = st.multiselect(
             "Tipo cliente",
             sorted(df["Tipo_cliente"].dropna().unique()),
