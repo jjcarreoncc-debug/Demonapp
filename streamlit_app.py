@@ -181,7 +181,7 @@ if st.session_state.menu == "Mantenimiento":
     st.title("🛠️ Mantenimiento de Usuarios")
 
     # Validación de rol
-    if rol != "Admin":
+    if st.session_state.rol != "Admin":
         st.warning("⛔ No tienes permisos")
         st.stop()
 
