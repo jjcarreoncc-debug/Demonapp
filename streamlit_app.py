@@ -432,14 +432,14 @@ elif menu == "Dashboard":
             df_filtrado = df_filtrado[df_filtrado[col_pais] == pais]
         
         col_region = next((c for c in df_filtrado.columns if "region" in c.lower()), None)
-           if region != "Todos" and col_region:
+        if region != "Todos" and col_region:
             df_filtrado[col_region] = df_filtrado[col_region].astype(str).str.strip().str.lower()
             region = str(region).strip().lower()
             df_filtrado = df_filtrado[df_filtrado[col_region] == region]
 
         # PRODUCTO
         col_producto = next((c for c in df_filtrado.columns if "producto" in c.lower()), None)
-           if producto and col_producto:
+        if producto and col_producto:
             df_filtrado[col_producto] = df_filtrado[col_producto].astype(str).str.strip().str.lower()
             producto = [str(p).strip().lower() for p in producto]
             df_filtrado = df_filtrado[df_filtrado[col_producto].isin(producto)]
