@@ -194,8 +194,8 @@ if menu == "Mantenimiento":
 
     col_izq, col_centro, col_der = st.columns([1,4,1])
     with col_centro:
-    # 🔥 DIVISIÓN INTERNA
-    col_form, col_img = st.columns([2,1])
+        # 🔥 DIVISIÓN INTERNA
+        col_form, col_img = st.columns([2,1])
         # =========================
         # 🖼️ IMAGEN DE PRUEBA
         # =========================
