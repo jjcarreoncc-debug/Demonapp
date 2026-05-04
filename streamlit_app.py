@@ -12,13 +12,15 @@ from PIL import Image
 # CONFIG
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+st.set_page_config(...)
 
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
 # =========================
 st.markdown("""
 <style>
-
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
 /* FONDO GENERAL */
 .stApp {
     background-color: #F4F6F8;
