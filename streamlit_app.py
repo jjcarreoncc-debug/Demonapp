@@ -1310,31 +1310,22 @@ elif vista == "detalle":
 # =========================
 col1, col2, col3, col4 = st.columns(4)
 
+
 with col1:
-
-    
-    #pais = st.selectbox(
-    #    "País",
-    
-    #["Todos"] + sorted(df["Pais"].dropna().unique()),
-    #    key="detalle_pais"
-    #)
-
-with col2:
     canal = st.selectbox(
         "Canal",
         ["Todos"] + sorted(df["Canal"].dropna().unique()),
         key="detalle_canal"
     )
 
-with col3:
+with col2:
     region = st.selectbox(
         "Región",
         ["Todos"] + sorted(df["Region"].dropna().unique()),
         key="detalle_region"
     )
 
-with col4:
+with col3:
     producto = st.selectbox(
         "Producto",
         ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
