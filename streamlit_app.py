@@ -423,12 +423,14 @@ elif menu == "Dashboard":
         if mes != "Todos":
             df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
 
-        # PAIS (seguro)
+        # PAIS (ultra robusto)
         col_pais = next((c for c in df_filtrado.columns if "pais" in c.lower()), None)
-
+    
         if pais != "Todos" and col_pais:
+            df_filtrado[col_pais] = df_filtrado[col_pais].astype(str).str.strip().str.lower()
+            pais = str(pais).strip().lower()
             df_filtrado = df_filtrado[df_filtrado[col_pais] == pais]
-        
+    
         if region != "Todos" and "Region" in df_filtrado.columns:
             df_filtrado = df_filtrado[df_filtrado["Region"] == region]
 
