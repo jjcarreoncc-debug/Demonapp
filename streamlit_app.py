@@ -547,7 +547,7 @@ with st.sidebar:
             df = df[df[col_pais].astype(str).isin(pais)]
 
         else:
-    st.warning("⚠️ No se encontró columna de país") 
+            st.warning("⚠️ No se encontró columna de país") 
         # REGIÓN
         if "Region" in df.columns:
             region = st.multiselect(
