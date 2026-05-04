@@ -248,6 +248,10 @@ elif menu == "Dashboard":
 
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
+      
+         # ✅ AQUÍ RECIÉN CREAS ESTOS CAMPOS
+        df["Año"] = df["Fecha"].dt.year
+        df["Mes"] = df["Fecha"].dt.month_name()
 
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
