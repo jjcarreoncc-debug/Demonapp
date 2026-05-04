@@ -71,20 +71,6 @@ authenticator = stauth.Authenticate(
     "abcdef",
     cookie_expiry_days=1
 )
-# ------------------------
-# CONFIG Y LAYOUT
-# ------------------------
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="centered")
-
-# Limitar ancho de la pantalla (tipo login)
-st.markdown("""
-    <style>
-    .main .block-container {
-        max-width: 900px;
-        padding-top: 2rem;
-    }
-    </style>
-""", unsafe_allow_html=True)
 
 # ------------------------
 # LOGO CENTRADO
