@@ -260,6 +260,7 @@ with st.sidebar:
     # ------------------------
     # MENU
     # ------------------------
+    st.session_state.menu = menu
     if "menu" not in st.session_state:
         st.session_state.menu = "Inicio"
 
@@ -269,11 +270,8 @@ with st.sidebar:
         index=opciones.index(st.session_state.menu)
     )
 
-    st.session_state.menu = menu
-
-    if "menu" not in st.session_state:
-        st.session_state.menu = "Inicio"
-
+    
+   
     if rol == "Admin":
         opciones = ["Inicio", "Dashboard", "Mantenimiento"]
     else:
