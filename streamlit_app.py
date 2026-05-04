@@ -210,9 +210,6 @@ with st.sidebar:
 # INICIO
 # =========================
 if menu == "Inicio":
-       
-
-if menu == "Inicio":
 
     st.title("🏠 Inicio")
 
