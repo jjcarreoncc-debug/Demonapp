@@ -342,11 +342,11 @@ with st.sidebar:
             # REGIÓN
             df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
 
-            region = st.selectbox(
-                "📍 Región",
-                ["Todos"] + sorted(df_region["Region"].dropna().unique()),
-                key="filtro_region"
-            )
+            #region = st.selectbox(
+            #    "📍 Región",
+            #    ["Todos"] + sorted(df_region["Region"].dropna().unique()),
+            #    key="filtro_region"
+            #)
             # PRODUCTO
             df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
             # =========================
@@ -363,11 +363,11 @@ with st.sidebar:
                 if isinstance(st.session_state.get("filtro_producto"), list):
                     st.session_state["filtro_producto"] = "Todos"
             
-                producto = st.selectbox(
-                    "📦 Producto",
-                    options=opciones_producto,
-                    key="filtro_producto"
-                )
+                #producto = st.selectbox(
+                #    "📦 Producto",
+                #    options=opciones_producto,
+                #    key="filtro_producto"
+                #)
             
                 if producto != "Todos":
                     df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
