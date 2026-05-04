@@ -226,12 +226,20 @@ with st.sidebar:
         mes_opciones = ["Todos"] + sorted(df_temp["Mes"].unique())
         mes = st.selectbox("📆 Mes", mes_opciones)
 
-        # Producto
-        if "Producto" in df_temp.columns:
-            producto = st.multiselect(
-                "📦 Producto",
-                sorted(df_temp["Producto"].unique())
-            )
+        # Productos según país seleccionado
+        if pais == "Colombia":
+         opciones_producto = ["Todos", "A", "B"]
+elif pais == "Perú":
+     opciones_producto = ["Todos", "A"]
+elif pais == "Chile":
+      opciones_producto = ["Todos", "C"]
+else:
+      opciones_producto = ["Todos", "A", "B", "C"]
+
+producto = st.multiselect(
+    "Producto",
+    opciones_producto
+)
 # =========================
 # INICIO
 # =========================
