@@ -400,15 +400,12 @@ elif menu == "Dashboard":
         df["Año"] = df["Fecha"].dt.year
         df["Mes"] = df["Fecha"].dt.month_name()
 
+        # MÉTRICA
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+
         # ------------------------
-        # FILTROS
+        # FILTRADO (USANDO SIDEBAR)
         # ------------------------
-        # 🔒 valores por defecto (anti-error)
-        año = "Todos"
-        mes = "Todos"
-        pais = "Todos"
-        region = "Todos"
-        producto = []
         df_filtrado = df.copy()
 
         if año != "Todos":
@@ -417,16 +414,24 @@ elif menu == "Dashboard":
         if mes != "Todos":
             df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
 
-        if producto:
+        if pais != "Todos" and "Pais" in df_filtrado.columns:
+            df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
+
+        if region != "Todos" and "Region" in df_filtrado.columns:
+            df_filtrado = df_filtrado[df_filtrado["Region"] == region]
+
+        if producto and "Nombre_Producto" in df_filtrado.columns:
             df_filtrado = df_filtrado[df_filtrado["Nombre_Producto"].isin(producto)]
-            
-         # =========================
-         # VENTAS POR MES
-         # =========================
+
+        # ------------------------
+        # RESULTADO
+        # ------------------------
+        if df_filtrado.empty:
+            st.warning("⚠️ No hay datos con esos filtros")
+        else:
+            ventas_mes = df_filtrado.groupby("Mes")["Ventas"].sum().reset_index()
+            st.bar_chart(ventas_mes.set_index("Mes"))
 # =========================
-# VALIDACIÓN SEGURA
-# =========================
- # =========================
 # VALIDACIÓN SEGURA
 # =========================
 if df_filtrado is None:
