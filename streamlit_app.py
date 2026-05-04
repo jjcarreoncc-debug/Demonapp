@@ -17,11 +17,13 @@ st.set_page_config(...)
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
 # =========================
-st.markdown("""
-<style>
 if "vista" not in st.session_state:
     st.session_state.vista = "inicio"
+
+st.markdown("""
+<style>
 /* FONDO GENERAL */
+
 .stApp {
     background-color: #F4F6F8;
 }
