@@ -434,9 +434,6 @@ elif menu == "Dashboard":
 # =========================
 # VALIDACIÓN SEGURA
 # =========================
-if df_filtrado is None:
-    st.error("❌ df_filtrado no existe")
-    st.stop()
 
 if "MES" not in df_filtrado.columns:
     if "FECHA" in df_filtrado.columns:
