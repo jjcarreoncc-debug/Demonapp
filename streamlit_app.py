@@ -1310,7 +1310,7 @@ elif vista == "detalle":
 # =========================
 #df_f = df.copy()
 
-i#f pais != "Todos":
+#f pais != "Todos":
  #   df_f = df_f[df_f["Pais"] == pais]
 
 #if canal != "Todos":
