@@ -345,6 +345,9 @@ elif menu == "Dashboard":
         col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
+ elif menu == "Mantenimiento":
+     st.title("🛠️ Mantenimiento de Usuarios")
+
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
@@ -443,6 +446,8 @@ with st.sidebar:
 
     else:
         st.info("📂 Carga un archivo en Inicio para habilitar filtros")
+   
+
     # ------------------------
     # RANGO DE FECHAS
     # ------------------------
