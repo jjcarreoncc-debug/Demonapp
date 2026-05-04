@@ -163,26 +163,34 @@ def tiene_acceso(area, transaccion):
 # ------------------------
 # SIDEBAR + MENÚ
 # ------------------------
-st.sidebar.title("📌 Navegación")
-st.sidebar.write(f"👋 Bienvenido {name}")
-authenticator.logout("Cerrar sesión", "sidebar")
+with st.sidebar:
 
-rol = "Admin" if username == "admin" else "Usuario"
+    st.title("📌 Navegación")
+    st.write(f"👋 Bienvenido {name}")
 
-if "menu" not in st.session_state:
-    st.session_state.menu = "Inicio"
+    img = Image.open("imagen8.png")
+    st.image(img, use_container_width=True)
 
-if rol == "Admin":
-    opciones = ["Inicio", "Dashboard", "Mantenimiento"]
-else:
-    opciones = ["Inicio", "Dashboard"]
+    st.markdown("---")
 
-menu = st.sidebar.radio(
-    "Menú",
-    opciones,
-    index=opciones.index(st.session_state.menu)
-)
-st.session_state.menu = menu
+    authenticator.logout("Cerrar sesión", "sidebar")
+    
+    rol = "Admin" if username == "admin" else "Usuario"
+    
+    if "menu" not in st.session_state:
+        st.session_state.menu = "Inicio"
+    
+    if rol == "Admin":
+        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+    else:
+        opciones = ["Inicio", "Dashboard"]
+    
+    menu = st.sidebar.radio(
+        "Menú",
+        opciones,
+        index=opciones.index(st.session_state.menu)
+    )
+    st.session_state.menu = menu
 # =========================
 # MANTENIMIENTO DE USUARIOS (PRO)
 # =========================
