@@ -168,7 +168,6 @@ if not usuario_actual.empty:
     usuario_actual = usuario_actual.iloc[0]
 else:
     usuario_actual = None
-
 # ------------------------
 # SIDEBAR
 # ------------------------
@@ -198,15 +197,41 @@ with st.sidebar:
     )
 
     st.session_state.menu = menu
+
     # =========================
     # FILTROS
     # =========================
     st.markdown("---")
     st.markdown("### 🎯 Filtros")
 
-    año = None
-    mes = []
+    # valores por defecto
+    año = "Todos"
+    mes = "Todos"
     producto = []
+
+    if "archivo" in st.session_state:
+
+        df_temp = pd.read_excel(st.session_state.archivo)
+        df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
+        df_temp = df_temp.dropna(subset=["Fecha"])
+
+        df_temp["Año"] = df_temp["Fecha"].dt.year
+        df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
+
+        # Año
+        año_opciones = ["Todos"] + sorted(df_temp["Año"].unique())
+        año = st.selectbox("📅 Año", año_opciones)
+
+        # Mes
+        mes_opciones = ["Todos"] + sorted(df_temp["Mes"].unique())
+        mes = st.selectbox("📆 Mes", mes_opciones)
+
+        # Producto
+        if "Producto" in df_temp.columns:
+            producto = st.multiselect(
+                "📦 Producto",
+                sorted(df_temp["Producto"].unique())
+            )
 # =========================
 # INICIO
 # =========================
@@ -247,7 +272,7 @@ elif menu == "Dashboard":
 
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce")
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
 
         # ------------------------
         # CAMPOS
@@ -259,15 +284,15 @@ elif menu == "Dashboard":
         # FILTROS
         # ------------------------
         df_filtrado = df.copy()
-
+        
         if año:
-            df_filtrado = df_filtrado[df_filtrado["Año"] == año]
-
-        if mes:
-            df_filtrado = df_filtrado[df_filtrado["Mes"].isin(mes)]
-
+           df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+        
+        if mes and mes != "Todos":
+           df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
+        
         if producto:
-            df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+           df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
 
         # ------------------------
         # MÉTRICAS
