@@ -538,34 +538,37 @@ with st.sidebar:
 
     st.markdown("### 📅 Rango de fechas")
 
-    if "Fecha" in df.columns:
+    fecha_ini = None
+    fecha_fin = None
 
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+    if "archivo" in st.session_state:
 
-        if df["Fecha"].notna().any():
+        df_temp = pd.read_excel(st.session_state.archivo)
 
-            fecha_min = df["Fecha"].min()
-            fecha_max = df["Fecha"].max()
+        if "Fecha" in df_temp.columns:
 
-            fecha_ini, fecha_fin = st.date_input(
-                "Selecciona fecha inicial y final",
-                value=(fecha_min, fecha_max),
-                min_value=fecha_min,
-                max_value=fecha_max
-            )
+            df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
 
-            df = df[
-                (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-                (df["Fecha"] <= pd.to_datetime(fecha_fin))
-            ]
+            if df_temp["Fecha"].notna().any():
 
-            st.caption(f"{fecha_ini} → {fecha_fin}")
+                fecha_min = df_temp["Fecha"].min()
+                fecha_max = df_temp["Fecha"].max()
+
+                fecha_ini, fecha_fin = st.date_input(
+                    "Selecciona fecha inicial y final",
+                    value=(fecha_min, fecha_max),
+                    min_value=fecha_min,
+                    max_value=fecha_max
+                )
+
+                st.session_state.fecha_ini = fecha_ini
+                st.session_state.fecha_fin = fecha_fin
+
+            else:
+                st.warning("La columna Fecha no tiene valores válidos")
 
         else:
-            st.warning("La columna Fecha no tiene valores válidos")
-
-    else:
-        st.warning("No existe la columna Fecha")
+            st.warning("No existe la columna Fecha")
 # ------------------------
 # VALIDAR QUE EXISTE df
 # ------------------------
