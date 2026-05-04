@@ -366,7 +366,9 @@ with st.sidebar:
             
                 producto = st.session_state.get("filtro_producto", [])
                 if producto != "Todos":
-                   df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
+                   df_temp = df_temp[df_temp[col_producto].astype(str) == str(producto)]
+                #if producto != "Todos":
+                #   df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
                 # aplicar filtro sobre df_temp (flujo correcto)
                 if producto:
                     df_temp = df_temp[df_temp[col_producto].astype(str).isin(producto)]
