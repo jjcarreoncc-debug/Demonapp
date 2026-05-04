@@ -689,18 +689,53 @@ if 'df' not in locals() or df is None:
 # =========================
 # CARGA DE ARCHIVO
 # =========================
-archivo = st.session_state.get("archivo")
-
-if archivo:
-    df = pd.read_excel(archivo)
-
-    # NORMALIZAR COLUMNAS
-    df.columns = df.columns.str.strip()
-    df.columns = df.columns.str.upper()
-
+# =========================
+# 1. CARGAR ARCHIVO
+# =========================
+if "archivo" in st.session_state:
+    df = pd.read_excel(st.session_state.archivo)
 else:
-    df = None
+    st.warning("⚠️ Carga un archivo")
+    st.stop()
 
+# =========================
+# 2. NORMALIZAR COLUMNAS
+# =========================
+df.columns = df.columns.str.strip()
+df.columns = df.columns.str.upper()
+
+# =========================
+# 3. 👉 AQUÍ VA LA RUTINA DE FECHA 👈
+# =========================
+col_fecha = next((c for c in df.columns if "FECHA" in c), None)
+
+if col_fecha:
+
+    df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
+    df = df.dropna(subset=[col_fecha])
+
+    if not df.empty:
+
+        fecha_ini, fecha_fin = st.date_input(
+            "📅 Selecciona fecha inicial y final",
+            value=(df[col_fecha].min(), df[col_fecha].max())
+        )
+
+        if fecha_ini and fecha_fin:
+
+            df = df[
+                (df[col_fecha] >= pd.to_datetime(fecha_ini)) &
+                (df[col_fecha] <= pd.to_datetime(fecha_fin))
+            ]
+
+            df["PERIODO"] = df[col_fecha].dt.to_period("M").astype(str)
+
+# =========================
+# 4. DESPUÉS VIENE TODO
+# =========================
+# KPIs
+# gráficos
+# tablas
 
 # =========================
 # SIDEBAR (SOLO NAVEGACIÓN)
