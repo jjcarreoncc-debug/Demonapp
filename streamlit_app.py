@@ -210,7 +210,7 @@ if menu == "Mantenimiento":
         # =========================
         # ➕ CREAR USUARIO
         # =========================
-        with st.expander("➕ Crear Usuario", expanded=False):
+       with st.expander("➕ Crear Usuario", expanded=False):
 
             username_new = st.text_input("Usuario nuevo")
             password_new = st.text_input("Contraseña", type="password")
