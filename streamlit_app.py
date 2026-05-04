@@ -192,10 +192,10 @@ if menu == "Mantenimiento":
 
     # CONTENEDOR CENTRADO
 
-    col_izq, col_centro, col_der = st.columns([1,4,1])
+    col_izq, col_centro, col_der = st.columns([1,3,1])
     with col_centro:
         # 🔥 DIVISIÓN INTERNA
-        col_form, col_img = st.columns([2,1])
+        col_form, col_img = st.columns([1,2])
         # =========================
         # 🖼️ IMAGEN DE PRUEBA
         # =========================
