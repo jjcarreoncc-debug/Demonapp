@@ -792,8 +792,8 @@ with st.sidebar:
 # VALIDAR DATA
 # =========================
     if df is None:
-    st.warning("⚠️ Carga un archivo en Inicio")
-    st.stop()
+       st.warning("⚠️ Carga un archivo en Inicio")
+       st.stop()
 
 
 # =========================
