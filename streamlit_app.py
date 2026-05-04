@@ -440,24 +440,40 @@ elif menu == "Mantenimiento":
 # ------------------------
 # DATA GLOBAL
 # -----------------------
-
-
 if "archivo" in st.session_state:
 
     df = pd.read_excel(st.session_state.archivo)
+
+    # =========================
+    # NORMALIZAR COLUMNAS
+    # =========================
     df.columns = df.columns.str.strip()
-    df.columns = df.columns.str.upper() 
-    if "Fecha" in df.columns:
-        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-        df = df.dropna(subset=["Fecha"])
+    df.columns = df.columns.str.upper()
 
-    if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]):
-        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-        df["Ganancia"] = df["Ventas"] - df["Costos"]
+    # =========================
+    # FECHA
+    # =========================
+    if "FECHA" in df.columns:
+        df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
+        df = df.dropna(subset=["FECHA"])
 
-    if "Fecha" in df.columns:
-        df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
+        df["AÑO"] = df["FECHA"].dt.year
+        df["MES"] = df["FECHA"].dt.month_name()
+
+    # =========================
+    # MÉTRICAS
+    # =========================
+    if all(col in df.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]):
+        df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
+        df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
+        df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
+
+    # =========================
+    # PERIODO
+    # =========================
+    if "FECHA" in df.columns:
+        df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
+
 with st.sidebar:
 
     st.divider()
