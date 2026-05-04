@@ -220,6 +220,7 @@ with st.sidebar:
     # valores por defecto
     año = "Todos"
     mes = "Todos"
+    region = "Todos"
     producto = []
 
     if "archivo" in st.session_state:
@@ -380,7 +381,13 @@ elif menu == "Dashboard":
 
         if producto:
             df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+         # =========================
+         # VENTAS POR MES
+         # =========================
+         ventas_mes = df_filtrado.groupby("Mes")["Ventas"].sum().reset_index()
 
+         st.subheader("📈 Ventas por Mes")
+         st.line_chart(ventas_mes.set_index("Mes"))
         # ------------------------
         # MÉTRICAS
         # ------------------------
