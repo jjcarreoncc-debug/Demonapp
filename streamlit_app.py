@@ -1,251 +1,38 @@
-import streamlit as st
-import pandas as pd
-import plotly.express as px
-import sqlite3
-import streamlit_authenticator as stauth
-
-from streamlit_authenticator import Hasher
-import hashlib
-from datetime import datetime
-from PIL import Image
-
 # ------------------------
-# CONFIG
+# SIDEBAR BACKGROUND (PRO)
 # ------------------------
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
+import base64
 
-# ------------------------
-# BASE DE DATOS
-# ------------------------
-conn = sqlite3.connect("data.db", check_same_thread=False)
+def set_sidebar_bg(img_path):
+    with open(img_path, "rb") as f:
+        img_data = base64.b64encode(f.read()).decode()
 
-conn.execute("""
-CREATE TABLE IF NOT EXISTS ventas (
-    Fecha TEXT,
-    Nombre_Producto TEXT,
-    Numero_Producto TEXT,
-    Ventas_Cantidad REAL,
-    Pais TEXT,
-    Region TEXT,
-    Canal TEXT,
-    Vendedor_Ruta TEXT,
-    Tipo_cliente TEXT,
-    Precio_Venta REAL,
-    Costos_Venta REAL
-)
-""")
+    st.markdown(f"""
+    <style>
+    [data-testid="stSidebar"] {{
+        background-image: url("data:image/png;base64,{img_data}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
 
-conn.execute("""
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    nombre TEXT,
-    rol TEXT,
-    estado TEXT,
-    fecha_creacion TEXT,
-    area TEXT,
-    transacciones TEXT
-)
-""")
-conn.commit()
+    [data-testid="stSidebar"]::before {{
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,0.65);
+        z-index: 0;
+    }}
 
-# ------------------------
-# LOGIN CONFIG
-# ------------------------
-passwords = ["1234", "abcd"]
-hashed_passwords = Hasher(passwords).generate()
+    [data-testid="stSidebar"] * {{
+        position: relative;
+        z-index: 1;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
 
-credentials = {
-    "usernames": {
-        "admin": {"name": "Admin", "password": hashed_passwords[0]},
-        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
-    }
-}
-
-authenticator = stauth.Authenticate(
-    credentials,
-    "mi_dashboard",
-    "abcdef",
-    cookie_expiry_days=1
-)
-# ------------------------
-# LOGO
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
-
-
-# ------------------------
-# LOGIN
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    name, authentication_status, username = authenticator.login("Login", location="main")
-
-# ------------------------
-# CONTROL LOGIN
-# ------------------------
-if authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-    st.stop()
-
-if authentication_status is None:
-    col1, col2 = st.columns([2,6])
-    with col2:
-        img = Image.open("imagen7.png")
-        st.image(img, width=2000)
-    st.stop()
-
-# ------------------------
-# FUNCIONES USUARIOS
-# ------------------------
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def obtener_usuarios():
-    return pd.read_sql("SELECT * FROM usuarios", conn)
-
-def crear_usuario(username, password, nombre, rol, area, transacciones):
-    try:
-        trans_str = ",".join(transacciones)
-        conn.execute("""
-        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion, area, transacciones)
-        VALUES (?, ?, ?, ?, 'Activo', ?, ?, ?)
-        """, (
-            username,
-            hash_password(password),
-            nombre,
-            rol,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            area,
-            trans_str
-        ))
-        conn.commit()
-        return True
-    except Exception as e:
-        return str(e)
-
-def desactivar_usuario(user_id):
-    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
-    conn.commit()
-
-# ------------------------
-# USUARIO ACTUAL DESDE DB
-# ------------------------
-df_users = obtener_usuarios()
-
-usuario_actual = df_users[df_users["username"] == username]
-if not usuario_actual.empty:
-    usuario_actual = usuario_actual.iloc[0]
-else:
-    usuario_actual = None
-
-# ------------------------
-# FUNCIÓN DE PERMISOS
-# ------------------------
-def tiene_acceso(area, transaccion):
-    if usuario_actual is not None and usuario_actual["rol"] == "Admin":
-        return True
-    if usuario_actual is None:
-        return False
-    if usuario_actual["area"] != area:
-        return False
-    trans_user = str(usuario_actual["transacciones"]).split(",")
-    if transaccion in trans_user:
-        return True
-    return False
-
-# ------------------------
-# SIDEBAR + MENÚ
-# ------------------------
-with st.sidebar:
-
-    st.title("📌 Navegación")
-    st.write(f"👋 Bienvenido {name}")
-
-    img = Image.open("imagen8.png")
-    st.image(img, use_container_width=True)
-
-    st.markdown("---")
-
-    authenticator.logout("Cerrar sesión", "sidebar")
-    
-    rol = "Admin" if username == "admin" else "Usuario"
-    
-    if "menu" not in st.session_state:
-        st.session_state.menu = "Inicio"
-    
-    if rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
-    else:
-        opciones = ["Inicio", "Dashboard"]
-    
-    menu = st.sidebar.radio(
-        "Menú",
-        opciones,
-        index=opciones.index(st.session_state.menu)
-    )
-    st.session_state.menu = menu
+set_sidebar_bg("imagen8.png")
 # =========================
-# MANTENIMIENTO DE USUARIOS (PRO)
-# =========================
-if menu == "Mantenimiento":
-
-    st.markdown("### ⚙️ Mantenimiento de Usuarios")
-
-    # CONTENEDOR CENTRADO
-    col_img, col_form = st.columns([1,2])
-    col_izq, col_centro, col_der = st.columns([1,3,1])
-
-    with col_img:
-        from PIL import Image
-        img = Image.open("imagen8.png")
-        st.image(img, use_container_width=True)
-        
-        # =========================
-        # ➕ CREAR USUARIO
-        # =========================
-    with col_form:
-        with st.expander("➕ Crear Usuario", expanded=False):
-            st.write("Formulario aquí")
-            username_new = st.text_input("Usuario nuevo")
-            password_new = st.text_input("Contraseña", type="password")
-            nombre_new = st.text_input("Nombre")
-
-            rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
-            area_new = st.selectbox("Área", ["Ventas", "Finanzas", "Logística"])
-
-            trans_new = st.multiselect(
-                "Transacciones permitidas",
-                ["Dashboard", "Reporte", "Análisis"]
-            )
-
-            if st.button("💾 Guardar usuario"):
-
-                if not username_new or not password_new:
-                    st.warning("Usuario y contraseña son obligatorios")
-
-                else:
-                    resultado = crear_usuario(
-                        username_new,
-                        password_new,
-                        nombre_new,
-                        rol_new,
-                        area_new,
-                        trans_new
-                    )
-
-                    if resultado == True:
-                        st.success("✅ Usuario creado correctamente")
-                    else:
-                        st.error(f"❌ Error: {resultado}")
-
-        # =========================
         # 📋 LISTADO DE USUARIOS
         # =========================
         st.markdown("---")
