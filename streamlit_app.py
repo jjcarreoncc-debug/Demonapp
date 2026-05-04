@@ -689,33 +689,79 @@ with st.sidebar:
 if 'df' not in locals() or df is None:
     st.warning("⚠️ No hay archivo cargado o df no existe")
     st.stop()
+# =========================
+# CARGA DE ARCHIVO
+# =========================
+archivo = st.session_state.get("archivo")
 
-# ------------------------
-# LIMPIAR NOMBRES DE COLUMNAS
-# ------------------------
-df.columns = df.columns.str.strip()
+if archivo:
+    df = pd.read_excel(archivo)
 
+    # NORMALIZAR COLUMNAS
+    df.columns = df.columns.str.strip()
+    df.columns = df.columns.str.upper()
+
+else:
+    df = None
+
+
+# =========================
+# SIDEBAR (SOLO NAVEGACIÓN)
+# =========================
 st.markdown("### 🚦 Navegación")
+
 with st.sidebar:
     st.divider()
-    #st.markdown("### 🎯 Filtros")
-    
-    if st.button("📊 Principal", key="nav_principal"):
-# =========================
-# FILTRO DE FECHA (CORRECTO)
-# =========================
 
+    if st.button("📊 Principal"):
+        st.session_state.vista = "principal"
+
+    if st.button("🚦 Volatilidad"):
+        st.session_state.vista = "volatilidad"
+
+    if st.button("👤 Responsables"):
+        st.session_state.vista = "responsables"
+
+    if st.button("🧠 Causas"):
+        st.session_state.vista = "causas"
+
+    if st.button("📋 Log"):
+        st.session_state.vista = "log"
+
+    if st.button("🔎 Detalle"):
+        st.session_state.vista = "detalle"
+        st.rerun()
+
+    if st.button("📌 Recomendaciones"):
+        st.session_state.vista = "recomendaciones"
+        st.rerun()
+        st.stop()
+
+    if st.button("🧠 Resumen"):
+        st.session_state.vista = "resumen"
+
+
+# =========================
+# VALIDAR DATA
+# =========================
+if df is None:
+    st.warning("⚠️ Carga un archivo en Inicio")
+    st.stop()
+
+
+# =========================
+# FILTRO DE FECHA (MAIN)
+# =========================
 if "FECHA" in df.columns:
 
     df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
     df = df.dropna(subset=["FECHA"])
 
-    if not df["FECHA"].empty:
+    if not df.empty:
 
         fecha_min = df["FECHA"].min()
         fecha_max = df["FECHA"].max()
 
-        # 👇 SOLO UN date_input
         fecha_ini, fecha_fin = st.date_input(
             "📅 Selecciona fecha inicial y final",
             value=(fecha_min, fecha_max),
@@ -723,7 +769,6 @@ if "FECHA" in df.columns:
             max_value=fecha_max
         )
 
-        # 👇 VALIDAR QUE EXISTAN
         if fecha_ini and fecha_fin:
 
             df = df[
@@ -731,7 +776,6 @@ if "FECHA" in df.columns:
                 (df["FECHA"] <= pd.to_datetime(fecha_fin))
             ]
 
-            # recalcular periodo
             df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
 
             st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
@@ -741,36 +785,18 @@ if "FECHA" in df.columns:
             st.warning("⚠️ Selecciona ambas fechas")
 
     else:
-        st.warning("⚠️ La columna FECHA no tiene valores válidos")
+        st.warning("⚠️ No hay datos válidos en FECHA")
 
 else:
     st.warning("⚠️ El archivo no tiene columna FECHA")
-        st.session_state.vista = "principal"
 
-    if st.button("🚦 Volatilidad", key="nav_volatilidad"):
-        st.session_state.vista = "volatilidad"
 
-    if st.button("👤 Responsables", key="nav_responsables"):
-        st.session_state.vista = "responsables"
-
-    if st.button("🧠 Causas", key="nav_causas"):
-        st.session_state.vista = "causas"
-
-    if st.button("📋 Log", key="nav_log"):
-        st.session_state.vista = "log"
-
-    if st.button("🔎 Detalle", key="nav_detalle"):
-        st.session_state.vista = "detalle"
-        st.rerun()
-        
-
-    if st.button("📌 Recomendaciones", key="nav_recomendaciones"):
-        st.session_state.vista = "recomendaciones"
-        st.rerun()
-        st.stop()
-
-    if st.button("🧠 Resumen", key="nav_resumen"):
-        st.session_state.vista = "resumen"
+# =========================
+# EJEMPLO USO (DEBUG)
+# =========================
+st.write("Vista actual:", st.session_state.get("vista"))
+st.write("Filas después de filtro:", len(df))
+st.dataframe(df.head())
 
 # ------------------------
 # PANTALLA INICIAL
