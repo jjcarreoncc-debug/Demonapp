@@ -175,7 +175,7 @@ with st.sidebar:
 
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
-    
+
     st.markdown("---")
 
     authenticator.logout("Cerrar sesión", "sidebar")
@@ -218,28 +218,43 @@ with st.sidebar:
         df_temp["Año"] = df_temp["Fecha"].dt.year
         df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
 
-        # Año
+        # =========================
+        # AÑO
+        # =========================
         año_opciones = ["Todos"] + sorted(df_temp["Año"].unique())
         año = st.selectbox("📅 Año", año_opciones)
 
-        # Mes
+        # =========================
+        # MES
+        # =========================
         mes_opciones = ["Todos"] + sorted(df_temp["Mes"].unique())
         mes = st.selectbox("📆 Mes", mes_opciones)
 
-        # Productos según país seleccionado
+        # =========================
+        # PRODUCTO (dependiente de país)
+        # =========================
         if pais == "Colombia":
             opciones_producto = ["Todos", "A", "B"]
         elif pais == "Perú":
             opciones_producto = ["Todos", "A"]
         elif pais == "Chile":
-              opciones_producto = ["Todos", "C"]
-     else:
-        opciones_producto = ["Todos", "A", "B", "C"]
+            opciones_producto = ["Todos", "C"]
+        else:
+            opciones_producto = ["Todos", "A", "B", "C"]
 
-producto = st.multiselect(
-    "Producto",
-    opciones_producto
-)
+        producto = st.multiselect(
+            "Producto",
+            opciones_producto
+        )
+
+        # Normalizar
+        if "Todos" in producto:
+            producto = []
+
+    else:
+        st.info("📂 Carga un archivo para activar filtros")
+
+
 # =========================
 # INICIO
 # =========================
@@ -259,6 +274,10 @@ if menu == "Inicio":
     if "archivo" in st.session_state:
         st.info("📊 Ya hay un archivo cargado. Ve a 'Dashboard'")
 
+
+# =========================
+# DASHBOARD
+# =========================
 elif menu == "Dashboard":
 
     st.header("📊 Dashboard Ejecutivo")
@@ -280,7 +299,7 @@ elif menu == "Dashboard":
 
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors="coerce")
+                df[col] = pd.to_numeric(df[col], errors="coerce")
 
         # ------------------------
         # CAMPOS
@@ -292,15 +311,15 @@ elif menu == "Dashboard":
         # FILTROS
         # ------------------------
         df_filtrado = df.copy()
-        
-        if año:
-           df_filtrado = df_filtrado[df_filtrado["Año"] == año]
-        
-        if mes and mes != "Todos":
-           df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
-        
+
+        if año != "Todos":
+            df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+
+        if mes != "Todos":
+            df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
+
         if producto:
-           df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+            df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
 
         # ------------------------
         # MÉTRICAS
@@ -310,11 +329,10 @@ elif menu == "Dashboard":
         df_filtrado["Ganancia"] = df_filtrado["Ventas"] - df_filtrado["Costos"]
 
         col1, col2, col3 = st.columns(3)
+
         col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
-
-
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
