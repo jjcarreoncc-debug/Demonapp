@@ -403,6 +403,12 @@ elif menu == "Dashboard":
         # ------------------------
         # FILTROS
         # ------------------------
+        # 🔒 valores por defecto (anti-error)
+        año = "Todos"
+        mes = "Todos"
+        pais = "Todos"
+        region = "Todos"
+        producto = []
         df_filtrado = df.copy()
 
         if año != "Todos":
