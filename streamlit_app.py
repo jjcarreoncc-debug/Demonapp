@@ -261,7 +261,7 @@ with st.sidebar:
         else:
             opciones_producto = ["Todos", "A", "B", "C"]
 
-         producto = st.multiselect("Producto", opciones_producto)
+        producto = st.multiselect("Producto", opciones_producto)
 
         # Normalizar
         if "Todos" in producto:
