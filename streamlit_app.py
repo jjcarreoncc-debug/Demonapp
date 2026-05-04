@@ -71,6 +71,13 @@ authenticator = stauth.Authenticate(
     "abcdef",
     cookie_expiry_days=1
 )
+# ------------------------
+# LOGO
+# ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+
 
 
 # ------------------------
@@ -93,12 +100,6 @@ if authentication_status is None:
         img = Image.open("imagen7.png")
         st.image(img, width=2000)
     st.stop()
-# ------------------------
-# LOGO
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
 # ------------------------
 # FUNCIONES USUARIOS
