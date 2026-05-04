@@ -216,7 +216,7 @@ with st.sidebar:
     # =========================
     st.markdown("---")
     st.markdown("### 🎯 Filtros")
-
+    st.write(df_producto.columns)
     # valores por defecto
     año = "Todos"
     mes = "Todos"
