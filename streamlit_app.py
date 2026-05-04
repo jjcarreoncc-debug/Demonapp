@@ -524,15 +524,19 @@ with st.sidebar:
         df.columns = df.columns.str.strip()
 
         # PAÍS
-        if "Pais" in df.columns:
-            pais = st.multiselect(
-                "País",
-                sorted(df["Pais"].dropna().unique()),
-                default=sorted(df["Pais"].dropna().unique()),
-                key="filtro_pais"
-            )
-            df = df[df["Pais"].isin(pais)]
+    if "Pais" in df.columns:
 
+        pais = st.multiselect(
+      "País",
+       sorted(df["Pais"].dropna().unique()),
+       default=sorted(df["Pais"].dropna().unique()),
+       key="filtro_pais"
+    )
+
+    # ✅ SOLO filtra si hay selección
+    if pais:
+        df = df[df["Pais"].isin(pais)]
+    
         # REGIÓN
         if "Region" in df.columns:
             region = st.multiselect(
