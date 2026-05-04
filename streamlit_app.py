@@ -72,12 +72,7 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 
-# ------------------------
-# LOGO CENTRADO
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)  # ancho ajustable
+
 # ------------------------
 # LOGIN
 # ------------------------
@@ -181,59 +176,121 @@ menu = st.sidebar.radio(
     index=opciones.index(st.session_state.menu)
 )
 st.session_state.menu = menu
-
-# ------------------------
-# MANTENIMIENTO DE USUARIOS
-# ------------------------
+# =========================
+# MANTENIMIENTO DE USUARIOS (PRO)
+# =========================
 if menu == "Mantenimiento":
 
-    st.header("⚙️ Mantenimiento de Usuarios")
+    st.title("⚙️ Mantenimiento de Usuarios")
 
-    with st.expander("➕ Crear Usuario"):
-        username_new = st.text_input("Usuario nuevo")
-        password_new = st.text_input("Contraseña", type="password")
-        nombre_new = st.text_input("Nombre")
-        rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
-        area_new = st.selectbox("Área", ["Ventas", "Finanzas", "Logística"])
-        trans_new = st.multiselect(
-            "Transacciones permitidas",
-            ["Dashboard", "Reporte", "Análisis"]
-        )
+    # 🔥 CONTENEDOR CENTRADO (tipo login)
+    col_izq, col_centro, col_der = st.columns([1,2,1])
 
-        if st.button("Guardar usuario"):
-            resultado = crear_usuario(username_new, password_new, nombre_new, rol_new, area_new, trans_new)
-            if resultado == True:
-                st.success("Usuario creado correctamente")
-            else:
-                st.error(f"Error: {resultado}")
+    with col_centro:
 
-    st.subheader("Usuarios registrados")
-    usuarios_df = obtener_usuarios()
+        # =========================
+        # ➕ CREAR USUARIO
+        # =========================
+        with st.expander("➕ Crear Usuario", expanded=False):
 
-    if not usuarios_df.empty:
-        st.dataframe(usuarios_df)
-        user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"])
-        if st.button("Desactivar usuario"):
-            desactivar_usuario(user_id)
-            st.warning("Usuario desactivado")
-    else:
-        st.info("No hay usuarios aún")
+            username_new = st.text_input("Usuario nuevo")
+            password_new = st.text_input("Contraseña", type="password")
+            nombre_new = st.text_input("Nombre")
 
-# ------------------------
-# DASHBOARD DE EJEMPLO CON CONTROL DE ACCESO
-# ------------------------
-if menu == "Dashboard":
+            rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
+            area_new = st.selectbox("Área", ["Ventas", "Finanzas", "Logística"])
 
-    # Ejemplo: dashboard de ventas
-    if not tiene_acceso("Ventas", "Dashboard"):
-        st.error("🚫 No tienes acceso a este módulo")
-        st.stop()
+            trans_new = st.multiselect(
+                "Transacciones permitidas",
+                ["Dashboard", "Reporte", "Análisis"]
+            )
 
-    st.title("📊 Dashboard de Ventas")
-    # Aquí iría tu código de gráficos, KPIs, etc.
-# ------------------------
-# DASHBOARD
-# ------------------------
+            if st.button("💾 Guardar usuario"):
+
+                if not username_new or not password_new:
+                    st.warning("Usuario y contraseña son obligatorios")
+
+                else:
+                    resultado = crear_usuario(
+                        username_new,
+                        password_new,
+                        nombre_new,
+                        rol_new,
+                        area_new,
+                        trans_new
+                    )
+
+                    if resultado == True:
+                        st.success("✅ Usuario creado correctamente")
+                    else:
+                        st.error(f"❌ Error: {resultado}")
+
+        # =========================
+        # 📋 LISTADO DE USUARIOS
+        # =========================
+        st.markdown("---")
+        st.subheader("📋 Usuarios registrados")
+
+        usuarios_df = obtener_usuarios()
+
+        if not usuarios_df.empty:
+
+            st.dataframe(usuarios_df, use_container_width=True)
+
+            # =========================
+            # ✏️ EDITAR USUARIO
+            # =========================
+            with st.expander("✏️ Editar Usuario"):
+
+                user_id_edit = st.selectbox(
+                    "Seleccionar usuario",
+                    usuarios_df["id"]
+                )
+
+                user_sel = usuarios_df[usuarios_df["id"] == user_id_edit].iloc[0]
+
+                nombre_edit = st.text_input("Nombre", value=user_sel["nombre"])
+                rol_edit = st.selectbox("Rol", ["Admin", "Usuario"], index=0 if user_sel["rol"]=="Admin" else 1)
+
+                area_edit = st.selectbox(
+                    "Área",
+                    ["Ventas", "Finanzas", "Logística"],
+                    index=["Ventas", "Finanzas", "Logística"].index(user_sel["area"]) if user_sel["area"] in ["Ventas", "Finanzas", "Logística"] else 0
+                )
+
+                trans_edit = st.multiselect(
+                    "Transacciones",
+                    ["Dashboard", "Reporte", "Análisis"],
+                    default=str(user_sel["transacciones"]).split(",") if user_sel["transacciones"] else []
+                )
+
+                if st.button("💾 Guardar cambios"):
+
+                    trans_str = ",".join(trans_edit)
+
+                    conn.execute("""
+                        UPDATE usuarios
+                        SET nombre=?, rol=?, area=?, transacciones=?
+                        WHERE id=?
+                    """, (nombre_edit, rol_edit, area_edit, trans_str, user_id_edit))
+
+                    conn.commit()
+
+                    st.success("✅ Usuario actualizado")
+
+            # =========================
+            # ❌ DESACTIVAR USUARIO
+            # =========================
+            with st.expander("❌ Desactivar Usuario"):
+
+                user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"], key="delete_user")
+
+                if st.button("🚫 Desactivar"):
+                    desactivar_usuario(user_id)
+                    st.warning("Usuario desactivado")
+
+        else:
+            st.info("No hay usuarios aún")
 # ------------------------
 # VISTAS
 # ------------------------
