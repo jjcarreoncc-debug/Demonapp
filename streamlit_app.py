@@ -269,10 +269,14 @@ with st.sidebar:
         st.write("COLUMNAS:", df_producto.columns)
         st.write("FILAS:", len(df_producto))
         st.dataframe(df_producto.head())
-            
+        if "Producto" in df_producto.columns:
+           producto_opciones = ["Todos"] + sorted(df_producto["Producto"].dropna().unique())
+        else:
+           st.error("❌ No existe la columna 'Producto'")
+           st.write("COLUMNAS:", df_producto.columns)
+           st.stop()    
                
-        producto_opciones = ["Todos"] + sorted(df_producto["Producto"].dropna().unique())
-        
+             
         
         if "Todos" in producto:
             producto = []
