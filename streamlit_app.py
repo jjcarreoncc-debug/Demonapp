@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-
 import plotly.express as px
 import sqlite3
 import streamlit_authenticator as stauth
@@ -46,7 +45,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre TEXT,
     rol TEXT,
     estado TEXT,
-    fecha_creacion TEXT
+    fecha_creacion TEXT,
+    area TEXT,
+    transacciones TEXT
 )
 """)
 conn.commit()
@@ -100,34 +101,6 @@ if authentication_status is None:
     st.stop()
 
 # ------------------------
-# SIDEBAR + MENÚ
-# ------------------------
-st.sidebar.title("📌 Navegación")
-st.sidebar.write(f"👋 Bienvenido {name}")
-authenticator.logout("Cerrar sesión", "sidebar")
-
-rol = "Admin" if username == "admin" else "Usuario"
-
-# 👇 estado inicial
-if "menu" not in st.session_state:
-    st.session_state.menu = "Inicio"
-
-# 👇 opciones
-if rol == "Admin":
-    opciones = ["Inicio", "Dashboard", "Mantenimiento"]
-else:
-    opciones = ["Inicio", "Dashboard"]
-        
-# 👇 radio controlado
-menu = st.sidebar.radio(
-    "Menú",
-    opciones,
-    index=opciones.index(st.session_state.menu)
-)
-
-# 👇 guardar selección
-st.session_state.menu = menu
-# ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
 def hash_password(password):
@@ -136,17 +109,20 @@ def hash_password(password):
 def obtener_usuarios():
     return pd.read_sql("SELECT * FROM usuarios", conn)
 
-def crear_usuario(username, password, nombre, rol):
+def crear_usuario(username, password, nombre, rol, area, transacciones):
     try:
+        trans_str = ",".join(transacciones)
         conn.execute("""
-        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion)
-        VALUES (?, ?, ?, ?, 'Activo', ?)
+        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion, area, transacciones)
+        VALUES (?, ?, ?, ?, 'Activo', ?, ?, ?)
         """, (
             username,
             hash_password(password),
             nombre,
             rol,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            area,
+            trans_str
         ))
         conn.commit()
         return True
@@ -158,7 +134,57 @@ def desactivar_usuario(user_id):
     conn.commit()
 
 # ------------------------
-# MANTENIMIENTO
+# USUARIO ACTUAL DESDE DB
+# ------------------------
+df_users = obtener_usuarios()
+
+usuario_actual = df_users[df_users["username"] == username]
+if not usuario_actual.empty:
+    usuario_actual = usuario_actual.iloc[0]
+else:
+    usuario_actual = None
+
+# ------------------------
+# FUNCIÓN DE PERMISOS
+# ------------------------
+def tiene_acceso(area, transaccion):
+    if usuario_actual is not None and usuario_actual["rol"] == "Admin":
+        return True
+    if usuario_actual is None:
+        return False
+    if usuario_actual["area"] != area:
+        return False
+    trans_user = str(usuario_actual["transacciones"]).split(",")
+    if transaccion in trans_user:
+        return True
+    return False
+
+# ------------------------
+# SIDEBAR + MENÚ
+# ------------------------
+st.sidebar.title("📌 Navegación")
+st.sidebar.write(f"👋 Bienvenido {name}")
+authenticator.logout("Cerrar sesión", "sidebar")
+
+rol = "Admin" if username == "admin" else "Usuario"
+
+if "menu" not in st.session_state:
+    st.session_state.menu = "Inicio"
+
+if rol == "Admin":
+    opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+else:
+    opciones = ["Inicio", "Dashboard"]
+
+menu = st.sidebar.radio(
+    "Menú",
+    opciones,
+    index=opciones.index(st.session_state.menu)
+)
+st.session_state.menu = menu
+
+# ------------------------
+# MANTENIMIENTO DE USUARIOS
 # ------------------------
 if menu == "Mantenimiento":
 
@@ -169,12 +195,16 @@ if menu == "Mantenimiento":
         password_new = st.text_input("Contraseña", type="password")
         nombre_new = st.text_input("Nombre")
         rol_new = st.selectbox("Rol", ["Admin", "Usuario"])
+        area_new = st.selectbox("Área", ["Ventas", "Finanzas", "Logística"])
+        trans_new = st.multiselect(
+            "Transacciones permitidas",
+            ["Dashboard", "Reporte", "Análisis"]
+        )
 
         if st.button("Guardar usuario"):
-            resultado = crear_usuario(username_new, password_new, nombre_new, rol_new)
-
+            resultado = crear_usuario(username_new, password_new, nombre_new, rol_new, area_new, trans_new)
             if resultado == True:
-                st.success("Usuario creado")
+                st.success("Usuario creado correctamente")
             else:
                 st.error(f"Error: {resultado}")
 
@@ -183,15 +213,25 @@ if menu == "Mantenimiento":
 
     if not usuarios_df.empty:
         st.dataframe(usuarios_df)
-
         user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"])
-
         if st.button("Desactivar usuario"):
             desactivar_usuario(user_id)
             st.warning("Usuario desactivado")
     else:
         st.info("No hay usuarios aún")
 
+# ------------------------
+# DASHBOARD DE EJEMPLO CON CONTROL DE ACCESO
+# ------------------------
+if menu == "Dashboard":
+
+    # Ejemplo: dashboard de ventas
+    if not tiene_acceso("Ventas", "Dashboard"):
+        st.error("🚫 No tienes acceso a este módulo")
+        st.stop()
+
+    st.title("📊 Dashboard de Ventas")
+    # Aquí iría tu código de gráficos, KPIs, etc.
 # ------------------------
 # DASHBOARD
 # ------------------------
