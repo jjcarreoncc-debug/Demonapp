@@ -252,6 +252,25 @@ elif menu == "Dashboard":
          # ✅ AQUÍ RECIÉN CREAS ESTOS CAMPOS
         df["Año"] = df["Fecha"].dt.year
         df["Mes"] = df["Fecha"].dt.month_name()
+        # =========================
+        # CREAR CAMPOS PARA FILTROS
+        # =========================
+        df["Año"] = df["Fecha"].dt.year
+        df["Mes"] = df["Fecha"].dt.month_name()
+ 
+        # =========================
+        # APLICAR FILTROS
+        # =========================
+df_filtrado = df.copy()
+
+if año:
+    df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+
+if mes:
+    df_filtrado = df_filtrado[df_filtrado["Mes"].isin(mes)]
+
+if producto:
+    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
 
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
