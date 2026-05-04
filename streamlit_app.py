@@ -9,6 +9,21 @@ from datetime import datetime
 from PIL import Image
 import base64
 
+# =========================
+# DATA
+# =========================
+import pandas as pd
+
+data = {
+    "Año": [2024, 2024, 2025, 2025],
+    "Mes": ["Enero", "Febrero", "Enero", "Marzo"],
+    "Producto": ["A", "B", "A", "C"],
+    "Ventas": [1000, 1500, 2000, 800],
+    "Stock": [50, 30, 40, 20]
+}
+
+df = pd.DataFrame(data)
+
 # ------------------------
 # CONFIG
 # ------------------------
@@ -212,7 +227,7 @@ with st.sidebar:
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
-
+    st.dataframe(df) 
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
     if archivo:
