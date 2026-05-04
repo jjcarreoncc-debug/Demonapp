@@ -290,10 +290,11 @@ with st.sidebar:
     # =========================
     # FILTROS SOLO EN DASHBOARD
     # =========================
-    if menu == "Dashboard":
-
-        st.markdown("---")
-        st.markdown("### 🎯 Filtros")
+    if st.session_state.menu != "Dashboard":
+        for key in ["filtro_año", "filtro_mes", "filtro_pais", "filtro_region", "filtro_producto"]:
+            st.session_state.pop(key, None)
+            st.markdown("---")
+            st.markdown("### 🎯 Filtros")
 
         # valores por defecto
         año = "Todos"
