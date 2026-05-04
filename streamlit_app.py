@@ -602,13 +602,22 @@ with st.sidebar:
                 fecha_min = df_temp["Fecha"].min()
                 fecha_max = df_temp["Fecha"].max()
 
-                fecha_ini, fecha_fin = st.date_input(
+                fechas = st.date_input(
                     "Selecciona fecha inicial y final",
                     value=(fecha_min, fecha_max),
                     min_value=fecha_min,
                     max_value=fecha_max
-                )
+                 )
 
+                # manejar correctamente el resultado
+                if isinstance(fechas, tuple):
+                    fecha_ini = fechas[0]
+                    fecha_fin = fechas[-1]
+                
+                    df = df[
+                        (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+                        (df["Fecha"] <= pd.to_datetime(fecha_fin))
+                    ]
                 st.session_state.fecha_ini = fecha_ini
                 st.session_state.fecha_fin = fecha_fin
 
@@ -646,17 +655,24 @@ else:
     st.warning("⚠️ El archivo no tiene columna 'Fecha'")
     fecha_min, fecha_max = None, None
     
-    fecha_ini, fecha_fin = st.date_input(
-        "Selecciona fecha inicial y final",
-        value=(fecha_min, fecha_max),
-        min_value=fecha_min,
-        max_value=fecha_max,
-        key="filtro_rango_fecha"
-    )
+    fechas = st.date_input(
+    "Selecciona fecha inicial y final",
+    value=(fecha_min, fecha_max),
+    min_value=fecha_min,
+    max_value=fecha_max,
+    key="filtro_rango_fecha"
+)
 
-    df = df[(df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-            (df["Fecha"] <= pd.to_datetime(fecha_fin))]
+# validar rango
+if isinstance(fechas, tuple) and len(fechas) == 2:
+    fecha_ini, fecha_fin = fechas
 
+    df = df[
+        (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
+        (df["Fecha"] <= pd.to_datetime(fecha_fin))
+    ]
+else:
+    st.warning("⚠️ Selecciona ambas fechas")
     # recalcular Periodo
     df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
 
