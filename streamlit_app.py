@@ -721,13 +721,15 @@ else:
 )
 
 # validar rango
-if isinstance(fechas, tuple) and len(fechas) == 2:
-    fecha_ini, fecha_fin = fechas
+fecha_ini, fecha_fin = st.date_input(
+    "Selecciona fecha inicial y final",
+    value=(fecha_min, fecha_max),
+    min_value=fecha_min,
+    max_value=fecha_max
+)
 
-    df = df[
-        (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-        (df["Fecha"] <= pd.to_datetime(fecha_fin))
-    ]
+df = df[(df["FECHA"] >= pd.to_datetime(fecha_ini)) &
+        (df["FECHA"] <= pd.to_datetime(fecha_fin))]
 else:
     st.warning("⚠️ Selecciona ambas fechas")
     # recalcular Periodo
