@@ -348,15 +348,14 @@ with st.sidebar:
             )
             # PRODUCTO
             df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
-            
             # =========================
-            # PRODUCTO (SIN ROJOS)
-            # =========================
-            col_producto = next((c for c in df.columns if "producto" in c.lower()), None)
+# PRODUCTO (CORRECTO)
+# =========================
+            col_producto = next((c for c in df_producto.columns if "producto" in c.lower()), None)
             
             if col_producto:
             
-                opciones_producto = sorted(df[col_producto].dropna().astype(str).unique())
+                opciones_producto = sorted(df_producto[col_producto].dropna().astype(str).unique())
             
                 st.multiselect(
                     "📦 Producto",
@@ -365,14 +364,15 @@ with st.sidebar:
                     key="filtro_producto"
                 )
             
-                # aplicar filtro solo si hay selección
                 producto = st.session_state.get("filtro_producto", [])
             
+                # aplicar filtro sobre df_temp (flujo correcto)
                 if producto:
-                    df = df[df[col_producto].astype(str).isin(producto)]
+                    df_temp = df_temp[df_temp[col_producto].astype(str).isin(producto)]
             
             else:
                 st.warning("⚠️ No se encontró columna de producto")
+            
 # =========================
 # INICIO
 # =========================
