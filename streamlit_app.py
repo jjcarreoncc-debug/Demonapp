@@ -255,32 +255,35 @@ with st.sidebar:
 
     authenticator.logout("Cerrar sesión", "sidebar")
 
+    # ------------------------
+    # ROL
+    # ------------------------
     rol = "Admin" if username == "admin" else "Usuario"
-    
+
     # ------------------------
-    # MENU
+    # OPCIONES
     # ------------------------
-    st.session_state.menu = menu
+    if rol == "Admin":
+        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+    else:
+        opciones = ["Inicio", "Dashboard"]
+
+    # ------------------------
+    # INICIALIZAR MENU
+    # ------------------------
     if "menu" not in st.session_state:
         st.session_state.menu = "Inicio"
 
+    # ------------------------
+    # MENU
+    # ------------------------
     menu = st.radio(
         "Menú",
         opciones,
         index=opciones.index(st.session_state.menu)
     )
 
-    
-   
-    if rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
-    else:
-        opciones = ["Inicio", "Dashboard"]
-
-    
-
     st.session_state.menu = menu
-
     # =========================
     # FILTROS SOLO EN DASHBOARD
     # =========================
