@@ -57,11 +57,6 @@ div[data-baseweb="select"] * {
 </style>
 """, unsafe_allow_html=True)
 
-menu = st.radio(
-    "Menú",
-    opciones,
-    index=opciones.index(st.session_state.menu)
-)
 
 st.session_state.menu = menu
 # ------------------------
@@ -259,6 +254,20 @@ with st.sidebar:
     authenticator.logout("Cerrar sesión", "sidebar")
 
     rol = "Admin" if username == "admin" else "Usuario"
+    
+    # ------------------------
+    # MENU
+    # ------------------------
+    if "menu" not in st.session_state:
+        st.session_state.menu = "Inicio"
+
+    menu = st.radio(
+        "Menú",
+        opciones,
+        index=opciones.index(st.session_state.menu)
+    )
+
+    st.session_state.menu = menu
 
     if "menu" not in st.session_state:
         st.session_state.menu = "Inicio"
