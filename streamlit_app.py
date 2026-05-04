@@ -616,8 +616,8 @@ with st.sidebar:
             )
             df = df[df["Tipo_cliente"].isin(tipo_cliente)]
 
-      else:
-          st.info("📂 Carga un archivo en Inicio para habilitar filtros")
+    else:
+        st.info("📂 Carga un archivo en Inicio para habilitar filtros")
    
 
     # ------------------------
