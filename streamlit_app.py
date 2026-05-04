@@ -171,19 +171,16 @@ else:
 # ------------------------
 # SIDEBAR
 # ------------------------
-# =========================
-# PAÍS
-# =========================
-
-    st.title("📌 Navegación")
-    st.write(f"👋 Bienvenido {name}")
-
+# ------------------------
+# SIDEBAR
+# ------------------------
 with st.sidebar:
+
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
 
     st.markdown("---")
-    
+
     authenticator.logout("Cerrar sesión", "sidebar")
 
     rol = "Admin" if username == "admin" else "Usuario"
@@ -201,121 +198,69 @@ with st.sidebar:
         opciones,
         index=opciones.index(st.session_state.menu)
     )
-    # =========================
-    # PAÍS
-    # =========================
-    pais = st.selectbox(
-        "🌎 País",
-        ["Todos", "Colombia", "Perú", "Chile"]
-     )   
 
     st.session_state.menu = menu
 
     # =========================
-    # FILTROS
+    # FILTROS SOLO EN DASHBOARD
     # =========================
-    st.markdown("---")
-    st.markdown("### 🎯 Filtros")
-    
-    # valores por defecto
-    año = "Todos"
-    mes = "Todos"
-    region = "Todos"
-    producto = []
+    if menu == "Dashboard":
 
-    if "archivo" in st.session_state:
+        st.markdown("---")
+        st.markdown("### 🎯 Filtros")
 
-        df_temp = pd.read_excel(st.session_state.archivo)
-        df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
-        df_temp = df_temp.dropna(subset=["Fecha"])
+        # valores por defecto
+        año = "Todos"
+        mes = "Todos"
+        pais = "Todos"
+        region = "Todos"
+        producto = []
 
-        df_temp["Año"] = df_temp["Fecha"].dt.year
-        df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
+        if "archivo" in st.session_state:
 
-        # =========================
-        # AÑO
-        # =========================
-        año_opciones = ["Todos"] + sorted(df_temp["Año"].unique())
-        año = st.selectbox("📅 Año", año_opciones)
+            df_temp = pd.read_excel(st.session_state.archivo)
+            df_temp.columns = df_temp.columns.str.strip()
 
-        # =========================
-        # MES
-        # =========================
-        mes_opciones = ["Todos"] + sorted(df_temp["Mes"].unique())
-        mes = st.selectbox("📆 Mes", mes_opciones)
-        # =========================
-        # PAÍS
-        # =========================
-        pais_opciones = ["Todos"] + sorted(df_temp["Pais"].dropna().unique())
-        pais = st.selectbox("🌎 País", pais_opciones)
-        
-        # =========================
-        # REGIÓN (depende de país)
-        # =========================
-        if pais != "Todos":
-            df_region = df_temp[df_temp["Pais"] == pais]
+            df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
+            df_temp = df_temp.dropna(subset=["Fecha"])
+
+            df_temp["Año"] = df_temp["Fecha"].dt.year
+            df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
+
+            # AÑO
+            año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()), key="año")
+
+            # MES
+            mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
+
+            # PAÍS
+            pais = st.selectbox(
+                "🌎 País",
+                ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
+                key="pais"
+            )
+
+            # REGIÓN
+            df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
+
+            region = st.selectbox(
+                "📍 Región",
+                ["Todos"] + sorted(df_region["Region"].dropna().unique()),
+                key="region"
+            )
+
+            # PRODUCTO
+            df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
+
+            producto_opciones = ["Todos"] + sorted(df_producto["Nombre_Producto"].dropna().unique())
+
+            producto = st.multiselect("Producto", producto_opciones, key="producto")
+
+            if "Todos" in producto:
+                producto = []
+
         else:
-            df_region = df_temp
-        
-        region_opciones = ["Todos"] + sorted(df_region["Region"].dropna().unique())
-        region = st.selectbox("📍 Región", region_opciones)
-        
-        # =========================
-        # PRODUCTO (depende de región)
-        # =========================
-        if region != "Todos":
-            df_producto = df_region[df_region["Region"] == region]
-        else:
-            df_producto = df_region
-        st.write("COLUMNAS:", df_producto.columns)
-        st.write("FILAS:", len(df_producto))
-        st.dataframe(df_producto.head())
-        if "Producto" in df_producto.columns:
-           producto_opciones = ["Todos"] + sorted(df_producto["Producto"].dropna().unique())
-        else:
-           st.error("❌ No existe la columna 'Producto'")
-           st.write("COLUMNAS:", df_producto.columns)
-           st.stop()    
-               
-             
-        
-        if "Todos" in producto:
-            producto = []
-            
-            
-
-        # Normalizar
-        if "Todos" in producto:
-            producto = []
-
-    else:
-        st.info("📂 Carga un archivo para activar filtros")
-    
-#####
-#FILTRADO PAIS , REGION, PRODUCTO
-#####
-if año != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Año"] == año]
-
-if mes != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
-
-if pais != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
-
-if producto:
-    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
-    df_filtrado = df.copy()
-
-if pais != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
-
-if region != "Todos":
-    df_filtrado = df_filtrado[df_filtrado["Region"] == region]
-
-if producto:
-    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]    
-
+            st.info("📂 Carga un archivo para activar filtros")
 # =========================
 # INICIO
 # =========================
