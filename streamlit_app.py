@@ -292,19 +292,19 @@ with st.sidebar:
     # FILTROS SOLO EN DASHBOARD
     # =========================
     # ------------------------
-# LIMPIAR FILTROS (solo cuando sales)
-# ------------------------
-if st.session_state.menu != "Dashboard":
-    for key in ["filtro_año", "filtro_mes", "filtro_pais", "filtro_region", "filtro_producto"]:
-        st.session_state.pop(key, None)
+    # LIMPIAR FILTROS (solo cuando sales)
+    # ------------------------
+    if st.session_state.menu != "Dashboard":
+       for key in ["filtro_año", "filtro_mes", "filtro_pais", "filtro_region", "filtro_producto"]:
+           st.session_state.pop(key, None)
 
-# ------------------------
-# MOSTRAR FILTROS (solo en dashboard)
-# ------------------------
-if st.session_state.menu == "Dashboard":
+    # ------------------------
+    # MOSTRAR FILTROS (solo en dashboard)
+    # ------------------------
+   if st.session_state.menu == "Dashboard":
 
-    st.markdown("---")
-    st.markdown("### 🎯 Filtros")
+       st.markdown("---")
+       st.markdown("### 🎯 Filtros")
 
         # valores por defecto
         año = "Todos"
