@@ -694,51 +694,8 @@ if 'df' not in locals() or df is None:
 # LIMPIAR NOMBRES DE COLUMNAS
 # ------------------------
 df.columns = df.columns.str.strip()
-##########################
-# VALIDAR FECHA
+
 # ------------------------
-if "Fecha" in df.columns:
-
-    df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
-
-    if df["Fecha"].notna().any():
-        fecha_min = df["Fecha"].min()
-        fecha_max = df["Fecha"].max()
-    else:
-        st.warning("⚠️ La columna Fecha no tiene valores válidos")
-        fecha_min, fecha_max = None, None
-
-else:
-    st.warning("⚠️ El archivo no tiene columna 'Fecha'")
-    fecha_min, fecha_max = None, None
-    
-    fechas = st.date_input(
-    "Selecciona fecha inicial y final",
-    value=(fecha_min, fecha_max),
-    min_value=fecha_min,
-    max_value=fecha_max,
-    key="filtro_rango_fecha"
-)
-
-# validar rango
-fecha_ini, fecha_fin = st.date_input(
-    "Selecciona fecha inicial y final",
-    value=(fecha_min, fecha_max),
-    min_value=fecha_min,
-    max_value=fecha_max
-)
-
-df = df[(df["FECHA"] >= pd.to_datetime(fecha_ini)) &
-        (df["FECHA"] <= pd.to_datetime(fecha_fin))]
-else:
-    st.warning("⚠️ Selecciona ambas fechas")
-    # recalcular Periodo
-    df["Periodo"] = df["Fecha"].dt.to_period("M").astype(str)
-
-    st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
-    st.divider()
-
-    # ------------------------
     # NAVEGACIÓN
     # ------------------------
 
@@ -747,7 +704,50 @@ with st.sidebar:
     st.divider()
     #st.markdown("### 🎯 Filtros")
     
-    if st.button("📊 Principal", key="nav_principal"):
+    if st.button("📊 Principal", key="nav_principal"):# =========================
+# FILTRO DE FECHA (CORRECTO)
+# =========================
+
+if "FECHA" in df.columns:
+
+    df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
+    df = df.dropna(subset=["FECHA"])
+
+    if not df["FECHA"].empty:
+
+        fecha_min = df["FECHA"].min()
+        fecha_max = df["FECHA"].max()
+
+        # 👇 SOLO UN date_input
+        fecha_ini, fecha_fin = st.date_input(
+            "📅 Selecciona fecha inicial y final",
+            value=(fecha_min, fecha_max),
+            min_value=fecha_min,
+            max_value=fecha_max
+        )
+
+        # 👇 VALIDAR QUE EXISTAN
+        if fecha_ini and fecha_fin:
+
+            df = df[
+                (df["FECHA"] >= pd.to_datetime(fecha_ini)) &
+                (df["FECHA"] <= pd.to_datetime(fecha_fin))
+            ]
+
+            # recalcular periodo
+            df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
+
+            st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
+            st.divider()
+
+        else:
+            st.warning("⚠️ Selecciona ambas fechas")
+
+    else:
+        st.warning("⚠️ La columna FECHA no tiene valores válidos")
+
+else:
+    st.warning("⚠️ El archivo no tiene columna FECHA")
         st.session_state.vista = "principal"
 
     if st.button("🚦 Volatilidad", key="nav_volatilidad"):
