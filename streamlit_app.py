@@ -269,8 +269,10 @@ with st.sidebar:
         st.write("COLUMNAS:", df_producto.columns)
         st.write("FILAS:", len(df_producto))
         st.dataframe(df_producto.head())
+            
+               
         producto_opciones = ["Todos"] + sorted(df_producto["Producto"].dropna().unique())
-        producto = st.multiselect("Producto", producto_opciones)
+        
         
         if "Todos" in producto:
             producto = []
