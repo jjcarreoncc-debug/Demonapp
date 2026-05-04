@@ -216,7 +216,7 @@ with st.sidebar:
     # =========================
     st.markdown("---")
     st.markdown("### 🎯 Filtros")
-    st.write(df_producto.columns)
+    
     # valores por defecto
     año = "Todos"
     mes = "Todos"
@@ -247,7 +247,7 @@ with st.sidebar:
         # =========================
         pais_opciones = ["Todos"] + sorted(df_temp["Pais"].dropna().unique())
         pais = st.selectbox("🌎 País", pais_opciones)
-        
+        st.write(df_producto.columns)
         # =========================
         # REGIÓN (depende de país)
         # =========================
