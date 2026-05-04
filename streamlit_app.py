@@ -171,6 +171,13 @@ else:
 # ------------------------
 # SIDEBAR
 # ------------------------
+# =========================
+# PAÍS
+# =========================
+pais = st.selectbox(
+    "🌎 País",
+    ["Todos", "Colombia", "Perú", "Chile"]
+)
 with st.sidebar:
 
     st.title("📌 Navegación")
