@@ -1,8 +1,25 @@
-# ------------------------
-# SIDEBAR BACKGROUND (PRO)
-# ------------------------
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import sqlite3
+import streamlit_authenticator as stauth
+from streamlit_authenticator import Hasher
+import hashlib
+from datetime import datetime
+from PIL import Image
 import base64
 
+# ------------------------
+# CONFIG
+# ------------------------
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
+
+# ------------------------
+# SIDEBAR BACKGROUND
+# ------------------------
 def set_sidebar_bg(img_path):
     with open(img_path, "rb") as f:
         img_data = base64.b64encode(f.read()).decode()
@@ -14,6 +31,7 @@ def set_sidebar_bg(img_path):
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        position: relative;
     }}
 
     [data-testid="stSidebar"]::before {{
@@ -24,7 +42,7 @@ def set_sidebar_bg(img_path):
         z-index: 0;
     }}
 
-    [data-testid="stSidebar"] * {{
+    [data-testid="stSidebar"] > div {{
         position: relative;
         z-index: 1;
     }}
@@ -32,84 +50,167 @@ def set_sidebar_bg(img_path):
     """, unsafe_allow_html=True)
 
 set_sidebar_bg("imagen8.png")
-# =========================
-        # 📋 LISTADO DE USUARIOS
-        # =========================
-        st.markdown("---")
-        st.subheader("📋 Usuarios registrados")
 
-        usuarios_df = obtener_usuarios()
-
-        if not usuarios_df.empty:
-
-            st.dataframe(usuarios_df, use_container_width=True)
-
-            # =========================
-            # ✏️ EDITAR USUARIO
-            # =========================
-            with st.expander("✏️ Editar Usuario"):
-
-                user_id_edit = st.selectbox(
-                    "Seleccionar usuario",
-                    usuarios_df["id"]
-                )
-
-                user_sel = usuarios_df[usuarios_df["id"] == user_id_edit].iloc[0]
-
-                nombre_edit = st.text_input("Nombre", value=user_sel["nombre"])
-                rol_edit = st.selectbox(
-                    "Rol",
-                    ["Admin", "Usuario"],
-                    index=0 if user_sel["rol"] == "Admin" else 1
-                )
-
-                area_edit = st.selectbox(
-                    "Área",
-                    ["Ventas", "Finanzas", "Logística"],
-                    index=["Ventas", "Finanzas", "Logística"].index(user_sel["area"])
-                    if user_sel["area"] in ["Ventas", "Finanzas", "Logística"] else 0
-                )
-
-                trans_edit = st.multiselect(
-                    "Transacciones",
-                    ["Dashboard", "Reporte", "Análisis"],
-                    default=str(user_sel["transacciones"]).split(",")
-                    if user_sel["transacciones"] else []
-                )
-
-                if st.button("💾 Guardar cambios"):
-
-                    trans_str = ",".join(trans_edit)
-
-                    conn.execute("""
-                        UPDATE usuarios
-                        SET nombre=?, rol=?, area=?, transacciones=?
-                        WHERE id=?
-                    """, (nombre_edit, rol_edit, area_edit, trans_str, user_id_edit))
-
-                    conn.commit()
-
-                    st.success("✅ Usuario actualizado")
-
-            # =========================
-            # ❌ DESACTIVAR USUARIO
-            # =========================
-            with st.expander("❌ Desactivar Usuario"):
-
-                user_id = st.selectbox(
-                    "Seleccionar usuario ID",
-                    usuarios_df["id"],
-                    key="delete_user"
-                )
-
-                if st.button("🚫 Desactivar"):
-                    desactivar_usuario(user_id)
-                    st.warning("Usuario desactivado")
-
-        else:
-            st.info("No hay usuarios aún")# ------------------------
-# VISTAS
 # ------------------------
+# BASE DE DATOS
+# ------------------------
+conn = sqlite3.connect("data.db", check_same_thread=False)
+
+conn.execute("""
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    nombre TEXT,
+    rol TEXT,
+    estado TEXT,
+    fecha_creacion TEXT,
+    area TEXT,
+    transacciones TEXT
+)
+""")
+conn.commit()
+
+# ------------------------
+# LOGIN CONFIG
+# ------------------------
+passwords = ["1234", "abcd"]
+hashed_passwords = Hasher(passwords).generate()
+
+credentials = {
+    "usernames": {
+        "admin": {"name": "Admin", "password": hashed_passwords[0]},
+        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
+    }
+}
+
+authenticator = stauth.Authenticate(
+    credentials,
+    "mi_dashboard",
+    "abcdef",
+    cookie_expiry_days=1
+)
+
+# ------------------------
+# LOGO
+# ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+
+# ------------------------
+# LOGIN
+# ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    name, authentication_status, username = authenticator.login("Login", location="main")
+
+# ------------------------
+# CONTROL LOGIN
+# ------------------------
+if authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+    st.stop()
+
+if authentication_status is None:
+    col1, col2 = st.columns([2,6])
+    with col2:
+        img = Image.open("imagen7.png")
+        st.image(img, width=2000)
+    st.stop()
+
+# ------------------------
+# FUNCIONES USUARIOS
+# ------------------------
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def obtener_usuarios():
+    return pd.read_sql("SELECT * FROM usuarios", conn)
+
+def crear_usuario(username, password, nombre, rol, area, transacciones):
+    try:
+        trans_str = ",".join(transacciones)
+        conn.execute("""
+        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion, area, transacciones)
+        VALUES (?, ?, ?, ?, 'Activo', ?, ?, ?)
+        """, (
+            username,
+            hash_password(password),
+            nombre,
+            rol,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            area,
+            trans_str
+        ))
+        conn.commit()
+        return True
+    except Exception as e:
+        return str(e)
+
+def desactivar_usuario(user_id):
+    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
+    conn.commit()
+
+# ------------------------
+# USUARIO ACTUAL
+# ------------------------
+df_users = obtener_usuarios()
+
+usuario_actual = df_users[df_users["username"] == username]
+if not usuario_actual.empty:
+    usuario_actual = usuario_actual.iloc[0]
+else:
+    usuario_actual = None
+
+# ------------------------
+# PERMISOS
+# ------------------------
+def tiene_acceso(area, transaccion):
+    if usuario_actual is not None and usuario_actual["rol"] == "Admin":
+        return True
+    if usuario_actual is None:
+        return False
+    if usuario_actual["area"] != area:
+        return False
+    trans_user = str(usuario_actual["transacciones"]).split(",")
+    return transaccion in trans_user
+
+# ------------------------
+# SIDEBAR
+# ------------------------
+with st.sidebar:
+
+    st.title("📌 Navegación")
+    st.write(f"👋 Bienvenido {name}")
+
+    st.markdown("---")
+
+    authenticator.logout("Cerrar sesión", "sidebar")
+
+    rol = "Admin" if username == "admin" else "Usuario"
+
+    if "menu" not in st.session_state:
+        st.session_state.menu = "Inicio"
+
+    if rol == "Admin":
+        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+    else:
+        opciones = ["Inicio", "Dashboard"]
+
+    menu = st.radio(
+        "Menú",
+        opciones,
+        index=opciones.index(st.session_state.menu)
+    )
+
+    st.session_state.menu = menu
+
+# =========================
+# INICIO
+# =========================
+if menu == "Inicio":
+       
 
 if menu == "Inicio":
 
