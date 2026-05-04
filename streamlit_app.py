@@ -505,7 +505,7 @@ if "archivo" in st.session_state:
 with st.sidebar:
 
     st.divider()
-    #st.markdown("### 🎯 Filtros")
+    
 
     # 👇 usar df SOLO si existe archivo
     if "archivo" in st.session_state:
