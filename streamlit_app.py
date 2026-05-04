@@ -191,7 +191,7 @@ if menu == "Mantenimiento":
     st.markdown("### ⚙️ Mantenimiento de Usuarios")
 
     # CONTENEDOR CENTRADO
-
+    col_img, col_form = st.columns([1,2])
     col_izq, col_centro, col_der = st.columns([1,3,1])
 
     with col_img:
