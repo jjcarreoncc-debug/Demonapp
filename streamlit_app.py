@@ -349,8 +349,8 @@ with st.sidebar:
             # PRODUCTO
             df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
             # =========================
-# PRODUCTO (CORRECTO)
-# =========================
+            # PRODUCTO (CORRECTO)
+            # =========================
             col_producto = next((c for c in df_producto.columns if "producto" in c.lower()), None)
             
             if col_producto:
@@ -365,7 +365,8 @@ with st.sidebar:
                 )
             
                 producto = st.session_state.get("filtro_producto", [])
-            
+                if producto != "Todos":
+                   df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
                 # aplicar filtro sobre df_temp (flujo correcto)
                 if producto:
                     df_temp = df_temp[df_temp[col_producto].astype(str).isin(producto)]
