@@ -343,9 +343,9 @@ with st.sidebar:
             region = st.selectbox(
                 "📍 Región",
                 ["Todos"] + sorted(df_region["Region"].dropna().unique()),
-                key="region"
+                key="filtro_region"
             )
-
+    
             # PRODUCTO
             df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
 
