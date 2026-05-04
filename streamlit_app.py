@@ -349,20 +349,30 @@ with st.sidebar:
             # PRODUCTO
             df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
             
-            producto_opciones = ["Todos"] + sorted(df_producto["Nombre_Producto"].dropna().unique())
+            # =========================
+            # PRODUCTO (SIN ROJOS)
+            # =========================
+            col_producto = next((c for c in df.columns if "producto" in c.lower()), None)
             
-            st.multiselect(
-                "Producto",
-                producto_opciones,
-                key="filtro_producto"
-            )
-
-            if "Todos" in st.session_state.get("filtro_producto", []):
-                st.session_state["filtro_producto"] = []
-
-              
-        else:
-            st.info("📂 Carga un archivo para activar filtros")
+            if col_producto:
+            
+                opciones_producto = sorted(df[col_producto].dropna().astype(str).unique())
+            
+                st.multiselect(
+                    "📦 Producto",
+                    options=opciones_producto,
+                    default=opciones_producto,
+                    key="filtro_producto"
+                )
+            
+                # aplicar filtro solo si hay selección
+                producto = st.session_state.get("filtro_producto", [])
+            
+                if producto:
+                    df = df[df[col_producto].astype(str).isin(producto)]
+            
+            else:
+                st.warning("⚠️ No se encontró columna de producto")
 # =========================
 # INICIO
 # =========================
