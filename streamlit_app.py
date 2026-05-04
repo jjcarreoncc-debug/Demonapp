@@ -387,9 +387,9 @@ elif menu == "Dashboard":
         df_filtrado["Ventas"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Precio_Venta"]
         df_filtrado["Costos"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Costos_Venta"]
         df_filtrado["Ganancia"] = df_filtrado["Ventas"] - df_filtrado["Costos"]
-
+        df_filtrado["Ventas"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Precio_Venta"]
         col1, col2, col3 = st.columns(3)
-
+        st.write(df_filtrado[["Ventas_Cantidad", "Precio_Venta", "Ventas"]].head())
         col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
