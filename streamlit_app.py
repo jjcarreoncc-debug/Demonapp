@@ -259,11 +259,11 @@ with st.sidebar:
     # ROL
     # ------------------------
     rol = "Admin" if username == "admin" else "Usuario"
-
+    st.session_state.rol = rol
     # ------------------------
     # OPCIONES
     # ------------------------
-    if rol == "Admin":
+    if st.session_state.rol != "Admin":
         opciones = ["Inicio", "Dashboard", "Mantenimiento"]
     else:
         opciones = ["Inicio", "Dashboard"]
