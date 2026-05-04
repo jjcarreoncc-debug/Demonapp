@@ -532,98 +532,109 @@ if "archivo" in st.session_state:
 with st.sidebar:
 
     st.divider()
-    
 
-    # 👇 usar df SOLO si existe archivo
     if "archivo" in st.session_state:
 
-        df = pd.read_excel(st.session_state.archivo)
-        df.columns = df.columns.str.strip()
+        df_temp = pd.read_excel(st.session_state.archivo)
+        df_temp.columns = df_temp.columns.str.strip()
+        df_temp.columns = df_temp.columns.str.upper()
 
+        # =========================
         # PAÍS
-        # PAÍS
-    col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
-    
-    if col_pais:
-    
-        # 🔥 1. ASEGURAR OPCIONES (AQUÍ VA)
-        opciones_pais = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
-    
-        # 🔥 2. LIMPIAR ESTADO SI VENÍA DE MULTISELECT
-        if isinstance(st.session_state.get("filtro_pais"), list):
-            st.session_state["filtro_pais"] = "Todos"
-    
-        # 🔥 3. SELECTBOX
-        pais = st.selectbox(
-            "🌎 País",
-            options=opciones_pais,
-            key="filtro_pais"
-        )
-    
-        # 🔥 4. FILTRO
-        if pais != "Todos":
-            df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
-    
-    else:
-        st.warning("⚠️ No se encontró columna de país")
+        # =========================
+        col_pais = next((c for c in df_temp.columns if "PAIS" in c), None)
+
+        if col_pais:
+            opciones_pais = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
+
+            if isinstance(st.session_state.get("filtro_pais"), list):
+                st.session_state["filtro_pais"] = "Todos"
+
+            pais = st.selectbox("🌎 País", opciones_pais, key="filtro_pais")
+
+            if pais != "Todos":
+                df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
+
+        # =========================
         # REGIÓN
-        if "Region" in df.columns:
-            region = st.multiselect(
-                "Región",
-                sorted(df["Region"].dropna().unique()),
-                default=sorted(df["Region"].dropna().unique()),
-                key="filtro_region"
-            )
-            df = df[df["Region"].isin(region)]
-        else:
-            st.warning("⚠️ No se encontró columna de país")
+        # =========================
+        if "REGION" in df_temp.columns:
+
+            opciones_region = ["Todos"] + sorted(df_temp["REGION"].dropna().astype(str).unique())
+
+            if isinstance(st.session_state.get("filtro_region"), list):
+                st.session_state["filtro_region"] = "Todos"
+
+            region = st.selectbox("📍 Región", opciones_region, key="filtro_region")
+
+            if region != "Todos":
+                df_temp = df_temp[df_temp["REGION"].astype(str) == region]
+
+        # =========================
         # PRODUCTO
-        if "Producto" in df.columns:
-            producto = st.multiselect(
-                "Producto",
-                sorted(df["Producto"].dropna().unique()),
-                default=sorted(df["Producto"].dropna().unique()),
-                key="filtro_producto"
-            )
-            df = df[df["Producto"].isin(producto)]
-        else:
-            st.warning("⚠️ No se encontró columna de país")  
+        # =========================
+        if "PRODUCTO" in df_temp.columns:
+
+            opciones_producto = ["Todos"] + sorted(df_temp["PRODUCTO"].dropna().astype(str).unique())
+
+            if isinstance(st.session_state.get("filtro_producto"), list):
+                st.session_state["filtro_producto"] = "Todos"
+
+            producto = st.selectbox("📦 Producto", opciones_producto, key="filtro_producto")
+
+            if producto != "Todos":
+                df_temp = df_temp[df_temp["PRODUCTO"].astype(str) == producto]
+
+        # =========================
         # CANAL
-        if "Canal" in df.columns:
-            canal = st.multiselect(
-                "Canal",
-                sorted(df["Canal"].dropna().unique()),
-                default=sorted(df["Canal"].dropna().unique()),
-                key="filtro_canal"
-            )
-            df = df[df["Canal"].isin(canal)]
-        else:
-            st.warning("⚠️ No se encontró columna de país")
+        # =========================
+        if "CANAL" in df_temp.columns:
+
+            opciones_canal = ["Todos"] + sorted(df_temp["CANAL"].dropna().astype(str).unique())
+
+            if isinstance(st.session_state.get("filtro_canal"), list):
+                st.session_state["filtro_canal"] = "Todos"
+
+            canal = st.selectbox("📡 Canal", opciones_canal, key="filtro_canal")
+
+            if canal != "Todos":
+                df_temp = df_temp[df_temp["CANAL"].astype(str) == canal]
+
+        # =========================
         # VENDEDOR
-        if "Vendedor_Ruta" in df.columns:
-            vendedor = st.multiselect(
-                "Vendedor",
-                sorted(df["Vendedor_Ruta"].dropna().unique()),
-                default=sorted(df["Vendedor_Ruta"].dropna().unique()),
-                key="filtro_vendedor"
-            )
-            df = df[df["Vendedor_Ruta"].isin(vendedor)]
-        else:
-            st.warning("⚠️ No se encontró columna de país")
+        # =========================
+        if "VENDEDOR_RUTA" in df_temp.columns:
+
+            opciones_vendedor = ["Todos"] + sorted(df_temp["VENDEDOR_RUTA"].dropna().astype(str).unique())
+
+            if isinstance(st.session_state.get("filtro_vendedor"), list):
+                st.session_state["filtro_vendedor"] = "Todos"
+
+            vendedor = st.selectbox("👤 Vendedor", opciones_vendedor, key="filtro_vendedor")
+
+            if vendedor != "Todos":
+                df_temp = df_temp[df_temp["VENDEDOR_RUTA"].astype(str) == vendedor]
+
+        # =========================
         # TIPO CLIENTE
-        if "Tipo_cliente" in df.columns:
-            tipo_cliente = st.multiselect(
-                "Tipo cliente",
-                sorted(df["Tipo_cliente"].dropna().unique()),
-                default=sorted(df["Tipo_cliente"].dropna().unique()),
-                key="filtro_tipo_cliente"
-            )
-            df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-        else:
-            st.warning("⚠️ No se encontró columna de país")
+        # =========================
+        if "TIPO_CLIENTE" in df_temp.columns:
+
+            opciones_tipo = ["Todos"] + sorted(df_temp["TIPO_CLIENTE"].dropna().astype(str).unique())
+
+            if isinstance(st.session_state.get("filtro_tipo_cliente"), list):
+                st.session_state["filtro_tipo_cliente"] = "Todos"
+
+            tipo_cliente = st.selectbox("🧑‍💼 Tipo cliente", opciones_tipo, key="filtro_tipo_cliente")
+
+            if tipo_cliente != "Todos":
+                df_temp = df_temp[df_temp["TIPO_CLIENTE"].astype(str) == tipo_cliente]
+
+        # 🔥 guardar resultado final
+        st.session_state["df_filtrado"] = df_temp
+
     else:
-        st.info("📂 Carga un archivo en Inicio para habilitar filtros")
-   
+        st.info("📂 Carga un archivo en Inicio para habilitar filtros")   
 
     # ------------------------
     # RANGO DE FECHAS
