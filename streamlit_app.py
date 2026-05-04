@@ -193,21 +193,18 @@ if menu == "Mantenimiento":
     # CONTENEDOR CENTRADO
 
     col_izq, col_centro, col_der = st.columns([1,3,1])
-    with col_centro:
-        # 🔥 DIVISIÓN INTERNA
-        col_form, col_img = st.columns([1,2])
-        # =========================
-        # 🖼️ IMAGEN DE PRUEBA
-        # =========================
-        st.image("imagen8.png", use_container_width=True)
 
-        st.markdown("---")
-
+    with col_img:
+        from PIL import Image
+        img = Image.open("imagen8.png")
+        st.image(img, use_container_width=True)
+        
         # =========================
         # ➕ CREAR USUARIO
         # =========================
+     with col_form:
         with st.expander("➕ Crear Usuario", expanded=False):
-
+            st.write("Formulario aquí")
             username_new = st.text_input("Usuario nuevo")
             password_new = st.text_input("Contraseña", type="password")
             nombre_new = st.text_input("Nombre")
