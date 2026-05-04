@@ -168,6 +168,7 @@ if not usuario_actual.empty:
     usuario_actual = usuario_actual.iloc[0]
 else:
     usuario_actual = None
+    
 # =========================
 # MANTENIMIENTO
 # =========================
@@ -237,7 +238,9 @@ elif menu == "Mantenimiento":
             u for u in usuarios if u["usuario"] != user_del
         ]
         st.success("🗑️ Usuario eliminado")
-
+else:
+        st.write("Opción no válida")
+   
 # ------------------------
 # SIDEBAR
 # ------------------------
