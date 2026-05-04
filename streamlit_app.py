@@ -79,13 +79,6 @@ col1, col2, col3 = st.columns([1,2,1])
 with col2:
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)  # ancho ajustable
 # ------------------------
-# LOGO
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
-# ------------------------
 # LOGIN
 # ------------------------
 col1, col2, col3 = st.columns([1,2,1])
