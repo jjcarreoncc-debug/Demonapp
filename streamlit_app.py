@@ -303,8 +303,8 @@ with st.sidebar:
     # ------------------------
     if st.session_state.menu == "Dashboard":
 
-       st.markdown("---")
-       st.markdown("### 🎯 Filtros")
+        st.markdown("---")
+        st.markdown("### 🎯 Filtros")
 
         # valores por defecto
         año = "Todos"
