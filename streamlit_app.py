@@ -542,25 +542,23 @@ with st.sidebar:
 
         # PAÍS
         # PAÍS (versión segura)
-        col_pais = next((c for c in df.columns if "pais" in c.lower()), None)
-        
+        col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
+
         if col_pais:
         
-            opciones_pais = sorted(df[col_pais].dropna().astype(str).unique())
+            opciones_pais = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
         
-            pais = st.multiselect(
+            pais = st.selectbox(
                 "🌎 País",
                 options=opciones_pais,
-                default=opciones_pais,
                 key="filtro_pais"
             )
         
-            # aplicar filtro solo si hay selección
-        if pais:
-            df = df[df[col_pais].astype(str).isin(pais)]
-
+            if pais != "Todos":
+                df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
+        
         else:
-            st.warning("⚠️ No se encontró columna de país") 
+            st.warning("⚠️ No se encontró columna de país")
         # REGIÓN
         if "Region" in df.columns:
             region = st.multiselect(
