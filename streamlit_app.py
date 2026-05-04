@@ -195,7 +195,7 @@ if menu == "Mantenimiento":
         font-size: 17px !important;
       }
     </style>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
  # 🔥 CONTENEDOR CENTRADO (tipo login)
     st.markdown("""
