@@ -174,12 +174,14 @@ else:
 # =========================
 # PAÍS
 # =========================
-with st.sidebar:
- pais = st.selectbox(
+pais = st.selectbox(
     "🌎 País",
     ["Todos", "Colombia", "Perú", "Chile"]
 )
+    st.title("📌 Navegación")
+    st.write(f"👋 Bienvenido {name}")
 
+with st.sidebar:
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
 
@@ -249,10 +251,7 @@ with st.sidebar:
         else:
             opciones_producto = ["Todos", "A", "B", "C"]
 
-        producto = st.multiselect(
-            "Producto",
-            opciones_producto
-        )
+         producto = st.multiselect("Producto", opciones_producto)
 
         # Normalizar
         if "Todos" in producto:
@@ -260,7 +259,19 @@ with st.sidebar:
 
     else:
         st.info("📂 Carga un archivo para activar filtros")
+df_filtrado = df.copy()
 
+if año != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+
+if mes != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
+
+if pais != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
+
+if producto:
+    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
 
 # =========================
 # INICIO
