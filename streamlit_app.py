@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as pxmenu = st.radio("Menú", opciones)
+import plotly.express as   
 import sqlite3
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
