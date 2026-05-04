@@ -69,8 +69,8 @@ def set_sidebar_bg(img_path):
 /* Fondo con imagen suave */
 .stApp {
     background: linear-gradient(
-        rgba(21,90,122,0.97),
-        rgba(21,90,122,0.97)
+        rgba(255,255,90,0.99),
+        rgba(255,255,90,0.99)
     ),
     url("URL_DE_TU_IMAGEN");
     
