@@ -238,8 +238,6 @@ elif menu == "Mantenimiento":
             u for u in usuarios if u["usuario"] != user_del
         ]
         st.success("🗑️ Usuario eliminado")
-else:
-        st.write("Opción no válida")
    
 # ------------------------
 # SIDEBAR
