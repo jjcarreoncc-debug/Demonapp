@@ -695,16 +695,13 @@ if 'df' not in locals() or df is None:
 # ------------------------
 df.columns = df.columns.str.strip()
 
-# ------------------------
-    # NAVEGACIÓN
-    # ------------------------
-
-    st.markdown("### 🚦 Navegación")
+st.markdown("### 🚦 Navegación")
 with st.sidebar:
     st.divider()
     #st.markdown("### 🎯 Filtros")
     
-    if st.button("📊 Principal", key="nav_principal"):# =========================
+    if st.button("📊 Principal", key="nav_principal"):
+# =========================
 # FILTRO DE FECHA (CORRECTO)
 # =========================
 
