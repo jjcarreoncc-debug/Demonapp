@@ -769,7 +769,7 @@ if "FECHA" in df.columns:
      df = df[
          (df["FECHA"] >= pd.to_datetime(fecha_ini)) &
          (df["FECHA"] <= pd.to_datetime(fecha_fin))
-] 
+     ] 
                           
 
             df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
