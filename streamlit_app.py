@@ -172,7 +172,7 @@ else:
 # =========================
 # MANTENIMIENTO
 # =========================
-elif menu == "Mantenimiento":
+if menu == "Mantenimiento":
 
     st.title("🛠️ Mantenimiento de Usuarios")
 
