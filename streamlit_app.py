@@ -423,7 +423,30 @@ elif menu == "Dashboard":
          # =========================
          # VENTAS POR MES
          # =========================
-        
+        # =========================
+# VALIDACIÓN SEGURA
+# =========================
+if df_filtrado is None:
+    st.error("❌ df_filtrado no existe")
+    st.stop()
+
+if "MES" not in df_filtrado.columns:
+    if "FECHA" in df_filtrado.columns:
+        df_filtrado["FECHA"] = pd.to_datetime(df_filtrado["FECHA"], errors="coerce")
+        df_filtrado = df_filtrado.dropna(subset=["FECHA"])
+        df_filtrado["MES"] = df_filtrado["FECHA"].dt.month_name()
+    else:
+        st.error("❌ No existe MES ni FECHA")
+        st.write(df_filtrado.columns)
+        st.stop()
+
+if "VENTAS" not in df_filtrado.columns:
+    if all(col in df_filtrado.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
+        df_filtrado["VENTAS"] = df_filtrado["VENTAS_CANTIDAD"] * df_filtrado["PRECIO_VENTA"]
+    else:
+        st.error("❌ No existe VENTAS")
+        st.write(df_filtrado.columns)
+        st.stop()
         ventas_mes = df_filtrado.groupby("MES")["VENTAS"].sum().reset_index()
 
         st.subheader("📈 Ventas por Mes")
