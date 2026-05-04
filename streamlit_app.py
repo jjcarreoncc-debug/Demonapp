@@ -520,7 +520,8 @@ if "archivo" in st.session_state:
         df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
         df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
         df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
-
+    st.write("🔍 Columnas actuales del df:", df.columns)
+    st.dataframe(df.head())
     # PERIODO
     if "FECHA" in df.columns:
         df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
