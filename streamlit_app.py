@@ -1305,34 +1305,6 @@ elif vista == "detalle":
         st.session_state.vista = "inicio"
 
     st.markdown("## 🔎 Detalle")
-    # =========================
-# FILTROS EN DETALLE
-# =========================
-col1, col2, col3, col4 = st.columns(4)
-
-
-with col1:
-    canal = st.selectbox(
-        "Canal",
-        ["Todos"] + sorted(df["Canal"].dropna().unique()),
-        key="detalle_canal"
-    )
-
-with col2:
-    region = st.selectbox(
-        "Región",
-        ["Todos"] + sorted(df["Region"].dropna().unique()),
-        key="detalle_region"
-    )
-
-with col3:
-    producto = st.selectbox(
-        "Producto",
-        ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
-        key="detalle_producto"
-    )
-
-
 # =========================
 # APLICAR FILTROS
 # =========================
