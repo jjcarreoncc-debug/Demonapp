@@ -204,6 +204,13 @@ with st.sidebar:
         opciones,
         index=opciones.index(st.session_state.menu)
     )
+    # =========================
+    # PAÍS
+    # =========================
+    pais = st.selectbox(
+        "🌎 País",
+        ["Todos", "Colombia", "Perú", "Chile"]
+     )   
 
     st.session_state.menu = menu
 
