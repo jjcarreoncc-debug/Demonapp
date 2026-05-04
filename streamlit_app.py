@@ -778,8 +778,8 @@ if "FECHA" in df.columns:
     else:
         st.warning("⚠️ No hay datos válidos en FECHA")
 
- else:
-     st.warning("⚠️ El archivo no tiene columna FECHA")
+else:
+    st.warning("⚠️ El archivo no tiene columna FECHA")
 
 
 # =========================
