@@ -289,7 +289,7 @@ with st.sidebar:
 
     else:
         st.info("📂 Carga un archivo para activar filtros")
-    df_filtrado = df.copy()
+    
 #####
 #FILTRADO PAIS , REGION, PRODUCTO
 #####
@@ -304,7 +304,7 @@ if pais != "Todos":
 
 if producto:
     df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
-df_filtrado = df.copy()
+    df_filtrado = df.copy()
 
 if pais != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
