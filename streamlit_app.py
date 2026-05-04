@@ -367,26 +367,26 @@ if menu == "Inicio":
     if "archivo" in st.session_state:
         st.info("📊 Ya hay un archivo cargado. Ve a 'Dashboard'")
 
-
 # =========================
 # DASHBOARD
 # =========================
 elif menu == "Dashboard":
-# =========================
-# TOMAR VALORES DEL SIDEBAR
-# =========================
+
+    # =========================
+    # TOMAR VALORES DEL SIDEBAR
+    # =========================
     año = st.session_state.get("filtro_año", "Todos")
     mes = st.session_state.get("filtro_mes", "Todos")
     pais = st.session_state.get("filtro_pais", "Todos")
     region = st.session_state.get("filtro_region", "Todos")
     producto = st.session_state.get("filtro_producto", [])
+
     st.header("📊 Dashboard Ejecutivo")
 
     archivo = st.session_state.get("archivo")
 
     if not archivo:
         st.warning("⚠️ Primero carga un archivo en Inicio")
-
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
@@ -407,11 +407,13 @@ elif menu == "Dashboard":
         df["Año"] = df["Fecha"].dt.year
         df["Mes"] = df["Fecha"].dt.month_name()
 
-        # MÉTRICA
+        # MÉTRICAS
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+        df["Ganancia"] = df["Ventas"] - df["Costos"]
 
         # ------------------------
-        # FILTRADO (USANDO SIDEBAR)
+        # FILTRADO
         # ------------------------
         df_filtrado = df.copy()
 
@@ -437,48 +439,24 @@ elif menu == "Dashboard":
             st.warning("⚠️ No hay datos con esos filtros")
         else:
             ventas_mes = df_filtrado.groupby("Mes")["Ventas"].sum().reset_index()
+
+            st.subheader("📈 Ventas por Mes")
             st.bar_chart(ventas_mes.set_index("Mes"))
+
+            # ------------------------
+            # KPIs
+            # ------------------------
+            col1, col2, col3 = st.columns(3)
+
+            col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
+            col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
+            col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
+
 # =========================
-# VALIDACIÓN SEGURA
+# MANTENIMIENTO
 # =========================
-
-if "MES" not in df_filtrado.columns:
-    if "FECHA" in df_filtrado.columns:
-        df_filtrado["FECHA"] = pd.to_datetime(df_filtrado["FECHA"], errors="coerce")
-        df_filtrado = df_filtrado.dropna(subset=["FECHA"])
-        df_filtrado["MES"] = df_filtrado["FECHA"].dt.month_name()
-    else:
-        st.error("❌ No existe MES ni FECHA")
-        st.write(df_filtrado.columns)
-        st.stop()
-
-if "VENTAS" not in df_filtrado.columns:
-    if all(col in df_filtrado.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
-        df_filtrado["VENTAS"] = df_filtrado["VENTAS_CANTIDAD"] * df_filtrado["PRECIO_VENTA"]
-    else:
-        st.error("❌ No existe VENTAS")
-        st.write(df_filtrado.columns)
-        st.stop()
-        
-        ventas_mes = df_filtrado.groupby("MES")["VENTAS"].sum().reset_index()
-
-        st.subheader("📈 Ventas por Mes")
-        st.line_chart(ventas_mes.set_index("Mes"))
-
-        # ------------------------
-        # MÉTRICAS
-        # ------------------------
-        df_filtrado["Ventas"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Precio_Venta"]
-        df_filtrado["Costos"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Costos_Venta"]
-        df_filtrado["Ganancia"] = df_filtrado["Ventas"] - df_filtrado["Costos"]
-        df_filtrado["Ventas"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Precio_Venta"]
-        col1, col2, col3 = st.columns(3)
-        st.write(df_filtrado[["Ventas_Cantidad", "Precio_Venta", "Ventas"]].head())
-        col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
-        col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
-        col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
 elif menu == "Mantenimiento":
-    st.title("🛠️ Mantenimiento de  Usuarios")
+    st.title("🛠️ Mantenimiento de Usuarios")
 
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
