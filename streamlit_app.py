@@ -670,20 +670,28 @@ with st.sidebar:
                  )
 
                 # manejar correctamente el resultado
-                if isinstance(fechas, tuple):
-                    fecha_ini = fechas[0]
-                    fecha_fin = fechas[-1]
+                if isinstance(fechas, tuple) and len(fechas) == 2:
+
+                    fecha_ini, fecha_fin = fechas
                 
-                    df = df[
-                        (df["Fecha"] >= pd.to_datetime(fecha_ini)) &
-                        (df["Fecha"] <= pd.to_datetime(fecha_fin))
-                    ]
-                st.session_state.fecha_ini = fecha_ini
-                st.session_state.fecha_fin = fecha_fin
+                    col_fecha = next((c for c in df.columns if "FECHA" in c), None)
+                
+                    if col_fecha:
+                
+                        df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
+                        df = df.dropna(subset=[col_fecha])
+                
+                        df = df[
+                            (df[col_fecha] >= pd.to_datetime(fecha_ini)) &
+                            (df[col_fecha] <= pd.to_datetime(fecha_fin))
+                        ]
+                
+                        # guardar en sesión
+                        st.session_state.fecha_ini = fecha_ini
+                        st.session_state.fecha_fin = fecha_fin
 
-            else:
-                st.warning("La columna Fecha no tiene valores válidos")
-
+                 else:
+                     st.warning("⚠️ No se encontró columna FECHA")
         else:
             st.warning("No existe la columna Fecha")
 # ------------------------
