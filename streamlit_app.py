@@ -775,11 +775,11 @@ if "FECHA" in df.columns:
         else:
             st.warning("⚠️ Selecciona ambas fechas")
 
-  else:
-      st.warning("⚠️ No hay datos válidos en FECHA")
+    else:
+        st.warning("⚠️ No hay datos válidos en FECHA")
 
-else:
-    st.warning("⚠️ El archivo no tiene columna FECHA")
+ else:
+     st.warning("⚠️ El archivo no tiene columna FECHA")
 
 
 # =========================
@@ -802,7 +802,7 @@ if st.session_state.vista == "inicio":
 #recomendaciones
 # =========================
 # RECOMENDACIONES (FINAL FUNCIONAL)
-# =========================
+# == =======================
 if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver Recomendaciones"):
