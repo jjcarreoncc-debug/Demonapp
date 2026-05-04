@@ -541,24 +541,31 @@ with st.sidebar:
         df.columns = df.columns.str.strip()
 
         # PAÍS
-        # PAÍS (versión segura)
-        col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
-
-        if col_pais:
-        
-            opciones_pais = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
-        
-            pais = st.selectbox(
-                "🌎 País",
-                options=opciones_pais,
-                key="filtro_pais"
-            )
-        
-            if pais != "Todos":
-                df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
-        
-        else:
-            st.warning("⚠️ No se encontró columna de país")
+        # PAÍS
+    col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
+    
+    if col_pais:
+    
+        # 🔥 1. ASEGURAR OPCIONES (AQUÍ VA)
+        opciones_pais = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
+    
+        # 🔥 2. LIMPIAR ESTADO SI VENÍA DE MULTISELECT
+        if isinstance(st.session_state.get("filtro_pais"), list):
+            st.session_state["filtro_pais"] = "Todos"
+    
+        # 🔥 3. SELECTBOX
+        pais = st.selectbox(
+            "🌎 País",
+            options=opciones_pais,
+            key="filtro_pais"
+        )
+    
+        # 🔥 4. FILTRO
+        if pais != "Todos":
+            df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
+    
+    else:
+        st.warning("⚠️ No se encontró columna de país")
         # REGIÓN
         if "Region" in df.columns:
             region = st.multiselect(
