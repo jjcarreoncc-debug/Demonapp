@@ -80,9 +80,19 @@ def set_sidebar_bg(img_path):
 }
 
 </style>
-""", unsafe_allow_html=True) 
+""", unsafe_allow_html=True)
+    
 set_sidebar_bg("imagen8.png")
+st.markdown("""
+<style>
 
+/* FONDO LIMPIO APP */
+.stApp {
+    background-color: #F4F6F8;
+}
+
+</style>
+""", unsafe_allow_html=True)
 # ------------------------
 # BASE DE DATOS
 # ------------------------
