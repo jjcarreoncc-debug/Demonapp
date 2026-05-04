@@ -423,7 +423,10 @@ elif menu == "Dashboard":
          # =========================
          # VENTAS POR MES
          # =========================
-        # =========================
+# =========================
+# VALIDACIÓN SEGURA
+# =========================
+ # =========================
 # VALIDACIÓN SEGURA
 # =========================
 if df_filtrado is None:
@@ -447,6 +450,7 @@ if "VENTAS" not in df_filtrado.columns:
         st.error("❌ No existe VENTAS")
         st.write(df_filtrado.columns)
         st.stop()
+        
         ventas_mes = df_filtrado.groupby("MES")["VENTAS"].sum().reset_index()
 
         st.subheader("📈 Ventas por Mes")
