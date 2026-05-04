@@ -663,12 +663,13 @@ with st.sidebar:
                 fecha_min = df_temp["Fecha"].min()
                 fecha_max = df_temp["Fecha"].max()
 
-                fechas = st.date_input(
-                    "Selecciona fecha inicial y final",
-                    value=(fecha_min, fecha_max),
-                    min_value=fecha_min,
-                    max_value=fecha_max
-                 )
+                #fechas = st.date_input(
+                #    "Selecciona fecha inicial y final",
+                #    value=(fecha_min, fecha_max),
+                #    min_value=fecha_min,
+                
+                #      max_value=fecha_max
+                # )
 
                 # manejar correctamente el resultado
                 if isinstance(fechas, tuple) and len(fechas) == 2:
