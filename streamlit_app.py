@@ -58,7 +58,7 @@ div[data-baseweb="select"] * {
 """, unsafe_allow_html=True)
 
 
-st.session_state.menu = menu
+
 # ------------------------
 # BASE DE DATOS
 # ------------------------
