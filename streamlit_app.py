@@ -1313,11 +1313,12 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
 
     
-    pais = st.selectbox(
-        "País",
-        ["Todos"] + sorted(df["Pais"].dropna().unique()),
-        key="detalle_pais"
-    )
+    #pais = st.selectbox(
+    #    "País",
+    
+    #["Todos"] + sorted(df["Pais"].dropna().unique()),
+    #    key="detalle_pais"
+    #)
 
 with col2:
     canal = st.selectbox(
