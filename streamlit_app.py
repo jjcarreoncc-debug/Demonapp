@@ -230,7 +230,7 @@ with st.sidebar:
         if pais == "Colombia":
          opciones_producto = ["Todos", "A", "B"]
 elif pais == "Perú":
-     opciones_producto = ["Todos", "A"]
+      opciones_producto = ["Todos", "A"]
 elif pais == "Chile":
       opciones_producto = ["Todos", "C"]
 else:
