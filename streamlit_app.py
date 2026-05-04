@@ -333,11 +333,11 @@ with st.sidebar:
             
             col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
             # PAÍS
-            pais = st.selectbox(
-                "🌎 País",    
-                ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
-                key="filtro_pais"
-            )
+            #pais = st.selectbox(
+            #    "🌎 País",    
+            #    ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
+            #    key="filtro_pais"
+            #)
 
             # REGIÓN
             df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
