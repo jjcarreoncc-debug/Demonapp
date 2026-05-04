@@ -189,28 +189,16 @@ st.session_state.menu = menu
 if menu == "Mantenimiento":
 
     st.markdown("### ⚙️ Mantenimiento de Usuarios")
-    st.markdown("""
-    <style>
-     h3 {
-        font-size: 17px !important;
-      }
-    </style>
-    """, unsafe_allow_html=True)
-    
- # 🔥 CONTENEDOR CENTRADO (tipo login)
-    st.markdown("""
-     <style>
-     .main .block-container {
-          max-width: 1050px;  /* antes ~900 → ahora más ancho */
-          padding-top: 2rem;
-      }
-      </style>
-      """, unsafe_allow_html=True)
-    
+
+    # CONTENEDOR CENTRADO
+    col_izq, col_centro, col_der = st.columns([1,2,1])
+
+    with col_centro:
+
         # =========================
         # ➕ CREAR USUARIO
         # =========================
-       with st.expander("➕ Crear Usuario", expanded=False):
+        with st.expander("➕ Crear Usuario", expanded=False):
 
             username_new = st.text_input("Usuario nuevo")
             password_new = st.text_input("Contraseña", type="password")
@@ -269,18 +257,24 @@ if menu == "Mantenimiento":
                 user_sel = usuarios_df[usuarios_df["id"] == user_id_edit].iloc[0]
 
                 nombre_edit = st.text_input("Nombre", value=user_sel["nombre"])
-                rol_edit = st.selectbox("Rol", ["Admin", "Usuario"], index=0 if user_sel["rol"]=="Admin" else 1)
+                rol_edit = st.selectbox(
+                    "Rol",
+                    ["Admin", "Usuario"],
+                    index=0 if user_sel["rol"] == "Admin" else 1
+                )
 
                 area_edit = st.selectbox(
                     "Área",
                     ["Ventas", "Finanzas", "Logística"],
-                    index=["Ventas", "Finanzas", "Logística"].index(user_sel["area"]) if user_sel["area"] in ["Ventas", "Finanzas", "Logística"] else 0
+                    index=["Ventas", "Finanzas", "Logística"].index(user_sel["area"])
+                    if user_sel["area"] in ["Ventas", "Finanzas", "Logística"] else 0
                 )
 
                 trans_edit = st.multiselect(
                     "Transacciones",
                     ["Dashboard", "Reporte", "Análisis"],
-                    default=str(user_sel["transacciones"]).split(",") if user_sel["transacciones"] else []
+                    default=str(user_sel["transacciones"]).split(",")
+                    if user_sel["transacciones"] else []
                 )
 
                 if st.button("💾 Guardar cambios"):
@@ -302,15 +296,18 @@ if menu == "Mantenimiento":
             # =========================
             with st.expander("❌ Desactivar Usuario"):
 
-                user_id = st.selectbox("Seleccionar usuario ID", usuarios_df["id"], key="delete_user")
+                user_id = st.selectbox(
+                    "Seleccionar usuario ID",
+                    usuarios_df["id"],
+                    key="delete_user"
+                )
 
                 if st.button("🚫 Desactivar"):
                     desactivar_usuario(user_id)
                     st.warning("Usuario desactivado")
 
         else:
-            st.info("No hay usuarios aún")
-# ------------------------
+            st.info("No hay usuarios aún")# ------------------------
 # VISTAS
 # ------------------------
 
