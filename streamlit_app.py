@@ -527,10 +527,10 @@ with st.sidebar:
     if "Pais" in df.columns:
 
         pais = st.multiselect(
-      "País",
-       sorted(df["Pais"].dropna().unique()),
-       default=sorted(df["Pais"].dropna().unique()),
-       key="filtro_pais"
+            "País",
+            sorted(df["Pais"].dropna().unique()),
+            default=sorted(df["Pais"].dropna().unique()),
+            key="filtro_pais"
     )
 
     # ✅ SOLO filtra si hay selección
