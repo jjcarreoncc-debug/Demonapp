@@ -12,7 +12,9 @@ from PIL import Image
 # CONFIG
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-st.set_page_config(...)
+st.set_page_config(
+    page_title="Dashboard Ejecutivo",
+    layout="wide"
 
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
