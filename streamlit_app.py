@@ -411,7 +411,8 @@ elif menu == "Dashboard":
             df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
 
         if producto:
-            df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+            df_filtrado = df_filtrado[df_filtrado["Nombre_Producto"].isin(producto)]
+            
          # =========================
          # VENTAS POR MES
          # =========================
