@@ -528,19 +528,26 @@ with st.sidebar:
         df.columns = df.columns.str.strip()
 
         # PAÍS
-    if "Pais" in df.columns:
+        # PAÍS (versión segura)
+        col_pais = next((c for c in df.columns if "pais" in c.lower()), None)
+        
+        if col_pais:
+        
+            opciones_pais = sorted(df[col_pais].dropna().astype(str).unique())
+        
+            pais = st.multiselect(
+                "🌎 País",
+                options=opciones_pais,
+                default=opciones_pais,
+                key="filtro_pais"
+            )
+        
+            # aplicar filtro solo si hay selección
+        if pais:
+            df = df[df[col_pais].astype(str).isin(pais)]
 
-        pais = st.multiselect(
-            "País",
-            sorted(df["Pais"].dropna().unique()),
-            default=sorted(df["Pais"].dropna().unique()),
-            key="filtro_pais"
-    )
-
-    # ✅ SOLO filtra si hay selección
-    if pais:
-        df = df[df["Pais"].isin(pais)]
-    
+else:
+    st.warning("⚠️ No se encontró columna de país") 
         # REGIÓN
         if "Region" in df.columns:
             region = st.multiselect(
