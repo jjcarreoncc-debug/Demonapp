@@ -233,8 +233,8 @@ with st.sidebar:
             opciones_producto = ["Todos", "A"]
         elif pais == "Chile":
               opciones_producto = ["Todos", "C"]
-else:
-      opciones_producto = ["Todos", "A", "B", "C"]
+     else:
+        opciones_producto = ["Todos", "A", "B", "C"]
 
 producto = st.multiselect(
     "Producto",
