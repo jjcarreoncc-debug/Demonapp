@@ -384,10 +384,10 @@ elif menu == "Dashboard":
          # =========================
          # VENTAS POR MES
          # =========================
-         ventas_mes = df_filtrado.groupby("Mes")["Ventas"].sum().reset_index()
+        ventas_mes = df_filtrado.groupby("Mes")["Ventas"].sum().reset_index()
 
-         st.subheader("📈 Ventas por Mes")
-         st.line_chart(ventas_mes.set_index("Mes"))
+        st.subheader("📈 Ventas por Mes")
+        st.line_chart(ventas_mes.set_index("Mes"))
         # ------------------------
         # MÉTRICAS
         # ------------------------
