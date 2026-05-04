@@ -174,10 +174,7 @@ else:
 # =========================
 # PAÍS
 # =========================
-pais = st.selectbox(
-    "🌎 País",
-    ["Todos", "Colombia", "Perú", "Chile"]
-)
+
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
 
@@ -186,7 +183,13 @@ with st.sidebar:
     st.write(f"👋 Bienvenido {name}")
 
     st.markdown("---")
-
+    # =========================
+    # PAÍS
+    # =========================
+    pais = st.selectbox(
+        "🌎 País",
+        ["Todos", "Colombia", "Perú", "Chile"]
+    )
     authenticator.logout("Cerrar sesión", "sidebar")
 
     rol = "Admin" if username == "admin" else "Usuario"
