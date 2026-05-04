@@ -17,8 +17,6 @@ st.set_page_config(...)
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
 # =========================
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
 
 st.markdown("""
 <style>
@@ -202,6 +200,9 @@ with st.sidebar:
 # =========================
 # INICIO
 # =========================
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
+
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
