@@ -289,7 +289,7 @@ with st.sidebar:
 
     else:
         st.info("📂 Carga un archivo para activar filtros")
-df_filtrado = df.copy()
+    df_filtrado = df.copy()
 #####
 #FILTRADO PAIS , REGION, PRODUCTO
 #####
