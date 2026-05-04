@@ -301,7 +301,7 @@ with st.sidebar:
     # ------------------------
     # MOSTRAR FILTROS (solo en dashboard)
     # ------------------------
-   if st.session_state.menu == "Dashboard":
+    if st.session_state.menu == "Dashboard":
 
        st.markdown("---")
        st.markdown("### 🎯 Filtros")
