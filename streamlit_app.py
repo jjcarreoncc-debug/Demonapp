@@ -575,7 +575,8 @@ with st.sidebar:
                 key="filtro_region"
             )
             df = df[df["Region"].isin(region)]
-
+        else:
+            st.warning("⚠️ No se encontró columna de país")
         # PRODUCTO
         if "Producto" in df.columns:
             producto = st.multiselect(
@@ -585,7 +586,8 @@ with st.sidebar:
                 key="filtro_producto"
             )
             df = df[df["Producto"].isin(producto)]
-
+        else:
+            st.warning("⚠️ No se encontró columna de país")  
         # CANAL
         if "Canal" in df.columns:
             canal = st.multiselect(
@@ -595,7 +597,8 @@ with st.sidebar:
                 key="filtro_canal"
             )
             df = df[df["Canal"].isin(canal)]
-
+        else:
+            st.warning("⚠️ No se encontró columna de país")
         # VENDEDOR
         if "Vendedor_Ruta" in df.columns:
             vendedor = st.multiselect(
@@ -605,7 +608,8 @@ with st.sidebar:
                 key="filtro_vendedor"
             )
             df = df[df["Vendedor_Ruta"].isin(vendedor)]
-
+        else:
+            st.warning("⚠️ No se encontró columna de país")
         # TIPO CLIENTE
         if "Tipo_cliente" in df.columns:
             tipo_cliente = st.multiselect(
@@ -615,7 +619,8 @@ with st.sidebar:
                 key="filtro_tipo_cliente"
             )
             df = df[df["Tipo_cliente"].isin(tipo_cliente)]
-
+        else:
+            st.warning("⚠️ No se encontró columna de país")
     else:
         st.info("📂 Carga un archivo en Inicio para habilitar filtros")
    
