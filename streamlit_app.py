@@ -188,13 +188,25 @@ st.session_state.menu = menu
 # =========================
 if menu == "Mantenimiento":
 
-    st.title("⚙️ Mantenimiento de Usuarios")
-
-    # 🔥 CONTENEDOR CENTRADO (tipo login)
-    col_izq, col_centro, col_der = st.columns([1,2,1])
-
-    with col_centro:
-
+    st.markdown("### ⚙️ Mantenimiento de Usuarios")
+    st.markdown("""
+    <style>
+     h3 {
+        font-size: 17px !important;
+      }
+    </style>
+""", unsafe_allow_html=True)
+    
+ # 🔥 CONTENEDOR CENTRADO (tipo login)
+    st.markdown("""
+     <style>
+     .main .block-container {
+          max-width: 1050px;  /* antes ~900 → ahora más ancho */
+          padding-top: 2rem;
+      }
+      </style>
+""", unsafe_allow_html=True)
+    
         # =========================
         # ➕ CREAR USUARIO
         # =========================
