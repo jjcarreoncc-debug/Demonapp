@@ -690,8 +690,8 @@ with st.sidebar:
                         st.session_state.fecha_ini = fecha_ini
                         st.session_state.fecha_fin = fecha_fin
 
-                 else:
-                     st.warning("⚠️ No se encontró columna FECHA")
+                else:
+                    st.warning("⚠️ No se encontró columna FECHA")
         else:
             st.warning("No existe la columna Fecha")
 # ------------------------
