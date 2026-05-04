@@ -375,11 +375,11 @@ elif menu == "Dashboard":
 # =========================
 # TOMAR VALORES DEL SIDEBAR
 # =========================
-año = st.session_state.get("filtro_año", "Todos")
-mes = st.session_state.get("filtro_mes", "Todos")
-pais = st.session_state.get("filtro_pais", "Todos")
-region = st.session_state.get("filtro_region", "Todos")
-producto = st.session_state.get("filtro_producto", [])
+    año = st.session_state.get("filtro_año", "Todos")
+    mes = st.session_state.get("filtro_mes", "Todos")
+    pais = st.session_state.get("filtro_pais", "Todos")
+    region = st.session_state.get("filtro_region", "Todos")
+    producto = st.session_state.get("filtro_producto", [])
     st.header("📊 Dashboard Ejecutivo")
 
     archivo = st.session_state.get("archivo")
