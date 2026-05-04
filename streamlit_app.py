@@ -480,7 +480,9 @@ elif menu == "Dashboard":
 
             st.subheader("📈 Ventas por Mes")
             st.bar_chart(ventas_mes.set_index("Mes"))
-
+            st.write("🔍 Tamaño del dataframe filtrado:", df_f.shape)
+            st.write("🔍 Columnas disponibles:", df_f.columns)
+            st.dataframe(df_f.head())
             # ------------------------
             # KPIs
             # ------------------------
