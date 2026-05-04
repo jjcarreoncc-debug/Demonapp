@@ -15,6 +15,8 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 st.set_page_config(
     page_title="Dashboard Ejecutivo",
     layout="wide")
+if "menu" not in st.session_state:
+    st.session_state.menu = "Inicio"
 
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
