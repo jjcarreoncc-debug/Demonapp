@@ -772,11 +772,11 @@ if "FECHA" in df.columns:
 
             st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
             st.divider()
-    else:
+        else:
             st.warning("⚠️ Selecciona ambas fechas")
 
-    else:
-        st.warning("⚠️ No hay datos válidos en FECHA")
+  else:
+      st.warning("⚠️ No hay datos válidos en FECHA")
 
 else:
     st.warning("⚠️ El archivo no tiene columna FECHA")
