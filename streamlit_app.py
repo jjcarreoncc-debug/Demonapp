@@ -333,7 +333,7 @@ with st.sidebar:
             col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
             # PAÍS
             pais = st.selectbox(
-                "🌎 País",
+                "🌎 País",    
                 ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
                 key="filtro_pais"
             )
@@ -529,6 +529,12 @@ if "archivo" in st.session_state:
 with st.sidebar:
 
     st.divider()
+    # =========================
+    # 🔥 LIMPIAR ESTADO (VA AQUÍ)
+    # =========================
+    for k in ["filtro_pais", "filtro_region", "filtro_producto"]:
+        if isinstance(st.session_state.get(k), list):
+            st.session_state[k] = "Todos
 
     if "archivo" in st.session_state:
 
@@ -1283,6 +1289,8 @@ elif vista == "detalle":
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
+
+    
     pais = st.selectbox(
         "País",
         ["Todos"] + sorted(df["Pais"].dropna().unique()),
