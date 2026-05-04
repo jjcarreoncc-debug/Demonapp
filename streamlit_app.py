@@ -351,28 +351,25 @@ with st.sidebar:
             # =========================
             # PRODUCTO (CORRECTO)
             # =========================
-            col_producto = next((c for c in df_producto.columns if "producto" in c.lower()), None)
+            # =========================
+            col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c), None)
             
             if col_producto:
             
-                opciones_producto = sorted(df_producto[col_producto].dropna().astype(str).unique())
+                opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
             
-                st.multiselect(
+                # limpiar estado viejo
+                if isinstance(st.session_state.get("filtro_producto"), list):
+                    st.session_state["filtro_producto"] = "Todos"
+            
+                producto = st.selectbox(
                     "📦 Producto",
                     options=opciones_producto,
-                    default=opciones_producto,
                     key="filtro_producto"
                 )
             
-                producto = st.session_state.get("filtro_producto", [])
                 if producto != "Todos":
-                   df_temp = df_temp[df_temp[col_producto].astype(str) == str(producto)]
-                #if producto != "Todos":
-                #   df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
-                # aplicar filtro sobre df_temp (flujo correcto)
-                if producto:
-                    df_temp = df_temp[df_temp[col_producto].astype(str).isin(producto)]
-            
+                    df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
             else:
                 st.warning("⚠️ No se encontró columna de producto")
             
