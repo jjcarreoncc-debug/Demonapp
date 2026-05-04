@@ -7,13 +7,64 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
-import base64
 
 # =========================
-# DATA
+# CONFIG
 # =========================
-import pandas as pd
+st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
+# =========================
+# ESTILOS (LIMPIO)
+# =========================
+st.markdown("""
+<style>
+
+/* FONDO GENERAL */
+.stApp {
+    background-color: #F4F6F8;
+}
+
+/* SIDEBAR */
+[data-testid="stSidebar"] {
+    background-color: #155A7A;
+}
+
+/* TEXTO SIDEBAR */
+[data-testid="stSidebar"] * {
+    color: white;
+}
+
+/* CHIPS MULTISELECT */
+span[data-baseweb="tag"] {
+    background-color: #1F6F9A !important;
+    color: white !important;
+}
+
+/* BOTONES */
+.stButton > button {
+    background-color: #1F6F9A;
+    color: white;
+    border-radius: 8px;
+}
+
+/* INPUTS */
+input, textarea {
+    background-color: white !important;
+    color: #333 !important;
+}
+
+/* SELECT */
+div[data-baseweb="select"] {
+    background-color: white !important;
+    color: #333 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# DATA BASE (PRUEBA)
+# =========================
 data = {
     "Año": [2024, 2024, 2025, 2025],
     "Mes": ["Enero", "Febrero", "Enero", "Marzo"],
@@ -21,81 +72,11 @@ data = {
     "Ventas": [1000, 1500, 2000, 800],
     "Stock": [50, 30, 40, 20]
 }
-
 df = pd.DataFrame(data)
 
-# ------------------------
-# CONFIG
-# ------------------------
-st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
-
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-
-# ------------------------
-# SIDEBAR BACKGROUND
-# ------------------------
-def set_sidebar_bg(img_path):
-    with open(img_path, "rb") as f:
-        img_data = base64.b64encode(f.read()).decode()
-
-    st.markdown(f"""
-    <style>
-    [data-testid="stSidebar"] {{
-        background-image: url("data:image/png;base64,{img_data}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        position: relative;
-    }}
-
-    [data-testid="stSidebar"]::before {{
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: rgba(255,255,255,0.65);
-        z-index: 0;
-    }}
-
-    [data-testid="stSidebar"] > div {{
-        position: relative;
-        z-index: 1;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-    st.markdown("""
-<style>
-
-/* Fondo con imagen suave */
-.stApp {
-    background: linear-gradient(
-        rgba(255,255,90,0.99),
-        rgba(255,255,90,0.99)
-    ),
-    url("URL_DE_TU_IMAGEN");
-    
-    background-size: 300px;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-</style>
-""", unsafe_allow_html=True)
-    
-set_sidebar_bg("imagen8.png")
-st.markdown("""
-<style>
-
-/* FONDO LIMPIO APP */
-.stApp {
-    background-color: #F4F6F8;
-}
-
-</style>
-""", unsafe_allow_html=True)
-# ------------------------
+# =========================
 # BASE DE DATOS
-# ------------------------
+# =========================
 conn = sqlite3.connect("data.db", check_same_thread=False)
 
 conn.execute("""
@@ -113,9 +94,9 @@ CREATE TABLE IF NOT EXISTS usuarios (
 """)
 conn.commit()
 
-# ------------------------
-# LOGIN CONFIG
-# ------------------------
+# =========================
+# LOGIN
+# =========================
 passwords = ["1234", "abcd"]
 hashed_passwords = Hasher(passwords).generate()
 
@@ -133,94 +114,33 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=1
 )
 
-# ------------------------
+# =========================
 # LOGO
-# ------------------------
+# =========================
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
-# ------------------------
-# LOGIN
-# ------------------------
+# =========================
+# LOGIN UI
+# =========================
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     name, authentication_status, username = authenticator.login("Login", location="main")
 
-# ------------------------
+# =========================
 # CONTROL LOGIN
-# ------------------------
+# =========================
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
     st.stop()
 
 if authentication_status is None:
-    col1, col2 = st.columns([2,6])
-    with col2:
-        img = Image.open("imagen7.png")
-        st.image(img, width=2000)
     st.stop()
 
-# ------------------------
-# FUNCIONES USUARIOS
-# ------------------------
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def obtener_usuarios():
-    return pd.read_sql("SELECT * FROM usuarios", conn)
-
-def crear_usuario(username, password, nombre, rol, area, transacciones):
-    try:
-        trans_str = ",".join(transacciones)
-        conn.execute("""
-        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion, area, transacciones)
-        VALUES (?, ?, ?, ?, 'Activo', ?, ?, ?)
-        """, (
-            username,
-            hash_password(password),
-            nombre,
-            rol,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            area,
-            trans_str
-        ))
-        conn.commit()
-        return True
-    except Exception as e:
-        return str(e)
-
-def desactivar_usuario(user_id):
-    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
-    conn.commit()
-
-# ------------------------
-# USUARIO ACTUAL
-# ------------------------
-df_users = obtener_usuarios()
-
-usuario_actual = df_users[df_users["username"] == username]
-if not usuario_actual.empty:
-    usuario_actual = usuario_actual.iloc[0]
-else:
-    usuario_actual = None
-
-# ------------------------
-# PERMISOS
-# ------------------------
-def tiene_acceso(area, transaccion):
-    if usuario_actual is not None and usuario_actual["rol"] == "Admin":
-        return True
-    if usuario_actual is None:
-        return False
-    if usuario_actual["area"] != area:
-        return False
-    trans_user = str(usuario_actual["transacciones"]).split(",")
-    return transaccion in trans_user
-
-# ------------------------
+# =========================
 # SIDEBAR
-# ------------------------
+# =========================
 with st.sidebar:
 
     st.title("📌 Navegación")
@@ -254,17 +174,22 @@ with st.sidebar:
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
-    st.dataframe(df) 
+
+    # FILTRO AÑO (BASE)
+    año = st.selectbox("Año", df["Año"].unique())
+    df_filtrado = df[df["Año"] == año]
+
+    st.dataframe(df_filtrado)
+
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
     if archivo:
         st.session_state.archivo = archivo
         st.success("✅ Archivo cargado correctamente")
 
-    if "archivo" in st.session_state:
-        st.info("📊 Ya hay un archivo cargado. Ve a '📊 Principal'")
-
-
+# =========================
+# DASHBOARD
+# =========================
 elif menu == "Dashboard":
 
     st.header("📊 Dashboard Ejecutivo")
@@ -275,53 +200,28 @@ elif menu == "Dashboard":
         st.warning("⚠️ Primero carga un archivo en Inicio")
 
     else:
-        import pandas as pd
-        import plotly.express as px
-
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
-        # ------------------------
-        # LIMPIEZA
-        # ------------------------
         if "Fecha" not in df.columns:
-            st.warning("⚠️ La columna 'Fecha' no existe en el archivo")
+            st.warning("⚠️ Falta columna Fecha")
             st.stop()
+
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
 
-        # ------------------------
-        # LIMPIEZA NUMÉRICA
-        # ------------------------
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
-                df[col] = (
-                    df[col]
-                    .astype(str)
-                    .str.replace(",", "")
-                    .str.strip()
-                )
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # ------------------------
-        # MÉTRICAS
-        # ------------------------
         df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
         df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
         df["Ganancia"] = df["Ventas"] - df["Costos"]
-        df["Periodo"] = df["Fecha"].dt.to_period("M")
 
-        # ------------------------
-        # DASHBOARD
-        # ------------------------
         col1, col2, col3 = st.columns(3)
-        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
-        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
+        col1.metric("Ventas", f"${df['Ventas'].sum():,.0f}")
+        col2.metric("Costos", f"${df['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
-
-   
-
-   
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
