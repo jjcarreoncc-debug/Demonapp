@@ -242,20 +242,38 @@ with st.sidebar:
         # =========================
         mes_opciones = ["Todos"] + sorted(df_temp["Mes"].unique())
         mes = st.selectbox("📆 Mes", mes_opciones)
-
         # =========================
-        # PRODUCTO (dependiente de país)
+        # PAÍS
         # =========================
-        if pais == "Colombia":
-            opciones_producto = ["Todos", "A"]
-        elif pais == "Perú":
-            opciones_producto = ["Todos", "A"]
-        elif pais == "Chile":
-            opciones_producto = ["Todos", "C"]
+        pais_opciones = ["Todos"] + sorted(df_temp["Pais"].dropna().unique())
+        pais = st.selectbox("🌎 País", pais_opciones)
+        
+        # =========================
+        # REGIÓN (depende de país)
+        # =========================
+        if pais != "Todos":
+            df_region = df_temp[df_temp["Pais"] == pais]
         else:
-            opciones_producto = ["Todos", "A", "B", "C"]
-
-        producto = st.multiselect("Producto", opciones_producto)
+            df_region = df_temp
+        
+        region_opciones = ["Todos"] + sorted(df_region["Region"].dropna().unique())
+        region = st.selectbox("📍 Región", region_opciones)
+        
+        # =========================
+        # PRODUCTO (depende de región)
+        # =========================
+        if region != "Todos":
+            df_producto = df_region[df_region["Region"] == region]
+        else:
+            df_producto = df_region
+        
+        producto_opciones = ["Todos"] + sorted(df_producto["Producto"].dropna().unique())
+        producto = st.multiselect("Producto", producto_opciones)
+        
+        if "Todos" in producto:
+            producto = []
+            
+            
 
         # Normalizar
         if "Todos" in producto:
@@ -264,7 +282,9 @@ with st.sidebar:
     else:
         st.info("📂 Carga un archivo para activar filtros")
 df_filtrado = df.copy()
-
+#####
+#FILTRADO PAIS , REGION, PRODUCTO
+#####
 if año != "Todos":
     df_filtrado = df_filtrado[df_filtrado["Año"] == año]
 
@@ -276,6 +296,16 @@ if pais != "Todos":
 
 if producto:
     df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+df_filtrado = df.copy()
+
+if pais != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
+
+if region != "Todos":
+    df_filtrado = df_filtrado[df_filtrado["Region"] == region]
+
+if producto:
+    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]    
 
 # =========================
 # INICIO
