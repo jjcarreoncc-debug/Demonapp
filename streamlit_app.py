@@ -329,7 +329,8 @@ with st.sidebar:
 
             # MES
             mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
-
+            
+            col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
             # PAÍS
             pais = st.selectbox(
                 "🌎 País",
