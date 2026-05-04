@@ -444,15 +444,11 @@ if "archivo" in st.session_state:
 
     df = pd.read_excel(st.session_state.archivo)
 
-    # =========================
-    # NORMALIZAR COLUMNAS
-    # =========================
+    # NORMALIZAR
     df.columns = df.columns.str.strip()
     df.columns = df.columns.str.upper()
 
-    # =========================
     # FECHA
-    # =========================
     if "FECHA" in df.columns:
         df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
         df = df.dropna(subset=["FECHA"])
@@ -460,20 +456,18 @@ if "archivo" in st.session_state:
         df["AÑO"] = df["FECHA"].dt.year
         df["MES"] = df["FECHA"].dt.month_name()
 
-    # =========================
     # MÉTRICAS
-    # =========================
     if all(col in df.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]):
         df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
         df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
         df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
 
-    # =========================
     # PERIODO
-    # =========================
     if "FECHA" in df.columns:
         df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
 
+    # 👇 👇 👇 ESTO FALTABA
+    df_filtrado = df.copy()
 with st.sidebar:
 
     st.divider()
