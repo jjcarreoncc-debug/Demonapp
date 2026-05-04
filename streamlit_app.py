@@ -176,7 +176,7 @@ with st.sidebar:
 
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
-
+    
     st.markdown("---")
 
     authenticator.logout("Cerrar sesión", "sidebar")
@@ -198,7 +198,15 @@ with st.sidebar:
     )
 
     st.session_state.menu = menu
+    # =========================
+    # FILTROS
+    # =========================
+    st.markdown("---")
+    st.markdown("### 🎯 Filtros")
 
+    año = None
+    mes = []
+    producto = []
 # =========================
 # INICIO
 # =========================
@@ -250,9 +258,31 @@ elif menu == "Dashboard":
         df["Ganancia"] = df["Ventas"] - df["Costos"]
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("Ventas Totales", f"${df['Ventas'].sum():,.0f}")
-        col2.metric("Costos Totales", f"${df['Costos'].sum():,.0f}")
-        col3.metric("Ganancia", f"${df['Ganancia'].sum():,.0f}")
+        col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
+        col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
+        col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
+
+# =========================
+# CREAR CAMPOS PARA FILTROS
+# =========================
+df["Año"] = df["Fecha"].dt.year
+df["Mes"] = df["Fecha"].dt.month_name()
+
+# =========================
+# APLICAR FILTROS
+# =========================
+df_filtrado = df.copy()
+
+if año:
+    df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+
+if mes:
+    df_filtrado = df_filtrado[df_filtrado["Mes"].isin(mes)]
+
+if producto:
+    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+
+
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
