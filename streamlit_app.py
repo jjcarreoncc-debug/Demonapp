@@ -534,7 +534,7 @@ with st.sidebar:
     # =========================
     for k in ["filtro_pais", "filtro_region", "filtro_producto"]:
         if isinstance(st.session_state.get(k), list):
-            st.session_state[k] = "Todos
+            st.session_state[k] = "Todos"
 
     if "archivo" in st.session_state:
 
