@@ -226,9 +226,6 @@ if menu == "Inicio":
     if "archivo" in st.session_state:
         st.info("📊 Ya hay un archivo cargado. Ve a 'Dashboard'")
 
-# =========================
-# DASHBOARD
-# =========================
 elif menu == "Dashboard":
 
     st.header("📊 Dashboard Ejecutivo")
@@ -242,68 +239,47 @@ elif menu == "Dashboard":
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
 
-        if "Fecha" not in df.columns:
-            st.warning("⚠️ Falta columna Fecha")
-            st.stop()
-
+        # ------------------------
+        # LIMPIEZA
+        # ------------------------
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
-      
-         # ✅ AQUÍ RECIÉN CREAS ESTOS CAMPOS
-        df["Año"] = df["Fecha"].dt.year
-        df["Mes"] = df["Fecha"].dt.month_name()
-        # =========================
-        # CREAR CAMPOS PARA FILTROS
-        # =========================
-        df["Año"] = df["Fecha"].dt.year
-        df["Mes"] = df["Fecha"].dt.month_name()
- 
-        # =========================
-        # APLICAR FILTROS
-        # =========================
-df_filtrado = df.copy()
-
-if año:
-    df_filtrado = df_filtrado[df_filtrado["Año"] == año]
-
-if mes:
-    df_filtrado = df_filtrado[df_filtrado["Mes"].isin(mes)]
-
-if producto:
-    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
 
         for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-        df["Ganancia"] = df["Ventas"] - df["Costos"]
+        # ------------------------
+        # CAMPOS
+        # ------------------------
+        df["Año"] = df["Fecha"].dt.year
+        df["Mes"] = df["Fecha"].dt.month_name()
+
+        # ------------------------
+        # FILTROS
+        # ------------------------
+        df_filtrado = df.copy()
+
+        if año:
+            df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+
+        if mes:
+            df_filtrado = df_filtrado[df_filtrado["Mes"].isin(mes)]
+
+        if producto:
+            df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
+
+        # ------------------------
+        # MÉTRICAS
+        # ------------------------
+        df_filtrado["Ventas"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Precio_Venta"]
+        df_filtrado["Costos"] = df_filtrado["Ventas_Cantidad"] * df_filtrado["Costos_Venta"]
+        df_filtrado["Ganancia"] = df_filtrado["Ventas"] - df_filtrado["Costos"]
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
         col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
         col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
-
-# =========================
-# CREAR CAMPOS PARA FILTROS
-# =========================
-df["Año"] = df["Fecha"].dt.year
-df["Mes"] = df["Fecha"].dt.month_name()
-
-# =========================
-# APLICAR FILTROS
-# =========================
-df_filtrado = df.copy()
-
-if año:
-    df_filtrado = df_filtrado[df_filtrado["Año"] == año]
-
-if mes:
-    df_filtrado = df_filtrado[df_filtrado["Mes"].isin(mes)]
-
-if producto:
-    df_filtrado = df_filtrado[df_filtrado["Producto"].isin(producto)]
 
 
 # ------------------------
