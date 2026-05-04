@@ -194,6 +194,12 @@ if menu == "Mantenimiento":
     col_izq, col_centro, col_der = st.columns([1,4,1])
 
     with col_centro:
+        # =========================
+        # 🖼️ IMAGEN DE PRUEBA
+        # =========================
+        st.image("imagen8.png", use_container_width=True)
+
+        st.markdown("---")
 
         # =========================
         # ➕ CREAR USUARIO
