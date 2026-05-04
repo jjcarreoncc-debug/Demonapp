@@ -578,29 +578,29 @@ with st.sidebar:
         # PRODUCTO
         # =========================
         col_producto = next(
-    (c for c in df_temp.columns if "PRODUCT" in c or "PROD" in c),
-    None
-)
+           (c for c in df_temp.columns if "PRODUCT" in c or "PROD" in c),
+           None
+         )  
 
-if col_producto:
-
-    opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
-
-    # limpiar estado viejo
-    if isinstance(st.session_state.get("filtro_producto"), list):
-        st.session_state["filtro_producto"] = "Todos"
-
-    producto = st.selectbox(
-        "📦 Producto",
-        opciones_producto,
-        key="filtro_producto"
-    )
-
-    if producto != "Todos":
-        df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
-
-else:
-    st.warning("⚠️ No se encontró columna de producto")
+        if col_producto:
+        
+            opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
+        
+            # limpiar estado viejo
+            if isinstance(st.session_state.get("filtro_producto"), list):
+                st.session_state["filtro_producto"] = "Todos"
+        
+            producto = st.selectbox(
+                "📦 Producto",
+                opciones_producto,
+                key="filtro_producto"
+            )
+        
+            if producto != "Todos":
+                df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
+        
+        else:
+            st.warning("⚠️ No se encontró columna de producto")
         # =========================
         # CANAL
         # =========================
