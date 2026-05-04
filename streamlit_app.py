@@ -756,28 +756,23 @@ if "FECHA" in df.columns:
 
     if not df.empty:
 
-        fecha_min = df["FECHA"].min()
-        fecha_max = df["FECHA"].max()
-
         fecha_ini, fecha_fin = st.date_input(
             "📅 Selecciona fecha inicial y final",
-            value=(fecha_min, fecha_max),
-            min_value=fecha_min,
-            max_value=fecha_max
+            value=(df["FECHA"].min(), df["FECHA"].max())
         )
 
-     df = df[
-         (df["FECHA"] >= pd.to_datetime(fecha_ini)) &
-         (df["FECHA"] <= pd.to_datetime(fecha_fin))
-     ] 
-                          
+        if fecha_ini and fecha_fin:
+
+            df = df[
+                (df["FECHA"] >= pd.to_datetime(fecha_ini)) &
+                (df["FECHA"] <= pd.to_datetime(fecha_fin))
+            ]
 
             df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
 
             st.caption(f"📅 Periodo seleccionado: {fecha_ini} → {fecha_fin}")
             st.divider()
-
-        else:
+    else:
             st.warning("⚠️ Selecciona ambas fechas")
 
     else:
