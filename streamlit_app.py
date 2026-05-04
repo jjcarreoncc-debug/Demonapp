@@ -279,11 +279,7 @@ with st.sidebar:
     else:
         opciones = ["Inicio", "Dashboard"]
 
-    menu = st.radio(
-        "Menú",
-        opciones,
-        index=opciones.index(st.session_state.menu)
-    )
+    
 
     st.session_state.menu = menu
 
