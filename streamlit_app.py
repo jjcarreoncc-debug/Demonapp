@@ -440,13 +440,13 @@ elif menu == "Mantenimiento":
 # ------------------------
 # DATA GLOBAL
 # -----------------------
-df = None
+
 
 if "archivo" in st.session_state:
 
     df = pd.read_excel(st.session_state.archivo)
     df.columns = df.columns.str.strip()
-
+    df.columns = df.columns.str.upper() 
     if "Fecha" in df.columns:
         df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
         df = df.dropna(subset=["Fecha"])
