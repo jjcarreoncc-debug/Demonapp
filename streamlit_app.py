@@ -63,7 +63,24 @@ def set_sidebar_bg(img_path):
     }}
     </style>
     """, unsafe_allow_html=True)
+    st.markdown("""
+<style>
 
+/* Fondo con imagen suave */
+.stApp {
+    background: linear-gradient(
+        rgba(255,255,255,0.97),
+        rgba(255,255,255,0.97)
+    ),
+    url("URL_DE_TU_IMAGEN");
+    
+    background-size: 300px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+</style>
+""", unsafe_allow_html=True) 
 set_sidebar_bg("imagen8.png")
 
 # ------------------------
