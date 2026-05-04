@@ -273,6 +273,7 @@ with st.sidebar:
 
     # ------------------------
     # INICIALIZAR MENU
+    
     # ------------------------
     if "menu" not in st.session_state:
         st.session_state.menu = "Inicio"
@@ -471,9 +472,6 @@ elif menu == "Mantenimiento":
     st.title("🛠️ Mantenimiento de Usuarios")
 
 # ------------------------
-# FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
-# ------------------------
-# ------------------------
 # DATA GLOBAL
 # -----------------------
 if "archivo" in st.session_state:
@@ -507,7 +505,7 @@ if "archivo" in st.session_state:
 with st.sidebar:
 
     st.divider()
-    st.markdown("### 🎯 Filtros")
+    #st.markdown("### 🎯 Filtros")
 
     # 👇 usar df SOLO si existe archivo
     if "archivo" in st.session_state:
@@ -686,7 +684,7 @@ else:
     st.markdown("### 🚦 Navegación")
 with st.sidebar:
     st.divider()
-    st.markdown("### 🎯 Filtros")
+    #st.markdown("### 🎯 Filtros")
     
     if st.button("📊 Principal", key="nav_principal"):
         st.session_state.vista = "principal"
