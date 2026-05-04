@@ -346,17 +346,21 @@ with st.sidebar:
                 ["Todos"] + sorted(df_region["Region"].dropna().unique()),
                 key="filtro_region"
             )
-    
             # PRODUCTO
             df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
-
+            
             producto_opciones = ["Todos"] + sorted(df_producto["Nombre_Producto"].dropna().unique())
+            
+            st.multiselect(
+                "Producto",
+                producto_opciones,
+                key="filtro_producto"
+            )
 
-            producto = st.multiselect("Producto", producto_opciones, key="producto")
+            if "Todos" in st.session_state.get("filtro_producto", []):
+                st.session_state["filtro_producto"] = []
 
-            if "Todos" in producto:
-                producto = []
-
+              
         else:
             st.info("📂 Carga un archivo para activar filtros")
 # =========================
