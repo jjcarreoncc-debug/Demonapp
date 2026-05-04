@@ -174,11 +174,11 @@ else:
 # =========================
 # PAÍS
 # =========================
-pais = st.selectbox(
+with st.sidebar:
+ pais = st.selectbox(
     "🌎 País",
     ["Todos", "Colombia", "Perú", "Chile"]
 )
-with st.sidebar:
 
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
