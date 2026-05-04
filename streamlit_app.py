@@ -266,7 +266,9 @@ with st.sidebar:
             df_producto = df_region[df_region["Region"] == region]
         else:
             df_producto = df_region
-        
+        st.write("COLUMNAS:", df_producto.columns)
+        st.write("FILAS:", len(df_producto))
+        st.dataframe(df_producto.head())
         producto_opciones = ["Todos"] + sorted(df_producto["Producto"].dropna().unique())
         producto = st.multiselect("Producto", producto_opciones)
         
