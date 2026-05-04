@@ -57,6 +57,13 @@ div[data-baseweb="select"] * {
 </style>
 """, unsafe_allow_html=True)
 
+menu = st.radio(
+    "Menú",
+    opciones,
+    index=opciones.index(st.session_state.menu)
+)
+
+st.session_state.menu = menu
 # ------------------------
 # BASE DE DATOS
 # ------------------------
@@ -172,8 +179,8 @@ else:
 # =========================
 # MANTENIMIENTO
 # =========================
-if menu == "Mantenimiento":
 
+if st.session_state.menu == "Mantenimiento":
     st.title("🛠️ Mantenimiento de Usuarios")
 
     # Validación de rol
