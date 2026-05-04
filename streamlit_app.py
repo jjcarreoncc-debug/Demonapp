@@ -234,7 +234,7 @@ with st.sidebar:
         # PRODUCTO (dependiente de país)
         # =========================
         if pais == "Colombia":
-            opciones_producto = ["Todos", "A", "B"]
+            opciones_producto = ["Todos", "A"]
         elif pais == "Perú":
             opciones_producto = ["Todos", "A"]
         elif pais == "Chile":
