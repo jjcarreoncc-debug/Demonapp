@@ -17,6 +17,8 @@ st.set_page_config(
     layout="wide")
 if "menu" not in st.session_state:
     st.session_state.menu = "Inicio"
+if "rol" not in st.session_state:
+    st.session_state.rol = "Usuario"    
 
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
@@ -250,17 +252,18 @@ with st.sidebar:
 
     st.title("📌 Navegación")
     st.write(f"👋 Bienvenido {name}")
-
-    st.markdown("---")
-
-    authenticator.logout("Cerrar sesión", "sidebar")
-
     # ------------------------
     # ROL
     # ------------------------
     rol = "Admin" if username == "admin" else "Usuario"
     st.session_state.rol = rol
-    # ------------------------
+    
+
+    st.markdown("---")
+
+    authenticator.logout("Cerrar sesión", "sidebar")
+
+    
     # OPCIONES
     # ------------------------
     if st.session_state.rol != "Admin":
@@ -434,10 +437,9 @@ elif menu == "Mantenimiento":
 # ------------------------
 # FILTROS + NAV (CON PRODUCTO, CANAL, VENDEDOR, TIPO_CLIENTE + RANGO DE FECHAS)
 # ------------------------
-menu = st.sidebar.radio("Menú", ["Inicio", "Dashboard"])
 # ------------------------
 # DATA GLOBAL
-# ------------------------
+# -----------------------
 df = None
 
 if "archivo" in st.session_state:
