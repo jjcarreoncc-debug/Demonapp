@@ -423,9 +423,12 @@ elif menu == "Dashboard":
         if mes != "Todos":
             df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
 
-        if pais != "Todos" and "Pais" in df_filtrado.columns:
-            df_filtrado = df_filtrado[df_filtrado["Pais"] == pais]
+        # PAIS (seguro)
+        col_pais = next((c for c in df_filtrado.columns if "pais" in c.lower()), None)
 
+        if pais != "Todos" and col_pais:
+            df_filtrado = df_filtrado[df_filtrado[col_pais] == pais]
+        
         if region != "Todos" and "Region" in df_filtrado.columns:
             df_filtrado = df_filtrado[df_filtrado["Region"] == region]
 
