@@ -14,7 +14,7 @@ from PIL import Image
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 st.set_page_config(
     page_title="Dashboard Ejecutivo",
-    layout="wide"
+    layout="wide")
 
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
