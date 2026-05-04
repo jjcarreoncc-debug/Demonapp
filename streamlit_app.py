@@ -10,6 +10,7 @@ from PIL import Image
 
 # ------------------------
 # CONFIG
+
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 st.set_page_config(
@@ -790,7 +791,7 @@ with st.sidebar:
 # =========================
 # VALIDAR DATA
 # =========================
-if df is None:
+    if df is None:
     st.warning("⚠️ Carga un archivo en Inicio")
     st.stop()
 
@@ -805,7 +806,7 @@ if "FECHA" in df.columns:
 
     if not df.empty:
 
-        fecha_ini, fecha_fin = st.date_input(
+        fechas = st.date_input(
             "📅 Selecciona fecha inicial y final",
             value=(df["FECHA"].min(), df["FECHA"].max())
         )
