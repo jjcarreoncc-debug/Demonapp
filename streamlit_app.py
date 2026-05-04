@@ -334,7 +334,7 @@ with st.sidebar:
             pais = st.selectbox(
                 "🌎 País",
                 ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
-                key="pais"
+                key="filtro_pais"
             )
 
             # REGIÓN
