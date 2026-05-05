@@ -4,6 +4,7 @@ import plotly.express as  px
 import sqlite3# 
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
+
 import hashlib
 from datetime import datetime
 from PIL import Image
@@ -1552,6 +1553,23 @@ if vista == "principal":
     # =========================
     # DATA MENSUAL
     # =========================
+    # =========================
+# ASEGURAR PERIODO
+# =========================
+    if "PERIODO" not in df_f.columns:
+    
+        col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
+    
+        if col_fecha:
+            df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
+            df_f = df_f.dropna(subset=[col_fecha])
+            df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
+        else:
+            st.error("❌ No existe columna FECHA para crear PERIODO")
+            st.stop()
+    🎯 POR QUÉ TE PASÓ
+
+Seguro pasó uno de estos:
     if "PERIODO" in df_f.columns:
         df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
         df_m = df_m.sort_values("PERIODO")
