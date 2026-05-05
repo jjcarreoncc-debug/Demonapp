@@ -1666,17 +1666,47 @@ elif st.session_state.vista == "resumen":
     st.title("🧠 Resumen Ejecutivo")
 
     # =========================
-    # PREPARAR DATA (CLAVE)
+    # FUNCIÓN SOMBRAS (GLOBAL)
+    # =========================
+    def agregar_sombras_por_anio(fig, df, col_periodo="PERIODO"):
+        df_tmp = df.copy()
+        df_tmp["PERIODO_DT"] = pd.to_datetime(df_tmp[col_periodo], errors="coerce")
+        df_tmp = df_tmp.dropna(subset=["PERIODO_DT"])
+
+        df_tmp["ANIO"] = df_tmp["PERIODO_DT"].dt.year
+        anios = df_tmp["ANIO"].unique()
+
+        for i, anio in enumerate(anios):
+            df_year = df_tmp[df_tmp["ANIO"] == anio]
+
+            if not df_year.empty:
+                fig.add_vrect(
+                    x0=df_year[col_periodo].iloc[0],
+                    x1=df_year[col_periodo].iloc[-1],
+                    fillcolor="lightblue" if i % 2 == 0 else "lightgrey",
+                    opacity=0.15,
+                    line_width=0,
+                )
+
+                fig.add_vline(
+                    x=df_year[col_periodo].iloc[0],
+                    line_dash="dash",
+                    line_color="black"
+                )
+
+        return fig
+
+    # =========================
+    # PREPARAR DATA
     # =========================
     df_res = df.copy()
     df_res.columns = df_res.columns.str.strip().str.upper()
 
-    # Crear VENTAS si no existe
     if "VENTAS" not in df_res.columns:
         if all(col in df_res.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
             df_res["VENTAS"] = df_res["VENTAS_CANTIDAD"] * df_res["PRECIO_VENTA"]
         else:
-            st.error("❌ No se puede calcular VENTAS (faltan columnas base)")
+            st.error("❌ No se puede calcular VENTAS")
             st.stop()
 
     # =========================
@@ -1686,13 +1716,14 @@ elif st.session_state.vista == "resumen":
         df_m = df_res.groupby("PERIODO")["VENTAS"].sum().reset_index()
         df_m = df_m.sort_values("PERIODO")
     else:
-        st.warning("⚠️ Falta la columna PERIODO")
+        st.warning("⚠️ Falta PERIODO")
         st.stop()
 
     # =========================
     # PROYECCIÓN
     # =========================
     import plotly.express as px
+    import plotly.graph_objects as go
 
     st.subheader("📈 Proyección")
 
@@ -1703,11 +1734,16 @@ elif st.session_state.vista == "resumen":
         col1, col2 = st.columns(2)
 
         with col1:
-            fig1 = px.line(df_m, x="PERIODO", y="VENTAS", markers=True)
+            fig1 = go.Figure()
+            fig1.add_trace(go.Scatter(x=df_m["PERIODO"], y=df_m["VENTAS"], mode="lines+markers", name="Ventas"))
+            fig1 = agregar_sombras_por_anio(fig1, df_m)
             st.plotly_chart(fig1, use_container_width=True)
 
         with col2:
-            fig2 = px.line(df_m, x="PERIODO", y=["VENTAS", "PROYECCION"], markers=True)
+            fig2 = go.Figure()
+            fig2.add_trace(go.Scatter(x=df_m["PERIODO"], y=df_m["VENTAS"], mode="lines+markers", name="Ventas"))
+            fig2.add_trace(go.Scatter(x=df_m["PERIODO"], y=df_m["PROYECCION"], mode="lines+markers", name="Proyección"))
+            fig2 = agregar_sombras_por_anio(fig2, df_m)
             st.plotly_chart(fig2, use_container_width=True)
 
     # =========================
@@ -1745,7 +1781,7 @@ elif st.session_state.vista == "resumen":
     )
 
     # =========================
-    # INSIGHTS + GRÁFICAS + DETALLE
+    # INSIGHTS + KPI + DETALLE
     # =========================
     if not df_tabla.empty:
 
@@ -1753,6 +1789,16 @@ elif st.session_state.vista == "resumen":
 
         top_crece = df_tabla.sort_values("Impacto $", ascending=False).head(1)
         top_cae = df_tabla.sort_values("Impacto $").head(1)
+
+        c1, c2 = st.columns(2)
+
+        if not top_crece.empty:
+            row = top_crece.iloc[0]
+            c1.metric("🔥 Mayor crecimiento", row["Elemento"], f"${row['Impacto $']:,.0f}")
+
+        if not top_cae.empty:
+            row = top_cae.iloc[0]
+            c2.metric("⚠️ Mayor caída", row["Elemento"], f"${row['Impacto $']:,.0f}")
 
         # ------------------------
         # CRECIMIENTO
@@ -1762,19 +1808,20 @@ elif st.session_state.vista == "resumen":
             elemento = row["Elemento"]
             dim = row["Dimensión"]
 
-            st.success(f"🔥 Crecimiento impulsado por {elemento} (${row['Impacto $']:,.0f})")
+            st.success(f"🔥 Crecimiento impulsado por {elemento}")
 
-            df_grow = df_res[df_res[dim] == elemento]
-            df_grow = df_grow.groupby("PERIODO")["VENTAS"].sum().reset_index()
+            with st.expander("🔎 Ver detalle crecimiento"):
+                st.dataframe(df_tabla[df_tabla["Elemento"] == elemento], use_container_width=True)
 
-            fig_grow = px.line(
-                df_grow,
-                x="PERIODO",
-                y="VENTAS",
-                markers=True,
-                title=f"Evolución de {elemento}"
-            )
-            st.plotly_chart(fig_grow, use_container_width=True)
+            with st.expander("📈 Ver gráfica crecimiento"):
+                df_grow = df_res[df_res[dim] == elemento]
+                df_grow = df_grow.groupby("PERIODO")["VENTAS"].sum().reset_index()
+
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=df_grow["PERIODO"], y=df_grow["VENTAS"], mode="lines+markers"))
+                fig = agregar_sombras_por_anio(fig, df_grow)
+
+                st.plotly_chart(fig, use_container_width=True)
 
         # ------------------------
         # CAÍDA
@@ -1784,38 +1831,26 @@ elif st.session_state.vista == "resumen":
             elemento = row["Elemento"]
             dim = row["Dimensión"]
 
-            st.error(f"⚠️ Caída principal en {elemento} (${row['Impacto $']:,.0f})")
+            st.error(f"⚠️ Caída principal en {elemento}")
 
-            df_drop = df_res[df_res[dim] == elemento]
-            df_drop = df_drop.groupby("PERIODO")["VENTAS"].sum().reset_index()
+            with st.expander("🔎 Ver detalle caída"):
+                st.dataframe(df_tabla[df_tabla["Elemento"] == elemento], use_container_width=True)
 
-            fig_drop = px.line(
-                df_drop,
-                x="PERIODO",
-                y="VENTAS",
-                markers=True,
-                title=f"Evolución de {elemento}"
-            )
-            st.plotly_chart(fig_drop, use_container_width=True)
+            with st.expander("📉 Ver gráfica caída"):
+                df_drop = df_res[df_res[dim] == elemento]
+                df_drop = df_drop.groupby("PERIODO")["VENTAS"].sum().reset_index()
+
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=df_drop["PERIODO"], y=df_drop["VENTAS"], mode="lines+markers"))
+                fig = agregar_sombras_por_anio(fig, df_drop)
+
+                st.plotly_chart(fig, use_container_width=True)
 
         # =========================
-        # DETALLE CON BULLETS
+        # TABLA GENERAL
         # =========================
-        st.markdown("## 📋 Detalle de variaciones")
-
-        df_tabla_sorted = df_tabla.sort_values("Impacto $", ascending=False)
-
-        for _, row in df_tabla_sorted.iterrows():
-
-            bullet = "🟢" if row["Variación"] > 0 else "🔴"
-
-            st.markdown(
-                f"{bullet} **{row['Elemento']}** "
-                f"({row['Dimensión']}) | "
-                f"${row['Anterior']:,.0f} → ${row['Actual']:,.0f} | "
-                f"Var: {row['Variación']:.2%} | "
-                f"Impacto: ${row['Impacto $']:,.0f}"
-            )
+        st.markdown("## 📋 Detalle completo")
+        st.dataframe(df_tabla.sort_values("Impacto $", ascending=False), use_container_width=True)
 
     # =========================
     # BOTÓN ALERTAS
