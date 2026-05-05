@@ -463,57 +463,7 @@ with st.sidebar:
     else:
         opciones = ["Inicio", "Dashboard"]
 
-    # ------------------------
-    # INICIALIZAR MENU
-    
-    # ------------------------
-    if "menu" not in st.session_state:
-        st.session_state.menu = "Inicio"
-
-    # ------------------------
-    # MENU
-    # ------------------------
    
-        menu = st.radio(
-        "Menú",
-        opciones,
-        index=opciones.index(st.session_state.menu)
- 
-# =========================
-# CONTROL DE VISTA
-# =========================
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-# =========================
-# INICIO
-# =========================
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-if menu == "Inicio":
-
-    st.title("🏠 Inicio")
-
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
-
-    if archivo:
-        st.session_state.archivo = archivo
-        st.success("✅ Archivo cargado correctamente")
-
-        # 🔥 BOTÓN VOLVER AL MENÚ
-        if st.button("🔙 Volver al menú de navegación"):
-            st.session_state.menu = "Dashboard"  # o "Inicio" si quieres quedarte
-            st.rerun()
-
-    elif "archivo" in st.session_state:
-        st.info("📊 Ya hay un archivo cargado")
-
-        # 🔥 BOTÓN TAMBIÉN SI YA EXISTE ARCHIVO
-        if st.button("🔙 Ir al Dashboard"):
-            st.session_state.menu = "Dashboard"
-            st.rerun()
-
-
-
 # =========================
 # DASHBOARD
 # =========================
