@@ -1343,32 +1343,15 @@ elif vista == "detalle":
 # =========================
 df_f = df.copy()
 
-# PAIS
-if pais:
-    if isinstance(pais, list):
-        if "Todos" not in pais:
-            df_f = df_f[df_f["PAIS"].astype(str).isin(pais)]
-    else:
-        if pais != "Todos":
-            df_f = df_f[df_f["PAIS"].astype(str) == str(pais)]
+if pais != "Todos":
+    df_f = df_f[df_f["PAIS"].astype(str) == pais]
 
-# CANAL
-if canal:
-    if isinstance(canal, list):
-        if "Todos" not in canal:
-            df_f = df_f[df_f["CANAL"].astype(str).isin(canal)]
-    else:
-        if canal != "Todos":
-            df_f = df_f[df_f["CANAL"].astype(str) == str(canal)]
+if canal != "Todos":
+    df_f = df_f[df_f["CANAL"].astype(str) == canal]
 
-# PRODUCTO
-if producto:
-    if isinstance(producto, list):
-        if "Todos" not in producto:
-            df_f = df_f[df_f["NOMBRE_PRODUCTO"].astype(str).isin(producto)]
-    else:
-        if producto != "Todos":
-            df_f = df_f[df_f["NOMBRE_PRODUCTO"].astype(str) == str(producto)]
+if producto != "Todos":
+    df_f = df_f[df_f["NOMBRE_PRODUCTO"].astype(str) == producto]
+
 if "REGION" in df_f.columns:
     if isinstance(region, list):
         if region:
@@ -1376,7 +1359,7 @@ if "REGION" in df_f.columns:
     else:
         if region != "Todos":
             df_f = df_f[df_f["REGION"].astype(str) == region]
-
+   
 # ------------------------
 # VALIDACIÓN
 # ------------------------
