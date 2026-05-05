@@ -1441,6 +1441,17 @@ if vista == "principal":
     ganancia = df_f["GANANCIA"].sum()
     margen = (ganancia / ventas) * 100 if ventas != 0 else 0
     # =========================
+    # VARIACIÓN (FIX ERROR)
+    # =========================
+    variacion = 0
+    
+    if "df_m" in locals() and len(df_m) >= 2:
+        v1 = df_m.iloc[-2]["VENTAS"]
+        v2 = df_m.iloc[-1]["VENTAS"]
+    
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
+    # =========================
     # KPIs EJECUTIVOS
     # =========================
     c1, c2, c3, c4 = st.columns(4)
