@@ -1440,7 +1440,17 @@ if vista == "principal":
     costos = df_f["COSTOS"].sum()
     ganancia = df_f["GANANCIA"].sum()
     margen = (ganancia / ventas) * 100 if ventas != 0 else 0
-
+    # =========================
+    # KPIs EJECUTIVOS
+    # =========================
+    c1, c2, c3, c4 = st.columns(4)
+    
+    delta_color = "normal" if variacion >= 0 else "inverse"
+    
+    c1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    c2.metric("📈 Crecimiento", f"{variacion:.1%}")
+    c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    c4.metric("📊 Margen", f"{margen:.1f}%")
     # =========================
     # DATA MENSUAL
     # =========================
