@@ -1708,7 +1708,7 @@ if vista == "principal":
 # VOLATILIDAD
 # =========================
 # =========================
-# VOLATILIDAD
+# VOLATILIDAD (EJECUTIVO)
 # =========================
 elif vista == "volatilidad":
 
@@ -1717,10 +1717,10 @@ elif vista == "volatilidad":
         st.session_state.vista = "principal"
         st.rerun()
 
-    st.markdown("## 📉 Análisis de Volatilidad")
+    st.markdown("## 📉 Análisis de Volatilidad del Negocio")
 
     # =========================
-    # PREPARAR DATOS (INDEPENDIENTE)
+    # PREPARAR DATOS
     # =========================
     df_f = df.copy()
 
@@ -1737,13 +1737,12 @@ elif vista == "volatilidad":
     if region != "Todos" and "REGION" in df_f.columns:
         df_f = df_f[df_f["REGION"] == region]
 
-    # VALIDACIÓN
     if df_f.empty:
         st.warning("No hay datos con los filtros actuales")
         st.stop()
 
     # =========================
-    # FECHA Y PERIODO
+    # FECHA
     # =========================
     col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
 
@@ -1768,55 +1767,128 @@ elif vista == "volatilidad":
     df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
 
     if df_m.empty:
-        st.warning("No hay datos suficientes para análisis")
+        st.warning("No hay datos suficientes")
         st.stop()
 
     # =========================
-    # CÁLCULO VOLATILIDAD REAL
+    # CÁLCULO VOLATILIDAD
     # =========================
     volatilidad = df_m["VENTAS"].std()
     media = df_m["VENTAS"].mean()
     cv = (volatilidad / media) * 100 if media != 0 else 0
 
+    max_val = df_m["VENTAS"].max()
+    min_val = df_m["VENTAS"].min()
+
     # =========================
-    # KPI
+    # CARD EJECUTIVA
     # =========================
-    st.metric("Coeficiente de Variación", f"{cv:.2f}%")
+    color = "#16a34a" if cv < 20 else "#dc2626"
+
+    st.markdown(f"""
+    <div style="
+        border-radius:16px;
+        padding:20px;
+        background-color:#f8fafc;
+        border-left:8px solid {color};
+        box-shadow:0 4px 12px rgba(0,0,0,0.05);
+        margin-bottom:20px;
+    ">
+        <h3 style="margin:0;">Volatilidad del Negocio</h3>
+        <p style="color:{color}; font-size:20px; margin:5px 0;">
+            {cv:.2f}%
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # =========================
+    # KPIs
+    # =========================
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        st.metric("Promedio", f"${media:,.0f}")
+
+    with c2:
+        st.metric("Desviación", f"${volatilidad:,.0f}")
+
+    with c3:
+        st.metric("Máximo", f"${max_val:,.0f}")
+
+    with c4:
+        st.metric("Mínimo", f"${min_val:,.0f}")
 
     # =========================
     # INTERPRETACIÓN
     # =========================
     if cv < 10:
-        st.success("🟢 Baja volatilidad (negocio estable)")
+        st.success("🟢 Negocio muy estable")
     elif cv < 30:
-        st.warning("🟡 Volatilidad moderada")
+        st.warning("🟡 Variabilidad moderada")
     else:
         st.error("🔴 Alta volatilidad (riesgo en ventas)")
 
     # =========================
-    # GRÁFICA
+    # BOTONES
     # =========================
-    st.markdown("### 📊 Evolución de ventas")
+    b1, b2 = st.columns(2)
 
-    df_m["MA_3"] = df_m["VENTAS"].rolling(3).mean()
+    with b1:
+        ver_detalle = st.button("🔍 Ver detalle", key="vol_det")
 
-    st.line_chart(
-        df_m.set_index("PERIODO")[["VENTAS", "MA_3"]]
-    )
+    with b2:
+        ver_graf = st.button("📊 Ver gráfica", key="vol_graf")
 
     # =========================
     # DETALLE
     # =========================
-    if st.button("📋 Ver detalle"):
+    if ver_detalle:
+        st.markdown("### 📋 Detalle mensual")
         st.dataframe(df_m)
 
     # =========================
-    # INSIGHT EXTRA
+    # GRÁFICA
     # =========================
-    max_val = df_m["VENTAS"].max()
-    min_val = df_m["VENTAS"].min()
+    if ver_graf:
+        st.markdown("### 📈 Evolución de ventas")
 
-    st.info(f"📌 Máximo: ${max_val:,.0f} | Mínimo: ${min_val:,.0f}")
+        import plotly.graph_objects as go
+
+        df_m["MA_3"] = df_m["VENTAS"].rolling(3).mean()
+
+        fig = go.Figure()
+
+        fig.add_trace(go.Scatter(
+            x=df_m["PERIODO"],
+            y=df_m["VENTAS"],
+            mode="lines+markers",
+            name="Ventas",
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=df_m["PERIODO"],
+            y=df_m["MA_3"],
+            mode="lines",
+            name="Tendencia",
+        ))
+
+        fig.update_layout(
+            title="Volatilidad de ventas en el tiempo",
+            xaxis_title="Periodo",
+            yaxis_title="Ventas",
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # INSIGHT FINAL
+    # =========================
+    st.info(
+        f"📌 La variabilidad del negocio es de {cv:.2f}%. "
+        f"Rango entre ${min_val:,.0f} y ${max_val:,.0f}."
+    )
+
+    st.markdown("---")
 # RESPONSABLES
 elif vista == "responsables":
 
