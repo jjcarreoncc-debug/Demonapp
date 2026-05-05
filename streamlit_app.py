@@ -1540,47 +1540,82 @@ if vista == "principal":
 
     # KPIs + BOTONES
     k1, k2, k3, k4 = st.columns(4)
-
     with k1:
-        st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
 
-        if st.button("📋", key="ventas_tabla"):
-            tabla = df_m.copy()
-            st.dataframe(tabla)
+    colb1, colb2, colb3 = st.columns(3)
 
+    # POSITIVOS
+    with colb1:
+        if st.button("🟢 +", key="ventas_pos"):
+            df_pos = df_m[df_m["VENTAS"] > 0]
+            st.success("Valores positivos")
+            st.dataframe(df_pos)
+
+    # NEGATIVOS
+    with colb2:
+        if st.button("🔴 -", key="ventas_neg"):
+            df_neg = df_m[df_m["VENTAS"] < 0]
+            st.error("Valores negativos")
+            st.dataframe(df_neg)
+
+    # GRÁFICA
+    with colb3:
         if st.button("📈", key="ventas_grafica"):
             st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
-
+    
     with k2:
-        st.metric("📈 Crecimiento", f"{variacion:.1%}")
+    st.metric("📈 Crecimiento", f"{variacion:.1%}")
 
-        if st.button("📋", key="crecimiento_tabla"):
-            df_m["VAR"] = df_m["VENTAS"].pct_change()
-            st.dataframe(df_m)
+    df_m["VAR"] = df_m["VENTAS"].pct_change()
 
-        if st.button("📈", key="crecimiento_grafica"):
-            st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
+    colb1, colb2, colb3 = st.columns(3)
 
+    with colb1:
+        if st.button("🟢 +", key="crec_pos"):
+            st.dataframe(df_m[df_m["VAR"] > 0])
+
+    with colb2:
+        if st.button("🔴 -", key="crec_neg"):
+            st.dataframe(df_m[df_m["VAR"] < 0])
+
+    with colb3:
+        if st.button("📈", key="crec_graf"):
+            st.line_chart(df_m.set_index("PERIODO")["VAR"])
     with k3:
-        st.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    st.metric("💵 Ganancia", f"${ganancia:,.0f}")
 
-        if st.button("📋", key="ganancia_tabla"):
-            st.dataframe(df_m)
+    colb1, colb2, colb3 = st.columns(3)
 
-        if st.button("📈", key="ganancia_grafica"):
+    with colb1:
+        if st.button("🟢 +", key="gan_pos"):
+            st.dataframe(df_m[df_m["GANANCIA"] > 0])
+
+    with colb2:
+        if st.button("🔴 -", key="gan_neg"):
+            st.dataframe(df_m[df_m["GANANCIA"] < 0])
+
+    with colb3:
+        if st.button("📈", key="gan_graf"):
             st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
-
     with k4:
-        st.metric("📊 Margen", f"{margen:.1f}%")
+    st.metric("📊 Margen", f"{margen:.1f}%")
 
-        if st.button("📋", key="margen_tabla"):
-            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
-            st.dataframe(df_m)
+    df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
 
-        if st.button("📈", key="margen_grafica"):
-            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+    colb1, colb2, colb3 = st.columns(3)
+
+    with colb1:
+        if st.button("🟢 +", key="mar_pos"):
+            st.dataframe(df_m[df_m["MARGEN"] > 0])
+
+    with colb2:
+        if st.button("🔴 -", key="mar_neg"):
+            st.dataframe(df_m[df_m["MARGEN"] < 0])
+
+    with colb3:
+        if st.button("📈", key="mar_graf"):
             st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
-
     # ALERTAS
     if margen < 0:
         st.error("🚨 Margen negativo: revisar costos")
@@ -1987,10 +2022,10 @@ elif st.session_state.vista == "alertas":
                 ))
 
                 fig.update_layout(
-                    title=f"{nombre} | Variación {var:.1%}",
-                    xaxis_title="Periodo",
-                    yaxis_title="Ventas",
-                    showlegend=False
+                    title="📈 Evolución de Ventas y Ganancia",
+                    xaxis_title="📅 Periodo",
+                    yaxis_title="💰 Valor ($)",
+                    legend_title="Indicadores",
                 )
 
                 st.plotly_chart(fig, use_container_width=True, key=f"alert_{i}")
@@ -2154,6 +2189,7 @@ if st.session_state.vista == "resumen":
         y=df_m["VENTAS"],
         mode="lines+markers",
         name="Ventas"
+        hovertemplate="📅 Periodo: %{x}<br>💰 Ventas: %{y:$,.0f}<extra></extra>"
     ))
 
     if "GANANCIA" in df_m.columns:
@@ -2162,6 +2198,7 @@ if st.session_state.vista == "resumen":
             y=df_m["GANANCIA"],
             mode="lines+markers",
             name="Ganancia"
+            hovertemplate="📅 Periodo: %{x}<br>💰 Ventas: %{y:$,.0f}<extra></extra>"
         ))
 
     fig.update_layout(
