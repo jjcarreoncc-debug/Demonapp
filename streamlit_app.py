@@ -1077,9 +1077,6 @@ if 'df' not in locals() or df is None:
     st.warning("⚠️ No hay archivo cargado o df no existe")
     st.stop()
 # =========================
-# CARGA DE ARCHIVO
-# =========================
-# =========================
 # 1. CARGAR ARCHIVO
 # =========================
 if "archivo" in st.session_state:
@@ -1220,12 +1217,6 @@ else:
     st.warning("⚠️ El archivo no tiene columna FECHA")
 
 
-# =========================
-# EJEMPLO USO (DEBUG)
-# =========================
-st.write("Vista actual:", st.session_state.get("vista"))
-st.write("Filas después de filtro:", len(df))
-st.dataframe(df.head())
 
 # ------------------------
 # PANTALLA INICIAL
@@ -1235,7 +1226,7 @@ if st.session_state.vista == "inicio":
 
     st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
     st.image("imagen8.png", width=1400)
-
+    st.write("DEBUG VISTA:", st.session_state.vista)
     st.stop()    
 
 #recomendaciones
