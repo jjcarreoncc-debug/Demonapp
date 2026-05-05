@@ -1563,19 +1563,11 @@ if vista == "principal":
     c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
     c4.metric("📊 Margen", f"{margen:.1f}%")
     # =========================
-    # DATA MENSUAL
-    # =========================
-    # =========================
-# ASEGURAR PERIODO
-# =========================
-# =========================
 # GROUPBY SEGURO (ANTI-ERROR)
 # =========================
 
-# Buscar columna fecha
 col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
 
-# Crear PERIODO SI NO EXISTE
 if "PERIODO" not in df_f.columns:
 
     if col_fecha:
@@ -1587,7 +1579,6 @@ if "PERIODO" not in df_f.columns:
         st.write("Columnas actuales:", df_f.columns)
         st.stop()
 
-# Crear métricas si faltan (extra seguro)
 if "VENTAS" not in df_f.columns:
     if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
         df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
@@ -1597,20 +1588,20 @@ if "GANANCIA" not in df_f.columns:
         df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
         df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 
-# DEBUG (temporal)
 st.write("DEBUG COLUMNAS:", df_f.columns)
 
-# AHORA SÍ
-        df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-    # =========================
-    # VARIACIÓN
-    # =========================
-    if len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["VENTAS"]
-        v2 = df_m.iloc[-1]["VENTAS"]
-        variacion = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        variacion = 0
+# ✅ AQUÍ ESTABA EL ERROR (ya corregido)
+df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+
+# =========================
+# VARIACIÓN
+# =========================
+if len(df_m) >= 2:
+    v1 = df_m.iloc[-2]["VENTAS"]
+    v2 = df_m.iloc[-1]["VENTAS"]
+    variacion = (v2 - v1) / v1 if v1 != 0 else 0
+else:
+    variacion = 0    
 
     st.write(f"📊 Variación actual: {variacion:.2%}")
 
