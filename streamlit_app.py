@@ -5,7 +5,7 @@ import sqlite3#
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
 
-import hashlib
+import hashlibprin
 from datetime import datetime
 from PIL import Image
 
@@ -1547,7 +1547,73 @@ if vista == "principal":
     if not df_m.empty and len(df_m) >= 2:
         v1 = df_m.iloc[-2]["VENTAS"]
         v2 = df_m.iloc[-1]["VENTAS"]
+# =========================
+# KPIs + BOTONES (FIX)
+# =========================
+k1, k2, k3, k4 = st.columns(4)
 
+# -------------------------
+# VENTAS
+# -------------------------
+with k1:
+    st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+
+    if st.button("📋", key="ventas_tabla"):
+        tabla = df_m.copy()
+        st.dataframe(
+            tabla.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VENTAS"])
+        )
+
+    if st.button("📈", key="ventas_grafica"):
+        st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
+
+
+# -------------------------
+# CRECIMIENTO
+# -------------------------
+with k2:
+    st.metric("📈 Crecimiento", f"{variacion:.1%}")
+
+    if st.button("📋", key="crecimiento_tabla"):
+        df_m["VAR"] = df_m["VENTAS"].pct_change()
+        st.dataframe(
+            df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VAR"])
+        )
+
+    if st.button("📈", key="crecimiento_grafica"):
+        st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
+
+
+# -------------------------
+# GANANCIA
+# -------------------------
+with k3:
+    st.metric("💵 Ganancia", f"${ganancia:,.0f}")
+
+    if st.button("📋", key="ganancia_tabla"):
+        st.dataframe(
+            df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["GANANCIA"])
+        )
+
+    if st.button("📈", key="ganancia_grafica"):
+        st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
+
+
+# -------------------------
+# MARGEN
+# -------------------------
+with k4:
+    st.metric("📊 Margen", f"{margen:.1f}%")
+
+    if st.button("📋", key="margen_tabla"):
+        df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+        st.dataframe(
+            df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["MARGEN"])
+        )
+
+    if st.button("📈", key="margen_grafica"):
+        df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+        st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
         if v1 != 0:
             variacion = (v2 - v1) / v1
 
@@ -1556,13 +1622,7 @@ if vista == "principal":
     # =========================
     # KPIs
     # =========================
-    k1, k2, k3, k4 = st.columns(4)
-
-    k1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
-    k2.metric("📈 Crecimiento", f"{variacion:.1%}")
-    k3.metric("💵 Ganancia", f"${ganancia:,.0f}")
-    k4.metric("📊 Margen", f"{margen:.1f}%")
-
+    
     # =========================
     # ALERTAS
     # =========================
