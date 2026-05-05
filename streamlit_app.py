@@ -750,8 +750,7 @@ if "archivo" in st.session_state:
     if "FECHA" in df.columns:
         df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
         df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)    
-        st.write("🔍 Columnas actuales del df:", df.columns)
-        st.dataframe(df.head())
+        
     # PERIODO
     if "FECHA" in df.columns:
         df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
