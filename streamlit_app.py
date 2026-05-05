@@ -482,7 +482,6 @@ if "vista" not in st.session_state:
 # =========================
 if "vista" not in st.session_state:
     st.session_state.vista = "inicio"
-
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
@@ -493,8 +492,18 @@ if menu == "Inicio":
         st.session_state.archivo = archivo
         st.success("✅ Archivo cargado correctamente")
 
-    if "archivo" in st.session_state:
-        st.info("📊 Ya hay un archivo cargado. Ve a 'Dashboard'")
+        # 🔥 BOTÓN VOLVER AL MENÚ
+        if st.button("🔙 Volver al menú de navegación"):
+            st.session_state.menu = "Dashboard"  # o "Inicio" si quieres quedarte
+            st.rerun()
+
+    elif "archivo" in st.session_state:
+        st.info("📊 Ya hay un archivo cargado")
+
+        # 🔥 BOTÓN TAMBIÉN SI YA EXISTE ARCHIVO
+        if st.button("🔙 Ir al Dashboard"):
+            st.session_state.menu = "Dashboard"
+            st.rerun()
 
 # =========================
 # DASHBOARD
