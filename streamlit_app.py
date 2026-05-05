@@ -1655,7 +1655,6 @@ elif st.session_state.vista == "alertas":
 
     st.stop()
 
-
 # =======================
 # RESUMEN
 # =======================
@@ -1670,12 +1669,12 @@ elif st.session_state.vista == "resumen":
     # =========================
     # DATA
     # =========================
-    if all(col in df.columns for col in ["Periodo", "Ventas"]):
-        df_m = df.groupby("Periodo")["Ventas"].sum().reset_index()
-        df_m = df_m.sort_values("Periodo")
+    if all(col in df.columns for col in ["PERIODO", "VENTAS"]):
+        df_m = df.groupby("PERIODO")["VENTAS"].sum().reset_index()
+        df_m = df_m.sort_values("PERIODO")
     else:
         df_m = pd.DataFrame()
-        st.warning("Faltan columnas para cálculo (Periodo, Ventas)")
+        st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS)")
 
     # =========================
     # PROYECCIÓN
@@ -1683,17 +1682,17 @@ elif st.session_state.vista == "resumen":
     st.subheader("📈 Proyección")
 
     if not df_m.empty and len(df_m) > 2:
-        tendencia = df_m["Ventas"].diff().mean()
-        df_m["Proyección"] = df_m["Ventas"].iloc[-1] + tendencia
+        tendencia = df_m["VENTAS"].diff().mean()
+        df_m["PROYECCION"] = df_m["VENTAS"].iloc[-1] + tendencia
 
         col1, col2 = st.columns(2)
 
         with col1:
-            fig1 = px.line(df_m, x="Periodo", y="Ventas", markers=True)
+            fig1 = px.line(df_m, x="PERIODO", y="VENTAS", markers=True)
             st.plotly_chart(fig1, use_container_width=True)
 
         with col2:
-            fig2 = px.line(df_m, x="Periodo", y=["Ventas", "Proyección"], markers=True)
+            fig2 = px.line(df_m, x="PERIODO", y=["VENTAS", "PROYECCION"], markers=True)
             st.plotly_chart(fig2, use_container_width=True)
 
     # =========================
@@ -1704,20 +1703,20 @@ elif st.session_state.vista == "resumen":
     df_res = df.copy()
     tabla = []
 
-    for dim in ["Canal", "Pais", "Region", "Producto"]:
-        if dim in df_res.columns and "Periodo" in df_res.columns and "Ventas" in df_res.columns:
+    for dim in ["CANAL", "PAIS", "REGION", "NOMBRE_PRODUCTO"]:
+        if dim in df_res.columns and "PERIODO" in df_res.columns and "VENTAS" in df_res.columns:
 
-            df_t = df_res.groupby(["Periodo", dim])["Ventas"].sum().reset_index()
-            df_t["Periodo"] = pd.to_datetime(df_t["Periodo"], errors="coerce")
-            df_t = df_t.dropna(subset=["Periodo"])
-            df_t = df_t.sort_values("Periodo")
+            df_t = df_res.groupby(["PERIODO", dim])["VENTAS"].sum().reset_index()
+            df_t["PERIODO"] = pd.to_datetime(df_t["PERIODO"], errors="coerce")
+            df_t = df_t.dropna(subset=["PERIODO"])
+            df_t = df_t.sort_values("PERIODO")
 
             for k, g in df_t.groupby(dim):
 
-                if len(g) >= 2 and g.iloc[-2]["Ventas"] != 0:
+                if len(g) >= 2 and g.iloc[-2]["VENTAS"] != 0:
 
-                    v1 = g.iloc[-2]["Ventas"]
-                    v2 = g.iloc[-1]["Ventas"]
+                    v1 = g.iloc[-2]["VENTAS"]
+                    v2 = g.iloc[-1]["VENTAS"]
 
                     var = (v2 - v1) / v1
                     impacto = (v2 - v1)
