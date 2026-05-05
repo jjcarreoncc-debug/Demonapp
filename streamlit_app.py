@@ -1562,32 +1562,39 @@ if vista == "principal":
     c2.metric("📈 Crecimiento", f"{variacion:.1%}")
     c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
     c4.metric("📊 Margen", f"{margen:.1f}%")
-    # =========================
-    # DATA MENSUAL
-    # =========================
-    # =========================
-# ASEGURAR PERIODO
 # =========================
-# =========================
-# GROUPBY SEGURO (ANTI-ERROR)
+# AGRUPACIÓN Y KPI SEGUROS
 # =========================
 
-# Buscar columna fecha
+# Asegurar PERIODO
 col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
 
-# Crear PERIODO SI NO EXISTE
 if "PERIODO" not in df_f.columns:
-
     if col_fecha:
         df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
         df_f = df_f.dropna(subset=[col_fecha])
         df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
     else:
-        st.error("❌ No existe columna FECHA en df_f")
-        st.write("Columnas actuales:", df_f.columns)
+        st.error("❌ No existe columna FECHA")
         st.stop()
 
+# Groupby limpio (SIN indent raro)
+df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+df_m = df_m.sort_values("PERIODO")
+
+# Variación
+variacion = 0
+
+if len(df_m) >= 2:
+    v1 = df_m.iloc[-2]["VENTAS"]
+    v2 = df_m.iloc[-1]["VENTAS"]
+
+    if v1 != 0:
+        variacion = (v2 - v1) / v1
+# Crear PERIODO SI NO EXISTE
+
 # Crear métricas si faltan (extra seguro)
+
 if "VENTAS" not in df_f.columns:
     if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
         df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
