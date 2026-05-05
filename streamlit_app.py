@@ -1413,7 +1413,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     if not df_m.empty:
-        fig = px.line(df_m, x="Periodo", y=["Ventas", "Ganancia"], markers=True)
+        fig = px.line(df_m, x="PERIODO", y=["VENTAS", "GANANCIA"], markers=True)
         st.plotly_chart(fig, use_container_width=True, key="grafica_3")
     else:
         st.warning("No hay datos para graficar")
