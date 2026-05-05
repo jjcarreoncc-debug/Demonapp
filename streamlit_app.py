@@ -710,7 +710,46 @@ elif menu == "Dashboard":
     producto = st.session_state.get("filtro_producto", [])
 
     st.header("📊 Dashboard Ejecutivo")
-        # =========================
+    elif menu == "Dashboard":
+
+    st.markdown("## 📊 Dashboard Ejecutivo")
+
+    # =========================
+    # FILTROS (ARRIBA)
+    # =========================
+    (pais, region, producto)
+
+    # =========================
+    # BOTÓN
+    # =========================
+    if st.button("🔍 Aplicar filtros"):
+        st.session_state.mostrar_resultados = True
+
+    # =========================
+    # LIMPIAR PANTALLA
+    # =========================
+    if not st.session_state.mostrar_resultados:
+        st.info("Selecciona filtros")
+        st.stop()
+
+    # =========================
+    # DATA
+    # =========================
+    df_f = st.session_state.get("df_filtrado", df)
+
+    # =========================
+    # KPIs
+    # =========================
+    ...
+
+    # =========================
+    # GRÁFICAS
+    # =========================
+    ...
+    
+    
+    
+    # =========================
     # DRILL-DOWN VISUAL (PASO 1)
     # =========================
     c1, c2, c3 = st.columns(3)
