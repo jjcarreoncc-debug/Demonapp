@@ -515,9 +515,9 @@ with st.sidebar:
             #año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()), key="año")
 
             # MES
-            m#es = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
+            #es = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
             
-            }
+            #}
             
 
             
