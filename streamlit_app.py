@@ -1409,29 +1409,30 @@ vista = st.session_state.vista
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
-    # =========================
+
+# =========================
 # DRILL-DOWN EJECUTIVO
 # =========================
-st.markdown("### 🎯 Contexto actual")
-
-c1, c2, c3 = st.columns(3)
-
-with c1:
-    st.markdown("**🌎 País**")
-    st.success(st.session_state.get("filtro_pais", "Todos"))
-
-with c2:
-    st.markdown("**📍 Región**")
-    st.success(st.session_state.get("filtro_region", "Todos"))
-
-with c3:
-    st.markdown("**📦 Producto**")
-    st.success(st.session_state.get("filtro_producto", "Todos"))
-    # =========================
-    # FILTROS
-    # =========================
-    df_f = st.session_state.get("df_filtrado", df)
-
+    st.markdown("### 🎯 Contexto actual")
+    
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        st.markdown("**🌎 País**")
+        st.success(st.session_state.get("filtro_pais", "Todos"))
+    
+    with c2:
+        st.markdown("**📍 Región**")
+        st.success(st.session_state.get("filtro_region", "Todos"))
+    
+    with c3:
+        st.markdown("**📦 Producto**")
+        st.success(st.session_state.get("filtro_producto", "Todos"))
+        # =========================
+        # FILTROS
+        # =========================
+        df_f = st.session_state.get("df_filtrado", df)
+    
     if pais and "Todos" not in pais:
         df_f = df_f[df_f["PAIS"].isin(pais)]
 
@@ -1615,7 +1616,8 @@ with c3:
 
         for canal_top, val in top_canal.items():
             st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
-    # VOLATILIDAD
+
+# VOLATILIDAD
 elif vista == "volatilidad":
 
     if st.button("⬅️ Volver principal"):
