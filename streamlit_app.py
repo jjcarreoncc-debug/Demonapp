@@ -692,124 +692,152 @@ elif menu == "Dashboard":
             col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
             col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
             col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
-
-
-# =========================
-# DASHBOARD PRINCIPAL
-# =========================
 elif menu == "Principal":
-
-    # =========================
-    # TOMAR VALORES DEL SIDEBAR
-    # =========================
-    año = st.session_state.get("filtro_año", "Todos")
-    mes = st.session_state.get("filtro_mes", "Todos")
-    pais = st.session_state.get("filtro_pais", "Todos")
-    region = st.session_state.get("filtro_region", "Todos")
-    producto = st.session_state.get("filtro_producto", [])
 
     st.header("📊 Dashboard Ejecutivo")
 
     # =========================
-    # MOSTRAR FILTROS ARRIBA
-    # =========================
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        st.markdown(f"**🌎 País:** {pais}")
-    with c2:
-        st.markdown(f"**📍 Región:** {region}")
-    with c3:
-        st.markdown(f"**📦 Producto:** {producto if producto else 'Todos'}")
-
-    # =========================
-    # BOTÓN PARA EJECUTAR
-    # =========================
-    if st.button("🔍 Aplicar filtros"):
-        st.session_state.mostrar_resultados = True
-
-    # =========================
-    # LIMPIAR PANTALLA HASTA QUE SE PRESIONE
-    # =========================
-    if not st.session_state.get("mostrar_resultados", False):
-        st.info("👆 Selecciona filtros y presiona 'Aplicar filtros'")
-        st.stop()
-
-    # =========================
-    # CARGAR ARCHIVO
+    # VALIDAR ARCHIVO
     # =========================
     archivo = st.session_state.get("archivo")
+
     if not archivo:
         st.warning("⚠️ Primero carga un archivo en Inicio")
         st.stop()
 
+    # =========================
+    # CARGA DATA
+    # =========================
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip().str.upper()
 
     # =========================
-    # LIMPIEZA Y NORMALIZACIÓN
+    # VALIDAR FECHA
     # =========================
-    df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
-    df = df.dropna(subset=["FECHA"])
-    for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+    col_fecha = next((c for c in df.columns if "FECHA" in c), None)
 
-    # =========================
-    # CAMPOS ADICIONALES
-    # =========================
-    df["AÑO"] = df["FECHA"].dt.year
-    df["MES"] = df["FECHA"].dt.month_name()
-    df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
-    df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
-    df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
-    df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
+    if not col_fecha:
+        st.error("❌ No se encontró columna FECHA")
+        st.stop()
+
+    df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
+    df = df.dropna(subset=[col_fecha])
 
     # =========================
-    # FILTRADO
+    # CAMPOS BASE
     # =========================
-    df_filtrado = df.copy()
+    df["AÑO"] = df[col_fecha].dt.year
+    df["MES"] = df[col_fecha].dt.month_name()
+    df["PERIODO"] = df[col_fecha].dt.to_period("M").astype(str)
 
-    if año != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["AÑO"] == año]
+    # =========================
+    # MÉTRICAS
+    # =========================
+    if all(c in df.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]):
 
-    if mes != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["MES"] == mes]
+        df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
+        df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
+        df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
 
-    col_pais = next((c for c in df_filtrado.columns if "PAIS" in c.upper()), None)
-    if pais != "Todos" and col_pais:
-        df_filtrado = df_filtrado[df_filtrado[col_pais].astype(str).str.strip().str.lower() == str(pais).strip().lower()]
+    else:
+        st.error("❌ Faltan columnas necesarias")
+        st.stop()
 
-    col_region = next((c for c in df_filtrado.columns if "REGION" in c.upper()), None)
-    if region != "Todos" and col_region:
-        df_filtrado = df_filtrado[df_filtrado[col_region].astype(str).str.strip().str.lower() == str(region).strip().lower()]
+    # =========================
+    # COLUMNAS DINÁMICAS
+    # =========================
+    col_pais = next((c for c in df.columns if "PAIS" in c), None)
+    col_region = next((c for c in df.columns if "REGION" in c), None)
+    col_producto = next((c for c in df.columns if "PRODUCT" in c), None)
 
-    col_producto = next((c for c in df_filtrado.columns if "PRODUCTO" in c.upper()), None)
-    if producto and col_producto:
-        producto_lower = [str(p).strip().lower() for p in producto]
-        df_filtrado = df_filtrado[df_filtrado[col_producto].astype(str).str.strip().str.lower().isin(producto_lower)]
+    # =========================
+    # DRILL-DOWN SUPERIOR
+    # =========================
+    c1, c2, c3 = st.columns(3)
 
-    if df_filtrado.empty:
+    with c1:
+        opciones_pais = ["Todos"] + sorted(df[col_pais].dropna().astype(str).unique())
+        pais = st.selectbox("🌎 País", opciones_pais)
+
+    with c2:
+        df_region = df if pais == "Todos" else df[df[col_pais].astype(str) == pais]
+        opciones_region = ["Todos"] + sorted(df_region[col_region].dropna().astype(str).unique())
+        region = st.selectbox("📍 Región", opciones_region)
+
+    with c3:
+        df_producto = df_region if region == "Todos" else df_region[df_region[col_region].astype(str) == region]
+        opciones_producto = ["Todos"] + sorted(df_producto[col_producto].dropna().astype(str).unique())
+        producto = st.selectbox("📦 Producto", opciones_producto)
+
+    # =========================
+    # FILTRADO FINAL
+    # =========================
+    df_f = df.copy()
+
+    if pais != "Todos":
+        df_f = df_f[df_f[col_pais].astype(str) == pais]
+
+    if region != "Todos":
+        df_f = df_f[df_f[col_region].astype(str) == region]
+
+    if producto != "Todos":
+        df_f = df_f[df_f[col_producto].astype(str) == producto]
+
+    # =========================
+    # VALIDAR DATA
+    # =========================
+    if df_f.empty:
         st.warning("⚠️ No hay datos con esos filtros")
         st.stop()
 
     # =========================
     # KPIs
     # =========================
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Ventas Totales", f"${df_filtrado['VENTAS'].sum():,.0f}")
-    col2.metric("Costos Totales", f"${df_filtrado['COSTOS'].sum():,.0f}")
-    col3.metric("Ganancia", f"${df_filtrado['GANANCIA'].sum():,.0f}")
+    ventas = df_f["VENTAS"].sum()
+    ganancia = df_f["GANANCIA"].sum()
+    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
+
+    df_m = df_f.groupby("PERIODO")[["VENTAS"]].sum().reset_index()
+    df_m = df_m.sort_values("PERIODO")
+
+    variacion = 0
+    if len(df_m) >= 2:
+        v1 = df_m.iloc[-2]["VENTAS"]
+        v2 = df_m.iloc[-1]["VENTAS"]
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
+
+    delta_color = "normal" if variacion >= 0 else "inverse"
+
+    k1, k2, k3 = st.columns(3)
+
+    k1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    k2.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    k3.metric("📊 Margen", f"{margen:.1f}%")
 
     # =========================
-    # GRÁFICAS
+    # GRÁFICA
     # =========================
-    st.subheader("📈 Ventas por Mes")
-    ventas_mes = df_filtrado.groupby("MES")["VENTAS"].sum().reset_index()
-    st.bar_chart(ventas_mes.set_index("MES"))
+    import plotly.graph_objects as go
 
-    st.subheader("🔍 Tabla de Datos Filtrados")
-    st.dataframe(df_filtrado.head())
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df_m["PERIODO"],
+        y=df_m["VENTAS"],
+        mode="lines+markers",
+        name="Ventas"
+    ))
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # TABLA
+    # =========================
+    st.subheader("🔍 Detalle")
+    st.dataframe(df_f.head(), use_container_width=True)
+
+
 # =========================
 # MANTENIMIENTO
 # =========================
