@@ -724,7 +724,7 @@ elif menu == "Dashboard":
     with c3:
         st.markdown(f"**📦 Producto:** {st.session_state.get('filtro_producto', 'Todos')}")
         archivo = st.session_state.get("archivo")
-        
+        st.write("DEBUG:", st.session_state)
     
     if not archivo:
         st.warning("⚠️ Primero carga un archivo en Inicio")
