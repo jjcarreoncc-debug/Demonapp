@@ -1463,9 +1463,10 @@ if vista == "principal":
         if v1 != 0:
             variacion = (v2 - v1) / v1
     
-# definir color SIEMPRE
-delta_color = "normal" if variacion >= 0 else "inverse"
-    # =========================
+   # definir color SIEMPRE
+    delta_color = "normal" if variacion >= 0 else "inverse"
+
+   # =========================
     # KPIs EJECUTIVOS
     # =========================
     c1, c2, c3, c4 = st.columns(4)
