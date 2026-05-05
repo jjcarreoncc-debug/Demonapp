@@ -15,7 +15,7 @@ from PIL import Image
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 st.set_page_config(
-    page_title="Dashboard Ejecutivo",
+    page_title=" Ejecutivo",
     layout="wide")
 if "menu" not in st.session_state:
     st.session_state.menu = "Inicio"
@@ -698,7 +698,7 @@ elif menu == "Dashboard":
 # =========================
 # DASHBOARD
 # =========================
-elif menu == "Dashboard":
+elif menu == "Principal":
 
     # =========================
     # TOMAR VALORES DEL SIDEBAR
