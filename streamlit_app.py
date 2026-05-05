@@ -1445,7 +1445,7 @@ if vista == "principal":
     # =========================
     c1, c2, c3, c4 = st.columns(4)
     
-    delta_color = "normal" if variacion >= 0 else "inverse"
+    #delta_color = "normal" if variacion >= 0 else "inverse"
     
     c1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
     c2.metric("📈 Crecimiento", f"{variacion:.1%}")
