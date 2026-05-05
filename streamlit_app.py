@@ -164,6 +164,32 @@ div[data-baseweb="select"] span {
 
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+
+/* 🔥 FORZAR COLOR DE TEXTO EN INPUTS */
+input, textarea {
+    color: black !important;
+}
+
+/* LABELS */
+label {
+    color: #1f4e63 !important;
+    font-weight: 600;
+}
+
+/* PLACEHOLDER (texto dentro del input) */
+::placeholder {
+    color: #888 !important;
+}
+
+/* BOTONES LOGIN */
+button {
+    color: black !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 # ------------------------
 # BASE DE DATOS
 # ------------------------
