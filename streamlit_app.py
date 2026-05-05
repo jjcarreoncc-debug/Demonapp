@@ -18,7 +18,7 @@ st.set_page_config(
     page_title=" Ejecutivo",
     layout="wide")
 if "menu" not in st.session_state:
-    st.session_state.menu = "Inicio"
+    st.session_state.menu = "dashboard"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
 
@@ -459,16 +459,16 @@ with st.sidebar:
     # OPCIONES
     # ------------------------
     if st.session_state.rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+        opciones = ["Dashboard", "Dashboard", "Mantenimiento"]
     else:
-        opciones = ["Inicio", "Dashboard"]
+        opciones = ["Dashboard", "Dashboard"]
 
     # ------------------------
     # INICIALIZAR MENU
     
     # ------------------------
     if "menu" not in st.session_state:
-        st.session_state.menu = "Inicio"
+        st.session_state.menu = "Dashboard"
 
     # ------------------------
     # MENU
