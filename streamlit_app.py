@@ -1709,26 +1709,38 @@ if vista == "principal":
 # =========================
 elif vista == "volatilidad":
 
-    # BOTÓN VOLVER
     if st.button("⬅️ Volver al principal"):
         st.session_state.vista = "principal"
         st.rerun()
 
     st.markdown("## 📉 Análisis de Volatilidad")
 
+    # TRAER DATA
+    df_m = st.session_state.get("df_m", pd.DataFrame())
+
     # VALIDACIÓN
     if df_m.empty:
-        st.warning("No hay datos suficientes")
+        st.warning("No hay datos disponibles. Regresa al dashboard principal.")
         st.stop()
 
-    # =========================
-    # CÁLCULO REAL
-    # =========================
+    # CÁLCULO
     volatilidad = df_m["VENTAS"].std()
     media = df_m["VENTAS"].mean()
     cv = (volatilidad / media) * 100 if media != 0 else 0
 
-    # =========================
+    st.metric("Coeficiente de Variación", f"{cv:.2f}%")
+
+    if cv < 10:
+        st.success("🟢 Baja volatilidad")
+    elif cv < 30:
+        st.warning("🟡 Volatilidad media")
+    else:
+        st.error("🔴 Alta volatilidad")
+
+    df_m["MA_3"] = df_m["VENTAS"].rolling(3).mean()
+
+    st.line_chart(df_m.set_index("PERIODO")[["VENTAS", "MA_3"]])
+# =========================
     # KPI
     # =========================
     st.metric("Coeficiente de Variación", f"{cv:.2f}%")
