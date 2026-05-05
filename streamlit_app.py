@@ -690,7 +690,7 @@ elif menu == "Dashboard":
             st.write("Columnas disponibles:", df_filtrado.columns.tolist())
             st.stop()
 
-        :   
+           
         # ------------------------
         # RESULTADO
         # ------------------------
