@@ -437,9 +437,15 @@ with st.sidebar:
 # =========================
 # INICIO
 # =========================
+# =========================
+# CONTROL DE VISTA
+# =========================
 if "vista" not in st.session_state:
     st.session_state.vista = "inicio"
 
+# =========================
+# INICIO
+# =========================
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
@@ -458,6 +464,69 @@ if menu == "Inicio":
 # =========================
 elif menu == "Dashboard":
 
+    st.title("📊 Dashboard")
+
+    # =========================
+    # 🎯 FILTROS SUPERIORES
+    # =========================
+    if "archivo" in st.session_state:
+
+        df_temp = pd.read_excel(st.session_state.archivo)
+        df_temp.columns = df_temp.columns.str.strip().str.upper()
+
+        st.markdown("## 🎯 Filtros")
+
+        c1, c2, c3 = st.columns(3)
+
+        # PAIS
+        with c1:
+            if "PAIS" in df_temp.columns:
+                opciones = ["Todos"] + sorted(df_temp["PAIS"].dropna().astype(str).unique())
+                pais = st.selectbox("País", opciones)
+
+                if pais != "Todos":
+                    df_temp = df_temp[df_temp["PAIS"] == pais]
+
+        # REGION
+        with c2:
+            if "REGION" in df_temp.columns:
+                opciones = ["Todos"] + sorted(df_temp["REGION"].dropna().astype(str).unique())
+                region = st.selectbox("Región", opciones)
+
+                if region != "Todos":
+                    df_temp = df_temp[df_temp["REGION"] == region]
+
+        # PRODUCTO
+        with c3:
+            col_producto = next((c for c in df_temp.columns if "PRODUCT" in c), None)
+
+            if col_producto:
+                opciones = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
+                producto = st.selectbox("Producto", opciones)
+
+                if producto != "Todos":
+                    df_temp = df_temp[df_temp[col_producto] == producto]
+
+        # GUARDAR
+        st.session_state["df_filtrado"] = df_temp
+
+        st.markdown("---")
+
+        # =========================
+        # 📊 USAR DATA FILTRADA
+        # =========================
+        df = st.session_state.get("df_filtrado", df_temp)
+
+        st.write("Vista previa:")
+        st.dataframe(df.head())
+
+    else:
+        st.warning("⚠️ Primero carga un archivo en Inicio")
+# =========================
+# DASHBOARD
+# =========================
+elif menu == "Dashboard":
+
     # =========================
     # TOMAR VALORES DEL SIDEBAR
     # =========================
@@ -470,6 +539,7 @@ elif menu == "Dashboard":
     st.header("📊 Dashboard Ejecutivo")
 
     archivo = st.session_state.get("archivo")
+    
 
     if not archivo:
         st.warning("⚠️ Primero carga un archivo en Inicio")
