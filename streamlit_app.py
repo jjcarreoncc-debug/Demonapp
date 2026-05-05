@@ -5,7 +5,7 @@ import sqlite3#
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
 
-import hashlibprin
+import hashlib
 from datetime import datetime
 from PIL import Image
 
