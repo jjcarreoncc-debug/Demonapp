@@ -1370,11 +1370,29 @@ if df_f.empty:
 # ------------------------
 # RECÁLCULO
 # ------------------------
-if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
-    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-else:
-    df_m = pd.DataFrame()
-    st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
+# =========================
+# VALIDACIÓN
+# =========================
+if df_f.empty:
+    st.warning("⚠️ No hay datos con esos filtros")
+    st.stop()
+
+# =========================
+# CÁLCULOS
+# =========================
+df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+
+# =========================
+# AGRUPACIÓN
+# =========================
+df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+#if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
+#    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+#else:
+#    df_m = pd.DataFrame()
+#    st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
 
 # KPIs
 ventas = df_f["VENTAS"].sum() if "VENTAS" in df_f.columns else 0
