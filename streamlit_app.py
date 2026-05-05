@@ -1704,28 +1704,61 @@ if vista == "principal":
         with col2:
             st.write("📉 Bottom 5")
             st.dataframe(bottom)
-
-
 # =========================
 # VOLATILIDAD
 # =========================
-if vista == "volatilidad":
-    st.markdown("## 📉 Volatilidad")
 elif vista == "volatilidad":
 
-    if st.button("⬅️ Volver principal"):
+    # BOTÓN VOLVER
+    if st.button("⬅️ Volver al principal"):
         st.session_state.vista = "principal"
+        st.rerun()
 
-    st.markdown("## 🚦 Volatilidad")
+    st.markdown("## 📉 Análisis de Volatilidad")
 
-    ratio = ganancia / ventas if ventas != 0 else 0
+    # VALIDACIÓN
+    if df_m.empty:
+        st.warning("No hay datos suficientes")
+        st.stop()
 
-    if ratio > 0.3:
-        st.error(f"Alta volatilidad ({ratio:.2f})")
-    elif ratio > 0.15:
-        st.warning(f"Volatilidad media ({ratio:.2f})")
+    # =========================
+    # CÁLCULO REAL
+    # =========================
+    volatilidad = df_m["VENTAS"].std()
+    media = df_m["VENTAS"].mean()
+    cv = (volatilidad / media) * 100 if media != 0 else 0
+
+    # =========================
+    # KPI
+    # =========================
+    st.metric("Coeficiente de Variación", f"{cv:.2f}%")
+
+    # =========================
+    # INTERPRETACIÓN
+    # =========================
+    if cv < 10:
+        st.success("🟢 Baja volatilidad (negocio estable)")
+    elif cv < 30:
+        st.warning("🟡 Volatilidad moderada")
     else:
-        st.success(f"Volatilidad baja ({ratio:.2f})")
+        st.error("🔴 Alta volatilidad (riesgo en ventas)")
+
+    # =========================
+    # GRÁFICA
+    # =========================
+    st.markdown("### 📊 Comportamiento de ventas")
+
+    df_m["MA_3"] = df_m["VENTAS"].rolling(3).mean()
+
+    st.line_chart(
+        df_m.set_index("PERIODO")[["VENTAS", "MA_3"]]
+    )
+
+    # =========================
+    # DETALLE
+    # =========================
+    if st.button("📋 Ver detalle"):
+        st.dataframe(df_m[["PERIODO", "VENTAS"]])
 
 # RESPONSABLES
 elif vista == "responsables":
