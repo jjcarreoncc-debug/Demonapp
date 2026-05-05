@@ -1601,7 +1601,7 @@ if "GANANCIA" not in df_f.columns:
 st.write("DEBUG COLUMNAS:", df_f.columns)
 
 # AHORA SÍ
-df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+        df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
     # =========================
     # VARIACIÓN
     # =========================
