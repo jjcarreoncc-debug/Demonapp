@@ -9,6 +9,7 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 
+
 # ------------------------
 # CONFIG
 
@@ -618,7 +619,7 @@ elif menu == "Dashboard":
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
-        # =========================
+ # =========================
 # CREAR FECHA Y PERIODO (OBLIGATORIO AQUÍ)
 # =========================
         col_fecha = next((c for c in df.columns if "FECHA" in c), None)
@@ -723,6 +724,27 @@ elif menu == "Principal":
     # =========================
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip().str.upper()
+    
+    # =========================
+# DETECTAR Y CREAR FECHA + PERIODO
+# =========================
+    col_fecha = next((c for c in df.columns if "FECHA" in c.upper()), None)
+    
+    if col_fecha is None:
+        st.error("❌ No se encontró columna de fecha")
+        st.write("Columnas disponibles:", df.columns.tolist())
+        st.stop()
+    
+    df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
+    df = df.dropna(subset=[col_fecha])
+    
+    df["PERIODO"] = df[col_fecha].dt.to_period("M").astype(str)
+    # =========================
+    # CREAR MÉTRICAS
+    # =========================
+    df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
+    df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
+    df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
     # =========================
     # CREAR COLUMNAS BASE (UNA SOLA VEZ)
     # =========================
