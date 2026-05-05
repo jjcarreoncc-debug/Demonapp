@@ -732,7 +732,42 @@ elif menu == "Principal":
     # DATA
     # =========================
     df_f = st.session_state.get("df_filtrado", df)
+    # =========================
+# LIMPIAR Y NORMALIZAR
+# =========================
+df_f.columns = df_f.columns.str.strip().str.upper()
 
+# =========================
+# CREAR FECHA → PERIODO
+# =========================
+col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
+
+if col_fecha:
+    df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
+    df_f = df_f.dropna(subset=[col_fecha])
+    df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
+else:
+    st.error("❌ No se encontró columna FECHA")
+    st.stop()
+
+# =========================
+# CREAR MÉTRICAS
+# =========================
+if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]):
+
+    df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+    df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+    df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+
+else:
+    st.error("❌ Faltan columnas para cálculos (VENTAS_CANTIDAD, PRECIO_VENTA, COSTOS_VENTA)")
+    st.stop()
+
+# =========================
+# AGRUPAR
+# =========================
+df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+df_m = df_m.sort_values("PERIODO")
     # =========================
     # KPIs
     # =========================
