@@ -689,7 +689,7 @@ elif menu == "Dashboard":
             st.error("❌ No se encontró columna de producto")
             st.write("Columnas disponibles:", df_filtrado.columns.tolist())
             st.stop()
-
+            st.write("COLUMNAS DEL ARCHIVO:", df_filtrado.columns.tolist())
            
         # ------------------------
         # RESULTADO
