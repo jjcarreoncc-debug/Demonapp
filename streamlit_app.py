@@ -690,7 +690,7 @@ elif menu == "Dashboard":
             st.write("Columnas disponibles:", df_filtrado.columns.tolist())
             st.stop()
 
-        if producto and col_producto:   
+        :   
         # ------------------------
         # RESULTADO
         # ------------------------
