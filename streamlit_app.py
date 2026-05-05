@@ -610,132 +610,139 @@ if "archivo" in st.session_state:
 
     # 👇 👇 👇 ESTO FALTABA
     df_filtrado = df.copy()
-with st.sidebar:
+ with st.sidebar:
 
+    # =========================
+    # 🎨 ESTILO VISUAL
+    # =========================
+    st.markdown("""
+    <style>
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1f4e63, #2c6e8f);
+        padding: 15px;
+    }
+
+    section[data-testid="stSidebar"] label {
+        color: white !important;
+        font-weight: 600;
+    }
+
+    .stSelectbox > div {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 5px;
+    }
+
+    .block-container {
+        padding-top: 1rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("## 🎯 Filtros")
     st.divider()
+
     # =========================
-    # 🔥 LIMPIAR ESTADO (VA AQUÍ)
+    # LIMPIAR ESTADO (FIX BUGS)
     # =========================
-    for k in ["filtro_pais", "filtro_region", "filtro_producto"]:
+    for k in [
+        "filtro_pais",
+        "filtro_region",
+        "filtro_producto",
+        "filtro_canal",
+        "filtro_vendedor",
+        "filtro_tipo_cliente"
+    ]:
         if isinstance(st.session_state.get(k), list):
             st.session_state[k] = "Todos"
 
     if "archivo" in st.session_state:
 
         df_temp = pd.read_excel(st.session_state.archivo)
-        df_temp.columns = df_temp.columns.str.strip()
-        df_temp.columns = df_temp.columns.str.upper()
+        df_temp.columns = df_temp.columns.str.strip().str.upper()
 
         # =========================
-        # PAÍS
+        # 🌍 PAÍS
         # =========================
         col_pais = next((c for c in df_temp.columns if "PAIS" in c), None)
 
         if col_pais:
-            opciones_pais = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
-
-            if isinstance(st.session_state.get("filtro_pais"), list):
-                st.session_state["filtro_pais"] = "Todos"
-
-            pais = st.selectbox("🌎 País", opciones_pais, key="filtro_pais")
+            opciones = ["Todos"] + sorted(df_temp[col_pais].dropna().astype(str).unique())
+            pais = st.selectbox("🌍 País", opciones, key="filtro_pais")
 
             if pais != "Todos":
                 df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
 
         # =========================
-        # REGIÓN
+        # 📍 REGIÓN
         # =========================
         if "REGION" in df_temp.columns:
-
-            opciones_region = ["Todos"] + sorted(df_temp["REGION"].dropna().astype(str).unique())
-
-            if isinstance(st.session_state.get("filtro_region"), list):
-                st.session_state["filtro_region"] = "Todos"
-
-            region = st.selectbox("📍 Región", opciones_region, key="filtro_region")
+            opciones = ["Todos"] + sorted(df_temp["REGION"].dropna().astype(str).unique())
+            region = st.selectbox("📍 Región", opciones, key="filtro_region")
 
             if region != "Todos":
                 df_temp = df_temp[df_temp["REGION"].astype(str) == region]
 
         # =========================
-        # PRODUCTO
+        # 📦 PRODUCTO
         # =========================
-        col_producto = next(
-           (c for c in df_temp.columns if "PRODUCT" in c or "PROD" in c),
-           None
-         )  
+        col_producto = next((c for c in df_temp.columns if "PRODUCT" in c or "PROD" in c), None)
 
         if col_producto:
-        
-            opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
-        
-            # limpiar estado viejo
-            if isinstance(st.session_state.get("filtro_producto"), list):
-                st.session_state["filtro_producto"] = "Todos"
-        
-            producto = st.selectbox(
-                "📦 Producto",
-                opciones_producto,
-                key="filtro_producto"
-            )
-        
+            opciones = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
+            producto = st.selectbox("📦 Producto", opciones, key="filtro_producto")
+
             if producto != "Todos":
                 df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
-        
-        else:
-            st.warning("⚠️ No se encontró columna de producto")
+
         # =========================
-        # CANAL
+        # 📡 CANAL
         # =========================
         if "CANAL" in df_temp.columns:
-
-            opciones_canal = ["Todos"] + sorted(df_temp["CANAL"].dropna().astype(str).unique())
-
-            if isinstance(st.session_state.get("filtro_canal"), list):
-                st.session_state["filtro_canal"] = "Todos"
-
-            canal = st.selectbox("📡 Canal", opciones_canal, key="filtro_canal")
+            opciones = ["Todos"] + sorted(df_temp["CANAL"].dropna().astype(str).unique())
+            canal = st.selectbox("📡 Canal", opciones, key="filtro_canal")
 
             if canal != "Todos":
                 df_temp = df_temp[df_temp["CANAL"].astype(str) == canal]
 
         # =========================
-        # VENDEDOR
+        # 👤 VENDEDOR
         # =========================
         if "VENDEDOR_RUTA" in df_temp.columns:
-
-            opciones_vendedor = ["Todos"] + sorted(df_temp["VENDEDOR_RUTA"].dropna().astype(str).unique())
-
-            if isinstance(st.session_state.get("filtro_vendedor"), list):
-                st.session_state["filtro_vendedor"] = "Todos"
-
-            vendedor = st.selectbox("👤 Vendedor", opciones_vendedor, key="filtro_vendedor")
+            opciones = ["Todos"] + sorted(df_temp["VENDEDOR_RUTA"].dropna().astype(str).unique())
+            vendedor = st.selectbox("👤 Vendedor", opciones, key="filtro_vendedor")
 
             if vendedor != "Todos":
                 df_temp = df_temp[df_temp["VENDEDOR_RUTA"].astype(str) == vendedor]
 
         # =========================
-        # TIPO CLIENTE
+        # 🧑‍💼 TIPO CLIENTE
         # =========================
         if "TIPO_CLIENTE" in df_temp.columns:
+            opciones = ["Todos"] + sorted(df_temp["TIPO_CLIENTE"].dropna().astype(str).unique())
+            tipo = st.selectbox("🧑‍💼 Tipo cliente", opciones, key="filtro_tipo_cliente")
 
-            opciones_tipo = ["Todos"] + sorted(df_temp["TIPO_CLIENTE"].dropna().astype(str).unique())
+            if tipo != "Todos":
+                df_temp = df_temp[df_temp["TIPO_CLIENTE"].astype(str) == tipo]
 
-            if isinstance(st.session_state.get("filtro_tipo_cliente"), list):
-                st.session_state["filtro_tipo_cliente"] = "Todos"
+        # =========================
+        # 🔄 BOTÓN LIMPIAR
+        # =========================
+        st.divider()
+        if st.button("🔄 Limpiar filtros"):
+            for k in st.session_state.keys():
+                if "filtro_" in k:
+                    st.session_state[k] = "Todos"
+            st.rerun()
 
-            tipo_cliente = st.selectbox("🧑‍💼 Tipo cliente", opciones_tipo, key="filtro_tipo_cliente")
-
-            if tipo_cliente != "Todos":
-                df_temp = df_temp[df_temp["TIPO_CLIENTE"].astype(str) == tipo_cliente]
-
-        # 🔥 guardar resultado final
+        # =========================
+        # 💾 GUARDAR RESULTADO
+        # =========================
         st.session_state["df_filtrado"] = df_temp
 
     else:
-        st.info("📂 Carga un archivo en Inicio para habilitar filtros")   
-
-    # ------------------------
+        st.info("📂 Carga un archivo en Inicio para habilitar filtros")
+   # ------------------------
     # RANGO DE FECHAS
     # ------------------------
 with st.sidebar:
