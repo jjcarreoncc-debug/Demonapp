@@ -473,58 +473,12 @@ with st.sidebar:
     # ------------------------
     # MENU
     # ------------------------
-    
+   
         #menu = st.radio(
         #"Menú",
         #opciones,
         #index=opciones.index(st.session_state.menu)
-    
-
-    #st.session_state.menu = menu
-    # =========================
-    # FILTROS SOLO EN DASHBOARD
-    # =========================
-    
-    # ------------------------
-    # MOSTRAR FILTROS (solo en dashboard)
-    # ------------------------
-    #if st.session_state.menu == "Dashboard":
-
-     #   st.markdown("---")
-    #  st.markdown("### 🎯 Filtros")
-
-        ## valores por defecto
-        #año = "Todos"
-        #mes = "Todos"
-        #pais = "Todos"
-        #region = "Todos"
-        #producto = []
-
-        i#f "archivo" in st.session_state:
-
-            #df_temp = pd.read_excel(st.session_state.archivo)
-            #df_temp.columns = df_temp.columns.str.strip()
-
-            #df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
-            #df_temp = df_temp.dropna(subset=["Fecha"])
-
-            #df_temp["Año"] = df_temp["Fecha"].dt.year
-            #df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
-
-            # AÑO
-            #año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()), key="año")
-
-            # MES
-            m#es = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
-            
-            }
-            
-
-            
-
-# =========================
-# INICIO
-# =========================
+ 
 # =========================
 # CONTROL DE VISTA
 # =========================
@@ -557,6 +511,8 @@ if menu == "Inicio":
         if st.button("🔙 Ir al Dashboard"):
             st.session_state.menu = "Dashboard"
             st.rerun()
+
+
 
 # =========================
 # DASHBOARD
