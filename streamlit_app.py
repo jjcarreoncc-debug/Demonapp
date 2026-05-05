@@ -706,6 +706,7 @@ elif menu == "Dashboard":
             col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
             col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
             col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
+
 elif menu == "Principal":
 
     st.header("📊 Dashboard Ejecutivo")
@@ -1479,68 +1480,57 @@ if st.session_state.vista == "recomendaciones":
                     st.warning("Sin datos")
 
             st.markdown("---")
+# =========================
+# DASHBOARD PRINCIPAL LIMPIO
+# =========================
 
-# =========================
-# DASHBOARD PRINCIPAL
-# =========================
 vista = st.session_state.vista
 
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
 
-# =========================
-# DRILL-DOWN EJECUTIVO
-# =========================
+    # =========================
+    # CONTEXTO (DRILL-DOWN VISUAL)
+    # =========================
     st.markdown("### 🎯 Contexto actual")
-    
+
     c1, c2, c3 = st.columns(3)
-    
+
     with c1:
         st.markdown("**🌎 País**")
         st.success(st.session_state.get("filtro_pais", "Todos"))
-    
+
     with c2:
         st.markdown("**📍 Región**")
         st.success(st.session_state.get("filtro_region", "Todos"))
-    
+
     with c3:
         st.markdown("**📦 Producto**")
         st.success(st.session_state.get("filtro_producto", "Todos"))
-        # =========================
-        # FILTROS
-        # =========================
-        df_f = st.session_state.get("df_filtrado", df)
-        # =========================
-        # CREAR PERIODO (FIX)
-        # =========================
-        col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-        
-        if col_fecha:
-            df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-            df_f = df_f.dropna(subset=[col_fecha])
-            df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-        else:
-            st.error("❌ No se encontró columna de fecha para generar PERIODO")
-            st.stop()
-    if pais and "Todos" not in pais:
-        df_f = df_f[df_f["PAIS"].isin(pais)]
 
-    if canal and "Todos" not in canal:
-        df_f = df_f[df_f["CANAL"].isin(canal)]
+    # =========================
+    # DATA
+    # =========================
+    df_f = st.session_state.get("df_filtrado")
 
-    if region and "Todos" not in region:
-        df_f = df_f[df_f["REGION"].isin(region)]
+    if df_f is None or df_f.empty:
+        st.warning("⚠️ No hay datos cargados")
+        st.stop()
 
-    #producto = st.multiselect(
-    #    "Producto",
-    #    ["Todos"] + sorted(df["NOMBRE_PRODUCTO"].dropna().unique()),
-    #    default=["Todos"],
-    #    key="principal_producto"
-    #)
+    df_f.columns = df_f.columns.str.strip().str.upper()
 
-    #if producto and "Todos" not in producto:
-    #    df_f = df_f[df_f["NOMBRE_PRODUCTO"].isin(producto)]
+    # =========================
+    # CREAR COLUMNAS BASE (UNA SOLA VEZ)
+    # =========================
+    df_f["FECHA"] = pd.to_datetime(df_f["FECHA"], errors="coerce")
+    df_f = df_f.dropna(subset=["FECHA"])
+
+    df_f["PERIODO"] = df_f["FECHA"].dt.to_period("M").astype(str)
+
+    df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+    df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+    df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 
     # =========================
     # VALIDACIÓN
@@ -1550,166 +1540,38 @@ if vista == "principal":
         st.stop()
 
     # =========================
-    # CÁLCULOS BASE
+    # AGRUPACIÓN
     # =========================
-    df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
-    df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
-    df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+    df_m = df_m.sort_values("PERIODO")
 
-    ventas = df_f["VENTAS"].sum()
-    costos = df_f["COSTOS"].sum()
-    ganancia = df_f["GANANCIA"].sum()
-    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
-    # =========================
-    # VARIACIÓN (FIX ERROR)
-    # =========================
-    variacion = 0
-    
-    if "df_m" in locals() and len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["VENTAS"]
-        v2 = df_m.iloc[-1]["VENTAS"]
-    
-        if v1 != 0:
-            variacion = (v2 - v1) / v1
-    # =========================
-    # VARIACIÓN + COLOR KPI (FIX)
-    # =========================
-    variacion = 0
-    
-    if "df_m" in locals() and len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["VENTAS"]
-        v2 = df_m.iloc[-1]["VENTAS"]
-    
-        if v1 != 0:
-            variacion = (v2 - v1) / v1
-    
-   # definir color SIEMPRE
-    delta_color = "normal" if variacion >= 0 else "inverse"
-
-   # =========================
-    # KPIs EJECUTIVOS
-    # =========================
-    c1, c2, c3, c4 = st.columns(4)
-    
-    #delta_color = "normal" if variacion >= 0 else "inverse"
-    
-    c1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
-    c2.metric("📈 Crecimiento", f"{variacion:.1%}")
-    c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
-    c4.metric("📊 Margen", f"{margen:.1f}%")
-# =========================
-# AGRUPACIÓN Y KPI SEGUROS
-# =========================
-
-# Asegurar PERIODO
-col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-
-if "PERIODO" not in df_f.columns:
-    if col_fecha:
-        df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-        df_f = df_f.dropna(subset=[col_fecha])
-        df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-    else:
-        st.error("❌ No existe columna FECHA")
-        st.stop()
-
-# Groupby limpio (SIN indent raro)
-df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-df_m = df_m.sort_values("PERIODO")
-
-# Variación
-variacion = 0
-
-if len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
-
-    if v1 != 0:
-        variacion = (v2 - v1) / v1
-# Crear PERIODO SI NO EXISTE
-
-# Crear métricas si faltan (extra seguro)
-
-if "VENTAS" not in df_f.columns:
-    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
-        df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
-
-if "GANANCIA" not in df_f.columns:
-    if all(c in df_f.columns for c in ["VENTAS", "COSTOS_VENTA"]):
-        df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
-        df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
-
- # DEBUG (temporal)
-st.write("DEBUG COLUMNAS:", df_f.columns)
-
-# AHORA SÍ
-        #df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-# =========================
-# BLOQUE LIMPIO KPI + AGRUPACIÓN
-# =========================
-
-# Asegurar PERIODO
-col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-
-if col_fecha is None:
-    st.error("❌ No existe columna FECHA")
-    st.stop()
-
-df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-df_f = df_f.dropna(subset=[col_fecha])
-
-df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-
-# Agrupación (alineado a la izquierda)
-df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-df_m = df_m.sort_values("PERIODO")
-
-# Variación segura
-variacion = 0
-
-if len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
-
-    if v1 != 0:
-        variacion = (v2 - v1) / v1
     # =========================
     # VARIACIÓN
     # =========================
+    variacion = 0
+
     if len(df_m) >= 2:
         v1 = df_m.iloc[-2]["VENTAS"]
         v2 = df_m.iloc[-1]["VENTAS"]
-        variacion = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        variacion = 0
 
-    st.write(f"📊 Variación actual: {variacion:.2%}")
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
 
-    if abs(variacion) > 0.01:
-        if variacion > 0:
-            st.success(f"📈 Crecimiento detectado: {variacion:.2%}")
-        else:
-            st.warning(f"📉 Caída detectada: {variacion:.2%}")
-    else:
-        st.info("ℹ️ Variación menor al 1% (comportamiento estable)")
+    delta_color = "normal" if variacion >= 0 else "inverse"
 
     # =========================
     # KPIs
     # =========================
-    c1, c2, c3 = st.columns(3)
+    ventas = df_f["VENTAS"].sum()
+    ganancia = df_f["GANANCIA"].sum()
+    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
 
-    c1.metric("Ventas", f"${ventas:,.0f}", f"{variacion:.1%}")
-    c2.metric("Ganancia", f"${ganancia:,.0f}")
-    c3.metric("Margen", f"{margen:.1f}%")
+    c1, c2, c3, c4 = st.columns(4)
 
-    # =========================
-    # ALERTAS
-    # =========================
-    if margen < 0:
-        st.error("🚨 Margen negativo: revisar costos")
-
-    if variacion < 0:
-        st.warning("⚠️ Caída en ventas vs periodo anterior")
+    c1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    c2.metric("📈 Crecimiento", f"{variacion:.1%}")
+    c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    c4.metric("📊 Margen", f"{margen:.1f}%")
 
     # =========================
     # GRÁFICA
@@ -1717,28 +1579,6 @@ if len(df_m) >= 2:
     import plotly.graph_objects as go
 
     fig = go.Figure()
-
-    df_m["PERIODO_DT"] = pd.to_datetime(df_m["PERIODO"], errors="coerce")
-    df_m["AÑO"] = df_m["PERIODO_DT"].dt.year
-
-    años = df_m["AÑO"].dropna().unique()
-
-    for j, año in enumerate(años):
-        df_year = df_m[df_m["AÑO"] == año]
-
-        if not df_year.empty:
-            fig.add_vrect(
-                x0=df_year["PERIODO"].iloc[0],
-                x1=df_year["PERIODO"].iloc[-1],
-                fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-                opacity=0.15,
-                line_width=0,
-            )
-
-            fig.add_vline(
-                x=df_year["PERIODO"].iloc[0],
-                line_dash="dash"
-            )
 
     fig.add_trace(go.Scatter(
         x=df_m["PERIODO"],
@@ -1757,7 +1597,7 @@ if len(df_m) >= 2:
     fig.update_layout(
         title="📈 Evolución del negocio",
         xaxis_title="Periodo",
-        yaxis_title="Valor",
+        yaxis_title="Valor"
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -1767,12 +1607,11 @@ if len(df_m) >= 2:
     # =========================
     st.markdown("### 🔝 Canal con mayor impacto")
 
-    if not df_f.empty and "CANAL" in df_f.columns:
+    if "CANAL" in df_f.columns:
         top_canal = df_f.groupby("CANAL")["VENTAS"].sum().sort_values(ascending=False).head(1)
 
         for canal_top, val in top_canal.items():
             st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
-
 # VOLATILIDAD
 elif vista == "volatilidad":
 
