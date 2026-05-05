@@ -981,161 +981,225 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     # MOSTRAR RECOMENDACIONES
     # ------------------------
-
 # =========================
-# RECOMENDACIONES (LIMPIO Y FUNCIONAL)
+# RECOMENDACIONES (FINAL FUNCIONAL CORREGIDO)
 # =========================
-recomendaciones = recomendaciones if 'recomendaciones' in locals() else []
-if not recomendaciones:
-    st.info("No hay recomendaciones relevantes (sin variaciones >10%)")
+if st.session_state.vista == "recomendaciones":
 
-else:
-    for r in recomendaciones:
+    if st.button("⬅️ Volver Recomendaciones"):
+        st.session_state.vista = "inicio"
+        st.rerun()
 
-        # ------------------------
-        # DESEMPAQUETAR
-        # ------------------------
-        if len(r) == 9:
+    st.title("📌 Recomendaciones Estratégicas")
+
+    # ------------------------
+    # NORMALIZAR COLUMNAS (CLAVE)
+    # ------------------------
+    df.columns = df.columns.str.strip().str.upper()
+
+    # ------------------------
+    # VALIDACIÓN
+    # ------------------------
+    if df.empty:
+        st.warning("No hay datos con esos filtros")
+        st.stop()
+
+    # ------------------------
+    # ASEGURAR COLUMNAS
+    # ------------------------
+    if all(col in df.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]):
+
+        df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
+        df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
+        df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
+
+        if "PERIODO" not in df.columns:
+            if "FECHA" in df.columns:
+                df["PERIODO"] = pd.to_datetime(df["FECHA"], errors="coerce")\
+                    .dt.to_period("M").astype(str)
+            else:
+                st.error("❌ Falta FECHA o PERIODO")
+                st.stop()
+    else:
+        st.error("❌ El archivo no tiene columnas necesarias")
+        st.stop()
+
+    # ------------------------
+    # VALIDAR COLUMNAS CLAVE
+    # ------------------------
+    if not all(col in df.columns for col in ["VENTAS", "PERIODO"]):
+        st.error("❌ Faltan columnas necesarias")
+        st.stop()
+
+    # ------------------------
+    # INICIALIZAR
+    # ------------------------
+    recomendaciones = []
+    resumen_dim = {}
+
+    # ------------------------
+    # FUNCIÓN GENERADORA
+    # ------------------------
+    def generar(df, col):
+        df_t = df.groupby(["PERIODO", col])["VENTAS"].sum().reset_index()
+        df_t = df_t.sort_values("PERIODO")
+
+        detalle_crece = []
+        detalle_cae = []
+
+        for k, g in df_t.groupby(col):
+            if g["PERIODO"].nunique() >= 2 and g.iloc[-2]["VENTAS"] != 0:
+
+                v1 = g.iloc[-2]["VENTAS"]
+                v2 = g.iloc[-1]["VENTAS"]
+                var = (v2 - v1) / v1
+                impacto = v2 - v1
+
+                p1 = g.iloc[-2]["PERIODO"]
+                p2 = g.iloc[-1]["PERIODO"]
+
+                # 👇 CAMBIO IMPORTANTE: 1% en lugar de 10%
+                if abs(var) > 0.01:
+                    tipo = "verde" if var > 0 else "rojo"
+                    recomendaciones.append((col, k, var, impacto, tipo, v1, v2, p1, p2))
+
+                    if var > 0:
+                        detalle_crece.append((k, var))
+                    else:
+                        detalle_cae.append((k, var))
+
+        return detalle_crece, detalle_cae
+
+    # ------------------------
+    # GENERAR
+    # ------------------------
+    for dim in ["PAIS", "REGION", "CANAL", "NOMBRE_PRODUCTO"]:
+        if dim in df.columns:
+            crece, cae = generar(df, dim)
+            resumen_dim[dim] = {"crece": crece, "cae": cae}
+
+    # ------------------------
+    # ORDENAR
+    # ------------------------
+    if recomendaciones:
+        recomendaciones = sorted(recomendaciones, key=lambda x: abs(x[3]), reverse=True)
+
+    st.write("DEBUG recomendaciones:", len(recomendaciones))
+
+    # =========================
+    # MOSTRAR
+    # =========================
+    import plotly.graph_objects as go
+
+    if not recomendaciones:
+        st.info("No hay recomendaciones relevantes (>1%)")
+
+    else:
+        for r in recomendaciones:
+
             dim, nombre, var, impacto, tipo, v1, v2, p1, p2 = r
-        elif len(r) == 6:
-            dim, nombre, var, impacto, v1, v2 = r
-            tipo = "verde" if var > 0 else "rojo"
-            p1, p2 = "-", "-"
-        else:
-            continue
 
-        # ------------------------
-        # TEXTO
-        # ------------------------
-        if tipo == "verde":
-            st.success(f"🟢 Escalar {dim}: {nombre} ({var*100:.1f}%)")
-        else:
-            st.error(f"🔴 Recuperar {dim}: {nombre} ({var*100:.1f}%)")
+            # TEXTO
+            if tipo == "verde":
+                st.success(f"🟢 Escalar {dim}: {nombre} ({var:.1%})")
+            else:
+                st.error(f"🔴 Recuperar {dim}: {nombre} ({var:.1%})")
 
-        st.markdown(f"""
+            st.markdown(f"""
 - Periodo anterior ({p1}): ${v1:,.0f}  
 - Periodo actual ({p2}): ${v2:,.0f}  
-- Variación: {var*100:.1f}%
+- Variación: {var:.1%}  
+- Impacto: ${impacto:,.0f}
 """)
 
-        # ------------------------
-        # DATA BASE
-        # ------------------------
-        df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
+            # ------------------------
+            # DATA BASE
+            # ------------------------
+            df_det = df[df[dim].astype(str).str.strip() == str(nombre).strip()]
 
-        # =========================
-        # 🔍 DETALLE
-        # =========================
-        with st.expander(f"🔍 Ver detalle - {nombre}"):
+            # =========================
+            # 🔍 DETALLE (CON BULLETS)
+            # =========================
+            with st.expander(f"🔍 Ver detalle - {nombre}"):
 
-            if df_det.empty:
-                st.warning("No hay datos para este elemento")
-
-            else:
-                for subdim in ["Producto", "Region", "Canal"]:
-
-                    if all(col in df_det.columns for col in ["Periodo", "Ventas", subdim]) and subdim != dim:
-
-                        df_sub = df_det.groupby(["Periodo", subdim])["Ventas"].sum().reset_index()
-                        df_sub = df_sub.sort_values("Periodo")
-
-                        tabla = []
-
-                        for k2, g2 in df_sub.groupby(subdim):
-
-                            if g2["Periodo"].nunique() >= 2 and g2.iloc[-2]["Ventas"] != 0:
-
-                                a1 = g2.iloc[-2]["Ventas"]
-                                a2 = g2.iloc[-1]["Ventas"]
-                                var2 = (a2 - a1) / a1
-
-                                tabla.append([k2, a1, a2, var2])
-
-                        if tabla:
-                            df_detalle = pd.DataFrame(
-                                tabla,
-                                columns=["Elemento", "Anterior", "Actual", "Variación"]
-                            )
-
-                            df_detalle["Variación"] = df_detalle["Variación"].apply(
-                                lambda x: f"🔴 {x:.1%}" if x < 0 else f"🟢 {x:.1%}"
-                            )
-
-                            st.dataframe(df_detalle.head(5), use_container_width=True)
-
-        # =========================
-        # 📊 GRÁFICA (CON SOMBRAS Y LÍNEAS)
-        # =========================
-        with st.expander(f"📊 Gráfica - {nombre}"):
-
-            import plotly.graph_objects as go
-
-            if not df_det.empty and "Periodo" in df_det.columns and "Ventas" in df_det.columns:
-
-                df_g = df_det.groupby("Periodo")["Ventas"].sum().reset_index()
-
-                if not df_g.empty:
-
-                    df_g["Periodo_dt"] = pd.to_datetime(df_g["Periodo"], errors="coerce")
-                    df_g = df_g.dropna(subset=["Periodo_dt"])
-                    df_g = df_g.sort_values("Periodo_dt")
-
-                    fig = go.Figure()
-
-                    # 🔵 SOMBRAS POR AÑO
-                    df_g["Año"] = df_g["Periodo_dt"].dt.year
-                    años = df_g["Año"].unique()
-
-                    for j, año in enumerate(años):
-                        df_year = df_g[df_g["Año"] == año]
-
-                        fig.add_vrect(
-                            x0=df_year["Periodo_dt"].iloc[0],
-                            x1=df_year["Periodo_dt"].iloc[-1],
-                            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-                            opacity=0.2,
-                            line_width=0,
-                        )
-
-                        # ⚫ LÍNEA DIVISORIA
-                        fig.add_vline(
-                            x=df_year["Periodo_dt"].iloc[0],
-                            line_dash="dash",
-                            line_color="black"
-                        )
-
-                    # 📈 LÍNEA PRINCIPAL
-                    fig.add_trace(go.Scatter(
-                        x=df_g["Periodo_dt"],
-                        y=df_g["Ventas"],
-                        mode="lines+markers+text",
-                        text=[f"${v:,.0f}" for v in df_g["Ventas"]],
-                        textposition="top center"
-                    ))
-
-                    fig.update_layout(
-                        title="Evolución de Ventas",
-                        hovermode="x unified",
-                        showlegend=False
-                    )
-
-                    st.plotly_chart(
-                        fig,
-                        use_container_width=True,
-                        key=f"graf_{dim}_{str(nombre).replace(' ','_')}"
-                    )
+                if df_det.empty:
+                    st.warning("No hay datos para este elemento")
 
                 else:
-                    st.warning("Datos vacíos para graficar")
+                    tabla = []
 
-            else:
-                st.warning("Faltan columnas necesarias")
+                    for subdim in ["NOMBRE_PRODUCTO", "REGION", "CANAL"]:
 
-        st.markdown("---")
-# =========================
-# NORMALIZAR COLUMNAS (CLAVE)
-# =========================
-df.columns = df.columns.str.strip().str.upper()
+                        if subdim in df_det.columns and subdim != dim:
+
+                            df_sub = df_det.groupby(["PERIODO", subdim])["VENTAS"].sum().reset_index()
+
+                            for k2, g2 in df_sub.groupby(subdim):
+
+                                if len(g2) >= 2 and g2.iloc[-2]["VENTAS"] != 0:
+
+                                    a1 = g2.iloc[-2]["VENTAS"]
+                                    a2 = g2.iloc[-1]["VENTAS"]
+                                    var2 = (a2 - a1) / a1
+
+                                    bullet = "🟢" if var2 > 0 else "🔴"
+
+                                    tabla.append([bullet, k2, a1, a2, var2])
+
+                    if tabla:
+                        df_detalle = pd.DataFrame(
+                            tabla,
+                            columns=["", "Elemento", "Anterior", "Actual", "Variación"]
+                        )
+                        st.dataframe(df_detalle, use_container_width=True)
+
+            # =========================
+            # 📊 GRÁFICA (CON SOMBRAS)
+            # =========================
+            with st.expander(f"📊 Gráfica - {nombre}"):
+
+                if not df_det.empty:
+
+                    df_g = df_det.groupby("PERIODO")["VENTAS"].sum().reset_index()
+
+                    if not df_g.empty:
+
+                        df_g["PERIODO_DT"] = pd.to_datetime(df_g["PERIODO"], errors="coerce")
+                        df_g = df_g.sort_values("PERIODO_DT")
+
+                        fig = go.Figure()
+
+                        # SOMBRAS
+                        df_g["AÑO"] = df_g["PERIODO_DT"].dt.year
+                        for i, año in enumerate(df_g["AÑO"].unique()):
+                            df_y = df_g[df_g["AÑO"] == año]
+
+                            fig.add_vrect(
+                                x0=df_y["PERIODO_DT"].iloc[0],
+                                x1=df_y["PERIODO_DT"].iloc[-1],
+                                fillcolor="lightblue" if i % 2 == 0 else "lightgrey",
+                                opacity=0.15,
+                                line_width=0
+                            )
+
+                        fig.add_trace(go.Scatter(
+                            x=df_g["PERIODO_DT"],
+                            y=df_g["VENTAS"],
+                            mode="lines+markers+text",
+                            text=[f"${v:,.0f}" for v in df_g["VENTAS"]],
+                            textposition="top center"
+                        ))
+
+                        st.plotly_chart(fig, use_container_width=True)
+
+                    else:
+                        st.warning("Datos vacíos")
+
+                else:
+                    st.warning("Sin datos")
+
+            st.markdown("---")
+
 # =========================
 # DASHBOARD PRINCIPAL
 # =========================
