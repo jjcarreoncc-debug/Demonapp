@@ -1568,27 +1568,40 @@ if vista == "principal":
     # =========================
 # ASEGURAR PERIODO
 # =========================
-    if "PERIODO" not in df_f.columns:
-    
-        col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-    
-        if col_fecha:
-            df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-            df_f = df_f.dropna(subset=[col_fecha])
-            df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-        else:
-            st.error("❌ No existe columna FECHA para crear PERIODO")
-            st.stop()
-  
+# =========================
+# GROUPBY SEGURO (ANTI-ERROR)
+# =========================
 
+# Buscar columna fecha
+col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
 
-    if "PERIODO" in df_f.columns:
-        df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-        df_m = df_m.sort_values("PERIODO")
+# Crear PERIODO SI NO EXISTE
+if "PERIODO" not in df_f.columns:
+
+    if col_fecha:
+        df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
+        df_f = df_f.dropna(subset=[col_fecha])
+        df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
     else:
-        st.error("❌ Falta la columna PERIODO")
+        st.error("❌ No existe columna FECHA en df_f")
+        st.write("Columnas actuales:", df_f.columns)
         st.stop()
 
+# Crear métricas si faltan (extra seguro)
+if "VENTAS" not in df_f.columns:
+    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
+        df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+
+if "GANANCIA" not in df_f.columns:
+    if all(c in df_f.columns for c in ["VENTAS", "COSTOS_VENTA"]):
+        df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+        df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+
+# DEBUG (temporal)
+st.write("DEBUG COLUMNAS:", df_f.columns)
+
+# AHORA SÍ
+df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
     # =========================
     # VARIACIÓN
     # =========================
