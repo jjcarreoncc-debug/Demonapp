@@ -6,7 +6,7 @@ import streamlit_authenticator as stauth
 
 from streamlit_authenticator import Hasher
 import hashlib
-from datetime import datetime
+from datetime import datetimewith st.sidebar:
 from PIL import Image
 
 # ------------------------
@@ -97,6 +97,34 @@ section[data-testid="stSidebar"]::-webkit-scrollbar {
 section[data-testid="stSidebar"]::-webkit-scrollbar-thumb {
     background: rgba(255,255,255,0.3);
     border-radius: 10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* ===== SIDEBAR ===== */
+/* tu código anterior */
+
+/* ===== BOTONES ===== */
+/* tu código anterior */
+
+/* ===== INPUTS (PEGA AQUÍ LO NUEVO) ===== */
+label {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+div[data-baseweb="select"] > div {
+    background: rgba(255,255,255,0.9) !important;
+    color: #1f2d3d !important;
+    border-radius: 12px !important;
+}
+
+div[data-baseweb="select"] span {
+    color: #1f2d3d !important;
 }
 
 </style>
@@ -824,38 +852,45 @@ if col_fecha:
 # SIDEBAR (SOLO NAVEGACIÓN)
 # =========================
 st.markdown("### 🚦 Navegación")
-
 with st.sidebar:
-    st.divider()
+
+    st.markdown('<div class="sidebar-title">📊 Analytics Pro</div>', unsafe_allow_html=True)
 
     if st.button("📊 Principal"):
         st.session_state.vista = "principal"
+        st.rerun()
 
     if st.button("🚦 Volatilidad"):
         st.session_state.vista = "volatilidad"
+        st.rerun()
 
     if st.button("👤 Responsables"):
         st.session_state.vista = "responsables"
+        st.rerun()
+
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
 
     if st.button("🧠 Causas"):
         st.session_state.vista = "causas"
+        st.rerun()
 
     if st.button("📋 Log"):
         st.session_state.vista = "log"
+        st.rerun()
 
-    if st.button("🔎 Detalle"):
+    if st.button("🔍 Detalle"):
         st.session_state.vista = "detalle"
         st.rerun()
+
+    st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
 
     if st.button("📌 Recomendaciones"):
         st.session_state.vista = "recomendaciones"
         st.rerun()
-        st.stop()
 
     if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
-
-
+        st.rerun()
 # =========================
 # VALIDAR DATA
 # =========================
