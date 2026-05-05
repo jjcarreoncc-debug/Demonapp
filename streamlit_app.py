@@ -1324,53 +1324,47 @@ elif vista == "detalle":
 
     st.markdown("## 🔎 Detalle")
 # =========================
-# APLICAR FILTROS
+# APLICAR FILTROS (CORREGIDO)
 # =========================
 df_f = df.copy()
 
-If pais != "Todos":
-     df_f = df_f[df_f["Pais"] == pais]
+if pais != "Todos":
+    df_f = df_f[df_f["PAIS"].astype(str) == pais]
 
 if canal != "Todos":
-     df_f = df_f[df_f["Canal"] == canal]
+    df_f = df_f[df_f["CANAL"].astype(str) == canal]
 
 if producto != "Todos":
-    df_f = df_f[df_f["Nombre_Producto"] == producto]
-    st.dataframe(df)
-if "Region" in df_f.columns:
+    df_f = df_f[df_f["NOMBRE_PRODUCTO"].astype(str) == producto]
+
+if "REGION" in df_f.columns:
     if isinstance(region, list):
         if region:
-            df_f = df_f[df_f["Region"].isin(region)]
+            df_f = df_f[df_f["REGION"].astype(str).isin(region)]
     else:
         if region != "Todos":
-            df_f = df_f[df_f["Region"] == region]
-      
-
-# 🔥 DATA FINAL FILTRADA
-
-# 🔥 ESTE ES EL DF FINAL QUE USA TODO
-
+            df_f = df_f[df_f["REGION"].astype(str) == region]
 
 # ------------------------
 # VALIDACIÓN
 # ------------------------
-if df.empty:
-    st.warning("No hay datos con esos filtros")
+if df_f.empty:
+    st.warning("⚠️ No hay datos con esos filtros")
     st.stop()
+
 # ------------------------
 # RECÁLCULO
 # ------------------------
-
-if all(col in df.columns for col in ["Periodo", "Ventas", "Ganancia"]):
-    df_m = df.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
+if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
+    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
 else:
     df_m = pd.DataFrame()
-    st.warning("Faltan columnas para cálculo (Periodo, Ventas, Ganancia)")
+    st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
 
-ventas = df["Ventas"].sum() if "Ventas" in df.columns else 0
-ganancia = df["Ganancia"].sum() if "Ganancia" in df.columns else 0
+# KPIs
+ventas = df_f["VENTAS"].sum() if "VENTAS" in df_f.columns else 0
+ganancia = df_f["GANANCIA"].sum() if "GANANCIA" in df_f.columns else 0
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
-
 # ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------
