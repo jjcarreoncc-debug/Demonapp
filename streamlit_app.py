@@ -1136,7 +1136,6 @@ else:
 # NORMALIZAR COLUMNAS (CLAVE)
 # =========================
 df.columns = df.columns.str.strip().str.upper()
-
 # =========================
 # DASHBOARD PRINCIPAL
 # =========================
@@ -1200,34 +1199,31 @@ if vista == "principal":
         st.stop()
 
     # =========================
-# RECOMENDACIONES / VARIACIÓN
-# =========================
-
-if len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
-    variacion = (v2 - v1) / v1 if v1 != 0 else 0
-else:
-    variacion = 0
-
-# Mostrar valor siempre (debug útil)
-st.write(f"📊 Variación actual: {variacion:.2%}")
-
-# Umbral reducido a 1%
-if abs(variacion) > 0.01:
-    if variacion > 0:
-        st.success(f"📈 Crecimiento detectado: {variacion:.2%}")
+    # VARIACIÓN
+    # =========================
+    if len(df_m) >= 2:
+        v1 = df_m.iloc[-2]["VENTAS"]
+        v2 = df_m.iloc[-1]["VENTAS"]
+        variacion = (v2 - v1) / v1 if v1 != 0 else 0
     else:
-        st.warning(f"📉 Caída detectada: {variacion:.2%}")
-else:
-    st.info("ℹ️ Variación menor al 1% (comportamiento estable)")
+        variacion = 0
+
+    st.write(f"📊 Variación actual: {variacion:.2%}")
+
+    if abs(variacion) > 0.01:
+        if variacion > 0:
+            st.success(f"📈 Crecimiento detectado: {variacion:.2%}")
+        else:
+            st.warning(f"📉 Caída detectada: {variacion:.2%}")
+    else:
+        st.info("ℹ️ Variación menor al 1% (comportamiento estable)")
 
     # =========================
     # KPIs
     # =========================
     c1, c2, c3 = st.columns(3)
 
-    c1.metric("Ventas", f"${ventas:,.0f}", f"{var:.1%}")
+    c1.metric("Ventas", f"${ventas:,.0f}", f"{variacion:.1%}")
     c2.metric("Ganancia", f"${ganancia:,.0f}")
     c3.metric("Margen", f"{margen:.1f}%")
 
@@ -1237,7 +1233,7 @@ else:
     if margen < 0:
         st.error("🚨 Margen negativo: revisar costos")
 
-    if var < 0:
+    if variacion < 0:
         st.warning("⚠️ Caída en ventas vs periodo anterior")
 
     # =========================
@@ -1301,7 +1297,7 @@ else:
 
         for canal_top, val in top_canal.items():
             st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
-# VOLATILIDAD
+    # VOLATILIDAD
 elif vista == "volatilidad":
 
     if st.button("⬅️ Volver principal"):
