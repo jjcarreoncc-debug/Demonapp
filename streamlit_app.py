@@ -1569,7 +1569,7 @@ if vista == "principal":
             st.stop()
   
 
-Seguro pasó uno de estos:
+
     if "PERIODO" in df_f.columns:
         df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
         df_m = df_m.sort_values("PERIODO")
