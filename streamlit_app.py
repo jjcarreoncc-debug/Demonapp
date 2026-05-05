@@ -2002,6 +2002,7 @@ elif st.session_state.vista == "alertas":
 # =======================
 # RESUMEN
 # =======================
+    
 elif st.session_state.vista == "resumen":
 
     if st.button("⬅️ Volver Resumen"):
@@ -2032,6 +2033,9 @@ elif st.session_state.vista == "resumen":
     # =========================
     # MÉTRICAS SEGURAS
     # =========================
+    st.write("DEBUG VISTA:", st.session_state.get("vista"))
+    st.write("DEBUG DF SHAPE:", df.shape)
+    st.write("DEBUG COLUMNAS:", df.columns)
     if "VENTAS" not in df_res.columns:
         if all(c in df_res.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
             df_res["VENTAS"] = df_res["VENTAS_CANTIDAD"] * df_res["PRECIO_VENTA"]
