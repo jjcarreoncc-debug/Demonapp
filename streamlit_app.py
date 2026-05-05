@@ -723,7 +723,20 @@ elif menu == "Principal":
     # =========================
     df = pd.read_excel(archivo)
     df.columns = df.columns.str.strip().str.upper()
+    # =========================
+# CREAR COLUMNAS BASE (UNA SOLA VEZ)
+# =========================
 
+# FECHA → PERIODO
+df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
+df = df.dropna(subset=["FECHA"])
+
+df["PERIODO"] = df["FECHA"].dt.to_period("M").astype(str)
+
+# MÉTRICAS
+df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
+df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
+df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
     # =========================
     # VALIDAR FECHA
     # =========================
