@@ -1557,7 +1557,7 @@ if vista == "principal":
 #    =======================
 # KPIs + BOTONES (FIX)
 # =========================
-k1, k2, k3, k4 = st.columns(4)
+    k1, k2, k3, k4 = st.columns(4)
 
 # -------------------------
 # VENTAS
