@@ -1424,12 +1424,12 @@ if vista == "principal":
     if region and "Todos" not in region:
         df_f = df_f[df_f["REGION"].isin(region)]
 
-    producto = st.multiselect(
-        "Producto",
-        ["Todos"] + sorted(df["NOMBRE_PRODUCTO"].dropna().unique()),
-        default=["Todos"],
-        key="principal_producto"
-    )
+    #producto = st.multiselect(
+    #    "Producto",
+    #    ["Todos"] + sorted(df["NOMBRE_PRODUCTO"].dropna().unique()),
+    #    default=["Todos"],
+    #    key="principal_producto"
+    #)
 
     if producto and "Todos" not in producto:
         df_f = df_f[df_f["NOMBRE_PRODUCTO"].isin(producto)]
