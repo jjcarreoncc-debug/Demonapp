@@ -28,43 +28,79 @@ if "rol" not in st.session_state:
 
 st.markdown("""
 <style>
-/* FONDO GENERAL */
 
-.stApp {
-    background-color: #F4F6F8;
+/* ===== SIDEBAR BASE ===== */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1f3b4d 0%, #2e6f95 100%);
+    padding-top: 20px;
 }
 
-/* SIDEBAR CON IMAGEN */
-[data-testid="stSidebar"] {
-    background: linear-gradient(
-        rgba(21, 90, 122, 0.85),
-        rgba(21, 90, 122, 0.85)
-    ),
-    url("imagen8.png");
-    background-size: cover;
-    background-position: center;
+/* ===== BOTONES ===== */
+div.stButton > button {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff !important;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(6px);
 }
 
-/* TEXTO SIDEBAR */
-[data-testid="stSidebar"] * {
-    color: white;
+/* Hover */
+div.stButton > button:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateX(5px);
+    color: #ffffff !important;
 }
 
-/* FILTROS MÁS LIMPIOS */
-div[data-baseweb="select"] {
-    background-color: rgba(255,255,255,0.08) !important;
-    border-radius: 6px;
+/* Activo (simulado con focus) */
+div.stButton > button:focus {
+    background: #ffffff;
+    color: #1f3b4d !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-div[data-baseweb="select"] * {
+/* ===== TEXTO GENERAL ===== */
+section[data-testid="stSidebar"] * {
     color: white !important;
+}
+
+/* ===== TÍTULO ===== */
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-left: 10px;
+}
+
+/* ===== SEPARADORES ===== */
+.sidebar-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.2);
+    margin: 15px 0;
+}
+
+/* ===== ICONOS ESPACIADO ===== */
+button p {
+    margin: 0;
+}
+
+/* ===== SCROLLBAR ===== */
+section[data-testid="stSidebar"]::-webkit-scrollbar {
+    width: 6px;
+}
+section[data-testid="stSidebar"]::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 10px;
 }
 
 </style>
 """, unsafe_allow_html=True)
-
-
-
 # ------------------------
 # BASE DE DATOS
 # ------------------------
