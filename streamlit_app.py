@@ -1787,6 +1787,9 @@ if df_f.empty:
 # =========================
 # VALIDACIÓN
 # =========================
+st.write("COLUMNAS df_f:", df_f.columns.tolist())
+st.write("SHAPE df_f:", df_f.shape)
+st.stop()
 if df_f.empty:
     st.warning("⚠️ No hay datos con esos filtros")
     st.stop()
