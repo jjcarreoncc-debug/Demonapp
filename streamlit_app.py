@@ -6,7 +6,7 @@ import streamlit_authenticator as stauth
 
 from streamlit_authenticator import Hasher
 import hashlib
-from datetime import datetimewith st.sidebar:
+from datetime import datetimew
 from PIL import Image
 
 # ------------------------
