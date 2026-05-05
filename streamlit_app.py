@@ -1567,7 +1567,7 @@ if vista == "principal":
         else:
             st.error("❌ No existe columna FECHA para crear PERIODO")
             st.stop()
-    🎯 POR QUÉ TE PASÓ
+  
 
 Seguro pasó uno de estos:
     if "PERIODO" in df_f.columns:
