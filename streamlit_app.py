@@ -2197,7 +2197,7 @@ if st.session_state.vista == "resumen":
             x=df_m["PERIODO"],
             y=df_m["GANANCIA"],
             mode="lines+markers",
-            name="Ganancia"
+            name="Ganancia",
             hovertemplate="📅 Periodo: %{x}<br>💰 Ventas: %{y:$,.0f}<extra></extra>"
         ))
 
