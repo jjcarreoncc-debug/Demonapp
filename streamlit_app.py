@@ -442,10 +442,12 @@ with st.sidebar:
 # =========================
 if "vista" not in st.session_state:
     st.session_state.vista = "inicio"
-
 # =========================
 # INICIO
 # =========================
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
+
 if menu == "Inicio":
 
     st.title("🏠 Inicio")
@@ -464,64 +466,101 @@ if menu == "Inicio":
 # =========================
 elif menu == "Dashboard":
 
-    st.title("📊 Dashboard")
-
     # =========================
-    # 🎯 FILTROS SUPERIORES
+    # TOMAR VALORES DEL SIDEBAR
     # =========================
-    if "archivo" in st.session_state:
+    año = st.session_state.get("filtro_año", "Todos")
+    mes = st.session_state.get("filtro_mes", "Todos")
+    pais = st.session_state.get("filtro_pais", "Todos")
+    region = st.session_state.get("filtro_region", "Todos")
+    producto = st.session_state.get("filtro_producto", [])
 
-        df_temp = pd.read_excel(st.session_state.archivo)
-        df_temp.columns = df_temp.columns.str.strip().str.upper()
+    st.header("📊 Dashboard Ejecutivo")
 
-        st.markdown("## 🎯 Filtros")
+    archivo = st.session_state.get("archivo")
 
-        c1, c2, c3 = st.columns(3)
+    if not archivo:
+        st.warning("⚠️ Primero carga un archivo en Inicio")
+    else:
+        df = pd.read_excel(archivo)
+        df.columns = df.columns.str.strip()
 
-        # PAIS
-        with c1:
-            if "PAIS" in df_temp.columns:
-                opciones = ["Todos"] + sorted(df_temp["PAIS"].dropna().astype(str).unique())
-                pais = st.selectbox("País", opciones)
+        # ------------------------
+        # LIMPIEZA
+        # ------------------------
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        df = df.dropna(subset=["Fecha"])
 
-                if pais != "Todos":
-                    df_temp = df_temp[df_temp["PAIS"] == pais]
+        for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # REGION
-        with c2:
-            if "REGION" in df_temp.columns:
-                opciones = ["Todos"] + sorted(df_temp["REGION"].dropna().astype(str).unique())
-                region = st.selectbox("Región", opciones)
+        # ------------------------
+        # CAMPOS
+        # ------------------------
+        df["Año"] = df["Fecha"].dt.year
+        df["Mes"] = df["Fecha"].dt.month_name()
 
-                if region != "Todos":
-                    df_temp = df_temp[df_temp["REGION"] == region]
+        # MÉTRICAS
+        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
+        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
+        df["Ganancia"] = df["Ventas"] - df["Costos"]
+
+        # ------------------------
+        # FILTRADO
+        # ------------------------
+        df_filtrado = df.copy()
+
+        if año != "Todos":
+            df_filtrado = df_filtrado[df_filtrado["Año"] == año]
+
+        if mes != "Todos":
+            df_filtrado = df_filtrado[df_filtrado["Mes"] == mes]
+
+        # PAIS (ultra robusto)
+        col_pais = next((c for c in df_filtrado.columns if "pais" in c.lower()), None)
+    
+        if pais != "Todos" and col_pais:
+            df_filtrado[col_pais] = df_filtrado[col_pais].astype(str).str.strip().str.lower()
+            pais = str(pais).strip().lower()
+            df_filtrado = df_filtrado[df_filtrado[col_pais] == pais]
+        
+        col_region = next((c for c in df_filtrado.columns if "region" in c.lower()), None)
+        if region != "Todos" and col_region:
+            df_filtrado[col_region] = df_filtrado[col_region].astype(str).str.strip().str.lower()
+            region = str(region).strip().lower()
+            df_filtrado = df_filtrado[df_filtrado[col_region] == region]
 
         # PRODUCTO
-        with c3:
-            col_producto = next((c for c in df_temp.columns if "PRODUCT" in c), None)
+        col_producto = next((c for c in df_filtrado.columns if "producto" in c.lower()), None)
+        if producto and col_producto:
+            df_filtrado[col_producto] = df_filtrado[col_producto].astype(str).str.strip().str.lower()
+            producto = [str(p).strip().lower() for p in producto]
+            df_filtrado = df_filtrado[df_filtrado[col_producto].isin(producto)]
+           
+        # ------------------------
+        # RESULTADO
+        # ------------------------
+        if df_filtrado.empty:
+            st.warning("⚠️ No hay datos con esos filtros")
+        else:
+            ventas_mes = df_filtrado.groupby("Mes")["Ventas"].sum().reset_index()
 
-            if col_producto:
-                opciones = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
-                producto = st.selectbox("Producto", opciones)
+            st.subheader("📈 Ventas por Mes")
+            st.bar_chart(ventas_mes.set_index("Mes"))
+            st.write("🔍 Tamaño del dataframe filtrado:", df_f.shape)
+            st.write("🔍 Columnas disponibles:", df_f.columns)
+            st.dataframe(df_f.head())
+            # ------------------------
+            # KPIs
+            # ------------------------
+            col1, col2, col3 = st.columns(3)
 
-                if producto != "Todos":
-                    df_temp = df_temp[df_temp[col_producto] == producto]
+            col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
+            col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
+            col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
 
-        # GUARDAR
-        st.session_state["df_filtrado"] = df_temp
 
-        st.markdown("---")
-
-        # =========================
-        # 📊 USAR DATA FILTRADA
-        # =========================
-        df = st.session_state.get("df_filtrado", df_temp)
-
-        st.write("Vista previa:")
-        st.dataframe(df.head())
-
-    else:
-        st.warning("⚠️ Primero carga un archivo en Inicio")
 # =========================
 # DASHBOARD
 # =========================
