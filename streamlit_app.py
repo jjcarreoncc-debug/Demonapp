@@ -1512,10 +1512,18 @@ if vista == "principal":
     df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
 
     # =========================
-    # MÉTRICAS
+    # MÉTRICAS (ROBUSTO)
     # =========================
-    df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
-    df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
+        df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+    else:
+        df_f["VENTAS"] = 0
+
+    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "COSTOS_VENTA"]):
+        df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+    else:
+        df_f["COSTOS"] = 0
+
     df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 
     ventas = df_f["VENTAS"].sum()
@@ -1523,19 +1531,25 @@ if vista == "principal":
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
     # =========================
-    # AGRUPACIÓN
+    # AGRUPACIÓN (SEGURO)
     # =========================
-    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+    if all(c in df_f.columns for c in ["PERIODO", "VENTAS", "GANANCIA"]):
+        df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+    else:
+        df_m = pd.DataFrame()
+        st.warning("⚠️ Faltan columnas para agrupación")
 
     # =========================
     # VARIACIÓN
     # =========================
-    if len(df_m) >= 2:
+    variacion = 0
+
+    if not df_m.empty and len(df_m) >= 2:
         v1 = df_m.iloc[-2]["VENTAS"]
         v2 = df_m.iloc[-1]["VENTAS"]
-        variacion = (v2 - v1) / v1 if v1 != 0 else 0
-    else:
-        variacion = 0
+
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
 
     delta_color = "normal" if variacion >= 0 else "inverse"
 
@@ -1550,70 +1564,81 @@ if vista == "principal":
     k4.metric("📊 Margen", f"{margen:.1f}%")
 
     # =========================
-    # DEBUG (opcional)
-    # =========================
-    # st.write("Columnas:", df_f.columns)
-    # st.dataframe(df_f.head())
-
-    # =========================
     # ALERTAS
     # =========================
     if margen < 0:
         st.error("🚨 Margen negativo: revisar costos")
 
+    elif margen < 20:
+        st.warning("⚠️ Margen bajo")
+
     if variacion < 0:
         st.warning("⚠️ Caída en ventas vs periodo anterior")
+
+    elif variacion > 0:
+        st.success("📈 Crecimiento detectado")
+
+    # =========================
+    # INSIGHT AUTOMÁTICO
+    # =========================
+    if "NOMBRE_PRODUCTO" in df_f.columns:
+        top_producto = df_f.groupby("NOMBRE_PRODUCTO")["VENTAS"].sum().sort_values(ascending=False).head(1)
+
+        for prod, val in top_producto.items():
+            st.success(f"🏆 Producto líder: {prod} con ${val:,.0f}")
 
     # =========================
     # GRÁFICA
     # =========================
     import plotly.graph_objects as go
 
-    fig = go.Figure()
+    if not df_m.empty:
 
-    df_m["PERIODO_DT"] = pd.to_datetime(df_m["PERIODO"], errors="coerce")
-    df_m["AÑO"] = df_m["PERIODO_DT"].dt.year
+        fig = go.Figure()
 
-    años = df_m["AÑO"].dropna().unique()
+        df_m["PERIODO_DT"] = pd.to_datetime(df_m["PERIODO"], errors="coerce")
+        df_m["AÑO"] = df_m["PERIODO_DT"].dt.year
 
-    for j, año in enumerate(años):
-        df_year = df_m[df_m["AÑO"] == año]
+        años = df_m["AÑO"].dropna().unique()
 
-        if not df_year.empty:
-            fig.add_vrect(
-                x0=df_year["PERIODO"].iloc[0],
-                x1=df_year["PERIODO"].iloc[-1],
-                fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-                opacity=0.15,
-                line_width=0,
-            )
+        for j, año in enumerate(años):
+            df_year = df_m[df_m["AÑO"] == año]
 
-            fig.add_vline(
-                x=df_year["PERIODO"].iloc[0],
-                line_dash="dash"
-            )
+            if not df_year.empty:
+                fig.add_vrect(
+                    x0=df_year["PERIODO"].iloc[0],
+                    x1=df_year["PERIODO"].iloc[-1],
+                    fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+                    opacity=0.15,
+                    line_width=0,
+                )
 
-    fig.add_trace(go.Scatter(
-        x=df_m["PERIODO"],
-        y=df_m["VENTAS"],
-        mode="lines+markers",
-        name="Ventas"
-    ))
+                fig.add_vline(
+                    x=df_year["PERIODO"].iloc[0],
+                    line_dash="dash"
+                )
 
-    fig.add_trace(go.Scatter(
-        x=df_m["PERIODO"],
-        y=df_m["GANANCIA"],
-        mode="lines+markers",
-        name="Ganancia"
-    ))
+        fig.add_trace(go.Scatter(
+            x=df_m["PERIODO"],
+            y=df_m["VENTAS"],
+            mode="lines+markers",
+            name="Ventas"
+        ))
 
-    fig.update_layout(
-        title="📈 Evolución del negocio",
-        xaxis_title="Periodo",
-        yaxis_title="Valor",
-    )
+        fig.add_trace(go.Scatter(
+            x=df_m["PERIODO"],
+            y=df_m["GANANCIA"],
+            mode="lines+markers",
+            name="Ganancia"
+        ))
 
-    st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(
+            title="📈 Evolución del negocio",
+            xaxis_title="Periodo",
+            yaxis_title="Valor",
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
 
     # =========================
     # TOP CANAL
@@ -1626,6 +1651,25 @@ if vista == "principal":
         for canal_top, val in top_canal.items():
             st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
 
+    # =========================
+    # TOP / BOTTOM PRODUCTOS
+    # =========================
+    if "NOMBRE_PRODUCTO" in df_f.columns:
+
+        st.markdown("### 📊 Top y Bottom Productos")
+
+        col1, col2 = st.columns(2)
+
+        top = df_f.groupby("NOMBRE_PRODUCTO")["VENTAS"].sum().sort_values(ascending=False).head(5)
+        bottom = df_f.groupby("NOMBRE_PRODUCTO")["VENTAS"].sum().sort_values().head(5)
+
+        with col1:
+            st.write("🔝 Top 5")
+            st.dataframe(top)
+
+        with col2:
+            st.write("📉 Bottom 5")
+            st.dataframe(bottom)
 # VOLATILIDAD
 elif vista == "volatilidad":
 
