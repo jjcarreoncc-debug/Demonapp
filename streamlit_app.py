@@ -883,8 +883,8 @@ if st.session_state.vista == "inicio":
     st.stop()    
 #recomendaciones
 # =========================
-# RECOMENDACIONES (FINAL FUNCIONAL)
-# == =======================
+# RECOMENDACIONES (CORREGIDO)
+# =========================
 if st.session_state.vista == "recomendaciones":
 
     if st.button("⬅️ Volver Recomendaciones"):
@@ -893,22 +893,28 @@ if st.session_state.vista == "recomendaciones":
     st.title("📌 Recomendaciones Estratégicas")
 
     # ------------------------
+    # NORMALIZAR COLUMNAS (CLAVE)
+    # ------------------------
+    df.columns = df.columns.str.strip().str.upper()
+
+    # ------------------------
     # VALIDACIÓN
     # ------------------------
     if df.empty:
         st.warning("No hay datos con esos filtros")
-        st.stop()    
-    
-    # ------------------------
-    # ASEGURAR COLUMNAS (ANTES DE TODO)
-    # ------------------------
-    if all(col in df.columns for col in ["Ventas_Cantidad", "Precio_Venta", "Costos_Venta"]):
-        df["Ventas"] = df["Ventas_Cantidad"] * df["Precio_Venta"]
-        df["Costos"] = df["Ventas_Cantidad"] * df["Costos_Venta"]
-        df["Ganancia"] = df["Ventas"] - df["Costos"]
+        st.stop()
 
-        if "Fecha" in df.columns:
-            df["Periodo"] = pd.to_datetime(df["Fecha"], errors="coerce").dt.to_period("M").astype(str)
+    # ------------------------
+    # ASEGURAR COLUMNAS
+    # ------------------------
+    if all(col in df.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA", "COSTOS_VENTA"]):
+
+        df["VENTAS"] = df["VENTAS_CANTIDAD"] * df["PRECIO_VENTA"]
+        df["COSTOS"] = df["VENTAS_CANTIDAD"] * df["COSTOS_VENTA"]
+        df["GANANCIA"] = df["VENTAS"] - df["COSTOS"]
+
+        if "FECHA" in df.columns:
+            df["PERIODO"] = pd.to_datetime(df["FECHA"], errors="coerce").dt.to_period("M").astype(str)
 
     else:
         st.warning("⚠️ El archivo no tiene las columnas necesarias")
@@ -917,40 +923,44 @@ if st.session_state.vista == "recomendaciones":
     # ------------------------
     # VALIDAR COLUMNAS CLAVE
     # ------------------------
-    if not all(col in df.columns for col in ["Ventas", "Periodo"]):
+    if not all(col in df.columns for col in ["VENTAS", "PERIODO"]):
         st.warning("⚠️ Faltan columnas necesarias para generar recomendaciones")
         st.stop()
 
     # ------------------------
-    # INICIALIZA RECOMENDACIONES
+    # INICIALIZA
     # ------------------------
-    if "recomendaciones" not in locals():
-        recomendaciones = []
-        
-        resumen_dim = {}
+    recomendaciones = []
+    resumen_dim = {}
 
     # ------------------------
     # FUNCIÓN GENERADORA
     # ------------------------
     def generar(df, col):
-        df_t = df.groupby(["Periodo", col])["Ventas"].sum().reset_index()
-        df_t = df_t.sort_values("Periodo")
+
+        df_t = df.groupby(["PERIODO", col])["VENTAS"].sum().reset_index()
+        df_t = df_t.sort_values("PERIODO")
 
         detalle_crece = []
         detalle_cae = []
 
         for k, g in df_t.groupby(col):
-            if g["Periodo"].nunique() >= 2 and g.iloc[-2]["Ventas"] != 0:
-                v1 = g.iloc[-2]["Ventas"]
-                v2 = g.iloc[-1]["Ventas"]    
+
+            if g["PERIODO"].nunique() >= 2 and g.iloc[-2]["VENTAS"] != 0:
+
+                v1 = g.iloc[-2]["VENTAS"]
+                v2 = g.iloc[-1]["VENTAS"]
+
                 var = (v2 - v1) / v1
                 impacto = abs(var * v2)
-                p1 = g.iloc[-2]["Periodo"]
-                p2 = g.iloc[-1]["Periodo"]
+
+                p1 = g.iloc[-2]["PERIODO"]
+                p2 = g.iloc[-1]["PERIODO"]
 
                 if var < -0.10:
                     recomendaciones.append((col, k, var, impacto, "rojo", v1, v2, p1, p2))
                     detalle_cae.append((k, var))
+
                 elif var > 0.10:
                     recomendaciones.append((col, k, var, impacto, "verde", v1, v2, p1, p2))
                     detalle_crece.append((k, var))
@@ -958,13 +968,12 @@ if st.session_state.vista == "recomendaciones":
         return detalle_crece, detalle_cae
 
     # ------------------------
-    # GENERAR RECOMENDACIONES POR DIMENSIÓN
+    # GENERAR POR DIMENSIÓN
     # ------------------------
-    for dim in ["Pais", "Region", "Canal", "Producto"]:
+    for dim in ["PAIS", "REGION", "CANAL", "PRODUCTO"]:
         if dim in df.columns:
             crece, cae = generar(df, dim)
             resumen_dim[dim] = {"crece": crece, "cae": cae}
-
     # ------------------------
     # GUARDAR EN SESSION_STATE
     # ------------------------
