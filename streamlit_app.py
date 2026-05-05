@@ -1565,11 +1565,11 @@ if vista == "principal":
             st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
     
     with k2:
-    st.metric("📈 Crecimiento", f"{variacion:.1%}")
-
-    df_m["VAR"] = df_m["VENTAS"].pct_change()
-
-    colb1, colb2, colb3 = st.columns(3)
+        st.metric("📈 Crecimiento", f"{variacion:.1%}")
+    
+        df_m["VAR"] = df_m["VENTAS"].pct_change()
+    
+        colb1, colb2, colb3 = st.columns(3)
 
     with colb1:
         if st.button("🟢 +", key="crec_pos"):
@@ -1583,10 +1583,10 @@ if vista == "principal":
         if st.button("📈", key="crec_graf"):
             st.line_chart(df_m.set_index("PERIODO")["VAR"])
     with k3:
-    st.metric("💵 Ganancia", f"${ganancia:,.0f}")
-
-    colb1, colb2, colb3 = st.columns(3)
-
+        st.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    
+        colb1, colb2, colb3 = st.columns(3)
+    
     with colb1:
         if st.button("🟢 +", key="gan_pos"):
             st.dataframe(df_m[df_m["GANANCIA"] > 0])
@@ -1599,11 +1599,11 @@ if vista == "principal":
         if st.button("📈", key="gan_graf"):
             st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
     with k4:
-    st.metric("📊 Margen", f"{margen:.1f}%")
-
-    df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
-
-    colb1, colb2, colb3 = st.columns(3)
+        st.metric("📊 Margen", f"{margen:.1f}%")
+    
+        df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+    
+        colb1, colb2, colb3 = st.columns(3)
 
     with colb1:
         if st.button("🟢 +", key="mar_pos"):
