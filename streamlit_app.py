@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as  px 
-import sqlite3
+import sqlite3# 
 import streamlit_authenticator as stauth
-
 from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
@@ -1485,8 +1484,8 @@ if vista == "principal":
     #    key="principal_producto"
     #)
 
-    if producto and "Todos" not in producto:
-        df_f = df_f[df_f["NOMBRE_PRODUCTO"].isin(producto)]
+    #if producto and "Todos" not in producto:
+    #    df_f = df_f[df_f["NOMBRE_PRODUCTO"].isin(producto)]
 
     # =========================
     # VALIDACIÓN
