@@ -1200,14 +1200,27 @@ if vista == "principal":
         st.stop()
 
     # =========================
-    # VARIACIÓN
-    # =========================
-    if len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["VENTAS"]
-        v2 = df_m.iloc[-1]["VENTAS"]
-        var = (v2 - v1) / v1 if v1 != 0 else 0
+# RECOMENDACIONES / VARIACIÓN
+# =========================
+
+if len(df_m) >= 2:
+    v1 = df_m.iloc[-2]["VENTAS"]
+    v2 = df_m.iloc[-1]["VENTAS"]
+    variacion = (v2 - v1) / v1 if v1 != 0 else 0
+else:
+    variacion = 0
+
+# Mostrar valor siempre (debug útil)
+st.write(f"📊 Variación actual: {variacion:.2%}")
+
+# Umbral reducido a 1%
+if abs(variacion) > 0.01:
+    if variacion > 0:
+        st.success(f"📈 Crecimiento detectado: {variacion:.2%}")
     else:
-        var = 0
+        st.warning(f"📉 Caída detectada: {variacion:.2%}")
+else:
+    st.info("ℹ️ Variación menor al 1% (comportamiento estable)")
 
     # =========================
     # KPIs
