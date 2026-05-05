@@ -610,6 +610,7 @@ if "archivo" in st.session_state:
 
     # 👇 👇 👇 ESTO FALTABA
     df_filtrado = df.copy()
+
  with st.sidebar:
 
     # =========================
