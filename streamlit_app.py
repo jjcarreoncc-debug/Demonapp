@@ -1541,9 +1541,9 @@ if vista == "principal":
     # KPIs + BOTONES
     k1, k2, k3, k4 = st.columns(4)
     with k1:
-    st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
-
-    colb1, colb2, colb3 = st.columns(3)
+        st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    
+        colb1, colb2, colb3 = st.columns(3)
 
     # POSITIVOS
     with colb1:
