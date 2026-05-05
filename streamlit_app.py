@@ -678,12 +678,19 @@ elif menu == "Dashboard":
             df_filtrado = df_filtrado[df_filtrado[col_region] == region]
 
         # PRODUCTO
-        col_producto = next((c for c in df_filtrado.columns if "producto" in c.lower()), None)
-        if producto and col_producto:
-            df_filtrado[col_producto] = df_filtrado[col_producto].astype(str).str.strip().str.lower()
-            producto = [str(p).strip().lower() for p in producto]
-            df_filtrado = df_filtrado[df_filtrado[col_producto].isin(producto)]
-           
+        # PRODUCTO
+        col_producto = next((
+            c for c in df_filtrado.columns 
+            if any(x in c.lower() for x in ["producto", "product", "item", "sku"])
+        ), None)
+        
+        # 🔴 DEBUG (esto va justo debajo)
+        if not col_producto:
+            st.error("❌ No se encontró columna de producto")
+            st.write("Columnas disponibles:", df_filtrado.columns.tolist())
+            st.stop()
+
+        if producto and col_producto:   
         # ------------------------
         # RESULTADO
         # ------------------------
