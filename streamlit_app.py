@@ -1788,7 +1788,7 @@ df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 # =========================
 # AGRUPACIÓN
 # =========================
-df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+ df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
  if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
      df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
  else:
