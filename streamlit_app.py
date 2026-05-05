@@ -1669,8 +1669,7 @@ if vista == "principal":
 
         with col2:
             st.write("📉 Bottom 5")
-            st.dataframe(bottom)
-# VOLATILIDAD
+            st.dataframe(bottom)# VOLATILIDAD
 elif vista == "volatilidad":
 
     if st.button("⬅️ Volver principal"):
