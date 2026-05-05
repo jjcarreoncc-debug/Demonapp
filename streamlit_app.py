@@ -314,6 +314,7 @@ if st.session_state.menu == "Mantenimiento":
 # ------------------------
 # SIDEBAR
 # ------------------------
+
 with st.sidebar:
 
     st.title("📌 Navegación")
@@ -357,13 +358,7 @@ with st.sidebar:
     # =========================
     # FILTROS SOLO EN DASHBOARD
     # =========================
-    # ------------------------
-    # LIMPIAR FILTROS (solo cuando sales)
-    # ------------------------
-    if st.session_state.menu != "Dashboard":
-       for key in ["filtro_año", "filtro_mes", "filtro_pais", "filtro_region", "filtro_producto"]:
-           st.session_state.pop(key, None)
-
+    
     # ------------------------
     # MOSTRAR FILTROS (solo en dashboard)
     # ------------------------
@@ -610,7 +605,6 @@ if "archivo" in st.session_state:
 
     # 👇 👇 👇 ESTO FALTABA
     df_filtrado = df.copy()
-
 with st.sidebar:
 
     # =========================
@@ -633,10 +627,6 @@ with st.sidebar:
         border-radius: 10px;
         padding: 5px;
     }
-
-    .block-container {
-        padding-top: 1rem;
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -644,7 +634,7 @@ with st.sidebar:
     st.divider()
 
     # =========================
-    # LIMPIAR ESTADO (FIX BUGS)
+    # LIMPIAR ESTADO
     # =========================
     for k in [
         "filtro_pais",
@@ -652,7 +642,8 @@ with st.sidebar:
         "filtro_producto",
         "filtro_canal",
         "filtro_vendedor",
-        "filtro_tipo_cliente"
+        "filtro_tipo_cliente",
+        "filtro_fecha"
     ]:
         if isinstance(st.session_state.get(k), list):
             st.session_state[k] = "Todos"
@@ -663,7 +654,7 @@ with st.sidebar:
         df_temp.columns = df_temp.columns.str.strip().str.upper()
 
         # =========================
-        # 🌍 PAÍS
+        # 🌍 PAIS
         # =========================
         col_pais = next((c for c in df_temp.columns if "PAIS" in c), None)
 
@@ -675,7 +666,7 @@ with st.sidebar:
                 df_temp = df_temp[df_temp[col_pais].astype(str) == pais]
 
         # =========================
-        # 📍 REGIÓN
+        # 📍 REGION
         # =========================
         if "REGION" in df_temp.columns:
             opciones = ["Todos"] + sorted(df_temp["REGION"].dropna().astype(str).unique())
@@ -687,7 +678,7 @@ with st.sidebar:
         # =========================
         # 📦 PRODUCTO
         # =========================
-        col_producto = next((c for c in df_temp.columns if "PRODUCT" in c or "PROD" in c), None)
+        col_producto = next((c for c in df_temp.columns if "PRODUCT" in c), None)
 
         if col_producto:
             opciones = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
@@ -727,7 +718,38 @@ with st.sidebar:
                 df_temp = df_temp[df_temp["TIPO_CLIENTE"].astype(str) == tipo]
 
         # =========================
-        # 🔄 BOTÓN LIMPIAR
+        # 📅 RANGO DE FECHAS (FIX)
+        # =========================
+        st.markdown("### 📅 Rango de fechas")
+
+        if "FECHA" in df_temp.columns:
+
+            df_temp["FECHA"] = pd.to_datetime(df_temp["FECHA"], errors="coerce")
+            df_temp = df_temp.dropna(subset=["FECHA"])
+
+            fecha_min = df_temp["FECHA"].min()
+            fecha_max = df_temp["FECHA"].max()
+
+            fechas = st.date_input(
+                "Selecciona rango",
+                value=(fecha_min, fecha_max),
+                key="filtro_fecha"
+            )
+
+            if isinstance(fechas, tuple) and len(fechas) == 2:
+
+                fecha_ini, fecha_fin = fechas
+
+                df_temp = df_temp[
+                    (df_temp["FECHA"] >= pd.to_datetime(fecha_ini)) &
+                    (df_temp["FECHA"] <= pd.to_datetime(fecha_fin))
+                ]
+
+        else:
+            st.warning("⚠️ No existe columna FECHA")
+
+        # =========================
+        # 🔄 LIMPIAR
         # =========================
         st.divider()
         if st.button("🔄 Limpiar filtros"):
@@ -737,68 +759,12 @@ with st.sidebar:
             st.rerun()
 
         # =========================
-        # 💾 GUARDAR RESULTADO
+        # 💾 GUARDAR FINAL
         # =========================
         st.session_state["df_filtrado"] = df_temp
 
     else:
-        st.info("📂 Carga un archivo en Inicio para habilitar filtros")
-   # ------------------------
-    # RANGO DE FECHAS
-    # ------------------------
-with st.sidebar:
-
-    st.markdown("### 📅 Rango de fechas")
-
-    fecha_ini = None
-    fecha_fin = None
-
-    if "archivo" in st.session_state:
-
-        df_temp = pd.read_excel(st.session_state.archivo)
-
-        if "Fecha" in df_temp.columns:
-
-            df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
-
-            if df_temp["Fecha"].notna().any():
-
-                fecha_min = df_temp["Fecha"].min()
-                fecha_max = df_temp["Fecha"].max()
-                fechas = st.date_input(
-                    "📅 Selecciona fecha inicial y final",
-                    value=(df["FECHA"].min(), df["FECHA"].max()),
-                    key="filtro_fecha"
-                    ) 
-                
-                
-                                      
-                
-                # manejar correctamente el resultado
-                if isinstance(fechas, tuple) and len(fechas) == 2:
-
-                    fecha_ini, fecha_fin = fechas
-                
-                    col_fecha = next((c for c in df.columns if "FECHA" in c), None)
-                
-                    if col_fecha:
-                
-                        df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
-                        df = df.dropna(subset=[col_fecha])
-                
-                        df = df[
-                            (df[col_fecha] >= pd.to_datetime(fecha_ini)) &
-                            (df[col_fecha] <= pd.to_datetime(fecha_fin))
-                        ]
-                
-                        # guardar en sesión
-                        st.session_state.fecha_ini = fecha_ini
-                        st.session_state.fecha_fin = fecha_fin
-
-                else:
-                    st.warning("⚠️ No se encontró columna FECHA")
-        else:
-            st.warning("No existe la columna Fecha")
+        st.info("📂 Carga un archivo en Inicio")
 # ------------------------
 # VALIDAR QUE EXISTE df
 # ------------------------
@@ -960,6 +926,7 @@ if st.session_state.vista == "inicio":
     st.image("imagen8.png", width=1400)
 
     st.stop()    
+
 #recomendaciones
 # =========================
 # RECOMENDACIONES (FINAL FUNCIONAL CORREGIDO)
