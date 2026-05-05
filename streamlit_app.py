@@ -1444,68 +1444,54 @@ if st.session_state.vista == "recomendaciones":
                     st.warning("Sin datos")
 
             st.markdown("---")
-
 # =========================
 # DASHBOARD PRINCIPAL
 # =========================
-vista = st.session_state.vista
+vista = st.session_state.get("vista", "principal")
 
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
 
-# =========================
-# DRILL-DOWN EJECUTIVO
-# =========================
+    # =========================
+    # CONTEXTO
+    # =========================
     st.markdown("### 🎯 Contexto actual")
-    
+
     c1, c2, c3 = st.columns(3)
-    
+
     with c1:
         st.markdown("**🌎 País**")
         st.success(st.session_state.get("filtro_pais", "Todos"))
-    
+
     with c2:
         st.markdown("**📍 Región**")
         st.success(st.session_state.get("filtro_region", "Todos"))
-    
+
     with c3:
         st.markdown("**📦 Producto**")
         st.success(st.session_state.get("filtro_producto", "Todos"))
-        # =========================
-        # FILTROS
-        # =========================
-        df_f = st.session_state.get("df_filtrado", df)
-        # =========================
-        # CREAR PERIODO (FIX)
-        # =========================
-        col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-        
-        if col_fecha:
-            df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-            df_f = df_f.dropna(subset=[col_fecha])
-            df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-        else:
-            st.error("❌ No se encontró columna de fecha para generar PERIODO")
-            st.stop()
-    if pais and "Todos" not in pais:
-        df_f = df_f[df_f["PAIS"].isin(pais)]
 
-    if canal and "Todos" not in canal:
-        df_f = df_f[df_f["CANAL"].isin(canal)]
+    # =========================
+    # DATA BASE
+    # =========================
+    df_f = st.session_state.get("df_filtrado", df)
 
-    if region and "Todos" not in region:
-        df_f = df_f[df_f["REGION"].isin(region)]
+    pais = st.session_state.get("filtro_pais", "Todos")
+    canal = st.session_state.get("filtro_canal", "Todos")
+    region = st.session_state.get("filtro_region", "Todos")
 
-    #producto = st.multiselect(
-    #    "Producto",
-    #    ["Todos"] + sorted(df["NOMBRE_PRODUCTO"].dropna().unique()),
-    #    default=["Todos"],
-    #    key="principal_producto"
-    #)
+    # =========================
+    # FILTROS
+    # =========================
+    if pais != "Todos" and "PAIS" in df_f.columns:
+        df_f = df_f[df_f["PAIS"] == pais]
 
-    #if producto and "Todos" not in producto:
-    #    df_f = df_f[df_f["NOMBRE_PRODUCTO"].isin(producto)]
+    if canal != "Todos" and "CANAL" in df_f.columns:
+        df_f = df_f[df_f["CANAL"] == canal]
+
+    if region != "Todos" and "REGION" in df_f.columns:
+        df_f = df_f[df_f["REGION"] == region]
 
     # =========================
     # VALIDACIÓN
@@ -1515,112 +1501,61 @@ if vista == "principal":
         st.stop()
 
     # =========================
-    # CÁLCULOS BASE
+    # FECHA + PERIODO
+    # =========================
+    col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
+
+    if not col_fecha:
+        st.error("❌ No se encontró columna FECHA")
+        st.stop()
+
+    df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
+    df_f = df_f.dropna(subset=[col_fecha])
+    df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
+
+    # =========================
+    # MÉTRICAS
     # =========================
     df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
     df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
     df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 
     ventas = df_f["VENTAS"].sum()
-    costos = df_f["COSTOS"].sum()
     ganancia = df_f["GANANCIA"].sum()
-    margen = (ganancia / ventas) * 100 if ventas != 0 else 0
+    margen = (ganancia / ventas * 100) if ventas != 0 else 0
+
     # =========================
-    # VARIACIÓN (FIX ERROR)
+    # AGRUPACIÓN
     # =========================
-    variacion = 0
-    
-    if "df_m" in locals() and len(df_m) >= 2:
+    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+
+    # =========================
+    # VARIACIÓN
+    # =========================
+    if len(df_m) >= 2:
         v1 = df_m.iloc[-2]["VENTAS"]
         v2 = df_m.iloc[-1]["VENTAS"]
-    
-        if v1 != 0:
-            variacion = (v2 - v1) / v1
-    # =========================
-    # VARIACIÓN + COLOR KPI (FIX)
-    # =========================
-    variacion = 0
-    
-    if "df_m" in locals() and len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["VENTAS"]
-        v2 = df_m.iloc[-1]["VENTAS"]
-    
-        if v1 != 0:
-            variacion = (v2 - v1) / v1
-    
-   # definir color SIEMPRE
+        variacion = (v2 - v1) / v1 if v1 != 0 else 0
+    else:
+        variacion = 0
+
     delta_color = "normal" if variacion >= 0 else "inverse"
-
-   # =========================
-    # KPIs EJECUTIVOS
-    # =========================
-    c1, c2, c3, c4 = st.columns(4)
-    
-    #delta_color = "normal" if variacion >= 0 else "inverse"
-    
-    c1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
-    c2.metric("📈 Crecimiento", f"{variacion:.1%}")
-    c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
-    c4.metric("📊 Margen", f"{margen:.1f}%")
-    # =========================
-# GROUPBY SEGURO (ANTI-ERROR)
-# =========================
-
-col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-
-if "PERIODO" not in df_f.columns:
-
-    if col_fecha:
-        df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-        df_f = df_f.dropna(subset=[col_fecha])
-        df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-    else:
-        st.error("❌ No existe columna FECHA en df_f")
-        st.write("Columnas actuales:", df_f.columns)
-        st.stop()
-
-if "VENTAS" not in df_f.columns:
-    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
-        df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
-
-if "GANANCIA" not in df_f.columns:
-    if all(c in df_f.columns for c in ["VENTAS", "COSTOS_VENTA"]):
-        df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
-        df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
-
-st.write("DEBUG COLUMNAS:", df_f.columns)
-
-# ✅ AQUÍ ESTABA EL ERROR (ya corregido)
-df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-
-# =========================
-# VARIACIÓN
-# =========================
-if len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
-    variacion = (v2 - v1) / v1 if v1 != 0 else 0
-else:
-    variacion = 0    
-
-    st.write(f"📊 Variación actual: {variacion:.2%}")
-
-    if abs(variacion) > 0.01:
-        if variacion > 0:
-            st.success(f"📈 Crecimiento detectado: {variacion:.2%}")
-        else:
-            st.warning(f"📉 Caída detectada: {variacion:.2%}")
-    else:
-        st.info("ℹ️ Variación menor al 1% (comportamiento estable)")
 
     # =========================
     # KPIs
     # =========================
-    c1, c2, c3 = st.columns(3)
+    k1, k2, k3, k4 = st.columns(4)
 
-    c1.metric("Ventas", f"${ventas:,.0f}", f"{variacion:.1%}")
-    c2.metric("Ganancia", f"${ganancia:,.0f}")
-    c3.metric("Margen", f"{margen:.1f}%")
+    k1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    k2.metric("📈 Crecimiento", f"{variacion:.1%}")
+    k3.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    k4.metric("📊 Margen", f"{margen:.1f}%")
+
+    # =========================
+    # DEBUG (opcional)
+    # =========================
+    # st.write("Columnas:", df_f.columns)
+    # st.dataframe(df_f.head())
 
     # =========================
     # ALERTAS
