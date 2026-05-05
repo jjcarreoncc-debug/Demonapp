@@ -1998,63 +1998,77 @@ elif st.session_state.vista == "alertas":
         st.info("No hay alertas relevantes")
 
     st.stop()
-
 # =======================
-# RESUMEN
+# RESUMEN EJECUTIVO PRO
 # =======================
-    
-elif st.session_state.vista == "resumen":
-
-    if st.button("⬅️ Volver Resumen"):
-        st.session_state.vista = "inicio"
-        st.rerun()
+elif st.session_state.get("vista") == "resumen":
 
     st.title("🧠 Resumen Ejecutivo")
 
     # =========================
-    # DATA
+    # DATA BASE (USA FILTROS)
     # =========================
-    df_res = df.copy()
+    df_res = st.session_state.get("df_filtrado", df)
+
+    if df_res is None or df_res.empty:
+        st.error("❌ No hay datos disponibles")
+        st.stop()
+
+    df_res = df_res.copy()
     df_res.columns = df_res.columns.str.strip().str.upper()
 
     # =========================
-    # VALIDAR FECHA + CREAR PERIODO (🔥 FIX CLAVE)
+    # FECHA → PERIODO
     # =========================
     col_fecha = next((c for c in df_res.columns if "FECHA" in c), None)
 
-    if col_fecha:
-        df_res[col_fecha] = pd.to_datetime(df_res[col_fecha], errors="coerce")
-        df_res = df_res.dropna(subset=[col_fecha])
-        df_res["PERIODO"] = df_res[col_fecha].dt.to_period("M").astype(str)
-    else:
+    if not col_fecha:
         st.error("❌ No existe columna FECHA")
+        st.write(df_res.columns)
         st.stop()
 
+    df_res[col_fecha] = pd.to_datetime(df_res[col_fecha], errors="coerce")
+    df_res = df_res.dropna(subset=[col_fecha])
+
+    if df_res.empty:
+        st.error("❌ No hay fechas válidas")
+        st.stop()
+
+    df_res["PERIODO"] = df_res[col_fecha].dt.to_period("M").astype(str)
+
     # =========================
-    # MÉTRICAS SEGURAS
+    # MÉTRICAS
     # =========================
-    st.write("DEBUG VISTA:", st.session_state.get("vista"))
-    st.write("DEBUG DF SHAPE:", df.shape)
-    st.write("DEBUG COLUMNAS:", df.columns)
     if "VENTAS" not in df_res.columns:
         if all(c in df_res.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
             df_res["VENTAS"] = df_res["VENTAS_CANTIDAD"] * df_res["PRECIO_VENTA"]
         else:
-            st.error("❌ No se pueden calcular VENTAS")
+            st.error("❌ Faltan columnas para calcular VENTAS")
             st.stop()
+
+    if "COSTOS" not in df_res.columns and "COSTOS_VENTA" in df_res.columns:
+        df_res["COSTOS"] = df_res["VENTAS_CANTIDAD"] * df_res["COSTOS_VENTA"]
+
+    if "GANANCIA" not in df_res.columns and "COSTOS" in df_res.columns:
+        df_res["GANANCIA"] = df_res["VENTAS"] - df_res["COSTOS"]
 
     # =========================
     # AGRUPACIÓN
     # =========================
-    df_m = df_res.groupby("PERIODO")["VENTAS"].sum().reset_index()
+    df_m = df_res.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+
+    if df_m.empty:
+        st.warning("⚠️ No hay datos para mostrar")
+        st.stop()
+
     df_m = df_m.sort_values("PERIODO")
 
-    import plotly.graph_objects as go
-
     # =========================
-    # KPIs (🔥 ESTO TE FALTABA)
+    # KPIs EJECUTIVOS
     # =========================
-    ventas_total = df_res["VENTAS"].sum()
+    ventas = df_res["VENTAS"].sum()
+    ganancia = df_res["GANANCIA"].sum() if "GANANCIA" in df_res.columns else 0
+    margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
     variacion = 0
     if len(df_m) >= 2:
@@ -2063,64 +2077,93 @@ elif st.session_state.vista == "resumen":
         if v1 != 0:
             variacion = (v2 - v1) / v1
 
-    col1, col2 = st.columns(2)
-    col1.metric("💰 Ventas Totales", f"${ventas_total:,.0f}")
-    col2.metric("📈 Variación", f"{variacion:.1%}")
+    delta_color = "normal" if variacion >= 0 else "inverse"
+
+    k1, k2, k3, k4 = st.columns(4)
+
+    k1.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    k2.metric("📈 Crecimiento", f"{variacion:.1%}")
+    k3.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    k4.metric("📊 Margen", f"{margen:.1f}%")
+
+    st.divider()
 
     # =========================
-    # PROYECCIÓN
+    # GRÁFICA PRINCIPAL
     # =========================
-    st.subheader("📈 Proyección")
+    import plotly.graph_objects as go
 
-    if len(df_m) > 2:
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df_m["PERIODO"],
+        y=df_m["VENTAS"],
+        mode="lines+markers",
+        name="Ventas"
+    ))
+
+    if "GANANCIA" in df_m.columns:
+        fig.add_trace(go.Scatter(
+            x=df_m["PERIODO"],
+            y=df_m["GANANCIA"],
+            mode="lines+markers",
+            name="Ganancia"
+        ))
+
+    fig.update_layout(
+        title="📈 Evolución del negocio",
+        xaxis_title="Periodo",
+        yaxis_title="Valor",
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # =========================
+    # PROYECCIÓN SIMPLE
+    # =========================
+    st.subheader("🔮 Proyección")
+
+    if len(df_m) >= 2:
         tendencia = df_m["VENTAS"].diff().mean()
-        df_m["PROYECCION"] = df_m["VENTAS"].iloc[-1] + tendencia
+        proyeccion = df_m["VENTAS"].iloc[-1] + tendencia
 
-        col1, col2 = st.columns(2)
-
-        with col1:
-            fig1 = go.Figure()
-
-            fig1.add_trace(go.Scatter(
-                x=df_m["PERIODO"],
-                y=df_m["VENTAS"],
-                mode="lines+markers+text",
-                text=[f"${v:,.0f}" for v in df_m["VENTAS"]],
-                textposition="top center",
-                name="Ventas"
-            ))
-
-            st.plotly_chart(fig1, use_container_width=True)
-
-        with col2:
-            fig2 = go.Figure()
-
-            fig2.add_trace(go.Scatter(
-                x=df_m["PERIODO"],
-                y=df_m["VENTAS"],
-                mode="lines+markers",
-                name="Ventas"
-            ))
-
-            ultimo_periodo = df_m["PERIODO"].iloc[-1]
-
-            fig2.add_trace(go.Scatter(
-                x=[ultimo_periodo],
-                y=[df_m["PROYECCION"].iloc[-1]],
-                mode="markers+text",
-                text=[f"${df_m['PROYECCION'].iloc[-1]:,.0f}"],
-                textposition="top center",
-                marker=dict(size=12, color="red"),
-                name="Proyección"
-            ))
-
-            st.plotly_chart(fig2, use_container_width=True)
+        st.info(f"📊 Proyección próximo periodo: ${proyeccion:,.0f}")
 
     # =========================
-    # VALIDACIÓN FINAL
+    # TOP DIMENSIÓN
     # =========================
-    if df_m.empty:
-        st.warning("⚠️ No hay datos suficientes para el resumen")
+    st.subheader("🏆 Mayor contribución")
+
+    for dim in ["CANAL", "PAIS", "REGION", "PRODUCTO", "NOMBRE_PRODUCTO"]:
+        if dim in df_res.columns:
+
+            top = df_res.groupby(dim)["VENTAS"].sum().sort_values(ascending=False).head(1)
+
+            if not top.empty:
+                for k, v in top.items():
+                    st.success(f"🔥 {dim}: {k} → ${v:,.0f}")
+                break
+
+    # =========================
+    # ALERTAS
+    # =========================
+    st.subheader("🚨 Alertas")
+
+    if margen < 0:
+        st.error("Margen negativo")
+
+    if variacion < 0:
+        st.warning("Caída en ventas vs periodo anterior")
+
+    if variacion > 0.2:
+        st.success("Alto crecimiento detectado")
+
+    # =========================
+    # TABLA FINAL
+    # =========================
+    st.subheader("📋 Detalle")
+
+    st.dataframe(df_res.head(100), use_container_width=True)
 # =========================
 # LOG
 # =========================
