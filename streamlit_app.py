@@ -1789,11 +1789,11 @@ df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 # AGRUPACIÓN
 # =========================
 df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-#if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
-#    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-#else:
-#    df_m = pd.DataFrame()
-#    st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
+ if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
+     df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+ else:
+     df_m = pd.DataFrame()
+     st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
 
 # KPIs
 ventas = df_f["VENTAS"].sum() if "VENTAS" in df_f.columns else 0
