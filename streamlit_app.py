@@ -18,7 +18,7 @@ st.set_page_config(
     page_title=" Ejecutivo",
     layout="wide")
 if "menu" not in st.session_state:
-    st.session_state.menu = "dashboard"
+    st.session_state.menu = "Inicio"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
 
@@ -459,16 +459,16 @@ with st.sidebar:
     # OPCIONES
     # ------------------------
     if st.session_state.rol == "Admin":
-        opciones = ["Dashboard", "Dashboard", "Mantenimiento"]
+        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
     else:
-        opciones = ["Dashboard", "Dashboard"]
+        opciones = ["Inicio", "Dashboard"]
 
     # ------------------------
     # INICIALIZAR MENU
     
     # ------------------------
     if "menu" not in st.session_state:
-        st.session_state.menu = "Dashboard"
+        st.session_state.menu = "Inicio"
 
     # ------------------------
     # MENU
@@ -515,9 +515,9 @@ with st.sidebar:
             #año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()), key="año")
 
             # MES
-            #es = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
+            m#es = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
             
-            #}
+            }
             
 
             
