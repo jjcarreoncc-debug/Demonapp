@@ -1132,67 +1132,85 @@ else:
 
         st.markdown("---")
 
-# ------------------------
+# =========================
+# NORMALIZAR COLUMNAS (CLAVE)
+# =========================
+df.columns = df.columns.str.strip().str.upper()
+
+# =========================
 # DASHBOARD PRINCIPAL
-# ------------------------vista = st.session_state.vista
+# =========================
 vista = st.session_state.vista
+
 if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
 
     # =========================
-    # FILTROS (si ya los tienes arriba, puedes omitir)
+    # FILTROS
     # =========================
     df_f = df.copy()
-    
-    
+
     if pais and "Todos" not in pais:
-        df_f = df_f[df_f["Pais"].isin(pais)]
+        df_f = df_f[df_f["PAIS"].isin(pais)]
 
     if canal and "Todos" not in canal:
-        df_f = df_f[df_f["Canal"].isin(canal)]
+        df_f = df_f[df_f["CANAL"].isin(canal)]
 
     if region and "Todos" not in region:
-        df_f = df_f[df_f["Region"].isin(region)]
-    producto = st.multiselect(
-    "Producto",
-    ["Todos"] + sorted(df["Nombre_Producto"].dropna().unique()),
-    default=["Todos"],
-    key="principal_producto"
-)
-    if producto and "Todos" not in producto: 
-        
-        df_f = df_f[df_f["Producto"].isin(producto)]
-    # =========================
-    # CALCULOS BASE (CENTRALIZADO)
-    # =========================
-    df_f["Ventas"] = df_f["Ventas_Cantidad"] * df_f["Precio_Venta"]
-    df_f["Costos"] = df_f["Ventas_Cantidad"] * df_f["Costos_Venta"]
-    df_f["Ganancia"] = df_f["Ventas"] - df_f["Costos"]
+        df_f = df_f[df_f["REGION"].isin(region)]
 
-    ventas = df_f["Ventas"].sum()
-    costos = df_f["Costos"].sum()
-    ganancia = df_f["Ganancia"].sum()
+    producto = st.multiselect(
+        "Producto",
+        ["Todos"] + sorted(df["NOMBRE_PRODUCTO"].dropna().unique()),
+        default=["Todos"],
+        key="principal_producto"
+    )
+
+    if producto and "Todos" not in producto:
+        df_f = df_f[df_f["NOMBRE_PRODUCTO"].isin(producto)]
+
+    # =========================
+    # VALIDACIÓN
+    # =========================
+    if df_f.empty:
+        st.warning("⚠️ No hay datos con esos filtros")
+        st.stop()
+
+    # =========================
+    # CÁLCULOS BASE
+    # =========================
+    df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+    df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
+    df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+
+    ventas = df_f["VENTAS"].sum()
+    costos = df_f["COSTOS"].sum()
+    ganancia = df_f["GANANCIA"].sum()
     margen = (ganancia / ventas) * 100 if ventas != 0 else 0
 
     # =========================
     # DATA MENSUAL
     # =========================
-    df_m = df_f.groupby("Periodo")[["Ventas", "Ganancia"]].sum().reset_index()
-    df_m = df_m.sort_values("Periodo")
+    if "PERIODO" in df_f.columns:
+        df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+        df_m = df_m.sort_values("PERIODO")
+    else:
+        st.error("❌ Falta la columna PERIODO")
+        st.stop()
 
     # =========================
     # VARIACIÓN
     # =========================
     if len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["Ventas"]
-        v2 = df_m.iloc[-1]["Ventas"]
+        v1 = df_m.iloc[-2]["VENTAS"]
+        v2 = df_m.iloc[-1]["VENTAS"]
         var = (v2 - v1) / v1 if v1 != 0 else 0
     else:
         var = 0
 
     # =========================
-    # KPIs PRO
+    # KPIs
     # =========================
     c1, c2, c3 = st.columns(3)
 
@@ -1201,7 +1219,7 @@ if vista == "principal":
     c3.metric("Margen", f"{margen:.1f}%")
 
     # =========================
-    # ALERTAS AUTOMÁTICAS
+    # ALERTAS
     # =========================
     if margen < 0:
         st.error("🚨 Margen negativo: revisar costos")
@@ -1210,44 +1228,44 @@ if vista == "principal":
         st.warning("⚠️ Caída en ventas vs periodo anterior")
 
     # =========================
-    # GRÁFICA PRO
+    # GRÁFICA
     # =========================
     import plotly.graph_objects as go
 
     fig = go.Figure()
 
-    # SOMBRAS POR AÑO
-    df_m["Periodo_dt"] = pd.to_datetime(df_m["Periodo"])
-    df_m["Año"] = df_m["Periodo_dt"].dt.year
-    años = df_m["Año"].unique()
+    df_m["PERIODO_DT"] = pd.to_datetime(df_m["PERIODO"], errors="coerce")
+    df_m["AÑO"] = df_m["PERIODO_DT"].dt.year
+
+    años = df_m["AÑO"].dropna().unique()
 
     for j, año in enumerate(años):
-        df_year = df_m[df_m["Año"] == año]
+        df_year = df_m[df_m["AÑO"] == año]
 
-        fig.add_vrect(
-            x0=df_year["Periodo"].iloc[0],
-            x1=df_year["Periodo"].iloc[-1],
-            fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-            opacity=0.15,
-            line_width=0,
-        )
+        if not df_year.empty:
+            fig.add_vrect(
+                x0=df_year["PERIODO"].iloc[0],
+                x1=df_year["PERIODO"].iloc[-1],
+                fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
+                opacity=0.15,
+                line_width=0,
+            )
 
-        fig.add_vline(
-            x=df_year["Periodo"].iloc[0],
-            line_dash="dash"
-        )
+            fig.add_vline(
+                x=df_year["PERIODO"].iloc[0],
+                line_dash="dash"
+            )
 
-    # LINEAS
     fig.add_trace(go.Scatter(
-        x=df_m["Periodo"],
-        y=df_m["Ventas"],
+        x=df_m["PERIODO"],
+        y=df_m["VENTAS"],
         mode="lines+markers",
         name="Ventas"
     ))
 
     fig.add_trace(go.Scatter(
-        x=df_m["Periodo"],
-        y=df_m["Ganancia"],
+        x=df_m["PERIODO"],
+        y=df_m["GANANCIA"],
         mode="lines+markers",
         name="Ganancia"
     ))
@@ -1265,14 +1283,11 @@ if vista == "principal":
     # =========================
     st.markdown("### 🔝 Canal con mayor impacto")
 
-    if not df_f.empty:
-        top_canal = df_f.groupby("Canal")["Ventas"].sum().sort_values(ascending=False).head(1)
+    if not df_f.empty and "CANAL" in df_f.columns:
+        top_canal = df_f.groupby("CANAL")["VENTAS"].sum().sort_values(ascending=False).head(1)
 
         for canal_top, val in top_canal.items():
             st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
-
-    
-
 # VOLATILIDAD
 elif vista == "volatilidad":
 
