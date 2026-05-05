@@ -1568,8 +1568,8 @@ if vista == "principal":
             with colb3:
                 if st.button("📈 Ver gráfica", key="ventas_graf"):
                     st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
-        with k2:
-            with st.container(border=True):
+    with k2:
+        with st.container(border=True):
     
             st.markdown("### 📈 Crecimiento")
     
@@ -1589,55 +1589,55 @@ if vista == "principal":
                 if st.button("🔴 Negativo", key="crec_neg"):
                     st.dataframe(df_m[df_m["VAR"] < 0])
     
-           with colb3:
+            with colb3:
                 if st.button("📈 Ver gráfica", key="crec_graf"):
                     st.line_chart(df_m.set_index("PERIODO")["VAR"])
-        with k3:
-            with st.container(border=True):
+    with k3:
+        with st.container(border=True):
             
-                    st.markdown("### 💵 Ganancia")
-            
-                    st.metric("Total", f"${ganancia:,.0f}")
-            
-                    st.markdown("<br>", unsafe_allow_html=True)
-            
-                    colb1, colb2, colb3 = st.columns(3)
-            
-                    with colb1:
-                        if st.button("🟢 Positivo", key="gan_pos"):
-                            st.dataframe(df_m[df_m["GANANCIA"] > 0])
-            
-                    with colb2:
-                        if st.button("🔴 Negativo", key="gan_neg"):
-                            st.dataframe(df_m[df_m["GANANCIA"] < 0])
-            
-                    with colb3:
-                        if st.button("📈 Ver gráfica", key="gan_graf"):
-                            st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
-       with k4:
-           with st.container(border=True):
+            st.markdown("### 💵 Ganancia")
     
-                st.markdown("### 📊 Margen")
-        
-                st.metric("Total", f"{margen:.1f}%")
-        
-                st.markdown("<br>", unsafe_allow_html=True)
-        
-                df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
-        
-                colb1, colb2, colb3 = st.columns(3)
+            st.metric("Total", f"${ganancia:,.0f}")
     
-                    with colb1:
-                        if st.button("🟢 Positivo", key="mar_pos"):
-                            st.dataframe(df_m[df_m["MARGEN"] > 0])
-            
-                    with colb2:
-                        if st.button("🔴 Negativo", key="mar_neg"):
-                            st.dataframe(df_m[df_m["MARGEN"] < 0])
-            
-                    with colb3:
-                        if st.button("📈 Ver gráfica", key="mar_graf"):
-                            st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
+            st.markdown("<br>", unsafe_allow_html=True)
+    
+            colb1, colb2, colb3 = st.columns(3)
+    
+            with colb1:
+                if st.button("🟢 Positivo", key="gan_pos"):
+                    st.dataframe(df_m[df_m["GANANCIA"] > 0])
+    
+            with colb2:
+                if st.button("🔴 Negativo", key="gan_neg"):
+                    st.dataframe(df_m[df_m["GANANCIA"] < 0])
+    
+            with colb3:
+                if st.button("📈 Ver gráfica", key="gan_graf"):
+                    st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
+    with k4:
+        with st.container(border=True):
+    
+            st.markdown("### 📊 Margen")
+    
+            st.metric("Total", f"{margen:.1f}%")
+    
+            st.markdown("<br>", unsafe_allow_html=True)
+    
+            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+    
+            colb1, colb2, colb3 = st.columns(3)
+
+            with colb1:
+                if st.button("🟢 Positivo", key="mar_pos"):
+                    st.dataframe(df_m[df_m["MARGEN"] > 0])
+    
+            with colb2:
+                if st.button("🔴 Negativo", key="mar_neg"):
+                    st.dataframe(df_m[df_m["MARGEN"] < 0])
+    
+            with colb3:
+                if st.button("📈 Ver gráfica", key="mar_graf"):
+                    st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
     # ALERTAS
     if margen < 0:
         st.error("🚨 Margen negativo: revisar costos")
