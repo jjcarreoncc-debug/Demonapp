@@ -349,12 +349,36 @@ if st.session_state.menu == "Mantenimiento":
 # ------------------------
 # SIDEBAR
 # ------------------------
+st.markdown("""
+<style>
 
+/* 🔥 SUBIR TODO EL CONTENIDO DEL SIDEBAR */
+section[data-testid="stSidebar"] .block-container {
+    padding-top: 0rem !important;
+    margin-top: -20px !important;
+}
+
+/* 🔥 QUITAR ESPACIO DEL TÍTULO */
+section[data-testid="stSidebar"] h1 {
+    margin-top: 0px !important;
+    padding-top: 0px !important;
+}
+
+/* 🔥 AJUSTAR TEXTO BIENVENIDO */
+section[data-testid="stSidebar"] p {
+    margin-top: 5px !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 with st.sidebar:
 
+    # 👇 CSS aquí arriba
+    st.markdown(""" ... """, unsafe_allow_html=True)
+
     st.title("📌 Navegación")
-    st.write(f"👋 Bienvenido {name}")
-    # ------------------------
+    st.markdown(f"👋 **Bienvenido {name}**")
+# ------------------------
     # ROL
     # ------------------------
     rol = "Admin" if username == "admin" else "Usuario"
