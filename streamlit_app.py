@@ -516,7 +516,7 @@ with st.sidebar:
             # MES
             mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
             
-            col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
+            #col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
             # PAÍS
             #pais = st.selectbox(
             #    "🌎 País",    
@@ -525,39 +525,25 @@ with st.sidebar:
             #)
 
             # REGIÓN
-            df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
+            #df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
 
-            #region = st.selectbox(
-            #    "📍 Región",
-            #    ["Todos"] + sorted(df_region["Region"].dropna().unique()),
-            #    key="filtro_region"
-            #)
-            # PRODUCTO
-            df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
             # =========================
-            # PRODUCTO (CORRECTO)
-            # =========================
-            # =========================
-            col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c), None)
+            #col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c), None)
             
-            if col_producto:
+            #if col_producto:
             
-                opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
+             #   opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
             
                 # limpiar estado viejo
-                if isinstance(st.session_state.get("filtro_producto"), list):
-                    st.session_state["filtro_producto"] = "Todos"
+              #  if isinstance(st.session_state.get("filtro_producto"), list):
+              
+            #st.session_state["filtro_producto"] = "Todos"
             
-                #producto = st.selectbox(
-                #    "📦 Producto",
-                #    options=opciones_producto,
-                #    key="filtro_producto"
-                #)
             
-                if producto != "Todos":
-                    df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
-            else:
-                st.warning("⚠️ No se encontró columna de producto")
+             #   if producto != "Todos":
+             #       df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
+           # else:
+           #     st.warning("⚠️ No se encontró columna de producto")
             
 # =========================
 # INICIO
