@@ -474,10 +474,10 @@ with st.sidebar:
     # MENU
     # ------------------------
    
-        #menu = st.radio(
-        #"Menú",
-        #opciones,
-        #index=opciones.index(st.session_state.menu)
+        menu = st.radio(
+        "Menú",
+        opciones,
+        index=opciones.index(st.session_state.menu)
  
 # =========================
 # CONTROL DE VISTA
