@@ -1452,6 +1452,20 @@ if vista == "principal":
         if v1 != 0:
             variacion = (v2 - v1) / v1
     # =========================
+    # VARIACIÓN + COLOR KPI (FIX)
+    # =========================
+    variacion = 0
+    
+    if "df_m" in locals() and len(df_m) >= 2:
+        v1 = df_m.iloc[-2]["VENTAS"]
+        v2 = df_m.iloc[-1]["VENTAS"]
+    
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
+    
+# definir color SIEMPRE
+delta_color = "normal" if variacion >= 0 else "inverse"
+    # =========================
     # KPIs EJECUTIVOS
     # =========================
     c1, c2, c3, c4 = st.columns(4)
