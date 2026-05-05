@@ -1538,86 +1538,104 @@ if vista == "principal":
     else:
         df_m = pd.DataFrame()
         st.warning("⚠️ Faltan columnas para agrupación")
-    # =========================
-    # VARIACIÓN (FIX)
-    # =========================
-    variacion = 0
+# =========================
+# VARIACIÓN (CORRECTO)
+# =========================
+variacion = 0
 
-    if not df_m.empty and len(df_m) >= 2:
-        v1 = df_m.iloc[-2]["VENTAS"]
-        v2 = df_m.iloc[-1]["VENTAS"]
+if not df_m.empty and len(df_m) >= 2:
+    v1 = df_m.iloc[-2]["VENTAS"]
+    v2 = df_m.iloc[-1]["VENTAS"]
 
-        if v1 != 0:
-            variacion = (v2 - v1) / v1
+    if v1 != 0:
+        variacion = (v2 - v1) / v1
 
-    delta_color = "normal" if variacion >= 0 else "inverse"
+delta_color = "normal" if variacion >= 0 else "inverse"
 
-    # =========================
-    # KPIs + BOTONES (CORRECTO)
-    # =========================
-    k1, k2, k3, k4 = st.columns(4)
+# =========================
+# KPIs + BOTONES (BIEN UBICADO)
+# =========================
+k1, k2, k3, k4 = st.columns(4)
 
-    # -------------------------
-    # VENTAS
-    # -------------------------
-    with k1:
-        st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+# -------------------------
+# VENTAS
+# -------------------------
+with k1:
+    st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
 
+    colb1, colb2 = st.columns(2)
+
+    with colb1:
         if st.button("📋", key="ventas_tabla"):
             tabla = df_m.copy()
             st.dataframe(
                 tabla.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VENTAS"])
             )
 
+    with colb2:
         if st.button("📈", key="ventas_grafica"):
             st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
 
-    # -------------------------
-    # CRECIMIENTO
-    # -------------------------
-    with k2:
-        st.metric("📈 Crecimiento", f"{variacion:.1%}")
+# -------------------------
+# CRECIMIENTO
+# -------------------------
+with k2:
+    st.metric("📈 Crecimiento", f"{variacion:.1%}")
 
+    colb1, colb2 = st.columns(2)
+
+    with colb1:
         if st.button("📋", key="crecimiento_tabla"):
-            df_m["VAR"] = df_m["VENTAS"].pct_change()
+            df_tmp = df_m.copy()
+            df_tmp["VAR"] = df_tmp["VENTAS"].pct_change()
+
             st.dataframe(
-                df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VAR"])
+                df_tmp.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VAR"])
             )
 
+    with colb2:
         if st.button("📈", key="crecimiento_grafica"):
             st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
 
-    # -------------------------
-    # GANANCIA
-    # -------------------------
-    with k3:
-        st.metric("💵 Ganancia", f"${ganancia:,.0f}")
+# -------------------------
+# GANANCIA
+# -------------------------
+with k3:
+    st.metric("💵 Ganancia", f"${ganancia:,.0f}")
 
+    colb1, colb2 = st.columns(2)
+
+    with colb1:
         if st.button("📋", key="ganancia_tabla"):
             st.dataframe(
                 df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["GANANCIA"])
             )
 
+    with colb2:
         if st.button("📈", key="ganancia_grafica"):
             st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
 
-    # -------------------------
-    # MARGEN
-    # -------------------------
-    with k4:
-        st.metric("📊 Margen", f"{margen:.1f}%")
+# -------------------------
+# MARGEN
+# -------------------------
+with k4:
+    st.metric("📊 Margen", f"{margen:.1f}%")
 
+    df_tmp = df_m.copy()
+    df_tmp["MARGEN"] = (df_tmp["GANANCIA"] / df_tmp["VENTAS"]) * 100
+
+    colb1, colb2 = st.columns(2)
+
+    with colb1:
         if st.button("📋", key="margen_tabla"):
-            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
             st.dataframe(
-                df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["MARGEN"])
+                df_tmp.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["MARGEN"])
             )
 
+    with colb2:
         if st.button("📈", key="margen_grafica"):
-            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
-            st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
-
-        # =========================
+            st.line_chart(df_tmp.set_index("PERIODO")["MARGEN"])
+    # =========================
     # ALERTAS
     # =========================
     if margen < 0:
