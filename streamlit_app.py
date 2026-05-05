@@ -1992,6 +1992,9 @@ elif st.session_state.vista == "alertas":
 # =======================
 # RESUMEN EJECUTIVO PRO
 # =======================
+st.write("👉 VISTA ACTUAL:", st.session_state.get("vista"))
+if st.session_state.get("vista") == "resumen":
+    st.write("✅ ENTRÉ AL RESUMEN")
 if st.session_state.vista == "resumen":
     st.write("Vista actual:", st.session_state.get("vista"))
     st.title("🧠 Resumen Ejecutivo")
