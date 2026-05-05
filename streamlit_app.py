@@ -1558,11 +1558,11 @@ if vista == "principal":
             colb1, colb2, colb3 = st.columns(3)
     
             with colb1:
-                if st.button("🟢 Positivo", key="ventas_pos"):
+                if st.button("🟢 =", key="ventas_pos"):
                     st.dataframe(df_m[df_m["VENTAS"] > 0])
     
             with colb2:
-                if st.button("🔴 Negativo", key="ventas_neg"):
+                if st.button("🔴 -", key="ventas_neg"):
                     st.dataframe(df_m[df_m["VENTAS"] < 0])
     
             with colb3:
