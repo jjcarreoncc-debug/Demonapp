@@ -463,7 +463,138 @@ with st.sidebar:
     else:
         opciones = ["Inicio", "Dashboard"]
 
-   
+    # ------------------------
+    # INICIALIZAR MENU
+    
+    # ------------------------
+    if "menu" not in st.session_state:
+        st.session_state.menu = "Inicio"
+
+    # ------------------------
+    # MENU
+    # ------------------------
+    menu = st.radio(
+        "Menú",
+        opciones,
+        index=opciones.index(st.session_state.menu)
+    )
+
+    st.session_state.menu = menu
+    # =========================
+    # FILTROS SOLO EN DASHBOARD
+    # =========================
+    
+    # ------------------------
+    # MOSTRAR FILTROS (solo en dashboard)
+    # ------------------------
+    if st.session_state.menu == "Dashboard":
+
+        st.markdown("---")
+        st.markdown("### 🎯 Filtros")
+
+        # valores por defecto
+        año = "Todos"
+        mes = "Todos"
+        pais = "Todos"
+        region = "Todos"
+        producto = []
+
+        if "archivo" in st.session_state:
+
+            df_temp = pd.read_excel(st.session_state.archivo)
+            df_temp.columns = df_temp.columns.str.strip()
+
+            df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
+            df_temp = df_temp.dropna(subset=["Fecha"])
+
+            df_temp["Año"] = df_temp["Fecha"].dt.year
+            df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
+
+            # AÑO
+            año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()), key="año")
+
+            # MES
+            mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
+            
+            col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
+            # PAÍS
+            #pais = st.selectbox(
+            #    "🌎 País",    
+            #    ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
+            #    key="filtro_pais"
+            #)
+
+            # REGIÓN
+            df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
+
+            #region = st.selectbox(
+            #    "📍 Región",
+            #    ["Todos"] + sorted(df_region["Region"].dropna().unique()),
+            #    key="filtro_region"
+            #)
+            # PRODUCTO
+            df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
+            # =========================
+            # PRODUCTO (CORRECTO)
+            # =========================
+            # =========================
+            col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c), None)
+            
+            if col_producto:
+            
+                opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
+            
+                # limpiar estado viejo
+                if isinstance(st.session_state.get("filtro_producto"), list):
+                    st.session_state["filtro_producto"] = "Todos"
+            
+                #producto = st.selectbox(
+                #    "📦 Producto",
+                #    options=opciones_producto,
+                #    key="filtro_producto"
+                #)
+            
+                if producto != "Todos":
+                    df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
+            else:
+                st.warning("⚠️ No se encontró columna de producto")
+            
+# =========================
+# INICIO
+# =========================
+# =========================
+# CONTROL DE VISTA
+# =========================
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
+# =========================
+# INICIO
+# =========================
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
+if menu == "Inicio":
+
+    st.title("🏠 Inicio")
+
+    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
+
+    if archivo:
+        st.session_state.archivo = archivo
+        st.success("✅ Archivo cargado correctamente")
+
+        # 🔥 BOTÓN VOLVER AL MENÚ
+        if st.button("🔙 Volver al menú de navegación"):
+            st.session_state.menu = "Dashboard"  # o "Inicio" si quieres quedarte
+            st.rerun()
+
+    elif "archivo" in st.session_state:
+        st.info("📊 Ya hay un archivo cargado")
+
+        # 🔥 BOTÓN TAMBIÉN SI YA EXISTE ARCHIVO
+        if st.button("🔙 Ir al Dashboard"):
+            st.session_state.menu = "Dashboard"
+            st.rerun()
+
 # =========================
 # DASHBOARD
 # =========================
@@ -1431,39 +1562,32 @@ if vista == "principal":
     c2.metric("📈 Crecimiento", f"{variacion:.1%}")
     c3.metric("💵 Ganancia", f"${ganancia:,.0f}")
     c4.metric("📊 Margen", f"{margen:.1f}%")
+    # =========================
+    # DATA MENSUAL
+    # =========================
+    # =========================
+# ASEGURAR PERIODO
 # =========================
-# AGRUPACIÓN Y KPI SEGUROS
+# =========================
+# GROUPBY SEGURO (ANTI-ERROR)
 # =========================
 
-# Asegurar PERIODO
+# Buscar columna fecha
 col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
 
+# Crear PERIODO SI NO EXISTE
 if "PERIODO" not in df_f.columns:
+
     if col_fecha:
         df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
         df_f = df_f.dropna(subset=[col_fecha])
         df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
     else:
-        st.error("❌ No existe columna FECHA")
+        st.error("❌ No existe columna FECHA en df_f")
+        st.write("Columnas actuales:", df_f.columns)
         st.stop()
 
-# Groupby limpio (SIN indent raro)
-df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-df_m = df_m.sort_values("PERIODO")
-
-# Variación
-variacion = 0
-
-if len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
-
-    if v1 != 0:
-        variacion = (v2 - v1) / v1
-# Crear PERIODO SI NO EXISTE
-
 # Crear métricas si faltan (extra seguro)
-
 if "VENTAS" not in df_f.columns:
     if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
         df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
@@ -1473,40 +1597,11 @@ if "GANANCIA" not in df_f.columns:
         df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
         df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 
- # DEBUG (temporal)
+# DEBUG (temporal)
 st.write("DEBUG COLUMNAS:", df_f.columns)
 
 # AHORA SÍ
-        #df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-# =========================
-# BLOQUE LIMPIO KPI + AGRUPACIÓN
-# =========================
-
-# Asegurar PERIODO
-col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
-
-if col_fecha is None:
-    st.error("❌ No existe columna FECHA")
-    st.stop()
-
-df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
-df_f = df_f.dropna(subset=[col_fecha])
-
-df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
-
-# Agrupación (alineado a la izquierda)
 df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-df_m = df_m.sort_values("PERIODO")
-
-# Variación segura
-variacion = 0
-
-if len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
-
-    if v1 != 0:
-        variacion = (v2 - v1) / v1
     # =========================
     # VARIACIÓN
     # =========================
@@ -1705,25 +1800,22 @@ if df_f.empty:
 df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
 df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
 df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
-# =========================
-# AGRUPACIÓN (LIMPIA)
-# =========================
-
-if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
-
-    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-
-else:
-    df_m = pd.DataFrame()
-    st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
 
 # =========================
+# AGRUPACIÓN
+# =========================
+ df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+ if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
+     df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+ else:
+     df_m = pd.DataFrame()
+     st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
+
 # KPIs
-# =========================
 ventas = df_f["VENTAS"].sum() if "VENTAS" in df_f.columns else 0
 ganancia = df_f["GANANCIA"].sum() if "GANANCIA" in df_f.columns else 0
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
-## ------------------------
+# ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------
 
