@@ -1654,7 +1654,6 @@ elif st.session_state.vista == "alertas":
         st.info("No hay alertas relevantes")
 
     st.stop()
-
 # =======================
 # RESUMEN
 # =======================
@@ -1746,7 +1745,7 @@ elif st.session_state.vista == "resumen":
     )
 
     # =========================
-    # INSIGHTS
+    # INSIGHTS + GRÁFICAS + DETALLE
     # =========================
     if not df_tabla.empty:
 
@@ -1755,13 +1754,68 @@ elif st.session_state.vista == "resumen":
         top_crece = df_tabla.sort_values("Impacto $", ascending=False).head(1)
         top_cae = df_tabla.sort_values("Impacto $").head(1)
 
+        # ------------------------
+        # CRECIMIENTO
+        # ------------------------
         if not top_crece.empty:
             row = top_crece.iloc[0]
-            st.success(f"🔥 Crecimiento impulsado por {row['Elemento']} (${row['Impacto $']:,.0f})")
+            elemento = row["Elemento"]
+            dim = row["Dimensión"]
 
+            st.success(f"🔥 Crecimiento impulsado por {elemento} (${row['Impacto $']:,.0f})")
+
+            df_grow = df_res[df_res[dim] == elemento]
+            df_grow = df_grow.groupby("PERIODO")["VENTAS"].sum().reset_index()
+
+            fig_grow = px.line(
+                df_grow,
+                x="PERIODO",
+                y="VENTAS",
+                markers=True,
+                title=f"Evolución de {elemento}"
+            )
+            st.plotly_chart(fig_grow, use_container_width=True)
+
+        # ------------------------
+        # CAÍDA
+        # ------------------------
         if not top_cae.empty:
             row = top_cae.iloc[0]
-            st.error(f"⚠️ Caída principal en {row['Elemento']} (${row['Impacto $']:,.0f})")
+            elemento = row["Elemento"]
+            dim = row["Dimensión"]
+
+            st.error(f"⚠️ Caída principal en {elemento} (${row['Impacto $']:,.0f})")
+
+            df_drop = df_res[df_res[dim] == elemento]
+            df_drop = df_drop.groupby("PERIODO")["VENTAS"].sum().reset_index()
+
+            fig_drop = px.line(
+                df_drop,
+                x="PERIODO",
+                y="VENTAS",
+                markers=True,
+                title=f"Evolución de {elemento}"
+            )
+            st.plotly_chart(fig_drop, use_container_width=True)
+
+        # =========================
+        # DETALLE CON BULLETS
+        # =========================
+        st.markdown("## 📋 Detalle de variaciones")
+
+        df_tabla_sorted = df_tabla.sort_values("Impacto $", ascending=False)
+
+        for _, row in df_tabla_sorted.iterrows():
+
+            bullet = "🟢" if row["Variación"] > 0 else "🔴"
+
+            st.markdown(
+                f"{bullet} **{row['Elemento']}** "
+                f"({row['Dimensión']}) | "
+                f"${row['Anterior']:,.0f} → ${row['Actual']:,.0f} | "
+                f"Var: {row['Variación']:.2%} | "
+                f"Impacto: ${row['Impacto $']:,.0f}"
+            )
 
     # =========================
     # BOTÓN ALERTAS
