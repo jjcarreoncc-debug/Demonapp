@@ -1415,3 +1415,4 @@ if st.session_state.vista == "log":
             )
         else:
             st.success("No hubo errores en la carga")
+
