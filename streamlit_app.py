@@ -710,10 +710,7 @@ elif menu == "Dashboard":
     producto = st.session_state.get("filtro_producto", [])
 
     st.header("📊 Dashboard Ejecutivo")
-    elif menu == "Dashboard":
-
-    st.markdown("## 📊 Dashboard Ejecutivo")
-
+ 
     # =========================
     # FILTROS (ARRIBA)
     # =========================
