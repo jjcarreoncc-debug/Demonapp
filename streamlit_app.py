@@ -1540,7 +1540,34 @@ if vista == "principal":
 
     # KPIs + BOTONES
     k1, k2, k3, k4 = st.columns(4)
+
+    with k1:
+        with st.container(border=True):
     
+            st.markdown("### 💰 Ventas")
+    
+            st.metric(
+                label="Total",
+                value=f"${ventas:,.0f}",
+                delta=f"{variacion:.1%}",
+                delta_color=delta_color
+            )
+    
+            st.markdown("<br>", unsafe_allow_html=True)
+    
+            colb1, colb2, colb3 = st.columns(3)
+    
+            with colb1:
+                if st.button("🟢 Positivo", key="ventas_pos"):
+                    st.dataframe(df_m[df_m["VENTAS"] > 0])
+    
+            with colb2:
+                if st.button("🔴 Negativo", key="ventas_neg"):
+                    st.dataframe(df_m[df_m["VENTAS"] < 0])
+    
+            with colb3:
+                if st.button("📈 Ver gráfica", key="ventas_graf"):
+                    st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
     with k2:
         st.metric("📈 Crecimiento", f"{variacion:.1%}")
     
