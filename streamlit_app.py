@@ -247,17 +247,57 @@ with col2:
 # ------------------------
 # CONTROL LOGIN
 # ------------------------
+
+# =========================
+# LOGIN CONTROL
+# =========================
+
 if authentication_status is False:
     st.error("Usuario o contraseña incorrectos")
+
+    # 🔥 LOGIN SIEMPRE BLANCO
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     st.stop()
 
+
 if authentication_status is None:
+
+    # 🔥 LOGIN SIEMPRE BLANCO
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     col1, col2 = st.columns([2,6])
     with col2:
         img = Image.open("imagen7.png")
         st.image(img, width=2000)
+
     st.stop()
 
+
+# =========================
+# DESPUÉS DE LOGIN → GRIS
+# =========================
+if authentication_status:
+
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #f2f2f2;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
