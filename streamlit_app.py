@@ -618,7 +618,19 @@ elif menu == "Dashboard":
     else:
         df = pd.read_excel(archivo)
         df.columns = df.columns.str.strip()
-
+        # =========================
+# CREAR FECHA Y PERIODO (OBLIGATORIO AQUÍ)
+# =========================
+        col_fecha = next((c for c in df.columns if "FECHA" in c), None)
+        
+        if not col_fecha:
+            st.error("❌ No se encontró columna FECHA")
+            st.stop()
+        
+        df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
+        df = df.dropna(subset=[col_fecha])
+        
+        df["PERIODO"] = df[col_fecha].dt.to_period("M").astype(str) 
         # ------------------------
         # LIMPIEZA
         # ------------------------
