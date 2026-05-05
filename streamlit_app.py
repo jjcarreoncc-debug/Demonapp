@@ -1707,40 +1707,78 @@ if vista == "principal":
 # =========================
 # VOLATILIDAD
 # =========================
+# =========================
+# VOLATILIDAD
+# =========================
 elif vista == "volatilidad":
 
+    # BOTÓN VOLVER
     if st.button("⬅️ Volver al principal"):
         st.session_state.vista = "principal"
         st.rerun()
 
     st.markdown("## 📉 Análisis de Volatilidad")
 
-    # TRAER DATA
-    df_m = st.session_state.get("df_m", pd.DataFrame())
+    # =========================
+    # PREPARAR DATOS (INDEPENDIENTE)
+    # =========================
+    df_f = df.copy()
+
+    pais = st.session_state.get("filtro_pais", "Todos")
+    canal = st.session_state.get("filtro_canal", "Todos")
+    region = st.session_state.get("filtro_region", "Todos")
+
+    if pais != "Todos" and "PAIS" in df_f.columns:
+        df_f = df_f[df_f["PAIS"] == pais]
+
+    if canal != "Todos" and "CANAL" in df_f.columns:
+        df_f = df_f[df_f["CANAL"] == canal]
+
+    if region != "Todos" and "REGION" in df_f.columns:
+        df_f = df_f[df_f["REGION"] == region]
 
     # VALIDACIÓN
-    if df_m.empty:
-        st.warning("No hay datos disponibles. Regresa al dashboard principal.")
+    if df_f.empty:
+        st.warning("No hay datos con los filtros actuales")
         st.stop()
 
-    # CÁLCULO
+    # =========================
+    # FECHA Y PERIODO
+    # =========================
+    col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
+
+    if not col_fecha:
+        st.error("No se encontró columna FECHA")
+        st.stop()
+
+    df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
+    df_f = df_f.dropna(subset=[col_fecha])
+    df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
+
+    # =========================
+    # MÉTRICAS
+    # =========================
+    df_f["VENTAS"] = df_f.get("VENTAS_CANTIDAD", 0) * df_f.get("PRECIO_VENTA", 0)
+    df_f["COSTOS"] = df_f.get("VENTAS_CANTIDAD", 0) * df_f.get("COSTOS_VENTA", 0)
+    df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+
+    # =========================
+    # AGRUPACIÓN
+    # =========================
+    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+
+    if df_m.empty:
+        st.warning("No hay datos suficientes para análisis")
+        st.stop()
+
+    # =========================
+    # CÁLCULO VOLATILIDAD REAL
+    # =========================
     volatilidad = df_m["VENTAS"].std()
     media = df_m["VENTAS"].mean()
     cv = (volatilidad / media) * 100 if media != 0 else 0
 
-    st.metric("Coeficiente de Variación", f"{cv:.2f}%")
-
-    if cv < 10:
-        st.success("🟢 Baja volatilidad")
-    elif cv < 30:
-        st.warning("🟡 Volatilidad media")
-    else:
-        st.error("🔴 Alta volatilidad")
-
-    df_m["MA_3"] = df_m["VENTAS"].rolling(3).mean()
-
-    st.line_chart(df_m.set_index("PERIODO")[["VENTAS", "MA_3"]])
-# =========================
+    # =========================
     # KPI
     # =========================
     st.metric("Coeficiente de Variación", f"{cv:.2f}%")
@@ -1758,7 +1796,7 @@ elif vista == "volatilidad":
     # =========================
     # GRÁFICA
     # =========================
-    st.markdown("### 📊 Comportamiento de ventas")
+    st.markdown("### 📊 Evolución de ventas")
 
     df_m["MA_3"] = df_m["VENTAS"].rolling(3).mean()
 
@@ -1770,8 +1808,15 @@ elif vista == "volatilidad":
     # DETALLE
     # =========================
     if st.button("📋 Ver detalle"):
-        st.dataframe(df_m[["PERIODO", "VENTAS"]])
+        st.dataframe(df_m)
 
+    # =========================
+    # INSIGHT EXTRA
+    # =========================
+    max_val = df_m["VENTAS"].max()
+    min_val = df_m["VENTAS"].min()
+
+    st.info(f"📌 Máximo: ${max_val:,.0f} | Mínimo: ${min_val:,.0f}")
 # RESPONSABLES
 elif vista == "responsables":
 
