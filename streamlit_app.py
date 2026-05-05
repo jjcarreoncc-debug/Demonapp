@@ -2053,40 +2053,40 @@ if st.session_state.vista == "resumen":
 
     df_m = df_m.sort_values("PERIODO")
 
-    # =========================
+# =========================
 # FIX DATA RESUMEN (OBLIGATORIO)
 # =========================
 
-df_f = st.session_state.get("df_filtrado", df).copy()
-df_f.columns = df_f.columns.str.strip().str.upper()
-
-# 👉 FECHA → PERIODO
-if "FECHA" in df_f.columns:
-    df_f["FECHA"] = pd.to_datetime(df_f["FECHA"], errors="coerce")
-    df_f = df_f.dropna(subset=["FECHA"])
-    df_f["PERIODO"] = df_f["FECHA"].dt.to_period("M").astype(str)
-else:
-    st.error("❌ No existe columna FECHA")
-    st.stop()
-
-# 👉 VENTAS (SI NO EXISTE PRECIO)
-if "VENTAS" not in df_f.columns:
-    if "VENTAS_CANTIDAD" in df_f.columns:
-        df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"]
+    df_f = st.session_state.get("df_filtrado", df).copy()
+    df_f.columns = df_f.columns.str.strip().str.upper()
+    
+    # 👉 FECHA → PERIODO
+    if "FECHA" in df_f.columns:
+        df_f["FECHA"] = pd.to_datetime(df_f["FECHA"], errors="coerce")
+        df_f = df_f.dropna(subset=["FECHA"])
+        df_f["PERIODO"] = df_f["FECHA"].dt.to_period("M").astype(str)
     else:
-        st.error("❌ No existe columna VENTAS_CANTIDAD")
+        st.error("❌ No existe columna FECHA")
         st.stop()
-
-# 👉 COSTOS (SIMULADO SI NO EXISTE)
-if "COSTOS" not in df_f.columns:
-    df_f["COSTOS"] = df_f["VENTAS"] * 0.7  # ajustable
-
-# 👉 GANANCIA
-df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
-
-# DEBUG
-st.write("✅ COLUMNAS FINALES:", df_f.columns)
-st.write("📊 SHAPE:", df_f.shape)
+    
+    # 👉 VENTAS (SI NO EXISTE PRECIO)
+    if "VENTAS" not in df_f.columns:
+        if "VENTAS_CANTIDAD" in df_f.columns:
+            df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"]
+        else:
+            st.error("❌ No existe columna VENTAS_CANTIDAD")
+            st.stop()
+    
+    # 👉 COSTOS (SIMULADO SI NO EXISTE)
+    if "COSTOS" not in df_f.columns:
+        df_f["COSTOS"] = df_f["VENTAS"] * 0.7  # ajustable
+    
+    # 👉 GANANCIA
+    df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+    
+    # DEBUG
+    st.write("✅ COLUMNAS FINALES:", df_f.columns)
+    st.write("📊 SHAPE:", df_f.shape)
     # =========================
     # KPIs EJECUTIVOS
     # =========================
