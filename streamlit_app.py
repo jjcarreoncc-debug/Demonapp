@@ -1131,7 +1131,6 @@ else:
                 st.warning("Faltan columnas necesarias")
 
         st.markdown("---")
-
 # =========================
 # NORMALIZAR COLUMNAS (CLAVE)
 # =========================
