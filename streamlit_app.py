@@ -1667,18 +1667,34 @@ elif st.session_state.vista == "resumen":
     st.title("🧠 Resumen Ejecutivo")
 
     # =========================
+    # PREPARAR DATA (CLAVE)
+    # =========================
+    df_res = df.copy()
+    df_res.columns = df_res.columns.str.strip().str.upper()
+
+    # Crear VENTAS si no existe
+    if "VENTAS" not in df_res.columns:
+        if all(col in df_res.columns for col in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
+            df_res["VENTAS"] = df_res["VENTAS_CANTIDAD"] * df_res["PRECIO_VENTA"]
+        else:
+            st.error("❌ No se puede calcular VENTAS (faltan columnas base)")
+            st.stop()
+
+    # =========================
     # DATA
     # =========================
-    if all(col in df.columns for col in ["PERIODO", "VENTAS"]):
-        df_m = df.groupby("PERIODO")["VENTAS"].sum().reset_index()
+    if "PERIODO" in df_res.columns:
+        df_m = df_res.groupby("PERIODO")["VENTAS"].sum().reset_index()
         df_m = df_m.sort_values("PERIODO")
     else:
-        df_m = pd.DataFrame()
-        st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS)")
+        st.warning("⚠️ Falta la columna PERIODO")
+        st.stop()
 
     # =========================
     # PROYECCIÓN
     # =========================
+    import plotly.express as px
+
     st.subheader("📈 Proyección")
 
     if not df_m.empty and len(df_m) > 2:
@@ -1700,11 +1716,10 @@ elif st.session_state.vista == "resumen":
     # =========================
     st.markdown("## 📊 Análisis adicional de desempeño")
 
-    df_res = df.copy()
     tabla = []
 
     for dim in ["CANAL", "PAIS", "REGION", "NOMBRE_PRODUCTO"]:
-        if dim in df_res.columns and "PERIODO" in df_res.columns and "VENTAS" in df_res.columns:
+        if dim in df_res.columns:
 
             df_t = df_res.groupby(["PERIODO", dim])["VENTAS"].sum().reset_index()
             df_t["PERIODO"] = pd.to_datetime(df_t["PERIODO"], errors="coerce")
