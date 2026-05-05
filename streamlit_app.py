@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as  px 
 import sqlite3
 import streamlit_authenticator as stauth
+
 from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
@@ -1348,7 +1349,7 @@ if pais != "Todos":
 if canal != "Todos":
     df_f = df_f[df_f["CANAL"].astype(str) == canal]
 
-if producto != "Todos":
+if producto and "Todos" not in producto:
     df_f = df_f[df_f["NOMBRE_PRODUCTO"].astype(str) == producto]
 
 if "REGION" in df_f.columns:
