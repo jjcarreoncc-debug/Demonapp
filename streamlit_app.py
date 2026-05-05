@@ -1609,6 +1609,35 @@ st.write("DEBUG COLUMNAS:", df_f.columns)
 
 # AHORA SÍ
  df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+# =========================
+# BLOQUE LIMPIO KPI + AGRUPACIÓN
+# =========================
+
+# Asegurar PERIODO
+col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
+
+if col_fecha is None:
+    st.error("❌ No existe columna FECHA")
+    st.stop()
+
+df_f[col_fecha] = pd.to_datetime(df_f[col_fecha], errors="coerce")
+df_f = df_f.dropna(subset=[col_fecha])
+
+df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
+
+# Agrupación (alineado a la izquierda)
+df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+df_m = df_m.sort_values("PERIODO")
+
+# Variación segura
+variacion = 0
+
+if len(df_m) >= 2:
+    v1 = df_m.iloc[-2]["VENTAS"]
+    v2 = df_m.iloc[-1]["VENTAS"]
+
+    if v1 != 0:
+        variacion = (v2 - v1) / v1
     # =========================
     # VARIACIÓN
     # =========================
