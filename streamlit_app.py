@@ -1451,9 +1451,7 @@ if vista == "principal":
 
     st.markdown("## 📊 Dashboard Ejecutivo")
 
-    # =========================
     # CONTEXTO
-    # =========================
     st.markdown("### 🎯 Contexto actual")
 
     c1, c2, c3 = st.columns(3)
@@ -1470,18 +1468,14 @@ if vista == "principal":
         st.markdown("**📦 Producto**")
         st.success(st.session_state.get("filtro_producto", "Todos"))
 
-    # =========================
     # DATA BASE
-    # =========================
     df_f = st.session_state.get("df_filtrado", df)
 
     pais = st.session_state.get("filtro_pais", "Todos")
     canal = st.session_state.get("filtro_canal", "Todos")
     region = st.session_state.get("filtro_region", "Todos")
 
-    # =========================
     # FILTROS
-    # =========================
     if pais != "Todos" and "PAIS" in df_f.columns:
         df_f = df_f[df_f["PAIS"] == pais]
 
@@ -1491,16 +1485,12 @@ if vista == "principal":
     if region != "Todos" and "REGION" in df_f.columns:
         df_f = df_f[df_f["REGION"] == region]
 
-    # =========================
     # VALIDACIÓN
-    # =========================
     if df_f.empty:
         st.warning("⚠️ No hay datos con esos filtros")
         st.stop()
 
-    # =========================
     # FECHA + PERIODO
-    # =========================
     col_fecha = next((c for c in df_f.columns if "FECHA" in c), None)
 
     if not col_fecha:
@@ -1511,9 +1501,7 @@ if vista == "principal":
     df_f = df_f.dropna(subset=[col_fecha])
     df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
 
-    # =========================
-    # MÉTRICAS (ROBUSTO)
-    # =========================
+    # MÉTRICAS
     if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
         df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
     else:
@@ -1530,102 +1518,70 @@ if vista == "principal":
     ganancia = df_f["GANANCIA"].sum()
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
-    # =========================
-    # AGRUPACIÓN (SEGURO)
-    # =========================
+    # AGRUPACIÓN
     if all(c in df_f.columns for c in ["PERIODO", "VENTAS", "GANANCIA"]):
         df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
     else:
         df_m = pd.DataFrame()
         st.warning("⚠️ Faltan columnas para agrupación")
 
-    
-# =========================
-# VARIACIÓN (FIX)
-# =========================
+    # VARIACIÓN
     variacion = 0
     delta_color = "normal"
-    
+
     if not df_m.empty and len(df_m) >= 2:
         v1 = df_m.iloc[-2]["VENTAS"]
         v2 = df_m.iloc[-1]["VENTAS"]
-    
+
         if v1 != 0:
             variacion = (v2 - v1) / v1
-    
+
     delta_color = "normal" if variacion >= 0 else "inverse"
-#    =======================
-# KPIs + BOTONES (FIX)
-# =========================
+
+    # KPIs + BOTONES
     k1, k2, k3, k4 = st.columns(4)
 
-# -------------------------
-# VENTAS
-# -------------------------
-with k1:
-    st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    with k1:
+        st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
 
-    if st.button("📋", key="ventas_tabla"):
-        tabla = df_m.copy()
-        st.dataframe(
-            tabla.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VENTAS"])
-        )
+        if st.button("📋", key="ventas_tabla"):
+            tabla = df_m.copy()
+            st.dataframe(tabla)
 
-    if st.button("📈", key="ventas_grafica"):
-        st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
+        if st.button("📈", key="ventas_grafica"):
+            st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
 
+    with k2:
+        st.metric("📈 Crecimiento", f"{variacion:.1%}")
 
-# -------------------------
-# CRECIMIENTO
-# -------------------------
-with k2:
-    st.metric("📈 Crecimiento", f"{variacion:.1%}")
+        if st.button("📋", key="crecimiento_tabla"):
+            df_m["VAR"] = df_m["VENTAS"].pct_change()
+            st.dataframe(df_m)
 
-    if st.button("📋", key="crecimiento_tabla"):
-        df_m["VAR"] = df_m["VENTAS"].pct_change()
-        st.dataframe(
-            df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VAR"])
-        )
+        if st.button("📈", key="crecimiento_grafica"):
+            st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
 
-    if st.button("📈", key="crecimiento_grafica"):
-        st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
+    with k3:
+        st.metric("💵 Ganancia", f"${ganancia:,.0f}")
 
+        if st.button("📋", key="ganancia_tabla"):
+            st.dataframe(df_m)
 
-# -------------------------
-# GANANCIA
-# -------------------------
-with k3:
-    st.metric("💵 Ganancia", f"${ganancia:,.0f}")
+        if st.button("📈", key="ganancia_grafica"):
+            st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
 
-    if st.button("📋", key="ganancia_tabla"):
-        st.dataframe(
-            df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["GANANCIA"])
-        )
+    with k4:
+        st.metric("📊 Margen", f"{margen:.1f}%")
 
-    if st.button("📈", key="ganancia_grafica"):
-        st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
+        if st.button("📋", key="margen_tabla"):
+            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+            st.dataframe(df_m)
 
+        if st.button("📈", key="margen_grafica"):
+            df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
+            st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
 
-# -------------------------
-# MARGEN
-# -------------------------
-with k4:
-    st.metric("📊 Margen", f"{margen:.1f}%")
-
-    if st.button("📋", key="margen_tabla"):
-        df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
-        st.dataframe(
-            df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["MARGEN"])
-        )
-
-    if st.button("📈", key="margen_grafica"):
-        df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
-        st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
-        
-    
-    # =========================
     # ALERTAS
-    # =========================
     if margen < 0:
         st.error("🚨 Margen negativo: revisar costos")
 
@@ -1638,45 +1594,18 @@ with k4:
     elif variacion > 0:
         st.success("📈 Crecimiento detectado")
 
-    # =========================
-    # INSIGHT AUTOMÁTICO
-    # =========================
+    # INSIGHT
     if "NOMBRE_PRODUCTO" in df_f.columns:
         top_producto = df_f.groupby("NOMBRE_PRODUCTO")["VENTAS"].sum().sort_values(ascending=False).head(1)
 
         for prod, val in top_producto.items():
             st.success(f"🏆 Producto líder: {prod} con ${val:,.0f}")
 
-    # =========================
     # GRÁFICA
-    # =========================
     import plotly.graph_objects as go
 
     if not df_m.empty:
-
         fig = go.Figure()
-
-        df_m["PERIODO_DT"] = pd.to_datetime(df_m["PERIODO"], errors="coerce")
-        df_m["AÑO"] = df_m["PERIODO_DT"].dt.year
-
-        años = df_m["AÑO"].dropna().unique()
-
-        for j, año in enumerate(años):
-            df_year = df_m[df_m["AÑO"] == año]
-
-            if not df_year.empty:
-                fig.add_vrect(
-                    x0=df_year["PERIODO"].iloc[0],
-                    x1=df_year["PERIODO"].iloc[-1],
-                    fillcolor="lightblue" if j % 2 == 0 else "lightgrey",
-                    opacity=0.15,
-                    line_width=0,
-                )
-
-                fig.add_vline(
-                    x=df_year["PERIODO"].iloc[0],
-                    line_dash="dash"
-                )
 
         fig.add_trace(go.Scatter(
             x=df_m["PERIODO"],
@@ -1692,28 +1621,16 @@ with k4:
             name="Ganancia"
         ))
 
-        fig.update_layout(
-            title="📈 Evolución del negocio",
-            xaxis_title="Periodo",
-            yaxis_title="Valor",
-        )
-
         st.plotly_chart(fig, use_container_width=True)
 
-    # =========================
     # TOP CANAL
-    # =========================
-    st.markdown("### 🔝 Canal con mayor impacto")
-
     if not df_f.empty and "CANAL" in df_f.columns:
         top_canal = df_f.groupby("CANAL")["VENTAS"].sum().sort_values(ascending=False).head(1)
 
         for canal_top, val in top_canal.items():
             st.success(f"🏆 {canal_top} lidera con ${val:,.0f}")
 
-    # =========================
-    # TOP / BOTTOM PRODUCTOS
-    # =========================
+    # TOP / BOTTOM
     if "NOMBRE_PRODUCTO" in df_f.columns:
 
         st.markdown("### 📊 Top y Bottom Productos")
@@ -1729,7 +1646,14 @@ with k4:
 
         with col2:
             st.write("📉 Bottom 5")
-            st.dataframe(bottom)# VOLATILIDAD
+            st.dataframe(bottom)
+
+
+# =========================
+# VOLATILIDAD
+# =========================
+if vista == "volatilidad":
+    st.markdown("## 📉 Volatilidad")
 elif vista == "volatilidad":
 
     if st.button("⬅️ Volver principal"):
