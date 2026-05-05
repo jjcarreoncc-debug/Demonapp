@@ -1836,22 +1836,25 @@ if df_f.empty:
 df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
 df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
 df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
+# =========================
+# AGRUPACIÓN (LIMPIA)
+# =========================
+
+if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
+
+    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
+
+else:
+    df_m = pd.DataFrame()
+    st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
 
 # =========================
-# AGRUPACIÓN
-# =========================
- df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
- if all(col in df_f.columns for col in ["PERIODO", "VENTAS", "GANANCIA"]):
-     df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
- else:
-     df_m = pd.DataFrame()
-     st.warning("⚠️ Faltan columnas para cálculo (PERIODO, VENTAS, GANANCIA)")
-
 # KPIs
+# =========================
 ventas = df_f["VENTAS"].sum() if "VENTAS" in df_f.columns else 0
 ganancia = df_f["GANANCIA"].sum() if "GANANCIA" in df_f.columns else 0
 margen = (ganancia / ventas * 100) if ventas != 0 else 0
-# ------------------------
+## ------------------------
 # DASHBOARD PRINCIPAL
 # ------------------------
 
