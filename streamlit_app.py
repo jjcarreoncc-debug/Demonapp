@@ -710,10 +710,22 @@ elif menu == "Dashboard":
     producto = st.session_state.get("filtro_producto", [])
 
     st.header("📊 Dashboard Ejecutivo")
-
-    archivo = st.session_state.get("archivo")
+        # =========================
+    # DRILL-DOWN VISUAL (PASO 1)
+    # =========================
+    c1, c2, c3 = st.columns(3)
     
-
+    with c1:
+        st.markdown(f"**🌎 País:** {st.session_state.get('filtro_pais', 'Todos')}")
+    
+    with c2:
+        st.markdown(f"**📍 Región:** {st.session_state.get('filtro_region', 'Todos')}")
+    
+    with c3:
+        st.markdown(f"**📦 Producto:** {st.session_state.get('filtro_producto', 'Todos')}")
+        archivo = st.session_state.get("archivo")
+        
+    
     if not archivo:
         st.warning("⚠️ Primero carga un archivo en Inicio")
     else:
