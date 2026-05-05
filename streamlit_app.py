@@ -29,6 +29,41 @@ if "rol" not in st.session_state:
 st.markdown("""
 <style>
 
+/* Fondo principal */
+.stApp {
+    background-color: #f2f2f2;
+}
+
+/* Contenedor principal */
+.block-container {
+    background-color: #f2f2f2;
+    padding-top: 1rem;
+}
+
+/* Sidebar (lo dejamos oscuro para contraste) */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1f4e63, #2c6e8f);
+}
+
+/* Tarjetas (métricas, contenedores) */
+[data-testid="metric-container"],
+div.stDataFrame,
+div.stPlotlyChart {
+    background-color: white;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+/* Títulos */
+h1, h2, h3 {
+    color: #1f4e63;
+}
+
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<style>
+
 /* ===== SIDEBAR BASE ===== */
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #1f3b4d 0%, #2e6f95 100%);
