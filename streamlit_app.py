@@ -1165,8 +1165,14 @@ with st.sidebar:
 
     if st.button("📌 Recomendaciones"):
         st.session_state.vista = "recomendaciones"
-        st.rerun()
-
+        st.rerun() 
+# =========================
+# CONTROL DE VISTA GLOBAL
+# =========================
+    if "vista" not in st.session_state:
+        st.session_state.vista = "inicio"
+    
+        st.write("DEBUG VISTA:", st.session_state.vista)    
     if st.button("🧠 Resumen"):
         st.session_state.vista = "resumen"
         st.rerun()
