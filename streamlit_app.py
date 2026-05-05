@@ -1539,15 +1539,22 @@ if vista == "principal":
         df_m = pd.DataFrame()
         st.warning("⚠️ Faltan columnas para agrupación")
 
-    # =========================
-    # VARIACIÓN
-    # =========================
+    
+# =========================
+# VARIACIÓN (FIX)
+# =========================
     variacion = 0
-
+    delta_color = "normal"
+    
     if not df_m.empty and len(df_m) >= 2:
         v1 = df_m.iloc[-2]["VENTAS"]
         v2 = df_m.iloc[-1]["VENTAS"]
-# =========================
+    
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
+    
+    delta_color = "normal" if variacion >= 0 else "inverse"
+#    =======================
 # KPIs + BOTONES (FIX)
 # =========================
 k1, k2, k3, k4 = st.columns(4)
@@ -1614,14 +1621,7 @@ with k4:
     if st.button("📈", key="margen_grafica"):
         df_m["MARGEN"] = (df_m["GANANCIA"] / df_m["VENTAS"]) * 100
         st.line_chart(df_m.set_index("PERIODO")["MARGEN"])
-        if v1 != 0:
-            variacion = (v2 - v1) / v1
-
-    delta_color = "normal" if variacion >= 0 else "inverse"
-
-    # =========================
-    # KPIs
-    # =========================
+        
     
     # =========================
     # ALERTAS
