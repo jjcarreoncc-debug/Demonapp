@@ -1479,9 +1479,6 @@ if vista == "principal":
     canal = st.session_state.get("filtro_canal", "Todos")
     region = st.session_state.get("filtro_region", "Todos")
 
-    # =========================
-    # FILTROS
-    # =========================
     if pais != "Todos" and "PAIS" in df_f.columns:
         df_f = df_f[df_f["PAIS"] == pais]
 
@@ -1491,9 +1488,6 @@ if vista == "principal":
     if region != "Todos" and "REGION" in df_f.columns:
         df_f = df_f[df_f["REGION"] == region]
 
-    # =========================
-    # VALIDACIÓN
-    # =========================
     if df_f.empty:
         st.warning("⚠️ No hay datos con esos filtros")
         st.stop()
@@ -1512,18 +1506,10 @@ if vista == "principal":
     df_f["PERIODO"] = df_f[col_fecha].dt.to_period("M").astype(str)
 
     # =========================
-    # MÉTRICAS (ROBUSTO)
+    # MÉTRICAS
     # =========================
-    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "PRECIO_VENTA"]):
-        df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
-    else:
-        df_f["VENTAS"] = 0
-
-    if all(c in df_f.columns for c in ["VENTAS_CANTIDAD", "COSTOS_VENTA"]):
-        df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
-    else:
-        df_f["COSTOS"] = 0
-
+    df_f["VENTAS"] = df_f["VENTAS_CANTIDAD"] * df_f["PRECIO_VENTA"]
+    df_f["COSTOS"] = df_f["VENTAS_CANTIDAD"] * df_f["COSTOS_VENTA"]
     df_f["GANANCIA"] = df_f["VENTAS"] - df_f["COSTOS"]
 
     ventas = df_f["VENTAS"].sum()
@@ -1531,110 +1517,93 @@ if vista == "principal":
     margen = (ganancia / ventas * 100) if ventas != 0 else 0
 
     # =========================
-    # AGRUPACIÓN (SEGURO)
+    # AGRUPACIÓN
     # =========================
-    if all(c in df_f.columns for c in ["PERIODO", "VENTAS", "GANANCIA"]):
-        df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
-    else:
-        df_m = pd.DataFrame()
-        st.warning("⚠️ Faltan columnas para agrupación")
-# =========================
-# VARIACIÓN (CORRECTO)
-# =========================
-variacion = 0
+    df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
 
-if not df_m.empty and len(df_m) >= 2:
-    v1 = df_m.iloc[-2]["VENTAS"]
-    v2 = df_m.iloc[-1]["VENTAS"]
+    # =========================
+    # VARIACIÓN
+    # =========================
+    variacion = 0
 
-    if v1 != 0:
-        variacion = (v2 - v1) / v1
+    if len(df_m) >= 2:
+        v1 = df_m.iloc[-2]["VENTAS"]
+        v2 = df_m.iloc[-1]["VENTAS"]
 
-delta_color = "normal" if variacion >= 0 else "inverse"
+        if v1 != 0:
+            variacion = (v2 - v1) / v1
 
-# =========================
-# KPIs + BOTONES (BIEN UBICADO)
-# =========================
-k1, k2, k3, k4 = st.columns(4)
+    delta_color = "normal" if variacion >= 0 else "inverse"
 
-# -------------------------
-# VENTAS
-# -------------------------
-with k1:
-    st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
+    # =========================
+    # KPIs + BOTONES
+    # =========================
+    k1, k2, k3, k4 = st.columns(4)
 
-    colb1, colb2 = st.columns(2)
+    # VENTAS
+    with k1:
+        st.metric("💰 Ventas", f"${ventas:,.0f}", f"{variacion:.1%}", delta_color=delta_color)
 
-    with colb1:
-        if st.button("📋", key="ventas_tabla"):
-            tabla = df_m.copy()
-            st.dataframe(
-                tabla.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VENTAS"])
-            )
+        b1, b2 = st.columns(2)
 
-    with colb2:
-        if st.button("📈", key="ventas_grafica"):
-            st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
+        with b1:
+            if st.button("📋", key="ventas_tabla"):
+                st.dataframe(df_m)
 
-# -------------------------
-# CRECIMIENTO
-# -------------------------
-with k2:
-    st.metric("📈 Crecimiento", f"{variacion:.1%}")
+        with b2:
+            if st.button("📈", key="ventas_grafica"):
+                st.line_chart(df_m.set_index("PERIODO")["VENTAS"])
 
-    colb1, colb2 = st.columns(2)
+    # CRECIMIENTO
+    with k2:
+        st.metric("📈 Crecimiento", f"{variacion:.1%}")
 
-    with colb1:
-        if st.button("📋", key="crecimiento_tabla"):
-            df_tmp = df_m.copy()
-            df_tmp["VAR"] = df_tmp["VENTAS"].pct_change()
+        b1, b2 = st.columns(2)
 
-            st.dataframe(
-                df_tmp.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["VAR"])
-            )
+        with b1:
+            if st.button("📋", key="crec_tabla"):
+                df_tmp = df_m.copy()
+                df_tmp["VAR"] = df_tmp["VENTAS"].pct_change()
+                st.dataframe(df_tmp)
 
-    with colb2:
-        if st.button("📈", key="crecimiento_grafica"):
-            st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
+        with b2:
+            if st.button("📈", key="crec_graf"):
+                st.line_chart(df_m.set_index("PERIODO")["VENTAS"].pct_change())
 
-# -------------------------
-# GANANCIA
-# -------------------------
-with k3:
-    st.metric("💵 Ganancia", f"${ganancia:,.0f}")
+    # GANANCIA
+    with k3:
+        st.metric("💵 Ganancia", f"${ganancia:,.0f}")
 
-    colb1, colb2 = st.columns(2)
+        b1, b2 = st.columns(2)
 
-    with colb1:
-        if st.button("📋", key="ganancia_tabla"):
-            st.dataframe(
-                df_m.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["GANANCIA"])
-            )
+        with b1:
+            if st.button("📋", key="gan_tabla"):
+                st.dataframe(df_m)
 
-    with colb2:
-        if st.button("📈", key="ganancia_grafica"):
-            st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
+        with b2:
+            if st.button("📈", key="gan_graf"):
+                st.line_chart(df_m.set_index("PERIODO")["GANANCIA"])
 
-# -------------------------
-# MARGEN
-# -------------------------
-with k4:
-    st.metric("📊 Margen", f"{margen:.1f}%")
+    # MARGEN
+    with k4:
+        st.metric("📊 Margen", f"{margen:.1f}%")
 
-    df_tmp = df_m.copy()
-    df_tmp["MARGEN"] = (df_tmp["GANANCIA"] / df_tmp["VENTAS"]) * 100
+        df_tmp = df_m.copy()
+        df_tmp["MARGEN"] = (df_tmp["GANANCIA"] / df_tmp["VENTAS"]) * 100
 
-    colb1, colb2 = st.columns(2)
+        b1, b2 = st.columns(2)
 
-    with colb1:
-        if st.button("📋", key="margen_tabla"):
-            st.dataframe(
-                df_tmp.style.applymap(lambda x: "color: green" if x > 0 else "color: red", subset=["MARGEN"])
-            )
+        with b1:
+            if st.button("📋", key="mar_tabla"):
+                st.dataframe(df_tmp)
 
-    with colb2:
-        if st.button("📈", key="margen_grafica"):
-            st.line_chart(df_tmp.set_index("PERIODO")["MARGEN"])
+        with b2:
+            if st.button("📈", key="mar_graf"):
+                st.line_chart(df_tmp.set_index("PERIODO")["MARGEN"])
+
+# 👇 MUY IMPORTANTE: EL ELIF VA AL MISMO NIVEL
+elif vista == "volatilidad":
+    st.title("📊 Volatilidad")
     # =========================
     # ALERTAS
     # =========================
