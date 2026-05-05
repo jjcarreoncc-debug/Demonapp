@@ -473,7 +473,7 @@ with st.sidebar:
     # ------------------------
     # MENU
     # ------------------------
-    menu = st.radio(
+    #menu = st.radio(
         "Menú",
         opciones,
         index=opciones.index(st.session_state.menu)
@@ -516,35 +516,11 @@ with st.sidebar:
             # MES
             mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
             
-            #col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
-            # PAÍS
-            #pais = st.selectbox(
-            #    "🌎 País",    
-            #    ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
-            #    key="filtro_pais"
-            #)
+            }
+            
 
-            # REGIÓN
-            #df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
+            
 
-            # =========================
-            #col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c), None)
-            
-            #if col_producto:
-            
-             #   opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
-            
-                # limpiar estado viejo
-              #  if isinstance(st.session_state.get("filtro_producto"), list):
-              
-            #st.session_state["filtro_producto"] = "Todos"
-            
-            
-             #   if producto != "Todos":
-             #       df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
-           # else:
-           #     st.warning("⚠️ No se encontró columna de producto")
-            
 # =========================
 # INICIO
 # =========================
