@@ -768,17 +768,6 @@ else:
 # =========================
 df_m = df_f.groupby("PERIODO")[["VENTAS", "GANANCIA"]].sum().reset_index()
 df_m = df_m.sort_values("PERIODO")
-    # =========================
-    # KPIs
-    # =========================
-    ...
-
-    # =========================
-    # GRÁFICAS
-    # =========================
-    ...
-    
-    
     
     # =========================
     # DRILL-DOWN VISUAL (PASO 1)
