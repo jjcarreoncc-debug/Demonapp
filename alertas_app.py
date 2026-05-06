@@ -1,7 +1,6 @@
-
 import streamlit as st
-def alertas_app():
- # =========================
+
+# =========================
 # KPI CRÍTICOS
 # =========================
 def kpi_criticos(df):
