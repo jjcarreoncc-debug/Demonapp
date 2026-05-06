@@ -34,11 +34,6 @@ if st.session_state.data_ready:
     opciones.append("📊 Inventarios")
 
 # 🔥 índice seguro
-try:
-    idx = opciones.index(st.session_state.menu)
-except ValueError:
-    idx = 0  # fallback a Carga
-    st.session_state.menu = opciones[0]
 
 menu = st.sidebar.radio(
     "Menú",
