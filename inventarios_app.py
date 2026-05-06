@@ -85,4 +85,3 @@ def inventarios_app():
     # =========================
     st.markdown("## 📋 Detalle Inventario")
     st.dataframe(df)
-```
