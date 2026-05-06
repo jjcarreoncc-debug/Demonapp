@@ -179,7 +179,7 @@ def dashboard_general(df):
 
     with c1:
         card_kpi("📦 Stock Total", f"{m['total_stock']:,}", "#1f77b4")
-
+        def dashboard_detalle(df):   
     with c2:
         card_kpi("🚨 Críticos", m["criticos"], "#e74c3c")
 
