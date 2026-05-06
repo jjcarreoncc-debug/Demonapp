@@ -166,7 +166,7 @@ def estado_stock(row):
 # DASHBOARD GENERAL
 # =========================
 def dashboard_general(df):
-def dashboard_detalle(df):    
+ 
 
     
 
