@@ -101,9 +101,72 @@ def calcular_metricas(df):
     return metricas
 
 # =========================
+# DETALLE DASHBOARD
+# =========================
+def dashboard_detalle(df):
+
+    # TOP VENDIDOS
+    st.subheader("🔥 Top Productos Más Vendidos")
+
+    top = df.sort_values(
+        "SALIDA",
+        ascending=False
+    ).head(10)
+
+    st.bar_chart(
+        top.set_index("NOMBRE_PRODUCTO")["SALIDA"]
+    )
+
+    # CRÍTICOS
+    st.subheader("🚨 Productos Críticos")
+
+    criticos = df[
+        df["STOCK"] < df["STOCK_MIN"]
+    ]
+
+    st.dataframe(
+        criticos[
+            [
+                "NUMERO_PRODUCTO",
+                "NOMBRE_PRODUCTO",
+                "STOCK",
+                "STOCK_MIN"
+            ]
+        ]
+    )
+
+    # SEMÁFORO
+    def estado_stock(row):
+
+        if row["STOCK"] < row["STOCK_MIN"]:
+            return "🔴 Crítico"
+
+        elif row["STOCK"] > row["STOCK_MAX"]:
+            return "🟠 Sobrestock"
+
+        return "🟢 Normal"
+
+    df["ESTADO"] = df.apply(
+        estado_stock,
+        axis=1
+    )
+
+    st.subheader("📦 Estado Inventario")
+
+    st.dataframe(
+        df[
+            [
+                "NOMBRE_PRODUCTO",
+                "STOCK",
+                "ESTADO"
+            ]
+        ]
+    )
+# =========================
 # DASHBOARD GENERAL
 # =========================
 def dashboard_general(df):
+def dashboard_detalle(df):    
 
     
 
