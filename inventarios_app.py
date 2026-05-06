@@ -206,5 +206,5 @@ def inventarios_app():
             st.rerun()
 
            # DASHBOARD
-        if st.session_state.inv_vista == "dash1":
-            dashboard_general(df)
+    if st.session_state.inv_vista == "dash1":
+        dashboard_general(df)
