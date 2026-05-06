@@ -1,14 +1,45 @@
 def inventarios_app(productos, movimientos, inventario):
-
     import streamlit as st
     import pandas as pd
-    st.title("📦 Módulo de Inventarios")
-    st.markdown("### 📂 Carga de archivos")
+st.title("📦 Inventarios")
 
-    archivo_prod = st.file_uploader("📦 Productos", type=["xlsx"], key="prod_file")
-    archivo_mov = st.file_uploader("📊 Movimientos", type=["xlsx"], key="mov_file")
-    archivo_inv = st.file_uploader("🏭 Inventario", type=["xlsx"], key="inv_file")
+# =========================
+# 1. UPLOADERS (PRIMERO)
+# =========================
+st.markdown("### 📂 Carga de archivos")
 
+archivo_prod = st.file_uploader("📦 Productos", type=["xlsx"], key="prod_file")
+archivo_mov = st.file_uploader("📊 Movimientos", type=["xlsx"], key="mov_file")
+archivo_inv = st.file_uploader("🏭 Inventario", type=["xlsx"], key="inv_file")
+
+# =========================
+# 2. GUARDAR
+# =========================
+if archivo_prod:
+    df_prod = pd.read_excel(archivo_prod)
+    df_prod.columns = df_prod.columns.str.strip()
+    st.session_state.productos = df_prod
+
+if archivo_mov:
+    df_mov = pd.read_excel(archivo_mov)
+    df_mov.columns = df_mov.columns.str.strip()
+    st.session_state.movimientos = df_mov
+
+if archivo_inv:
+    df_inv = pd.read_excel(archivo_inv)
+    df_inv.columns = df_inv.columns.str.strip()
+    st.session_state.inventario = df_inv
+
+# =========================
+# 3. VALIDAR (DESPUÉS)
+# =========================
+productos = st.session_state.get("productos")
+movimientos = st.session_state.get("movimientos")
+inventario = st.session_state.get("inventario")
+
+if productos is None or movimientos is None or inventario is None:
+    st.warning("⚠️ Debes cargar los 3 archivos")
+    return    
 if archivo_prod:
     df_prod = pd.read_excel(archivo_prod)
     df_prod.columns = df_prod.columns.str.strip()
