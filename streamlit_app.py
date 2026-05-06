@@ -462,102 +462,26 @@ with st.sidebar:
         opciones = ["Inicio", "Dashboard", "Mantenimiento"]
     else:
         opciones = ["Inicio", "Dashboard"]
+# ------------------------
+# INICIALIZAR MENU
+# ------------------------
+if "menu" not in st.session_state:
+    st.session_state.menu = "Inicio"
 
-    # ------------------------
-    # INICIALIZAR MENU
-    
-    # ------------------------
-    if "menu" not in st.session_state:
-        st.session_state.menu = "Inicio"
+# ------------------------
+# MENU
+# ------------------------
+opciones = ["Inicio", "Dashboard", "Inventarios", "Mantenimiento"]
 
-    # ------------------------
-    # MENU
-    # ------------------------
-    menu = st.radio(
-        "Menú",
-        opciones,
-        index=opciones.index(st.session_state.menu)
-    )
+menu = st.radio(
+    "Menú",
+    opciones,
+    index=opciones.index(st.session_state.menu)
+)
 
-    st.session_state.menu = menu
-    # =========================
-    # FILTROS SOLO EN DASHBOARD
-    # =========================
-    
-    # ------------------------
-    # MOSTRAR FILTROS (solo en dashboard)
-    # ------------------------
-    if st.session_state.menu == "Dashboard":
+st.session_state.menu = menu
 
-        st.markdown("---")
-        st.markdown("### 🎯 Filtros")
 
-        # valores por defecto
-        año = "Todos"
-        mes = "Todos"
-        pais = "Todos"
-        region = "Todos"
-        producto = []
-
-        if "archivo" in st.session_state:
-
-            df_temp = pd.read_excel(st.session_state.archivo)
-            df_temp.columns = df_temp.columns.str.strip()
-
-            df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
-            df_temp = df_temp.dropna(subset=["Fecha"])
-
-            df_temp["Año"] = df_temp["Fecha"].dt.year
-            df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
-
-            # AÑO
-            año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()), key="año")
-
-            # MES
-            mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()), key="mes")
-            
-            col_pais = next((c for c in df_temp.columns if "pais" in c.lower()), None)
-            # PAÍS
-            #pais = st.selectbox(
-            #    "🌎 País",    
-            #    ["Todos"] + sorted(df_temp["Pais"].dropna().unique()),
-            #    key="filtro_pais"
-            #)
-
-            # REGIÓN
-            df_region = df_temp if pais == "Todos" else df_temp[df_temp["Pais"] == pais]
-
-            #region = st.selectbox(
-            #    "📍 Región",
-            #    ["Todos"] + sorted(df_region["Region"].dropna().unique()),
-            #    key="filtro_region"
-            #)
-            # PRODUCTO
-            df_producto = df_region if region == "Todos" else df_region[df_region["Region"] == region]
-            # =========================
-            # PRODUCTO (CORRECTO)
-            # =========================
-            # =========================
-            col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c), None)
-            
-            if col_producto:
-            
-                opciones_producto = ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
-            
-                # limpiar estado viejo
-                if isinstance(st.session_state.get("filtro_producto"), list):
-                    st.session_state["filtro_producto"] = "Todos"
-            
-                #producto = st.selectbox(
-                #    "📦 Producto",
-                #    options=opciones_producto,
-                #    key="filtro_producto"
-                #)
-            
-                if producto != "Todos":
-                    df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
-            else:
-                st.warning("⚠️ No se encontró columna de producto")
 # =========================
 # INICIO
 # =========================
@@ -567,35 +491,83 @@ def pantalla_inicio():
 
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
-    # =========================
-    # CUANDO CARGA ARCHIVO
-    # =========================
     if archivo:
         st.session_state.archivo = archivo
-        st.session_state.data_cargada = True
 
         st.success("✅ Archivo cargado correctamente")
 
         if st.button("🔙 Ir al menú principal"):
-            st.session_state.vista = "menu"
+            st.session_state.menu = "Dashboard"
             st.rerun()
 
-    # =========================
-    # SI YA EXISTE ARCHIVO
-    # =========================
     elif "archivo" in st.session_state:
 
         st.success("✅ Archivo ya cargado")
 
         if st.button("🔙 Ir al menú principal"):
-            st.session_state.vista = "menu"
+            st.session_state.menu = "Dashboard"
             st.rerun()
 
-    # =========================
-    # SI NO HAY ARCHIVO
-    # =========================
     else:
-        st.info("📂 Carga un archivo para comenzar")            
+        st.info("📂 Carga un archivo para comenzar")
+
+
+# =========================
+# FILTROS (SOLO DASHBOARD)
+# =========================
+if menu == "Dashboard":
+
+    st.markdown("---")
+    st.markdown("### 🎯 Filtros")
+
+    año = "Todos"
+    mes = "Todos"
+    pais = "Todos"
+    region = "Todos"
+    producto = "Todos"
+
+    if "archivo" in st.session_state:
+
+        df_temp = pd.read_excel(st.session_state.archivo)
+        df_temp.columns = df_temp.columns.str.strip()
+
+        if "Fecha" in df_temp.columns:
+            df_temp["Fecha"] = pd.to_datetime(df_temp["Fecha"], errors="coerce")
+            df_temp = df_temp.dropna(subset=["Fecha"])
+
+            df_temp["Año"] = df_temp["Fecha"].dt.year
+            df_temp["Mes"] = df_temp["Fecha"].dt.month_name()
+
+            año = st.selectbox("📅 Año", ["Todos"] + sorted(df_temp["Año"].unique()))
+            mes = st.selectbox("📆 Mes", ["Todos"] + sorted(df_temp["Mes"].unique()))
+
+        # PRODUCTO
+        col_producto = next((c for c in df_temp.columns if "PRODUCTO" in c.upper()), None)
+
+        if col_producto:
+            producto = st.selectbox(
+                "📦 Producto",
+                ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
+            )
+        else:
+            st.warning("⚠️ No se encontró columna de producto")
+
+
+# =========================
+# CONTROL DE PANTALLAS
+# =========================
+if menu == "Inicio":
+    pantalla_inicio()
+
+elif menu == "Dashboard":
+    st.title("📊 Dashboard Principal")
+
+elif menu == "Inventarios":
+    st.title("📦 Inventarios")
+
+elif menu == "Mantenimiento":
+    st.title("⚙️ Mantenimiento")
+                
 # =========================
 # DASHBOARD
 # =========================
