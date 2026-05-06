@@ -73,3 +73,53 @@ def dashboard_criticos(df):
     grafica_criticos(df)
 
     tabla_criticos(df)
+
+def sin_stock_app(df):
+
+    st.subheader("❌ Productos Sin Stock")
+
+    sin_stock = df[
+        df["STOCK"] <= 0
+    ]
+
+    st.metric("❌ Total Sin Stock", len(sin_stock))
+
+    st.dataframe(sin_stock)
+
+
+def riesgo_alto_app(df):
+
+    st.subheader("🔥 Productos en Riesgo Alto")
+
+    riesgo_alto = df[
+        df["STOCK"] <= (df["STOCK_MIN"] * 0.5)
+    ]
+
+    st.metric("🔥 Total Riesgo Alto", len(riesgo_alto))
+
+    st.dataframe(riesgo_alto)
+
+
+def proximos_agotarse_app(df):
+
+    st.subheader("⚠️ Productos Próximos a Agotarse")
+
+    proximos = df[
+        (df["STOCK"] > df["STOCK_MIN"]) &
+        (df["STOCK"] <= (df["STOCK_MIN"] * 1.2))
+    ]
+
+    st.metric("⚠️ Total Próximos a Agotarse", len(proximos))
+
+    st.dataframe(proximos)
+
+
+def detalle_criticos_app(df):
+
+    st.subheader("📋 Detalle General Críticos")
+
+    criticos = df[
+        df["STOCK"] < df["STOCK_MIN"]
+    ]
+
+    st.dataframe(criticos)
