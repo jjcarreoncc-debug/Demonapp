@@ -1,0 +1,57 @@
+```python
+import streamlit as st
+
+def dashboard_app():
+
+    st.markdown("## 📊 Inventarios")
+
+    # =========================
+    # SUBMENÚ
+    # =========================
+    if "inv_vista" not in st.session_state:
+        st.session_state.inv_vista = "menu"
+
+    if st.session_state.inv_vista == "menu":
+
+        c1, c2, c3, c4, c5 = st.columns(5)
+
+        if c1.button("📊 General"):
+            st.session_state.inv_vista = "dash1"
+            st.rerun()
+
+        if c2.button("🚨 Críticos"):
+            st.session_state.inv_vista = "dash2"
+            st.rerun()
+
+        if c3.button("⚠️ Sobrestock"):
+            st.session_state.inv_vista = "dash3"
+            st.rerun()
+
+        if c4.button("📈 Rotación"):
+            st.session_state.inv_vista = "dash4"
+            st.rerun()
+
+        if c5.button("🧠 IA"):
+            st.session_state.inv_vista = "dash5"
+            st.rerun()
+
+    else:
+        if st.button("⬅️ Volver"):
+            st.session_state.inv_vista = "menu"
+            st.rerun()
+
+        if st.session_state.inv_vista == "dash1":
+            st.write("Dashboard General")
+
+        elif st.session_state.inv_vista == "dash2":
+            st.write("Críticos")
+
+        elif st.session_state.inv_vista == "dash3":
+            st.write("Sobrestock")
+
+        elif st.session_state.inv_vista == "dash4":
+            st.write("Rotación")
+
+        elif st.session_state.inv_vista == "dash5":
+            st.write("IA")
+```
