@@ -105,7 +105,7 @@ def calcular_metricas(df):
 # =========================
 def dashboard_general(df):
 
-    def dashboard_general(df):
+    
 
     st.title("📊 Dashboard General")
 
