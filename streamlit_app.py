@@ -475,7 +475,12 @@ if "menu" not in st.session_state:
 # MENU
 # ------------------------
 opciones = ["Inicio", "Dashboard", "Inventarios", "Mantenimiento"]
-
+# índice seguro
+try:
+    idx = opciones.index(st.session_state.menu)
+except ValueError:
+    idx = 0
+    st.session_state.menu = opciones[0]
 menu = st.sidebar.radio(
     "Menú",
     opciones,
