@@ -1,9 +1,8 @@
 
 import streamlit as st
 def alertas_app():
-    st.write("Módulo de alertas funcionando")
 
-# =========================
+    # =========================
 # KPI CRÍTICOS
 # =========================
 def kpi_criticos(df):
