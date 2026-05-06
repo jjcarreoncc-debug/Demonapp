@@ -213,6 +213,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
 )
 """)
 conn.commit()
+# =========================
+# INICIALIZAR ESTADO
+# =========================
+if "vista" not in st.session_state:
+    st.session_state.vista = "inicio"
 # ------------------------
 # LOGIN CONFIG
 # ------------------------
