@@ -67,23 +67,38 @@ def procesar_datos(productos, movimientos, inventario):
     return df
 
 # =========================
+# MÉTRICAS (NUEVO 🔥)
+# =========================
+def calcular_metricas(df):
+
+    metricas = {}
+
+    metricas["total_stock"] = int(df["STOCK"].sum())
+    metricas["criticos"] = df[df["STOCK"] < df["STOCK_MIN"]].shape[0]
+    metricas["sobrestock"] = df[df["STOCK"] > df["STOCK_MAX"]].shape[0]
+    metricas["rotacion"] = df["SALIDA"].sum() / df["ENTRADA"].sum() if df["ENTRADA"].sum() != 0 else 0
+    metricas["ganancia"] = (df["SALIDA"] * 0.3).sum()
+
+    return metricas
+
+# =========================
 # DASHBOARD GENERAL
 # =========================
 def dashboard_general(df):
 
     st.title("📊 Dashboard General")
 
-    total_stock = int(df["STOCK"].sum())
-    criticos = df[df["STOCK"] < df["STOCK_MIN"]].shape[0]
-    sobrestock = df[df["STOCK"] > df["STOCK_MAX"]].shape[0]
-    rotacion = df["SALIDA"].sum() / df["ENTRADA"].sum() if df["ENTRADA"].sum() != 0 else 0
+    m = calcular_metricas(df)
 
     c1, c2, c3, c4 = st.columns(4)
+    c1.metric("📦 Stock", f"{m['total_stock']:,}")
+    c2.metric("🚨 Críticos", m["criticos"])
+    c3.metric("⚠️ Sobrestock", m["sobrestock"])
+    c4.metric("📈 Rotación", f"{m['rotacion']:.2f}")
 
-    c1.metric("📦 Stock", f"{total_stock:,}")
-    c2.metric("🚨 Críticos", criticos)
-    c3.metric("⚠️ Sobrestock", sobrestock)
-    c4.metric("📈 Rotación", f"{rotacion:.2f}")
+    c5, c6 = st.columns(2)
+    c5.metric("💰 Ganancia", f"${m['ganancia']:,.0f}")
+    c6.metric("📊 Productos", len(df))
 
     if st.button("🔙 Volver"):
         st.session_state.inv_vista = "menu"
