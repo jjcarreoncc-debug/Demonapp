@@ -56,11 +56,11 @@ def inventarios_app():
     movimientos["ENTRADA"] = movimientos["CANTIDAD"].where(movimientos["TIPO"] == "COMPRA", 0)
     movimientos["SALIDA"] = movimientos["CANTIDAD"].where(movimientos["TIPO"] == "VENTA", 0)
 
-    stock = movimientos.groupby("ID_PRODUCTO")[["ENTRADA", "SALIDA"]].sum().reset_index()
+    stock = movimientos.groupby("NUMERO_PRODUCTO")[["ENTRADA", "SALIDA"]].sum().reset_index()
     stock["STOCK"] = stock["ENTRADA"] - stock["SALIDA"]
 
-    df = stock.merge(productos, on="ID_PRODUCTO", how="left")
-    df = df.merge(inventario, on="ID_PRODUCTO", how="left")
+    df = stock.merge(productos, on="NUMERO_PRODUCTO", how="left")
+    df = df.merge(inventario, on="NUMERO_PRODUCTO", how="left")
 
     # =========================
     # 6. KPIs
