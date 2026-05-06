@@ -588,13 +588,15 @@ if menu == "Dashboard":
 # CONTROL DE PANTALLAS
 # =========================
 if menu == "Inicio":
-    pantalla_inicio()
+    #pantalla_inicio()
+    st.title("🏠 Inicio")
 
 elif menu == "Dashboard":
-    dashboard()  
+    #dashboard() 
+    st.title("📊 Dashboard")
+
 elif menu == "Inventarios":
-    #inventarios_app()
-    st.title("⚙️ Mantenimiento")
+    inventarios_app()
 elif menu == "Mantenimiento":
     st.title("⚙️ Mantenimiento")
                 
