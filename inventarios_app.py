@@ -12,6 +12,13 @@ from alertas_app import (
 )
 from ui_components import card_kpi
 
+from sobrestock_app import (
+    dashboard_sobrestock,
+    mayor_exceso_app,
+    capital_detenido_app,
+    detalle_sobrestock_app
+)
+
 
 # =========================
 # CSS
@@ -223,15 +230,35 @@ def inventarios_app():
             st.session_state.inv_vista = "menu"
             st.rerun()
     
-    if st.session_state.inv_vista == "dash3":
+# =========================
+# MÓDULO SOBRESTOCK
+# =========================
+if st.session_state.inv_vista == "dash3":
 
-        st.title("⚠️ Módulo Sobrestock")
-    
-        if st.button("🔙 Volver"):
-            st.session_state.inv_vista = "menu"
-            st.rerun()
-    
-        st.info("Módulo Sobrestock en construcción")
+    st.title("⚠️ Módulo Sobrestock")
+
+    if st.button("🔙 Volver"):
+        st.session_state.inv_vista = "menu"
+        st.rerun()
+
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "Dashboard",
+        "Mayor Exceso",
+        "Capital Detenido",
+        "Detalle"
+    ])
+
+    with tab1:
+        dashboard_sobrestock(df)
+
+    with tab2:
+        mayor_exceso_app(df)
+
+    with tab3:
+        capital_detenido_app(df)
+
+    with tab4:
+        detalle_sobrestock_app(df)
     
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Dashboard",
