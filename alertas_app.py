@@ -1,5 +1,6 @@
 import streamlit as st
 from ui_components import card_kpi
+import plotly.express as px
 # =========================
 # KPI CRÍTICOS
 # =========================
@@ -20,23 +21,46 @@ def kpi_criticos(df):
 # =========================
 def grafica_criticos(df):
 
-    criticos = df[
-        df["STOCK"] < df["STOCK_MIN"]
-    ]
+    criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
-    top = criticos.sort_values(
-        "STOCK"
-    ).head(10)
+    if criticos.empty:
+        st.success("✅ No hay productos críticos en este momento")
+        return
 
-    st.subheader("📉 Productos Más Críticos")
+    top = criticos.sort_values("STOCK").head(10)
 
-    st.bar_chart(
-        top.set_index(
-            "NOMBRE_PRODUCTO"
-        )["STOCK"]
+    st.subheader("📉 Top 10 Productos Más Críticos")
+
+    fig = px.bar(
+        top,
+        x="STOCK",
+        y="NOMBRE_PRODUCTO",
+        orientation="h",
+        text="STOCK",
+        hover_data=[
+            "NUMERO_PRODUCTO",
+            "STOCK_MIN",
+            "SALIDA"
+        ],
+        title="Productos con menor stock disponible"
     )
 
+    fig.update_layout(
+        height=480,
+        yaxis_title="Producto",
+        xaxis_title="Stock actual",
+        title_x=0.02,
+        margin=dict(l=10, r=10, t=60, b=10)
+    )
 
+    fig.update_traces(
+        textposition="outside"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 # =========================
 # TABLA CRÍTICOS
 # =========================
