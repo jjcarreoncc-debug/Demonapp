@@ -53,7 +53,7 @@ if menu == "📂 Carga":
     carga_app()   # 👈 AQUÍ SE CARGAN LOS ARCHIVOS
 
 elif menu == "📊 Inventarios":
-    st.write("👉 Entrando a CARGA")   # DEBUG
+    st.write("👉 Entrando a INVENTARIOS")   # DEBUG
     inventarios_app()
 
 # ------------------------
