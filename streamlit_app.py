@@ -17,28 +17,28 @@ st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 # ESTADO GLOBAL
 # =========================
      
-#if "menu" not in st.session_state:
-#    st.session_state.menu = "📂 Carga"
+if "menu" not in st.session_state:
+    st.session_state.menu = "📂 Carga"
 
-#if "data_ready" not in st.session_state:
-#    st.session_state.data_ready = False
+if "data_ready" not in st.session_state:
+    st.session_state.data_ready = False
      
-#st.write("DEBUG data_ready:", st.session_state.data_ready)    
+st.write("DEBUG data_ready:", st.session_state.data_ready)    
 
 # =========================
 # MENÚ DINÁMICO
 # =========================
-#opciones = ["📂 Carga"]
+opciones = ["📂 Carga"]
 
-#if st.session_state.data_ready:
-#    opciones.append("📊 Inventarios")
+if st.session_state.data_ready:
+    opciones.append("📊 Inventarios")
 
 # 🔥 índice seguro
-#try:
-#    idx = opciones.index(st.session_state.menu)
-#except ValueError:
-#    idx = 0  # fallback a Carga
-#    st.session_state.menu = opciones[0]
+try:
+    idx = opciones.index(st.session_state.menu)
+except ValueError:
+    idx = 0  # fallback a Carga
+    st.session_state.menu = opciones[0]
 
 menu = st.sidebar.radio(
     "Menú",
