@@ -2,8 +2,6 @@
 import streamlit as st
 import pandas as pd
 def inventarios_app():
-#st.title("📦 Inventarios OK")
-    st.title("📦 Inventarios")
 
 # =========================
 # 1. UPLOADERS (PRIMERO)
