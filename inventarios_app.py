@@ -186,7 +186,7 @@ def inventarios_app():
         c1, c2, c3, c4, c5 = st.columns(5)
 
         if c1.button("General"):
-            st.session_state.inv_vista = "menu"
+            st.session_state.inv_vista = "dash1"
             st.rerun()
 
         if c2.button("Críticos"):
