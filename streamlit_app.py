@@ -4,11 +4,12 @@ import plotly.express as  px
 import sqlite3# 
 import streamlit_authenticator as stauth
 from streamlit_authenticator import Hasher
-
 import hashlib
+import streamlit as st
 from datetime import datetime
 from PIL import Image
 def inventarios_app():
+
 #from inventarios_app import inventarios_app
 #st.write("📂 ARCHIVOS EN RUNTIME:", os.listdir())
 
