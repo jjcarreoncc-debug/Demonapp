@@ -177,11 +177,11 @@ def inventarios_app():
     if st.button("🔙 Volver"):
         st.session_state.inv_vista = "menu"
         st.rerun() 
-        
+# =========================
+# PROCESO
+# =========================
 def procesar_datos(productos, movimientos, inventario):
-    # =========================
-    # 4. PROCESAMIENTO
-    # =========================
+
     movimientos["TIPO"] = movimientos["TIPO"].astype(str).str.upper().str.strip()
 
     movimientos["ENTRADA"] = movimientos["CANTIDAD"].where(movimientos["TIPO"] == "COMPRA", 0)
@@ -192,11 +192,10 @@ def procesar_datos(productos, movimientos, inventario):
 
     df = stock.merge(productos, on="NUMERO_PRODUCTO", how="left")
     df = df.merge(inventario, on="NUMERO_PRODUCTO", how="left")
-    return df
-
-
-def dashboard_general(df):    
-    def dashboard_general(df):
+# =========================
+# DASHBOARD GENERAL
+# =========================
+def dashboard_general(df):
 
     st.title("📊 Dashboard General")
 
@@ -211,4 +210,26 @@ def dashboard_general(df):
     c2.metric("🚨 Críticos", criticos)
     c3.metric("⚠️ Sobrestock", sobrestock)
     c4.metric("📈 Rotación", f"{rotacion:.2f}")
-    st.dataframe(df)
+# =========================
+# MAIN APP
+# =========================
+def inventarios_app():
+
+    productos = st.session_state.get("productos")
+    movimientos = st.session_state.get("movimientos")
+    inventario = st.session_state.get("inventario")
+
+    if productos is None or movimientos is None or inventario is None:
+        st.warning("⚠️ Carga los archivos primero")
+        return
+
+    df = procesar_datos(productos, movimientos, inventario)
+
+    if "inv_vista" not in st.session_state:
+        st.session_state.inv_vista = "dash1"
+
+    if st.session_state.inv_vista == "dash1":
+        dashboard_general(df)
+    
+    return df
+    
