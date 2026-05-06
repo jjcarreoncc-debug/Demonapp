@@ -10,7 +10,7 @@ from datetime import datetime
 from PIL import Image
 def inventarios_app():
 #from inventarios_app import inventarios_app
-st.write("📂 ARCHIVOS EN RUNTIME:", os.listdir())
+#st.write("📂 ARCHIVOS EN RUNTIME:", os.listdir())
 
 # ------------------------
 # CONFIG
