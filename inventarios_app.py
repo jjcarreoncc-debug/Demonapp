@@ -136,7 +136,7 @@ def dashboard_detalle(df):
     )
 
     # SEMÁFORO
-    def estado_stock(row):
+def estado_stock(row):
 
         if row["STOCK"] < row["STOCK_MIN"]:
             return "🔴 Crítico"
