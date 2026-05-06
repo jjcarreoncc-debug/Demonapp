@@ -458,10 +458,12 @@ with st.sidebar:
     
     # OPCIONES
     # ------------------------
+    # ------------------------
     if st.session_state.rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Mantenimiento"]
+        opciones = ["Inicio", "Dashboard", "Inventarios", "Mantenimiento"]
     else:
-        opciones = ["Inicio", "Dashboard"]
+        opciones = ["Inicio", "Dashboard", "Inventarios"]
+
 # ------------------------
 # INICIALIZAR MENU
 # ------------------------
