@@ -1,7 +1,7 @@
 
 import streamlit as st
 import pandas as pd
-def inventarios_app():
+
 
 # =========================
 # 1. UPLOADERS (PRIMERO)
