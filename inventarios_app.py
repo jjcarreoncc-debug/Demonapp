@@ -39,7 +39,7 @@ inventario = st.session_state.get("inventario")
 
 if not (productos_file and movimientos_file and inventario_file):
         st.warning("⚠️ Debes cargar los 3 archivos")
-        return   # 👈 MUY IMPORTANT
+        #return   # 👈 MUY IMPORTANT
 
 productos = pd.read_excel(productos_file)
 movimientos = pd.read_excel(movimientos_file)
