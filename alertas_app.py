@@ -97,18 +97,32 @@ def dashboard_criticos(df):
     grafica_criticos(df)
 
     tabla_criticos(df)
-
 def sin_stock_app(df):
 
     st.subheader("❌ Productos Sin Stock")
 
-    sin_stock = df[
-        df["STOCK"] <= 0
-    ]
+    sin_stock = df[df["STOCK"] <= 0]
 
-    card_kpi("❌ Total Sin Stock", len(sin_stock))
+    card_kpi("❌ Total Sin Stock", len(sin_stock), "#c0392b")
 
-    st.dataframe(sin_stock)
+    if sin_stock.empty:
+        st.success("✅ No hay productos sin stock")
+        return
+
+    st.markdown("### 📉 Productos agotados")
+
+    fig = px.bar(
+        sin_stock.head(10),
+        x="NOMBRE_PRODUCTO",
+        y="STOCK",
+        text="STOCK",
+        title="Top productos sin stock"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### 📋 Detalle sin stock")
+    st.dataframe(sin_stock, use_container_width=True)
 
 
 def riesgo_alto_app(df):
@@ -119,9 +133,29 @@ def riesgo_alto_app(df):
         df["STOCK"] <= (df["STOCK_MIN"] * 0.5)
     ]
 
-    card_kpi("🔥 Total Riesgo Alto", len(riesgo_alto))
+    card_kpi("🔥 Total Riesgo Alto", len(riesgo_alto), "#e67e22")
 
-    st.dataframe(riesgo_alto)
+    if riesgo_alto.empty:
+        st.success("✅ No hay productos en riesgo alto")
+        return
+
+    top = riesgo_alto.sort_values("STOCK").head(10)
+
+    st.markdown("### 📉 Top riesgo alto")
+
+    fig = px.bar(
+        top,
+        x="STOCK",
+        y="NOMBRE_PRODUCTO",
+        orientation="h",
+        text="STOCK",
+        title="Productos con stock más bajo vs mínimo"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### 📋 Detalle riesgo alto")
+    st.dataframe(riesgo_alto, use_container_width=True)
 
 
 def proximos_agotarse_app(df):
@@ -133,18 +167,56 @@ def proximos_agotarse_app(df):
         (df["STOCK"] <= (df["STOCK_MIN"] * 1.2))
     ]
 
-    card_kpi("⚠️ Total Próximos a Agotarse", len(proximos))
+    card_kpi("⚠️ Total Próximos", len(proximos), "#f1c40f")
 
-    st.dataframe(proximos)
+    if proximos.empty:
+        st.success("✅ No hay productos próximos a agotarse")
+        return
+
+    top = proximos.sort_values("STOCK").head(10)
+
+    st.markdown("### 📉 Próximos a agotarse")
+
+    fig = px.bar(
+        top,
+        x="STOCK",
+        y="NOMBRE_PRODUCTO",
+        orientation="h",
+        text="STOCK",
+        title="Productos cerca del mínimo"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### 📋 Detalle próximos a agotarse")
+    st.dataframe(proximos, use_container_width=True)
 
 
 def detalle_criticos_app(df):
 
     st.subheader("📋 Detalle General Críticos")
 
-    criticos = df[
-        df["STOCK"] < df["STOCK_MIN"]
-    ]
+    criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
-    st.dataframe(criticos)
-######
+    card_kpi("🚨 Total Críticos", len(criticos), "#e74c3c")
+
+    if criticos.empty:
+        st.success("✅ No hay productos críticos")
+        return
+
+    st.markdown("### 📊 Comparativo Stock vs Mínimo")
+
+    top = criticos.sort_values("STOCK").head(15)
+
+    fig = px.bar(
+        top,
+        x="NOMBRE_PRODUCTO",
+        y=["STOCK", "STOCK_MIN"],
+        barmode="group",
+        title="Stock actual vs stock mínimo"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### 📋 Tabla completa críticos")
+    st.dataframe(criticos, use_container_width=True)
