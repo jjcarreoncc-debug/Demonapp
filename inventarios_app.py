@@ -77,7 +77,11 @@ def inventarios_app():
     if productos is None or movimientos is None or inventario is None:
         st.warning("⚠️ Debes cargar los 3 archivos")
         st.stop()
-
+        st.session_state.data_ready = True
+    if st.button("➡️ Ir a Inventarios"):
+        st.session_state.menu = "📊 Inventarios"
+        st.rerun()
+        
     st.success("✅ Archivos cargados correctamente")
     st.write("Columnas productos:", productos.columns)
     st.write("Columnas movimientos:", movimientos.columns)
