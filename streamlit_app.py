@@ -16,11 +16,11 @@ st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 # ESTADO GLOBAL
 # =========================
 #st.write("DEBUG data_ready:", st.session_state.data_ready)
-if "menu" not in st.session_state:
-    st.session_state.menu = "📂 Carga"
+#if "menu" not in st.session_state:
+#    st.session_state.menu = "📂 Carga"
 
-if "data_ready" not in st.session_state:
-    st.session_state.data_ready = False
+#if "data_ready" not in st.session_state:
+#    st.session_state.data_ready = False
 
 # =========================
 # MENÚ DINÁMICO
