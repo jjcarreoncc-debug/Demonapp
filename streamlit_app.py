@@ -593,6 +593,7 @@ elif menu == "Dashboard":
     st.title("📊 Dashboard Principal")
 
 elif menu == "Inventarios":
+    inventarios_app() 
     st.title("📦 Inventarios")
 
 elif menu == "Mantenimiento":
