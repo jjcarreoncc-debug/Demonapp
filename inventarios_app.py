@@ -200,7 +200,7 @@ def dashboard_general(df):
 
     with c6:
         card_kpi("📊 Productos", len(df), "#34495e")
-        def dashboard_detalle(df):
+        
     # 🔙 Volver
     if st.button("🔙 Volver"):
         st.session_state.inv_vista = "menu"
