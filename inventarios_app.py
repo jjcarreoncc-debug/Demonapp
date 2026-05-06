@@ -73,10 +73,19 @@ productos = st.session_state.get("productos")
 movimientos = st.session_state.get("movimientos")
 inventario = st.session_state.get("inventario")
 
-if productos is None or movimientos is None or inventario is None:
-    st.warning("⚠️ Primero debes cargar los archivos en el módulo de Carga")
-    st.stop()
+def inventarios_app():
 
+    # =========================
+    # BLOQUEO SI NO HAY DATA
+    # =========================
+    if not st.session_state.get("data_ready", False):
+        st.warning("⚠️ Primero debes cargar los archivos en el módulo de Carga")
+        st.stop()
+
+    # 👇 A PARTIR DE AQUÍ YA PUEDES USAR LOS DATOS
+    productos = st.session_state.get("productos")
+    movimientos = st.session_state.get("movimientos")
+    inventario = st.session_state.get("inventario")
 
 # =========================
 # PASO 3 - CONTROL SUBMENÚ
