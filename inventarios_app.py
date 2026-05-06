@@ -63,9 +63,9 @@ inventario = st.session_state.get("inventario")
     # =========================
     # ESTADO
     # =========================
-    if "inv_vista" not in st.session_state:
-        st.session_state.inv_vista = "menu"
-
+if "inv_vista" not in st.session_state:
+    st.session_state.inv_vista = "menu"
+    st.write("Vista:", st.session_state.inv_vista)
     
 
     # =========================
