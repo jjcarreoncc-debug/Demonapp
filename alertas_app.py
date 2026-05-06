@@ -9,7 +9,7 @@ def kpi_criticos(df):
         df["STOCK"] < df["STOCK_MIN"]
     ]
 
-    st.metric(
+    card_kpi(
         "🚨 Productos Críticos",
         len(criticos)
     )
@@ -82,7 +82,7 @@ def sin_stock_app(df):
         df["STOCK"] <= 0
     ]
 
-    st.metric("❌ Total Sin Stock", len(sin_stock))
+    card_kpi("❌ Total Sin Stock", len(sin_stock))
 
     st.dataframe(sin_stock)
 
@@ -95,7 +95,7 @@ def riesgo_alto_app(df):
         df["STOCK"] <= (df["STOCK_MIN"] * 0.5)
     ]
 
-    st.metric("🔥 Total Riesgo Alto", len(riesgo_alto))
+    card_kpi("🔥 Total Riesgo Alto", len(riesgo_alto))
 
     st.dataframe(riesgo_alto)
 
@@ -109,7 +109,7 @@ def proximos_agotarse_app(df):
         (df["STOCK"] <= (df["STOCK_MIN"] * 1.2))
     ]
 
-    st.metric("⚠️ Total Próximos a Agotarse", len(proximos))
+    card_kpi("⚠️ Total Próximos a Agotarse", len(proximos))
 
     st.dataframe(proximos)
 
@@ -129,7 +129,7 @@ def sin_stock_app(df):
 
     sin_stock = df[df["STOCK"] <= 0]
 
-    st.metric("❌ Total Sin Stock", len(sin_stock))
+    card_kpi("❌ Total Sin Stock", len(sin_stock))
 
     st.dataframe(sin_stock)
 
@@ -142,7 +142,7 @@ def riesgo_alto_app(df):
         df["STOCK"] <= (df["STOCK_MIN"] * 0.5)
     ]
 
-    st.metric("🔥 Total Riesgo Alto", len(riesgo_alto))
+    card_kpi("🔥 Total Riesgo Alto", len(riesgo_alto))
 
     st.dataframe(riesgo_alto)
 
@@ -156,7 +156,7 @@ def proximos_agotarse_app(df):
         (df["STOCK"] <= (df["STOCK_MIN"] * 1.2))
     ]
 
-    st.metric("⚠️ Total Próximos a Agotarse", len(proximos))
+    card_kpi("⚠️ Total Próximos a Agotarse", len(proximos))
 
     st.dataframe(proximos)
 
@@ -167,6 +167,6 @@ def detalle_criticos_app(df):
 
     criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
-    st.metric("🚨 Total Críticos", len(criticos))
+    card_kpi("🚨 Total Críticos", len(criticos))
 
     st.dataframe(criticos)
