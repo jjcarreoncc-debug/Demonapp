@@ -104,7 +104,6 @@ def calcular_metricas(df):
 # DETALLE DASHBOARD
 # =========================
 def dashboard_detalle(df):
-if st.button("🔙 Volver"):
     # TOP VENDIDOS
     st.subheader("🔥 Top Productos Más Vendidos")
 
