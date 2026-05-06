@@ -47,6 +47,20 @@ div.stButton > button:focus {
 
 </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+
+/* 🔥 TEXTO DENTRO DE COLUMNAS */
+div[data-testid="column"] p {
+    color: black !important;
+    font-weight: 700;
+    font-size: 16px;
+    text-align: center;
+}
+
+</style>
+""", unsafe_allow_html=True)
 # =========================
 # FONDO
 # =========================
