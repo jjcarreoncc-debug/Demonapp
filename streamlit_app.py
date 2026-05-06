@@ -44,7 +44,7 @@ if menu == "📂 Carga":
 
 elif menu == "📊 Inventarios":
     dashboard_app()
-```
+
 
 
 
