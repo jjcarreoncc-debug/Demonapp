@@ -48,6 +48,25 @@ def set_bg():
     </style>
     """, unsafe_allow_html=True)
 
+def card_kpi(titulo, valor, color="#1f77b4"):
+
+    st.markdown(f"""
+    <div style="
+        background-color: #f5f7fa;
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 8px solid {color};
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+    ">
+        <div style="font-size:18px; font-weight:600; color:#2c3e50;">
+            {titulo}
+        </div>
+        <div style="font-size:30px; font-weight:700; color:{color}; margin-top:10px;">
+            {valor}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 # =========================
 # PROCESO
 # =========================
@@ -86,20 +105,40 @@ def calcular_metricas(df):
 # =========================
 def dashboard_general(df):
 
+    def dashboard_general(df):
+
     st.title("📊 Dashboard General")
 
     m = calcular_metricas(df)
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("📦 Stock", f"{m['total_stock']:,}")
-    c2.metric("🚨 Críticos", m["criticos"])
-    c3.metric("⚠️ Sobrestock", m["sobrestock"])
-    c4.metric("📈 Rotación", f"{m['rotacion']:.2f}")
+    # 🔥 FILA 1
+    c1, c2 = st.columns(2)
 
+    with c1:
+        card_kpi("📦 Stock Total", f"{m['total_stock']:,}", "#1f77b4")
+
+    with c2:
+        card_kpi("🚨 Críticos", m["criticos"], "#e74c3c")
+
+    # 🔥 FILA 2
+    c3, c4 = st.columns(2)
+
+    with c3:
+        card_kpi("⚠️ Sobrestock", m["sobrestock"], "#f39c12")
+
+    with c4:
+        card_kpi("📈 Rotación", f"{m['rotacion']:.2f}", "#2ecc71")
+
+    # 🔥 FILA 3
     c5, c6 = st.columns(2)
-    c5.metric("💰 Ganancia", f"${m['ganancia']:,.0f}")
-    c6.metric("📊 Productos", len(df))
 
+    with c5:
+        card_kpi("💰 Ganancia", f"${m['ganancia']:,.0f}", "#27ae60")
+
+    with c6:
+        card_kpi("📊 Productos", len(df), "#34495e")
+
+    # 🔙 Volver
     if st.button("🔙 Volver"):
         st.session_state.inv_vista = "menu"
         st.rerun()
@@ -142,7 +181,7 @@ def inventarios_app():
         st.session_state.inv_vista = "menu"
 
     # MENÚ
-    if st.session_state.inv_vista == "menu":
+    if st.session_state.inv_vista == "menu":    
 
         c1, c2, c3, c4, c5 = st.columns(5)
 
