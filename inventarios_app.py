@@ -59,9 +59,6 @@ productos = st.session_state.get("productos")
 movimientos = st.session_state.get("movimientos")
 inventario = st.session_state.get("inventario")
 
-if productos is None or movimientos is None or inventario is None:
-    st.warning("⚠️ Debes cargar los 3 archivos")
-    return
     
     # =========================
     # ESTADO
