@@ -222,7 +222,17 @@ def inventarios_app():
         if st.button("🔙 Volver"):
             st.session_state.inv_vista = "menu"
             st.rerun()
+    
+    if st.session_state.inv_vista == "dash3":
 
+        st.title("⚠️ Módulo Sobrestock")
+    
+        if st.button("🔙 Volver"):
+            st.session_state.inv_vista = "menu"
+            st.rerun()
+    
+        st.info("Módulo Sobrestock en construcción")
+    
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Dashboard",
             "Sin Stock",
