@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import base64
 import os
-from alertas.app import alertas.app
+from alertas_app import alertas_app
 
 # =========================
 # CSS
