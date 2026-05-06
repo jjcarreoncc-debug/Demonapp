@@ -257,9 +257,35 @@ CREATE TABLE IF NOT EXISTS usuarios (
 )
 """)
 conn.commit()
+# ------------------------
+# LOGIN CONFIG
+# ------------------------
+passwords = ["1234", "abcd"]
+hashed_passwords = Hasher(passwords).generate()
+
+credentials = {
+    "usernames": {
+        "admin": {"name": "Admin", "password": hashed_passwords[0]},
+        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
+    }
+}
+
+authenticator = stauth.Authenticate(
+    credentials,
+    "mi_dashboard",
+    "abcdef",
+    cookie_expiry_days=1
+)
 
 # ------------------------
-# LOGIN
+# LOGO
+# ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
+
+# ------------------------
+# LOGIN	
 # ------------------------
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
@@ -316,35 +342,6 @@ if authentication_status:
     }
     </style>
     """, unsafe_allow_html=True)
-
-
-# ------------------------
-# LOGIN CONFIG
-# ------------------------
-passwords = ["1234", "abcd"]
-hashed_passwords = Hasher(passwords).generate()
-
-credentials = {
-    "usernames": {
-        "admin": {"name": "Admin", "password": hashed_passwords[0]},
-        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
-    }
-}
-
-authenticator = stauth.Authenticate(
-    credentials,
-    "mi_dashboard",
-    "abcdef",
-    cookie_expiry_days=1
-)
-
-# ------------------------
-# LOGO
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
@@ -400,6 +397,7 @@ if st.session_state.menu == "Mantenimiento":
     if st.session_state.rol != "Admin":
         st.warning("⛔ No tienes permisos")
         st.stop()
+
 
     # =========================
     # DATA (MEMORIA)
