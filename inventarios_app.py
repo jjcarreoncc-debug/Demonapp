@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import base64
 import os
-
 def inventarios_app():
 
     # 🔥 CSS AQUÍ
@@ -132,6 +131,14 @@ def inventarios_app():
         return
 
     st.success("✅ Archivos cargados")
+    # 🔥 AQUÍ GENERAS df UNA SOLA VEZ
+    df = procesar_datos(productos, movimientos, inventario)
+
+    if "inv_vista" not in st.session_state:
+        st.session_state.inv_vista = "dash1"
+
+    if st.session_state.inv_vista == "dash1":
+        dashboard_general(df)
 
     # =========================
     # 3. MENÚ DASHBOARDS
