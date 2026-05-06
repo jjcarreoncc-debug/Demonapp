@@ -51,14 +51,9 @@ def set_bg():
     }}
     </style>
     """, unsafe_allow_html=True)
-
-
-# =========================
-# KPI CARD
-# =========================
 def card_kpi(titulo, valor, color="#1f77b4"):
 
-    st.markdown(f"""
+    html = f"""
     <div style="
         background-color:#f5f7fa;
         padding:20px;
@@ -86,7 +81,10 @@ def card_kpi(titulo, valor, color="#1f77b4"):
         </div>
 
     </div>
-    """, unsafe_allow_html=True)
+    """
+
+    st.markdown(html, unsafe_allow_html=True)
+
 # =========================
 # PROCESO
 # =========================
