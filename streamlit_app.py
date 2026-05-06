@@ -8,7 +8,7 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
-from inventarios_app import inventarios_app.PY
+from inventarios_app import inventarios_app.py
 
 # ------------------------
 # CONFIG
