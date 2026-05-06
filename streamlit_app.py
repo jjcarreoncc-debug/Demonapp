@@ -8,7 +8,8 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
-from inventarios_app import inventarios_app
+def inventarios_app():
+#from inventarios_app import inventarios_app
 st.write("📂 ARCHIVOS EN RUNTIME:", os.listdir())
 
 # ------------------------
