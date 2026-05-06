@@ -37,18 +37,18 @@ def set_bg():
 set_bg()
 def inventarios_app():
 
-    # =========================
-    # 1. CARGA DE ARCHIVOS
-    # =========================
+# =========================
+# 1. CARGA DE ARCHIVOS
+# =========================
     st.markdown("### 📂 Carga de archivos")
 
     archivo_prod = st.file_uploader("📦 Productos", type=["xlsx"], key="prod_file")
     archivo_mov = st.file_uploader("📊 Movimientos", type=["xlsx"], key="mov_file")
     archivo_inv = st.file_uploader("🏭 Inventario", type=["xlsx"], key="inv_file")
 
-    # =========================
-    # 2. GUARDAR EN SESSION
-    # =========================
+# =========================
+# 2. GUARDAR EN SESSION
+# =========================
     if archivo_prod:
         df_prod = pd.read_excel(archivo_prod)
         df_prod.columns = df_prod.columns.str.strip()
@@ -64,14 +64,14 @@ def inventarios_app():
         df_inv.columns = df_inv.columns.str.strip()
         st.session_state.inventario = df_inv
 
-    # =========================
-    # 3. OBTENER DATOS
-    # =========================
+# =========================
+# 3. OBTENER DATOS
+# =========================
     productos = st.session_state.get("productos")
     movimientos = st.session_state.get("movimientos")
     inventario = st.session_state.get("inventario")
 
-    # =========================
+# =========================
 # PASO 2 - VALIDAR DATOS
 # =========================
 productos = st.session_state.get("productos")
@@ -81,6 +81,22 @@ inventario = st.session_state.get("inventario")
 if productos is None or movimientos is None or inventario is None:
     st.warning("⚠️ Primero debes cargar los archivos en el módulo de Carga")
     st.stop()
+# =========================
+# ESTRUCTURA FINAL
+# =========================
+
+
+    # PASO 2 → validar datos
+    if no hay datos:
+        st.stop()
+
+    # PASO 3 → menú dashboards   ← AQUÍ VA
+    if inv_vista == "menu":
+        botones
+
+    # PASO 4 → dashboards
+    else:
+        mostrar dashboard
 
 
 # =========================
@@ -115,9 +131,9 @@ if st.session_state.inv_vista == "menu":
         st.session_state.inv_vista = "dash5"
 
      
-    # =========================
-    # 5. PROCESAMIENTO
-    # =========================
+# =========================
+# 5. PROCESAMIENTO
+# =========================
     movimientos["TIPO"] = movimientos["TIPO"].astype(str).str.upper().str.strip()
 
     movimientos["ENTRADA"] = movimientos["CANTIDAD"].where(movimientos["TIPO"] == "COMPRA", 0)
@@ -129,17 +145,17 @@ if st.session_state.inv_vista == "menu":
     df = stock.merge(productos, on="NUMERO_PRODUCTO", how="left")
     df = df.merge(inventario, on="NUMERO_PRODUCTO", how="left")
 
-    # =========================
-    # 6. KPIs
-    # =========================
+# =========================
+# 6. KPIs
+# =========================
     total_stock = int(df["STOCK"].sum())
     criticos = df[df["STOCK"] < df["STOCK_MIN"]].shape[0]
     sobrestock = df[df["STOCK"] > df["STOCK_MAX"]].shape[0]
     rotacion = (df["SALIDA"].sum() / df["STOCK"].sum()) if df["STOCK"].sum() != 0 else 0
 
-    # =========================
-    # 7. DASHBOARD SIMPLE
-    # =========================
+# =========================
+# 7. DASHBOARD SIMPLE
+# =========================
     st.markdown("## 📊 KPIs de Inventario")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -149,8 +165,5 @@ if st.session_state.inv_vista == "menu":
     c3.metric("⚠️ Sobrestock", sobrestock)
     c4.metric("📈 Rotación", f"{rotacion:.2f}")
 
-    # =========================
-    # 8. TABLA
-    # =========================
-    st.markdown("## 📋 Detalle Inventario")
+f    st.markdown("## 📋 Detalle Inventario")
     st.dataframe(df)
