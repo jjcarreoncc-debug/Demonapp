@@ -11,6 +11,41 @@ from PIL import Image
 from inventarios_app import inventarios_app
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
+# =========================
+# ESTADO GLOBAL
+# =========================
+if "menu" not in st.session_state:
+    st.session_state.menu = "📂 Carga"
+
+if "data_ready" not in st.session_state:
+    st.session_state.data_ready = False
+
+# =========================
+# MENÚ DINÁMICO
+# =========================
+opciones = ["📂 Carga"]
+
+if st.session_state.data_ready:
+    opciones.append("📊 Inventarios")
+
+menu = st.sidebar.selectbox(
+    "📌 Menú",
+    opciones,
+    index=opciones.index(st.session_state.menu)
+)
+
+st.session_state.menu = menu
+
+# =========================
+# NAVEGACIÓN
+# =========================
+if menu == "📂 Carga":
+    inventarios_app()
+
+elif menu == "📊 Inventarios":
+    dashboard_app()
+```
+
 
 
 # ------------------------
