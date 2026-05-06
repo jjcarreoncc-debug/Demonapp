@@ -12,7 +12,7 @@ from inventarios_app import inventarios_app
 
 # ------------------------
 # CONFIG
-
+#
 # ------------------------
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 st.set_page_config(
