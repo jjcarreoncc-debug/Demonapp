@@ -12,7 +12,7 @@ def set_bg():
         st.warning("No se encontró fondo.png")
         return
 
-    with open("fondo.png", "rb") as f:
+    with open("imagen8.png", "rb") as f:
         data = f.read()
 
     encoded = base64.b64encode(data).decode()
