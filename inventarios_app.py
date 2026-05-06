@@ -25,6 +25,28 @@ def inventarios_app():
     }
     </style>
     """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+
+/* 🔥 TEXTO DE BOTONES MÁS OSCURO */
+div.stButton > button {
+    color: #1f2d3d !important;   /* gris oscuro */
+    font-weight: 700;
+    font-size: 16px;
+}
+
+/* 🔥 HOVER */
+div.stButton > button:hover {
+    color: #000000 !important;
+}
+
+/* 🔥 CUANDO ESTÁ ACTIVO */
+div.stButton > button:focus {
+    color: #000000 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
 # =========================
 # FONDO
 # =========================
@@ -51,6 +73,7 @@ def set_bg():
     }}
     </style>
     """, unsafe_allow_html=True)
+    
 
 # =========================
 # APP INVENTARIOS
