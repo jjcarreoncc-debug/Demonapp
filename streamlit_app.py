@@ -8,6 +8,7 @@ from streamlit_authenticator import Hasher
 import hashlib
 from datetime import datetime
 from PIL import Image
+from inventarios_app import inventarios_app
 
 # ------------------------
 # CONFIG
@@ -512,6 +513,32 @@ def pantalla_inicio():
     else:
         st.info("📂 Carga un archivo para comenzar")
 
+# =========================
+# FUNCION DE APP DE INVENTARIOS
+# =========================
+def dashboard():   # 👈 AQUÍ VA TU FUNCIÓN
+
+    st.title("📊 Dashboard")
+
+    if "archivo" not in st.session_state:
+        st.warning("⚠️ Carga un archivo")
+        return
+
+    df = pd.read_excel(st.session_state.archivo)
+
+    df.columns = df.columns.str.strip().str.upper()
+
+    if "FECHA" in df.columns:
+        df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
+        df = df.dropna(subset=["FECHA"])
+        df["AÑO"] = df["FECHA"].dt.year
+        df["MES"] = df["FECHA"].dt.month_name()
+
+    if "VENTAS_CANTIDAD" in df.columns:
+        df["VENTAS"] = df["VENTAS_CANTIDAD"]
+        df["GANANCIA"] = df["VENTAS"] * 0.3
+
+    st.dataframe(df.head())
 
 # =========================
 # FILTROS (SOLO DASHBOARD)
