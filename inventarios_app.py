@@ -8,6 +8,7 @@ import base64
 import os
 
 def set_bg():
+    
     if not os.path.exists("imagen8.png"):
         st.warning("No se encontró fondo.png")
         return
@@ -85,18 +86,17 @@ if productos is None or movimientos is None or inventario is None:
 # ESTRUCTURA FINAL
 # =========================
 
+# PASO 2 → validar datos
+if no hay datos:
+    st.stop()
 
-    # PASO 2 → validar datos
-    if no hay datos:
-        st.stop()
+# PASO 3 → menú dashboards   ← AQUÍ VA
+if inv_vista == "menu":
+    botones
 
-    # PASO 3 → menú dashboards   ← AQUÍ VA
-    if inv_vista == "menu":
-        botones
-
-    # PASO 4 → dashboards
-    else:
-        mostrar dashboard
+# PASO 4 → dashboards
+else:
+    mostrar dashboard
 
 
 # =========================
