@@ -1,6 +1,31 @@
 import streamlit as st
 import pandas as pd
 
+
+import base64
+
+def set_bg():
+    with open("imagen8.png", "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode()
+
+    st.markdown(f"""
+    <style>
+    .stApp {{
+        background: linear-gradient(
+            rgba(255,255,255,0.70),
+            rgba(255,255,255,0.70)
+        ),
+        url("data:image/png;base64,{encoded}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
+set_bg()
+
 def inventarios_app():
 
     # =========================
