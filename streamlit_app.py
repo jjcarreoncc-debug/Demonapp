@@ -14,7 +14,7 @@ st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 # =========================
 # ESTADO GLOBAL
 # =========================
-st.write("DEBUG data_ready:", st.session_state.data_ready)
+#st.write("DEBUG data_ready:", st.session_state.data_ready)
 if "menu" not in st.session_state:
     st.session_state.menu = "📂 Carga"
 
