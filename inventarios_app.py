@@ -65,12 +65,6 @@ def inventarios_app():
         df_inv.columns = df_inv.columns.str.strip()
         st.session_state.inventario = df_inv
 
-# =========================
-# 3. OBTENER DATOS
-# =========================
-    productos = st.session_state.get("productos")
-    movimientos = st.session_state.get("movimientos")
-    inventario = st.session_state.get("inventario")
 
 # =========================
 # PASO 2 - VALIDAR DATOS
