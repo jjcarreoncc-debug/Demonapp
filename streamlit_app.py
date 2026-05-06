@@ -591,10 +591,8 @@ if menu == "Inicio":
     pantalla_inicio()
 
 elif menu == "Dashboard":
-    st.title("📊 Dashboard Principal")
-
+    dashboard()  
 elif menu == "Inventarios":
-    st.title("📦 Inventarios")
     inventarios_app()
 
 elif menu == "Mantenimiento":
