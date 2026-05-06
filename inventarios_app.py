@@ -39,7 +39,7 @@ inventario = st.session_state.get("inventario")
 
 if productos is None or movimientos is None or inventario is None:
     st.warning("⚠️ Debes cargar los 3 archivos")
-    return    
+    #return    
 if archivo_prod:
     df_prod = pd.read_excel(archivo_prod)
     df_prod.columns = df_prod.columns.str.strip()
