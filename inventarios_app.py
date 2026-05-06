@@ -45,7 +45,9 @@ def inventarios_app():
         st.stop()
 
     st.success("✅ Archivos cargados correctamente")
-
+    st.write("Columnas productos:", productos.columns)
+    st.write("Columnas movimientos:", movimientos.columns)
+    st.write("Columnas inventario:", inventario.columns)
     # =========================
     # 5. PROCESAMIENTO
     # =========================
