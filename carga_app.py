@@ -3,7 +3,7 @@ import pandas as pd
 
 def carga_app():
 
-    st.title("📂 Carga de archivos")
+    st.title("📂 Carga de archtivos")
 
     archivo_prod = st.file_uploader("Productos")
     archivo_mov = st.file_uploader("Movimientos")
