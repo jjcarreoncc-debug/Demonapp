@@ -71,7 +71,6 @@ def inventarios_app():
     productos = st.session_state.get("productos")
     movimientos = st.session_state.get("movimientos")
     inventario = st.session_state.get("inventario")
-
 # =========================
 # PASO 2 - VALIDAR DATOS
 # =========================
@@ -82,21 +81,6 @@ inventario = st.session_state.get("inventario")
 if productos is None or movimientos is None or inventario is None:
     st.warning("⚠️ Primero debes cargar los archivos en el módulo de Carga")
     st.stop()
-# =========================
-# ESTRUCTURA FINAL
-# =========================
-
-# PASO 2 → validar datos
-if no hay datos:
-    st.stop()
-
-# PASO 3 → menú dashboards   ← AQUÍ VA
-if inv_vista == "menu":
-    botones
-
-# PASO 4 → dashboards
-else:
-    mostrar dashboard
 
 
 # =========================
@@ -130,7 +114,7 @@ if st.session_state.inv_vista == "menu":
     if c5.button("IA"):
         st.session_state.inv_vista = "dash5"
 
-     
+    st.stop()
 # =========================
 # 5. PROCESAMIENTO
 # =========================
