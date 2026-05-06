@@ -145,6 +145,7 @@ def inventarios_app():
 
         if c1.button("General"):
             st.session_state.inv_vista = "dash1"
+            def dashboard_general(df):
             st.rerun()
 
         if c2.button("Críticos"):
@@ -184,6 +185,7 @@ def inventarios_app():
     df = stock.merge(productos, on="NUMERO_PRODUCTO", how="left")
     df = df.merge(inventario, on="NUMERO_PRODUCTO", how="left")
 
+def dashboard_general(df):    
     # =========================
     # 5. KPIs
     # =========================
