@@ -104,7 +104,7 @@ def inventarios_app():
             st.session_state.inv_vista = "dash5"
             st.rerun()
 
-        return
+        st.stop()
 
     # 🔙 Volver
     if st.button("🔙 Volver"):
