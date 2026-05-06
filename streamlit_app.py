@@ -9,6 +9,7 @@ import hashlib
 from datetime import datetime
 from PIL import Image
 from inventarios_app import inventarios_app
+st.write("📂 ARCHIVOS EN RUNTIME:", os.listdir())
 
 # ------------------------
 # CONFIG
