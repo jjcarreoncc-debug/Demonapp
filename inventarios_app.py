@@ -116,10 +116,14 @@ def dashboard_general(df):
 
     with c1:
         card_kpi("📦 Stock Total", f"{m['total_stock']:,}", "#1f77b4")
-
+        if st.button("VER DETALLE", key="btn_stock"):
+        st.session_state.inv_vista = "detalle_stock"
+        st.rerun()
     with c2:
         card_kpi("🚨 Críticos", m["criticos"], "#e74c3c")
-
+        if st.button("VER DETALLE", key="btn_criticos"):
+        st.session_state.inv_vista = "detalle_criticos"
+        st.rerun()
     # 🔥 FILA 2
     c3, c4 = st.columns(2)
 
@@ -203,8 +207,20 @@ def inventarios_app():
 
         if c5.button("IA"):
             st.session_state.inv_vista = "dash5"
-            st.rerun()
+            st.rerun()  
 
-           # DASHBOARD
-    if st.session_state.inv_vista == "dash1":
-        dashboard_general(df)
+# DASHBOARD
+if st.session_state.inv_vista == "detalle_stock":
+    st.title("📦 Detalle Stock")
+    st.dataframe(df)
+
+if st.session_state.inv_vista == "detalle_criticos":
+    st.title("🚨 Productos Críticos")
+
+    criticos = df[df["STOCK"] < df["STOCK_MIN"]]
+
+    st.dataframe(
+        criticos[
+            ["NUMERO_PRODUCTO", "NOMBRE_PRODUCTO", "STOCK", "STOCK_MIN"]
+        ]
+    )  
