@@ -3,6 +3,28 @@ import pandas as pd
 import base64
 import os
 
+def inventarios_app():
+
+    # 🔥 CSS AQUÍ
+    st.markdown("""
+    <style>
+    div.stButton > button {
+        width: 100%;
+        height: 70px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 12px;
+        border: none;
+        background-color: #1f77b4;
+        color: white;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    }
+
+    div.stButton > button:hover {
+        background-color: #145a86;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 # =========================
 # FONDO
 # =========================
