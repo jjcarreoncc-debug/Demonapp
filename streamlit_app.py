@@ -47,14 +47,11 @@ menu = st.sidebar.radio(
 
 st.session_state.menu = menu
 
-# =========================
-# NAVEGACIÓN
-# =========================
 if menu == "📂 Carga":
-    inventarios_app()
+    carga_app()   # 👈 AQUÍ SE CARGAN LOS ARCHIVOS
 
 elif menu == "📊 Inventarios":
-    dashboard_app()
+    inventarios_app()
 
 # ------------------------
 # CONFIG
