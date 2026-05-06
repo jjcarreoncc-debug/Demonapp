@@ -254,6 +254,7 @@ def inventarios_app():
 
         if c2.button("Críticos"):
             st.session_state.inv_vista = "dash2"
+            dashboard_criticos(df)
             st.rerun()
 
         if c3.button("Sobrestock"):
