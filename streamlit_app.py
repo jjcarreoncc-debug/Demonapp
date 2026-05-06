@@ -11,8 +11,7 @@ from PIL import Image
 from inventarios_app import inventarios_app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 
-if st.session_state.data_ready:
-    opciones.append("📊 Inventarios")
+    
 # =========================
 # ESTADO GLOBAL
 # =========================
@@ -45,6 +44,7 @@ menu = st.sidebar.radio(
 )
 
 st.session_state.menu = menu
+
 # =========================
 # NAVEGACIÓN
 # =========================
@@ -53,9 +53,6 @@ if menu == "📂 Carga":
 
 elif menu == "📊 Inventarios":
     dashboard_app()
-
-
-
 
 # ------------------------
 # CONFIG
