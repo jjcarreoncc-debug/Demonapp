@@ -1,5 +1,5 @@
 import streamlit as st
-
+from ui_components import card_kpi
 # =========================
 # KPI CRÍTICOS
 # =========================
