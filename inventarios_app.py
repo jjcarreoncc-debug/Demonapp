@@ -8,7 +8,7 @@ import base64
 import os
 
 def set_bg():
-    if not os.path.exists("fondo.png"):
+    if not os.path.exists("Imagen8.png"):
         st.warning("No se encontró fondo.png")
         return
 
