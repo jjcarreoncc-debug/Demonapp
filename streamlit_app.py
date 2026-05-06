@@ -473,12 +473,11 @@ if "menu" not in st.session_state:
 # ------------------------
 opciones = ["Inicio", "Dashboard", "Inventarios", "Mantenimiento"]
 
-menu = st.radio(
+menu = st.sidebar.radio(
     "Menú",
     opciones,
     index=opciones.index(st.session_state.menu)
 )
-
 st.session_state.menu = menu
 
 
