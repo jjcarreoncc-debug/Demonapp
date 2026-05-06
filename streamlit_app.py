@@ -11,6 +11,66 @@ from PIL import Image
 from inventarios_app import inventarios_app
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
 
+
+# ------------------------
+# LOGIN
+# ------------------------
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    name, authentication_status, username = authenticator.login("Login", location="main")
+
+
+# =========================
+# LOGIN CONTROL
+# =========================
+
+if authentication_status is False:
+    st.error("Usuario o contraseña incorrectos")
+
+    # 🔥 LOGIN SIEMPRE BLANCO
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.stop()
+
+
+if authentication_status is None:
+
+    # 🔥 LOGIN SIEMPRE BLANCO
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: white !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns([2,6])
+    with col2:
+        img = Image.open("imagen7.png")
+        st.image(img, width=2000)
+
+    st.stop()
+
+
+# =========================
+# DESPUÉS DE LOGIN → GRIS
+# =========================
+if authentication_status:
+
+    st.markdown("""
+    <style>
+    .stApp {
+        background-color: #f2f2f2;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # =========================
 # ESTADO GLOBAL
 # =========================
@@ -283,67 +343,6 @@ col1, col2, col3 = st.columns([1,2,1])
 with col2:
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
-# ------------------------
-# LOGIN
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    name, authentication_status, username = authenticator.login("Login", location="main")
-
-# ------------------------
-# CONTROL LOGIN
-# ------------------------
-
-# =========================
-# LOGIN CONTROL
-# =========================
-
-if authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-
-    # 🔥 LOGIN SIEMPRE BLANCO
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.stop()
-
-
-if authentication_status is None:
-
-    # 🔥 LOGIN SIEMPRE BLANCO
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns([2,6])
-    with col2:
-        img = Image.open("imagen7.png")
-        st.image(img, width=2000)
-
-    st.stop()
-
-
-# =========================
-# DESPUÉS DE LOGIN → GRIS
-# =========================
-if authentication_status:
-
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #f2f2f2;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 # ------------------------
 # FUNCIONES USUARIOS
 # ------------------------
