@@ -232,6 +232,6 @@ if st.session_state.inv_vista == "detalle_criticos":
         ]
     )
 
-if st.button("🔙 Volver", key="volver_criticos"):
-    st.session_state.inv_vista = "dash1"
-    st.rerun()
+    if st.button("🔙 Volver", key="volver_criticos"):
+        st.session_state.inv_vista = "dash1"
+        st.rerun()
