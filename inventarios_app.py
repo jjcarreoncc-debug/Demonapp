@@ -71,6 +71,7 @@ def inventarios_app():
     productos = st.session_state.get("productos")
     movimientos = st.session_state.get("movimientos")
     inventario = st.session_state.get("inventario")
+
 # =========================
 # PASO 2 - VALIDAR DATOS
 # =========================
@@ -115,6 +116,7 @@ if st.session_state.inv_vista == "menu":
         st.session_state.inv_vista = "dash5"
 
     st.stop()
+
 # =========================
 # 5. PROCESAMIENTO
 # =========================
@@ -149,5 +151,5 @@ if st.session_state.inv_vista == "menu":
     c3.metric("⚠️ Sobrestock", sobrestock)
     c4.metric("📈 Rotación", f"{rotacion:.2f}")
 
-f    st.markdown("## 📋 Detalle Inventario")
+    st.markdown("## 📋 Detalle Inventario")
     st.dataframe(df)
