@@ -558,7 +558,6 @@ with st.sidebar:
                     df_temp = df_temp[df_temp[col_producto].astype(str) == producto]
             else:
                 st.warning("⚠️ No se encontró columna de producto")
-            
 # =========================
 # INICIO
 # =========================
@@ -592,7 +591,11 @@ def pantalla_inicio():
             st.session_state.vista = "menu"
             st.rerun()
 
-    
+    # =========================
+    # SI NO HAY ARCHIVO
+    # =========================
+    else:
+        st.info("📂 Carga un archivo para comenzar")            
 # =========================
 # DASHBOARD
 # =========================
