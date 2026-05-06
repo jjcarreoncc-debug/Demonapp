@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import base64
 import os
-from alertas_app import dashboard_criticos
+
 from alertas_app import (
     dashboard_criticos,
     sin_stock_app,
@@ -10,6 +10,8 @@ from alertas_app import (
     proximos_agotarse_app,
     detalle_criticos_app
 )
+
+
 # =========================
 # CSS
 # =========================
@@ -31,6 +33,7 @@ def aplicar_css():
     }
     </style>
     """, unsafe_allow_html=True)
+
 
 # =========================
 # FONDO
@@ -55,8 +58,8 @@ def set_bg():
     </style>
     """, unsafe_allow_html=True)
 
-def card_kpi(titulo, valor, color="#1f77b4"):
 
+def card_kpi(titulo, valor, color="#1f77b4"):
     st.markdown(f"""
     <div style="
         background-color: #f5f7fa;
@@ -74,6 +77,8 @@ def card_kpi(titulo, valor, color="#1f77b4"):
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+
 # =========================
 # PROCESO
 # =========================
@@ -81,8 +86,13 @@ def procesar_datos(productos, movimientos, inventario):
 
     movimientos["TIPO"] = movimientos["TIPO"].astype(str).str.upper().str.strip()
 
-    movimientos["ENTRADA"] = movimientos["CANTIDAD"].where(movimientos["TIPO"] == "COMPRA", 0)
-    movimientos["SALIDA"] = movimientos["CANTIDAD"].where(movimientos["TIPO"] == "VENTA", 0)
+    movimientos["ENTRADA"] = movimientos["CANTIDAD"].where(
+        movimientos["TIPO"] == "COMPRA", 0
+    )
+
+    movimientos["SALIDA"] = movimientos["CANTIDAD"].where(
+        movimientos["TIPO"] == "VENTA", 0
+    )
 
     stock = movimientos.groupby("NUMERO_PRODUCTO")[["ENTRADA", "SALIDA"]].sum().reset_index()
     stock["STOCK"] = stock["ENTRADA"] - stock["SALIDA"]
@@ -92,8 +102,9 @@ def procesar_datos(productos, movimientos, inventario):
 
     return df
 
+
 # =========================
-# MÉTRICAS (NUEVO 🔥)
+# MÉTRICAS
 # =========================
 def calcular_metricas(df):
 
@@ -102,94 +113,33 @@ def calcular_metricas(df):
     metricas["total_stock"] = int(df["STOCK"].sum())
     metricas["criticos"] = df[df["STOCK"] < df["STOCK_MIN"]].shape[0]
     metricas["sobrestock"] = df[df["STOCK"] > df["STOCK_MAX"]].shape[0]
-    metricas["rotacion"] = df["SALIDA"].sum() / df["ENTRADA"].sum() if df["ENTRADA"].sum() != 0 else 0
+    metricas["rotacion"] = (
+        df["SALIDA"].sum() / df["ENTRADA"].sum()
+        if df["ENTRADA"].sum() != 0
+        else 0
+    )
     metricas["ganancia"] = (df["SALIDA"] * 0.3).sum()
 
     return metricas
 
-# =========================
-# DETALLE DASHBOARD
-# =========================
-def dashboard_detalle(df):
-    # TOP VENDIDOS
-    st.subheader("🔥 Top Productos Más Vendidos")
 
-    top = df.sort_values(
-        "SALIDA",
-        ascending=False
-    ).head(10)
-
-    st.bar_chart(
-        top.set_index("NOMBRE_PRODUCTO")["SALIDA"]
-    )
-
-    # CRÍTICOS
-    st.subheader("🚨 Productos Críticos")
-
-    criticos = df[
-        df["STOCK"] < df["STOCK_MIN"]
-    ]
-
-    st.dataframe(
-        criticos[
-            [
-                "NUMERO_PRODUCTO",
-                "NOMBRE_PRODUCTO",
-                "STOCK",
-                "STOCK_MIN"
-            ]
-        ]
-    )
-
-    # SEMÁFORO
-    def estado_stock(row):
-
-        if row["STOCK"] < row["STOCK_MIN"]:
-            return "🔴 Crítico"
-
-        elif row["STOCK"] > row["STOCK_MAX"]:
-            return "🟠 Sobrestock"
-
-        return "🟢 Normal"
-
-    df["ESTADO"] = df.apply(
-        estado_stock,
-        axis=1
-    )
-
-    st.subheader("📦 Estado Inventario")
-
-    st.dataframe(
-        df[
-            [
-                "NOMBRE_PRODUCTO",
-                "STOCK",
-                "ESTADO"
-            ]
-        ]
-    )
 # =========================
 # DASHBOARD GENERAL
 # =========================
 def dashboard_general(df):
- 
-
-    
 
     st.title("📊 Dashboard General")
 
     m = calcular_metricas(df)
 
-    # 🔥 FILA 1
     c1, c2 = st.columns(2)
 
     with c1:
         card_kpi("📦 Stock Total", f"{m['total_stock']:,}", "#1f77b4")
-           
+
     with c2:
         card_kpi("🚨 Críticos", m["criticos"], "#e74c3c")
 
-    # 🔥 FILA 2
     c3, c4 = st.columns(2)
 
     with c3:
@@ -198,7 +148,6 @@ def dashboard_general(df):
     with c4:
         card_kpi("📈 Rotación", f"{m['rotacion']:.2f}", "#2ecc71")
 
-    # 🔥 FILA 3
     c5, c6 = st.columns(2)
 
     with c5:
@@ -206,11 +155,11 @@ def dashboard_general(df):
 
     with c6:
         card_kpi("📊 Productos", len(df), "#34495e")
-        
-    # 🔙 Volver
+
     if st.button("🔙 Volver"):
         st.session_state.inv_vista = "menu"
         st.rerun()
+
 
 # =========================
 # APP PRINCIPAL
@@ -222,7 +171,6 @@ def inventarios_app():
 
     st.title("📊 Inventarios")
 
-    # CARGA
     archivo_prod = st.file_uploader("📦 Productos", type=["xlsx"], key="prod")
     archivo_mov = st.file_uploader("📊 Movimientos", type=["xlsx"], key="mov")
     archivo_inv = st.file_uploader("🏭 Inventario", type=["xlsx"], key="inv")
@@ -249,8 +197,10 @@ def inventarios_app():
     if "inv_vista" not in st.session_state:
         st.session_state.inv_vista = "menu"
 
-    # MENÚ
-    if st.session_state.inv_vista == "menu":    
+    # =========================
+    # MENÚ PRINCIPAL
+    # =========================
+    if st.session_state.inv_vista == "menu":
 
         c1, c2, c3, c4, c5 = st.columns(5)
 
@@ -258,38 +208,9 @@ def inventarios_app():
             st.session_state.inv_vista = "dash1"
             st.rerun()
 
-       if c2.button("Críticos"):
-    st.session_state.inv_vista = "dash2"
-
-
-if st.session_state.inv_vista == "dash2":
-
-    st.title("🚨 Módulo Críticos")
-
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Dashboard",
-        "Sin Stock",
-        "Riesgo Alto",
-        "Próximos a Agotarse",
-        "Detalle"
-    ])
-
-    with tab1:
-        dashboard_criticos(df)
-
-    with tab2:
-        sin_stock_app(df)
-
-    with tab3:
-        riesgo_alto_app(df)
-
-    with tab4:
-        proximos_agotarse_app(df)
-
-    with tab5:
-        detalle_criticos_app(df)
-
-    st.stop()
+        if c2.button("Críticos"):
+            st.session_state.inv_vista = "dash2"
+            st.rerun()
 
         if c3.button("Sobrestock"):
             st.session_state.inv_vista = "dash3"
@@ -303,6 +224,42 @@ if st.session_state.inv_vista == "dash2":
             st.session_state.inv_vista = "dash5"
             st.rerun()
 
-           # DASHBOARD
+    # =========================
+    # DASHBOARD GENERAL
+    # =========================
     if st.session_state.inv_vista == "dash1":
         dashboard_general(df)
+
+    # =========================
+    # MÓDULO CRÍTICOS
+    # =========================
+    if st.session_state.inv_vista == "dash2":
+
+        st.title("🚨 Módulo Críticos")
+
+        if st.button("🔙 Volver"):
+            st.session_state.inv_vista = "menu"
+            st.rerun()
+
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "Dashboard",
+            "Sin Stock",
+            "Riesgo Alto",
+            "Próximos a Agotarse",
+            "Detalle"
+        ])
+
+        with tab1:
+            dashboard_criticos(df)
+
+        with tab2:
+            sin_stock_app(df)
+
+        with tab3:
+            riesgo_alto_app(df)
+
+        with tab4:
+            proximos_agotarse_app(df)
+
+        with tab5:
+            detalle_criticos_app(df)
