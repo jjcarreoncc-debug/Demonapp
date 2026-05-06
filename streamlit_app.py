@@ -562,39 +562,41 @@ with st.sidebar:
 # =========================
 # INICIO
 # =========================
-# =========================
-# CONTROL DE VISTA
-# =========================
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-# =========================
-# INICIO
-# =========================
-if "vista" not in st.session_state:
-    st.session_state.vista = "inicio"
-if menu == "Inicio":
+def pantalla_inicio():
 
     st.title("🏠 Inicio")
 
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
 
+    # =========================
+    # CUANDO CARGA ARCHIVO
+    # =========================
     if archivo:
         st.session_state.archivo = archivo
+        st.session_state.data_cargada = True
+
         st.success("✅ Archivo cargado correctamente")
 
-        # 🔥 BOTÓN VOLVER AL MENÚ
-        if st.button("🔙 Volver al menú de navegación"):
-            st.session_state.menu = "Dashboard"  # o "Inicio" si quieres quedarte
+        if st.button("🔙 Ir al menú principal"):
+            st.session_state.vista = "menu"
             st.rerun()
 
+    # =========================
+    # SI YA EXISTE ARCHIVO
+    # =========================
     elif "archivo" in st.session_state:
-        st.info("📊 Ya hay un archivo cargado")
 
-        # 🔥 BOTÓN TAMBIÉN SI YA EXISTE ARCHIVO
-        if st.button("🔙 Ir al Dashboard"):
-            st.session_state.menu = "Dashboard"
+        st.success("✅ Archivo ya cargado")
+
+        if st.button("🔙 Ir al menú principal"):
+            st.session_state.vista = "menu"
             st.rerun()
 
+    # =========================
+    # SI NO HAY NADA
+    # =========================
+    else:
+        st.info("📂 Carga un archivo para comenzar")
 # =========================
 # DASHBOARD
 # =========================
