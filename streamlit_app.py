@@ -9,6 +9,7 @@ import streamlit as st
 from datetime import datetime
 from PIL import Image
 st.set_page_config(page_title="Dashboard Ejecutivo", layout="wide")
+st.set_page_config
 def inventarios_app():
 
 #from inventarios_app import inventarios_app
