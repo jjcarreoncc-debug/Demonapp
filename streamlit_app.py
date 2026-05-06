@@ -592,11 +592,7 @@ def pantalla_inicio():
             st.session_state.vista = "menu"
             st.rerun()
 
-    # =========================
-    # SI NO HAY NADA
-    # =========================
-    else:
-        st.info("📂 Carga un archivo para comenzar")
+    
 # =========================
 # DASHBOARD
 # =========================
