@@ -2,7 +2,6 @@
 import streamlit as st
 import pandas as pd
 def inventarios_app():
-    st.write("ARCHIVOS:", os.listdir())    
 #st.title("📦 Inventarios OK")
     st.title("📦 Inventarios")
 
