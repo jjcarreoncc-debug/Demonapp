@@ -43,14 +43,14 @@ menu = st.sidebar.radio(
 
 st.session_state.menu = menu
 
-#if menu == "📂 Carga":
-#    st.write("👉 Entrando a CARGA")   # DEBUG
-#    carga_app()   # 👈 AQUÍ SE CARGAN LOS ARCHIVOS
-#    st.stop() 
-#elif menu == "📊 Inventarios":
-#    st.write("👉 Entrando a INVENTARIOS")   # DEBUG
-#    inventarios_app()
-#    st.stop()
+if menu == "📂 Carga":
+    st.write("👉 Entrando a CARGA")   # DEBUG
+    carga_app()   # 👈 AQUÍ SE CARGAN LOS ARCHIVOS
+    st.stop() 
+elif menu == "📊 Inventarios":
+    st.write("👉 Entrando a INVENTARIOS")   # DEBUG
+    inventarios_app()
+    st.stop()
 
 # ------------------------
 # CONFIG
