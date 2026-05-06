@@ -72,22 +72,49 @@ def inventarios_app():
     inventario = st.session_state.get("inventario")
 
     # =========================
-    # 4. VALIDACIÓN
-    # =========================
-    
-    if productos is None or movimientos is None or inventario is None:
-        st.warning("⚠️ Debes cargar los 3 archivos")
-        st.stop()
-        st.session_state.data_ready = True
-    
-    if st.button("➡️ Ir a Inventarios"):
-        st.session_state.menu = "📊 Inventarios"
-        st.rerun()
-        
-    st.success("✅ Archivos cargados correctamente")
-    st.write("Columnas productos:", productos.columns)
-    st.write("Columnas movimientos:", movimientos.columns)
-    st.write("Columnas inventario:", inventario.columns)
+# PASO 2 - VALIDAR DATOS
+# =========================
+productos = st.session_state.get("productos")
+movimientos = st.session_state.get("movimientos")
+inventario = st.session_state.get("inventario")
+
+if productos is None or movimientos is None or inventario is None:
+    st.warning("⚠️ Primero debes cargar los archivos en el módulo de Carga")
+    st.stop()
+
+
+# =========================
+# PASO 3 - CONTROL SUBMENÚ
+# =========================
+if "inv_vista" not in st.session_state:
+    st.session_state.inv_vista = "menu"
+
+
+# =========================
+# MENÚ DASHBOARDS
+# =========================
+if st.session_state.inv_vista == "menu":
+
+    st.title("📊 Inventarios")
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+
+    if c1.button("General"):
+        st.session_state.inv_vista = "dash1"
+
+    if c2.button("Críticos"):
+        st.session_state.inv_vista = "dash2"
+
+    if c3.button("Sobrestock"):
+        st.session_state.inv_vista = "dash3"
+
+    if c4.button("Rotación"):
+        st.session_state.inv_vista = "dash4"
+
+    if c5.button("IA"):
+        st.session_state.inv_vista = "dash5"
+
+    st.stop()  # 🔥 evita que corra lo de abajo todavía 
     # =========================
     # 5. PROCESAMIENTO
     # =========================
