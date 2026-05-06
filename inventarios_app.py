@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-
+def inventarios_app():
+    st.write("OK INVENTARIOS")
 
 # =========================
 # 1. UPLOADERS (PRIMERO)
@@ -39,6 +40,12 @@ inventario = st.session_state.get("inventario")
 if not (productos_file and movimientos_file and inventario_file):
         st.warning("⚠️ Debes cargar los 3 archivos")
         return   # 👈 MUY IMPORTANT
+
+productos = pd.read_excel(productos_file)
+movimientos = pd.read_excel(movimientos_file)
+inventario = pd.read_excel(inventario_file)
+st.success("✅ Todo bien")
+
 if productos is None or movimientos is None or inventario is None:
         st.warning("⚠️ Debes cargar los 3 archivos")
         return    
