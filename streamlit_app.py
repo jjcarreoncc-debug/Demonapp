@@ -493,7 +493,6 @@ st.session_state.menu = menu
 # INICIO
 # =========================
 def pantalla_inicio():
-
     st.title("🏠 Inicio")
 
     archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
