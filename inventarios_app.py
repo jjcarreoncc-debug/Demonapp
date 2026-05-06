@@ -3,7 +3,13 @@ import pandas as pd
 import base64
 import os
 from alertas_app import dashboard_criticos
-
+from alertas_app import (
+    dashboard_criticos,
+    sin_stock_app,
+    riesgo_alto_app,
+    proximos_agotarse_app,
+    detalle_criticos_app
+)
 # =========================
 # CSS
 # =========================
@@ -252,10 +258,38 @@ def inventarios_app():
             st.session_state.inv_vista = "dash1"
             st.rerun()
 
-        if c2.button("Críticos"):
-            st.session_state.inv_vista = "dash2"
-            dashboard_criticos(df)
-            #st.rerun()
+       if c2.button("Críticos"):
+    st.session_state.inv_vista = "dash2"
+
+
+if st.session_state.inv_vista == "dash2":
+
+    st.title("🚨 Módulo Críticos")
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "Dashboard",
+        "Sin Stock",
+        "Riesgo Alto",
+        "Próximos a Agotarse",
+        "Detalle"
+    ])
+
+    with tab1:
+        dashboard_criticos(df)
+
+    with tab2:
+        sin_stock_app(df)
+
+    with tab3:
+        riesgo_alto_app(df)
+
+    with tab4:
+        proximos_agotarse_app(df)
+
+    with tab5:
+        detalle_criticos_app(df)
+
+    st.stop()
 
         if c3.button("Sobrestock"):
             st.session_state.inv_vista = "dash3"
