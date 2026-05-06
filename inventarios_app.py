@@ -169,8 +169,9 @@ def inventarios_app():
     # 🔙 Volver
     if st.button("🔙 Volver"):
         st.session_state.inv_vista = "menu"
-        st.rerun()
-
+        st.rerun() 
+        
+def procesar_datos(productos, movimientos, inventario):
     # =========================
     # 4. PROCESAMIENTO
     # =========================
@@ -184,22 +185,23 @@ def inventarios_app():
 
     df = stock.merge(productos, on="NUMERO_PRODUCTO", how="left")
     df = df.merge(inventario, on="NUMERO_PRODUCTO", how="left")
+    return df
+
 
 def dashboard_general(df):    
-    # =========================
-    # 5. KPIs
-    # =========================
+    def dashboard_general(df):
+
+    st.title("📊 Dashboard General")
+
     total_stock = int(df["STOCK"].sum())
     criticos = df[df["STOCK"] < df["STOCK_MIN"]].shape[0]
     sobrestock = df[df["STOCK"] > df["STOCK_MAX"]].shape[0]
-    rotacion = (df["SALIDA"].sum() / df["STOCK"].sum()) if df["STOCK"].sum() != 0 else 0
-
-    st.markdown("## 📊 KPIs")
+    rotacion = df["SALIDA"].sum() / df["ENTRADA"].sum() if df["ENTRADA"].sum() != 0 else 0
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Stock", f"{total_stock:,}")
-    c2.metric("Críticos", criticos)
-    c3.metric("Sobrestock", sobrestock)
-    c4.metric("Rotación", f"{rotacion:.2f}")
 
+    c1.metric("📦 Stock", f"{total_stock:,}")
+    c2.metric("🚨 Críticos", criticos)
+    c3.metric("⚠️ Sobrestock", sobrestock)
+    c4.metric("📈 Rotación", f"{rotacion:.2f}")
     st.dataframe(df)
