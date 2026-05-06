@@ -211,10 +211,17 @@ def inventarios_app():
 
 # DASHBOARD
 if st.session_state.inv_vista == "detalle_stock":
+
     st.title("📦 Detalle Stock")
+
     st.dataframe(df)
 
+    if st.button("🔙 Volver", key="volver_stock"):
+        st.session_state.inv_vista = "dash1"
+        st.rerun()
+
 if st.session_state.inv_vista == "detalle_criticos":
+
     st.title("🚨 Productos Críticos")
 
     criticos = df[df["STOCK"] < df["STOCK_MIN"]]
@@ -223,4 +230,8 @@ if st.session_state.inv_vista == "detalle_criticos":
         criticos[
             ["NUMERO_PRODUCTO", "NOMBRE_PRODUCTO", "STOCK", "STOCK_MIN"]
         ]
-    )  
+    )
+
+    if st.button("🔙 Volver", key="volver_criticos"):
+        st.session_state.inv_vista = "dash1"
+        st.rerun()
