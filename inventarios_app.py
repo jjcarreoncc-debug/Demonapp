@@ -114,7 +114,7 @@ if st.session_state.inv_vista == "menu":
     if c5.button("IA"):
         st.session_state.inv_vista = "dash5"
 
-    st.stop()  # 🔥 evita que corra lo de abajo todavía 
+     
     # =========================
     # 5. PROCESAMIENTO
     # =========================
