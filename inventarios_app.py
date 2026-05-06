@@ -10,7 +10,6 @@ from alertas_app import (
     proximos_agotarse_app,
     detalle_criticos_app
 )
-from ui_components import card_kpi
 
 from sobrestock_app import (
     dashboard_sobrestock,
@@ -18,6 +17,8 @@ from sobrestock_app import (
     capital_detenido_app,
     detalle_sobrestock_app
 )
+
+from ui_components import card_kpi
 
 
 # =========================
@@ -65,7 +66,6 @@ def set_bg():
     }}
     </style>
     """, unsafe_allow_html=True)
-
 
 
 # =========================
@@ -219,67 +219,66 @@ def inventarios_app():
     if st.session_state.inv_vista == "dash1":
         dashboard_general(df)
 
-# =========================
-# MÓDULO CRÍTICOS
-# =========================
-if st.session_state.inv_vista == "dash2":
+    # =========================
+    # MÓDULO CRÍTICOS
+    # =========================
+    if st.session_state.inv_vista == "dash2":
 
-    st.title("🚨 Módulo Críticos")
+        st.title("🚨 Módulo Críticos")
 
-    if st.button("🔙 Volver"):
-        st.session_state.inv_vista = "menu"
-        st.rerun()
+        if st.button("🔙 Volver"):
+            st.session_state.inv_vista = "menu"
+            st.rerun()
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Dashboard",
-        "Sin Stock",
-        "Riesgo Alto",
-        "Próximos a Agotarse",
-        "Detalle"
-    ])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "Dashboard",
+            "Sin Stock",
+            "Riesgo Alto",
+            "Próximos a Agotarse",
+            "Detalle"
+        ])
 
-    with tab1:
-        dashboard_criticos(df)
+        with tab1:
+            dashboard_criticos(df)
 
-    with tab2:
-        sin_stock_app(df)
+        with tab2:
+            sin_stock_app(df)
 
-    with tab3:
-        riesgo_alto_app(df)
+        with tab3:
+            riesgo_alto_app(df)
 
-    with tab4:
-        proximos_agotarse_app(df)
+        with tab4:
+            proximos_agotarse_app(df)
 
-    with tab5:
-        detalle_criticos_app(df)
+        with tab5:
+            detalle_criticos_app(df)
 
+    # =========================
+    # MÓDULO SOBRESTOCK
+    # =========================
+    if st.session_state.inv_vista == "dash3":
 
-# =========================
-# MÓDULO SOBRESTOCK
-# =========================
-if st.session_state.inv_vista == "dash3":
+        st.title("⚠️ Módulo Sobrestock")
 
-    st.title("⚠️ Módulo Sobrestock")
+        if st.button("🔙 Volver"):
+            st.session_state.inv_vista = "menu"
+            st.rerun()
 
-    if st.button("🔙 Volver"):
-        st.session_state.inv_vista = "menu"
-        st.rerun()
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "Dashboard",
+            "Mayor Exceso",
+            "Capital Detenido",
+            "Detalle"
+        ])
 
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "Dashboard",
-        "Mayor Exceso",
-        "Capital Detenido",
-        "Detalle"
-    ])
+        with tab1:
+            dashboard_sobrestock(df)
 
-    with tab1:
-        dashboard_sobrestock(df)
+        with tab2:
+            mayor_exceso_app(df)
 
-    with tab2:
-        mayor_exceso_app(df)
+        with tab3:
+            capital_detenido_app(df)
 
-    with tab3:
-        capital_detenido_app(df)
-
-    with tab4:
-        detalle_sobrestock_app(df)
+        with tab4:
+            detalle_sobrestock_app(df)
