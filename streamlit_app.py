@@ -549,6 +549,7 @@ if menu == "Dashboard":
                 ["Todos"] + sorted(df_temp[col_producto].dropna().astype(str).unique())
             )
         else:
+            
             st.warning("⚠️ No se encontró columna de producto")
 
 
