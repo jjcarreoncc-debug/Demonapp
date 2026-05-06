@@ -185,7 +185,7 @@ def inventarios_app():
         st.session_state.inv_vista = "menu"
 
     # MENÚ
-    if st.session_state.inv_vista == "menu":    
+if st.session_state.inv_vista == "menu":    
 
         c1, c2, c3, c4, c5 = st.columns(5)
 
