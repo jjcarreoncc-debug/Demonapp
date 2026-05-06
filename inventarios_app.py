@@ -104,7 +104,7 @@ def calcular_metricas(df):
 # DETALLE DASHBOARD
 # =========================
 def dashboard_detalle(df):
-
+if st.button("🔙 Volver"):
     # TOP VENDIDOS
     st.subheader("🔥 Top Productos Más Vendidos")
 
@@ -179,7 +179,7 @@ def dashboard_general(df):
 
     with c1:
         card_kpi("📦 Stock Total", f"{m['total_stock']:,}", "#1f77b4")
-        def dashboard_detalle(df):   
+           
     with c2:
         card_kpi("🚨 Críticos", m["criticos"], "#e74c3c")
 
