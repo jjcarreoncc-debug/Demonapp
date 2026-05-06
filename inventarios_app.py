@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import base64
 import os
-from alertas import dashboard_criticos
+from alertas_app import dashboard_criticos_app
 
 # =========================
 # CSS
