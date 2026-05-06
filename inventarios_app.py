@@ -1,7 +1,9 @@
-def inventarios_app(productos, movimientos, inventario):
-    import streamlit as st
-    import pandas as pd
-st.title("📦 Inventarios")
+
+import streamlit as st
+import pandas as pd
+def inventarios_app():
+#st.title("📦 Inventarios OK")
+    st.title("📦 Inventarios")
 
 # =========================
 # 1. UPLOADERS (PRIMERO)
