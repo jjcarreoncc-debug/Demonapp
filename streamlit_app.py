@@ -22,24 +22,26 @@ if "data_ready" not in st.session_state:
 
 # =========================
 # MENÚ DINÁMICO
+# =========================
 opciones = ["📂 Carga"]
 
 if st.session_state.data_ready:
     opciones.append("📊 Inventarios")
 
-# 🔥 VALIDAR QUE EL MENU EXISTE
-if st.session_state.menu not in opciones:
-    st.session_state.menu = "📂 Carga"
+# 🔥 índice seguro
+try:
+    idx = opciones.index(st.session_state.menu)
+except ValueError:
+    idx = 0  # fallback a Carga
+    st.session_state.menu = opciones[0]
 
-menu = st.sidebar.selectbox(
-    "📌 Menú",
+menu = st.sidebar.radio(
+    "Menú",
     opciones,
-    index=opciones.index(st.session_state.menu)
+    index=idx
 )
 
 st.session_state.menu = menu
-# =========================
-
 # =========================
 # NAVEGACIÓN
 # =========================
