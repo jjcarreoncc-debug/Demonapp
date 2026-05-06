@@ -1226,7 +1226,7 @@ if st.session_state.vista == "inicio":
     st.markdown("## 👈 Selecciona opciones en el panel izquierdo")
     st.image("imagen8.png", width=1400)
     st.write("DEBUG VISTA:", st.session_state.vista)
-    st.stop()    
+    #st.stop()    
 
 #recomendaciones
 # =========================
