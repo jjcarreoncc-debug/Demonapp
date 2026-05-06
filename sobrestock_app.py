@@ -6,6 +6,7 @@ from ui_components import card_kpi
 def dashboard_sobrestock(df):
 
     st.subheader("⚠️ Dashboard Sobrestock")
+    st.write(df[["STOCK", "STOCK_MAX"]].head())
 
     sobrestock = df[df["STOCK"] > df["STOCK_MAX"]]
 
