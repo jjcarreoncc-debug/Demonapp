@@ -9,9 +9,6 @@ from logistica_filtros_app import filtros_logistica
 from logistica_aplicar_filtros import aplicar_filtros_logistica
 
 
-# =========================
-# CSS LOGÍSTICA
-# =========================
 def aplicar_css_logistica():
 
     st.markdown("""
@@ -46,9 +43,6 @@ def aplicar_css_logistica():
     """, unsafe_allow_html=True)
 
 
-# =========================
-# ESTRUCTURA ARCHIVOS
-# =========================
 def estructura_archivos_logistica():
 
     st.info("📌 Los archivos Excel deben venir en forma horizontal.")
@@ -76,9 +70,6 @@ def estructura_archivos_logistica():
         """)
 
 
-# =========================
-# APP LOGÍSTICA
-# =========================
 def logistica_app():
 
     aplicar_css_logistica()
@@ -94,9 +85,6 @@ def logistica_app():
         st.session_state.logistica_vista = "menu"
         st.rerun()
 
-    # =========================
-    # FILES
-    # =========================
     archivo_transito = st.file_uploader(
         "🚛 Tránsito",
         type=["xlsx"],
@@ -133,9 +121,6 @@ def logistica_app():
         key="despachos_file"
     )
 
-    # =========================
-    # SESSION
-    # =========================
     if archivo_transito:
         st.session_state.df_transito = pd.read_excel(archivo_transito)
 
@@ -172,18 +157,12 @@ def logistica_app():
         st.warning("⚠️ Carga todos los archivos Excel de Logística")
         return
 
-    # =========================
-    # FILTROS
-    # =========================
     filtros = filtros_logistica(
         transito,
         recepcion,
         despachos
     )
 
-    # =========================
-    # APLICAR FILTROS
-    # =========================
     (
         transito_filtrado,
         recepcion_filtrado,
@@ -195,9 +174,6 @@ def logistica_app():
         filtros
     )
 
-    # =========================
-    # MENÚ PRINCIPAL
-    # =========================
     if st.session_state.logistica_vista == "menu":
 
         st.subheader("Menú principal")
@@ -217,22 +193,16 @@ def logistica_app():
             st.rerun()
 
         if c4.button("📈 Analítica"):
-            logistica_analitica_app( = "analitica"
+            st.session_state.logistica_vista = "analitica"
             st.rerun()
 
-    # =========================
-    # VOLVER
-    # =========================
-    if logistica_analitica_app( != "menu":
+    if st.session_state.logistica_vista != "menu":
 
         if st.button("🔙 Volver"):
-            logistica_analitica_app( = "menu"
+            st.session_state.logistica_vista = "menu"
             st.rerun()
 
-    # =========================
-    # DASHBOARD EJECUTIVO
-    # =========================
-    if logistica_analitica_app( == "dashboard_ejecutivo":
+    if st.session_state.logistica_vista == "dashboard_ejecutivo":
 
         tab1, tab2, tab3 = st.tabs([
             "📊 Resumen",
@@ -266,10 +236,7 @@ def logistica_app():
                 rutas
             )
 
-    # =========================
-    # OPERACIÓN
-    # =========================
-    elif logistica_analitica_app( == "operacion":
+    elif st.session_state.logistica_vista == "operacion":
 
         tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "🚛 Tránsito",
@@ -314,21 +281,15 @@ def logistica_app():
                 rutas
             )
 
-    # ==========================
-    # RIESGOS
-    # =========================
-    elif logistica_analitica_app( == "riesgos":
+    elif st.session_state.logistica_vista == "riesgos":
 
         st.subheader("⚠️ Riesgos")
         st.warning("Módulo de riesgos en construcción.")
 
-    # =========================
-    # ANALÍTICA
-    # =========================
     elif st.session_state.logistica_vista == "analitica":
 
         from logistica_analitica_app import logistica_analitica_app
-        
+
         logistica_analitica_app(
             transito_filtrado,
             recepcion_filtrado,
@@ -336,5 +297,3 @@ def logistica_app():
             transportistas,
             rutas
         )
-
-        
