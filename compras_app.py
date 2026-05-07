@@ -22,7 +22,7 @@ def aplicar_css_compras():
     </style>
     """, unsafe_allow_html=True)
     if st.session_state.compras_vista == "menu":
-
+        def compras_app():
     # FILA 1
     c1, c2, c3 = st.columns(3)
     
