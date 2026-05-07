@@ -20,7 +20,10 @@ def indicadores_logistica_app(
     despachos = despachos.copy()
     transportistas = transportistas.copy()
     rutas = rutas.copy()
-
+    
+    for df in [transito, recepcion, despachos, transportistas, rutas]:
+    df.columns = df.columns.astype(str).str.strip()
+    st.write("Columnas despachos:", list(despachos.columns))
     # =========================
     # INDICADORES
     # =========================
