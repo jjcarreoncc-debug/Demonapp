@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
+from ui_components import card_kp
 
 # =========================
 # CSS COMPRAS
@@ -41,7 +43,60 @@ def aplicar_css_compras():
     </style>
     """, unsafe_allow_html=True)
 
+def dashboard_compras(df):
 
+    st.subheader("📊 Dashboard Compras")
+
+    df = df.copy()
+
+    df["COSTO_TOTAL"] = df["CANTIDAD"] * df["COSTO_UNITARIO"]
+    df["VENTA_TOTAL_ESTIMADA"] = df["CANTIDAD"] * df["PRECIO_VENTA"]
+    df["MARGEN_TOTAL"] = df["VENTA_TOTAL_ESTIMADA"] - df["COSTO_TOTAL"]
+
+    total_comprado = int(df["CANTIDAD"].sum())
+    costo_total = df["COSTO_TOTAL"].sum()
+    margen_total = df["MARGEN_TOTAL"].sum()
+    productos_comprados = df["NUMERO_PRODUCTO"].nunique()
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        card_kpi("🛒 Unidades Compradas", f"{total_comprado:,}", "#3498db")
+
+    with c2:
+        card_kpi("💰 Costo Total", f"${costo_total:,.0f}", "#e67e22")
+
+    with c3:
+        card_kpi("📈 Margen Estimado", f"${margen_total:,.0f}", "#2ecc71")
+
+    with c4:
+        card_kpi("📦 Productos", productos_comprados, "#8e44ad")
+
+    st.divider()
+
+    st.markdown("### 🔥 Top productos comprados")
+
+    top = (
+        df.groupby("NOMBRE_PRODUCTO")["CANTIDAD"]
+        .sum()
+        .reset_index()
+        .sort_values("CANTIDAD", ascending=False)
+        .head(10)
+    )
+
+    fig = px.bar(
+        top,
+        x="CANTIDAD",
+        y="NOMBRE_PRODUCTO",
+        orientation="h",
+        text="CANTIDAD",
+        title="Top 10 productos comprados"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### 📋 Vista rápida")
+    st.dataframe(df.head(20), use_container_width=True)
 # =========================
 # APP COMPRAS
 # =========================
@@ -138,6 +193,7 @@ def compras_app():
     # VISTAS TEMPORALES
     # =========================
     if st.session_state.compras_vista == "dashboard":
+
         st.subheader("📊 Dashboard Compras")
         st.dataframe(df.head(), use_container_width=True)
 
