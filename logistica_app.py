@@ -4,6 +4,7 @@ import pandas as pd
 from logistica_dashboard_app import dashboard_logistica
 from logistica_indicadores_app import indicadores_logistica_app
 from logistica_operativa_app import logistica_operativa_app
+from logistica_graficas_app import logistica_graficas_app
 
 
 # =========================
@@ -206,8 +207,12 @@ def logistica_app():
             st.session_state.logistica_vista = "detalle"
             st.rerun()
 
-        c9, c10, _, _ = st.columns(4)
-
+        c9, c10, c11, _ = st.columns(4)
+        
+        if c11.button("📈 Gráficas"):
+            st.session_state.logistica_vista = "graficas"
+            st.rerun()
+            
         if c9.button("📊 Indicadores"):
             st.session_state.logistica_vista = "indicadores"
             st.rerun()
@@ -273,6 +278,15 @@ def logistica_app():
 
     elif st.session_state.logistica_vista == "indicadores":
 
+    elif st.session_state.logistica_vista == "operativo":
+
+    logistica_operativa_app(
+        transito,
+        recepcion,
+        despachos,
+        transportistas,
+        rutas
+    )    
         indicadores_logistica_app(
             transito,
             bodegas,
@@ -291,3 +305,12 @@ def logistica_app():
             transportistas,
             rutas
         )
+   elif st.session_state.logistica_vista == "graficas":
+
+    logistica_graficas_app(
+        transito,
+        recepcion,
+        despachos,
+        transportistas,
+        rutas
+    )
