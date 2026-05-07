@@ -1,7 +1,7 @@
 
 import streamlit as st
 import pandas as pd
-
+from logistica_dashboard_app import dashboard_logistica
 
 # =========================
 # CSS LOGÍSTICA
