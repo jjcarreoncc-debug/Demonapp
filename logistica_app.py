@@ -5,6 +5,7 @@ from logistica_dashboard_app import dashboard_logistica
 from logistica_indicadores_app import indicadores_logistica_app
 from logistica_operativa_app import logistica_operativa_app
 from logistica_graficas_app import logistica_graficas_app
+from logistica_filtros_app import filtros_logistica
 from logistica_aplicar_filtros import aplicar_filtros_logistica
 
 
@@ -168,27 +169,27 @@ def logistica_app():
         return
 
     # =========================
-# FILTROS
-# =========================
-filtros = filtros_logistica(
-    transito,
-    recepcion,
-    despachos
-)
+    # FILTROS
+    # =========================
+    filtros = filtros_logistica(
+        transito,
+        recepcion,
+        despachos
+    )
 
-# =========================
-# APLICAR FILTROS
-# =========================
-(
-    transito_filtrado,
-    recepcion_filtrado,
-    despachos_filtrado
-) = aplicar_filtros_logistica(
-    transito,
-    recepcion,
-    despachos,
-    filtros
-)
+    # =========================
+    # APLICAR FILTROS
+    # =========================
+    (
+        transito_filtrado,
+        recepcion_filtrado,
+        despachos_filtrado
+    ) = aplicar_filtros_logistica(
+        transito,
+        recepcion,
+        despachos,
+        filtros
+    )
 
     # =========================
     # MENÚ
@@ -232,17 +233,17 @@ filtros = filtros_logistica(
             st.rerun()
 
         c9, c10, c11, _ = st.columns(4)
-        
-        if c11.button("📈 Gráficas"):
-            st.session_state.logistica_vista = "graficas"
-            st.rerun()
-            
+
         if c9.button("📊 Indicadores"):
             st.session_state.logistica_vista = "indicadores"
             st.rerun()
 
         if c10.button("⚙️ Operativo"):
             st.session_state.logistica_vista = "operativo"
+            st.rerun()
+
+        if c11.button("📈 Gráficas"):
+            st.session_state.logistica_vista = "graficas"
             st.rerun()
 
     # =========================
@@ -260,7 +261,7 @@ filtros = filtros_logistica(
     if st.session_state.logistica_vista == "dashboard":
 
         dashboard_logistica(
-            transito,
+            transito_filtrado,
             bodegas,
             transportistas
         )
@@ -273,7 +274,7 @@ filtros = filtros_logistica(
     elif st.session_state.logistica_vista == "transito":
 
         st.subheader("🚛 Tránsito")
-        st.dataframe(transito, use_container_width=True)
+        st.dataframe(transito_filtrado, use_container_width=True)
 
     elif st.session_state.logistica_vista == "transportistas":
 
@@ -288,53 +289,45 @@ filtros = filtros_logistica(
     elif st.session_state.logistica_vista == "recepcion":
 
         st.subheader("📥 Recepción")
-        st.dataframe(recepcion, use_container_width=True)
+        st.dataframe(recepcion_filtrado, use_container_width=True)
 
     elif st.session_state.logistica_vista == "despachos":
 
         st.subheader("📤 Despachos")
-        st.dataframe(despachos, use_container_width=True)
+        st.dataframe(despachos_filtrado, use_container_width=True)
 
     elif st.session_state.logistica_vista == "detalle":
 
         st.subheader("📋 Detalle General")
-        st.dataframe(transito, use_container_width=True)
+        st.dataframe(transito_filtrado, use_container_width=True)
 
     elif st.session_state.logistica_vista == "indicadores":
 
-    elif st.session_state.logistica_vista == "operativo":
-
-    logistica_operativa_app(
-        transito,
-        recepcion,
-        despachos,
-        transportistas,
-        rutas
-    )    
         indicadores_logistica_app(
-            transito,
+            transito_filtrado,
             bodegas,
             transportistas,
-            recepcion,
-            despachos,
+            recepcion_filtrado,
+            despachos_filtrado,
             rutas
         )
 
     elif st.session_state.logistica_vista == "operativo":
 
         logistica_operativa_app(
-            transito,
-            recepcion,
-            despachos,
+            transito_filtrado,
+            recepcion_filtrado,
+            despachos_filtrado,
             transportistas,
             rutas
         )
-   elif st.session_state.logistica_vista == "graficas":
 
-    logistica_graficas_app(
-        transito,
-        recepcion,
-        despachos,
-        transportistas,
-        rutas
-    )
+    elif st.session_state.logistica_vista == "graficas":
+
+        logistica_graficas_app(
+            transito_filtrado,
+            recepcion_filtrado,
+            despachos_filtrado,
+            transportistas,
+            rutas
+        )
