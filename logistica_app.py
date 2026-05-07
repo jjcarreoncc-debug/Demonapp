@@ -327,5 +327,15 @@ def logistica_app():
     # =========================
     elif st.session_state.logistica_vista == "analitica":
 
+    from logistica_analitica_app import logistica_analitica_app
+
+    logistica_analitica_app(
+        transito_filtrado,
+        recepcion_filtrado,
+        despachos_filtrado,
+        transportistas,
+        rutas
+    )
+
         st.subheader("📈 Analítica")
         st.info("Módulo analítico en construcción.")
