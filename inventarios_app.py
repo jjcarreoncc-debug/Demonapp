@@ -7,7 +7,7 @@ from alertas_app import (
     dashboard_criticos,
     sin_stock_app,
     riesgo_alto_app,
-    proximos_agotarse_app,
+    proximos_agotarse_app
     detalle_criticos_app
 )
 
@@ -18,6 +18,13 @@ from sobrestock_app import (
     detalle_sobrestock_app
 )
 
+from rotacion_app import (
+    dashboard_rotacion,
+    top_vendidos_app,
+    baja_rotacion_app,
+    entradas_salidas_app,
+    detalle_rotacion_app
+)
 from ui_components import card_kpi
 
 
@@ -282,3 +289,37 @@ def inventarios_app():
 
         with tab4:
             detalle_sobrestock_app(df)
+
+# =========================
+# MÓDULO ROTACIÓN
+# =========================
+if st.session_state.inv_vista == "dash4":
+
+    st.title("🔄 Módulo Rotación")
+
+    if st.button("🔙 Volver"):
+        st.session_state.inv_vista = "menu"
+        st.rerun()
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "Dashboard",
+        "Top Vendidos",
+        "Baja Rotación",
+        "Entradas vs Salidas",
+        "Detalle"
+    ])
+
+    with tab1:
+        dashboard_rotacion(df)
+
+    with tab2:
+        top_vendidos_app(df)
+
+    with tab3:
+        baja_rotacion_app(df)
+
+    with tab4:
+        entradas_salidas_app(df)
+
+    with tab5:
+        detalle_rotacion_app(df)
