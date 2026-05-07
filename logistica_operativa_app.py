@@ -34,7 +34,7 @@ def logistica_operativa_app(
 
     # =========================
     # BUSCAR COLUMNAS
-    # =========================
+    # ==========================
     col_estado_transito = buscar_columna(
         transito,
         ["ESTADO_TRANSITO", "ESTADO TRANSITO", "ESTADO"]
