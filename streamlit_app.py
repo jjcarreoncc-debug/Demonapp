@@ -10,6 +10,7 @@ from datetime import datetime
 from PIL import Image
 from inventarios_app import inventarios_app
 from carga_app import carga_app
+from compras_app import compras app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 
     
@@ -466,7 +467,7 @@ with st.sidebar:
     # ------------------------
     # ------------------------
     if st.session_state.rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Inventarios", "Mantenimiento"]
+        opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "Mantenimiento"]
     else:
         opciones = ["Inicio", "Dashboard", "Inventarios"]
 
@@ -479,7 +480,7 @@ if "menu" not in st.session_state:
 # ------------------------
 # MENU
 # ------------------------
-opciones = ["Inicio", "Dashboard", "Inventarios", "Mantenimiento"]
+opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "Mantenimiento"]
 # índice seguro
 try:
     idx = opciones.index(st.session_state.menu)
@@ -603,7 +604,11 @@ elif menu == "Dashboard":
     st.title("📊 Dashboard")
 
 elif menu == "Inventarios":
+    Compras_app()
+
+elif menu == "Compras":
     inventarios_app()
+    
 elif menu == "Mantenimiento":
     st.title("⚙️ Mantenimiento")
                 
