@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 
 from logistica_dashboard_app import dashboard_logistica
+from logistica_indicadores_app import indicadores_logistica_app
 
 
 # =========================
@@ -90,6 +91,15 @@ def logistica_app():
 
     if "logistica_vista" not in st.session_state:
         st.session_state.logistica_vista = "menu"
+    
+    elif st.session_state.logistica_vista == "indicadores":
+    indicadores_logistica_app(
+        transito,
+        recepcion,
+        despachos,
+        transportistas,
+        rutas
+    )
 
     # =========================
     # FILES
@@ -239,6 +249,10 @@ def logistica_app():
 
         if c8.button("📋 Detalle"):
             st.session_state.logistica_vista = "detalle"
+            st.rerun()
+            
+        if c9.button("📊 Indicadores"):
+            st.session_state.logistica_vista = "indicadores"
             st.rerun()
 
     # =========================
