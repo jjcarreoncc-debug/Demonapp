@@ -7,9 +7,10 @@ import pandas as pd
 # =========================
 def indicadores_logistica_app(
     transito,
+    bodegas,
+    transportistas,
     recepcion,
     despachos,
-    transportistas,
     rutas
 ):
 
