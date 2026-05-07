@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 from ui_components import card_kp
 
-# =========================
+## =========================
 # CSS COMPRAS
 # =========================
 def aplicar_css_compras():
