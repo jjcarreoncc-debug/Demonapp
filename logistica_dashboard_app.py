@@ -1,4 +1,4 @@
-  import streamlit as st
+import streamlit as st
 
 def dashboard_logistica(transito, bodegas, transportistas):
     st.title("🚚 Dashboard Logística")
