@@ -7,6 +7,7 @@ from logistica_operativa_app import logistica_operativa_app
 from logistica_graficas_app import logistica_graficas_app
 from logistica_filtros_app import filtros_logistica
 from logistica_aplicar_filtros import aplicar_filtros_logistica
+from logistica_carga_datos import cargar_datos_logistica
 
 
 def aplicar_css_logistica():
@@ -85,67 +86,97 @@ def logistica_app():
         st.session_state.logistica_vista = "menu"
         st.rerun()
 
-    archivo_transito = st.file_uploader(
-        "🚛 Tránsito",
-        type=["xlsx"],
-        key="transito_file"
-    )
+    # =========================
+    # CARGA AUTOMÁTICA
+    # =========================
+    (
+        transito,
+        bodegas,
+        transportistas,
+        rutas,
+        recepcion,
+        despachos
+    ) = cargar_datos_logistica()
 
-    archivo_bodegas = st.file_uploader(
-        "🏬 Bodegas",
-        type=["xlsx"],
-        key="bodegas_file_log"
-    )
+    carga_automatica_ok = all([
+        transito is not None,
+        bodegas is not None,
+        transportistas is not None,
+        rutas is not None,
+        recepcion is not None,
+        despachos is not None
+    ])
 
-    archivo_transportistas = st.file_uploader(
-        "🚚 Transportistas",
-        type=["xlsx"],
-        key="transportistas_file"
-    )
+    # =========================
+    # MENSAJE
+    # =========================
+    if carga_automatica_ok:
 
-    archivo_rutas = st.file_uploader(
-        "🛣️ Rutas",
-        type=["xlsx"],
-        key="rutas_file"
-    )
+        st.success("✅ Datos de logística cargados automáticamente desde GitHub.")
 
-    archivo_recepcion = st.file_uploader(
-        "📥 Recepción",
-        type=["xlsx"],
-        key="recepcion_file"
-    )
+    else:
 
-    archivo_despachos = st.file_uploader(
-        "📤 Despachos",
-        type=["xlsx"],
-        key="despachos_file"
-    )
+        st.warning(
+            "⚠️ No se pudieron cargar los archivos automáticos. Usa carga manual."
+        )
 
-    if archivo_transito:
-        st.session_state.df_transito = pd.read_excel(archivo_transito)
+        archivo_transito = st.file_uploader(
+            "🚛 Tránsito",
+            type=["xlsx"],
+            key="transito_file"
+        )
 
-    if archivo_bodegas:
-        st.session_state.df_bodegas_log = pd.read_excel(archivo_bodegas)
+        archivo_bodegas = st.file_uploader(
+            "🏬 Bodegas",
+            type=["xlsx"],
+            key="bodegas_file_log"
+        )
 
-    if archivo_transportistas:
-        st.session_state.df_transportistas = pd.read_excel(archivo_transportistas)
+        archivo_transportistas = st.file_uploader(
+            "🚚 Transportistas",
+            type=["xlsx"],
+            key="transportistas_file"
+        )
 
-    if archivo_rutas:
-        st.session_state.df_rutas = pd.read_excel(archivo_rutas)
+        archivo_rutas = st.file_uploader(
+            "🛣️ Rutas",
+            type=["xlsx"],
+            key="rutas_file"
+        )
 
-    if archivo_recepcion:
-        st.session_state.df_recepcion = pd.read_excel(archivo_recepcion)
+        archivo_recepcion = st.file_uploader(
+            "📥 Recepción",
+            type=["xlsx"],
+            key="recepcion_file"
+        )
 
-    if archivo_despachos:
-        st.session_state.df_despachos = pd.read_excel(archivo_despachos)
+        archivo_despachos = st.file_uploader(
+            "📤 Despachos",
+            type=["xlsx"],
+            key="despachos_file"
+        )
 
-    transito = st.session_state.get("df_transito")
-    bodegas = st.session_state.get("df_bodegas_log")
-    transportistas = st.session_state.get("df_transportistas")
-    rutas = st.session_state.get("df_rutas")
-    recepcion = st.session_state.get("df_recepcion")
-    despachos = st.session_state.get("df_despachos")
+        if archivo_transito:
+            transito = pd.read_excel(archivo_transito)
 
+        if archivo_bodegas:
+            bodegas = pd.read_excel(archivo_bodegas)
+
+        if archivo_transportistas:
+            transportistas = pd.read_excel(archivo_transportistas)
+
+        if archivo_rutas:
+            rutas = pd.read_excel(archivo_rutas)
+
+        if archivo_recepcion:
+            recepcion = pd.read_excel(archivo_recepcion)
+
+        if archivo_despachos:
+            despachos = pd.read_excel(archivo_despachos)
+
+    # =========================
+    # VALIDACIÓN
+    # =========================
     if (
         transito is None
         or bodegas is None
@@ -157,12 +188,18 @@ def logistica_app():
         st.warning("⚠️ Carga todos los archivos Excel de Logística")
         return
 
+    # =========================
+    # FILTROS
+    # =========================
     filtros = filtros_logistica(
         transito,
         recepcion,
         despachos
     )
 
+    # =========================
+    # APLICAR FILTROS
+    # =========================
     (
         transito_filtrado,
         recepcion_filtrado,
@@ -174,6 +211,9 @@ def logistica_app():
         filtros
     )
 
+    # =========================
+    # MENÚ PRINCIPAL
+    # =========================
     if st.session_state.logistica_vista == "menu":
 
         st.subheader("Menú principal")
@@ -196,12 +236,18 @@ def logistica_app():
             st.session_state.logistica_vista = "analitica"
             st.rerun()
 
+    # =========================
+    # VOLVER
+    # =========================
     if st.session_state.logistica_vista != "menu":
 
         if st.button("🔙 Volver"):
             st.session_state.logistica_vista = "menu"
             st.rerun()
 
+    # =========================
+    # DASHBOARD EJECUTIVO
+    # =========================
     if st.session_state.logistica_vista == "dashboard_ejecutivo":
 
         tab1, tab2, tab3 = st.tabs([
@@ -236,6 +282,9 @@ def logistica_app():
                 rutas
             )
 
+    # =========================
+    # OPERACIÓN
+    # =========================
     elif st.session_state.logistica_vista == "operacion":
 
         tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
@@ -281,11 +330,17 @@ def logistica_app():
                 rutas
             )
 
+    # =========================
+    # RIESGOS
+    # =========================
     elif st.session_state.logistica_vista == "riesgos":
 
         st.subheader("⚠️ Riesgos")
         st.warning("Módulo de riesgos en construcción.")
 
+    # =========================
+    # ANALÍTICA
+    # =========================
     elif st.session_state.logistica_vista == "analitica":
 
         from logistica_analitica_app import logistica_analitica_app
