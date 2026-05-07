@@ -40,6 +40,31 @@ def aplicar_css_logistica():
     """, unsafe_allow_html=True)
 
 
+def estructura_archivos_logistica():
+
+    st.info("📌 Los archivos Excel deben venir en forma horizontal: la primera fila debe contener los nombres de columnas.")
+
+    with st.expander("📄 Estructura requerida de archivos Logística"):
+
+        st.markdown("""
+        **TRANSITO**  
+        `ID_TRANSITO | FECHA_SALIDA | FECHA_ESTIMADA | FECHA_LLEGADA | NUMERO_PRODUCTO | CANTIDAD | ID_ORIGEN | ID_DESTINO | ID_TRANSPORTISTA | ESTADO_TRANSITO`
+
+        **BODEGAS**  
+        `ID_BODEGA | NOMBRE_BODEGA | CIUDAD | REGION | CAPACIDAD_MAX | TIPO_BODEGA | ESTADO_BODEGA`
+
+        **TRANSPORTISTAS**  
+        `ID_TRANSPORTISTA | NOMBRE_TRANSPORTISTA | TIPO_TRANSPORTE | PLACA | CONDUCTOR | TELEFONO | COSTO_FLETE | ESTADO_TRANSPORTISTA`
+
+        **RUTAS**  
+        `ID_RUTA | ID_ORIGEN | ID_DESTINO | CIUDAD_ORIGEN | CIUDAD_DESTINO | KM_RUTA | TIEMPO_ESTIMADO | COSTO_ESTIMADO`
+
+        **RECEPCION**  
+        `ID_RECEPCION | ID_TRANSITO | FECHA_RECEPCION | NUMERO_PRODUCTO | CANTIDAD_ESPERADA | CANTIDAD_RECIBIDA | DIFERENCIA | ESTADO_RECEPCION`
+
+        **DESPACHOS**  
+        `ID_DESPACHO | FECHA_DESPACHO | NUMERO_PRODUCTO | CANTIDAD | ID_BODEGA | DESTINO_CLIENTE | ID_TRANSPORTISTA | ESTADO_DESPACHO`
+        """)
 # =========================
 # DASHBOARD LOGÍSTICA
 # =========================
