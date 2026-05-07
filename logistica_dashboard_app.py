@@ -1,5 +1,5 @@
   import streamlit as st
-
+  from logistica_dashboard_app import dashboard_logistica
 
 # =========================
 # DASHBOARD LOGÍSTICA
