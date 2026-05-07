@@ -42,6 +42,14 @@ def aplicar_css_compras():
         }
     </style>
     """, unsafe_allow_html=True)
+ 
+    from compras_general_app import (
+    dashboard_compras_general,
+    top_compras_app,
+    costos_compras_app,
+    compras_sin_precio_app,
+    detalle_compras_app
+)
 
 def dashboard_compras(df):
 
@@ -105,7 +113,32 @@ def dashboard_compras(df):
     st.subheader("📊 Dashboard Compras")
 
     df = df.copy()
+st.title("📥 Compras")
 
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Dashboard",
+    "Top Compras",
+    "Costos",
+    "Sin Precio",
+    "Detalle"
+])
+
+with tab1:
+    dashboard_compras_general(df)
+
+with tab2:
+    top_compras_app(df)
+
+with tab3:
+    costos_compras_app(df)
+
+with tab4:
+    compras_sin_precio_app(df)
+
+with tab5:
+    detalle_compras_app(df)
+
+    
     # =========================
     # CÁLCULOS
     # =========================
