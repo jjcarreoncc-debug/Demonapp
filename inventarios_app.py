@@ -7,7 +7,7 @@ from alertas_app import (
     dashboard_criticos,
     sin_stock_app,
     riesgo_alto_app,
-    proximos_agotarse_app
+    proximos_agotarse_app,
     detalle_criticos_app
 )
 
