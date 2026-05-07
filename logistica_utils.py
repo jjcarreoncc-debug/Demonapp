@@ -16,18 +16,23 @@ def limpiar_columnas(df):
 def buscar_columna(df, opciones):
     """
     Busca una columna usando varias opciones posibles.
+    Acepta espacios, guiones bajos y mayúsculas/minúsculas.
     """
     if df is None:
         return None
 
-    for col in df.columns:
-        nombre = str(col).upper().strip()
+    opciones_limpias = [
+        str(op).upper().strip().replace(" ", "").replace("_", "")
+        for op in opciones
+    ]
 
-        if nombre in opciones:
+    for col in df.columns:
+        nombre = str(col).upper().strip().replace(" ", "").replace("_", "")
+
+        if nombre in opciones_limpias:
             return col
 
     return None
-
 
 def contar_estado(df, columna, estado):
     """
