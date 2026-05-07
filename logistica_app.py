@@ -109,9 +109,9 @@ def logistica_app():
     recepcion = st.session_state.get("df_recepcion")
     despachos = st.session_state.get("df_despachos")
 
-    if None in [transito, bodegas, transportistas, rutas, recepcion, despachos]:
-        st.warning("⚠️ Carga todos los archivos Excel de Logística")
-        return
+    f any(df is None for df in [transito, bodegas, transportistas, rutas, recepcion, despachos]):
+    st.warning("⚠️ Carga todos los archivos Excel de Logística")
+    return
 
     # =========================
     # MENÚ
