@@ -20,32 +20,26 @@ def indicadores_logistica_app(
     despachos = despachos.copy()
     transportistas = transportistas.copy()
     rutas = rutas.copy()
-    
+
     for df in [transito, recepcion, despachos, transportistas, rutas]:
         df.columns = df.columns.astype(str).str.strip()
+
     st.write("Columnas despachos:", list(despachos.columns))
-   
-    # Buscar columna de estado despacho de forma segura
-col_estado_despacho = None
 
-for col in despachos.columns:
-    if col.upper().strip() in ["ESTADO_DESPACHO", "ESTADO DESPACHO", "ESTADO"]:
-        col_estado_despacho = col
-        break
+    # =========================
+    # BUSCAR COLUMNAS
+    # =========================
+    col_estado_despacho = None
 
-if col_estado_despacho is None:
-    st.warning("No se encontró la columna de estado de despacho.")
-    st.write("Columnas disponibles en despachos:", list(despachos.columns))
-    pendientes = 0
-else:
-    pendientes = len(
-        despachos[
-            despachos[col_estado_despacho]
-            .astype(str)
-            .str.upper()
-            .str.strip() == "PENDIENTE"
-        ]
-    )  
+    for col in despachos.columns:
+        if str(col).upper().strip() in [
+            "ESTADO_DESPACHO",
+            "ESTADO DESPACHO",
+            "ESTADO"
+        ]:
+            col_estado_despacho = col
+            break
+
     # =========================
     # INDICADORES
     # =========================
@@ -79,15 +73,19 @@ else:
         ]
     )
 
-    pendientes = len(
-        
-        despachos[
-            despachos[col_estado_despacho]
-            .astype(str)
-            .str.upper()
-            .str.strip() == "PENDIENTE"
-        ]
-    )
+    if col_estado_despacho is None:
+        st.warning("No se encontró la columna de estado de despacho.")
+        st.write("Columnas disponibles en despachos:", list(despachos.columns))
+        pendientes = 0
+    else:
+        pendientes = len(
+            despachos[
+                despachos[col_estado_despacho]
+                .astype(str)
+                .str.upper()
+                .str.strip() == "PENDIENTE"
+            ]
+        )
 
     # =========================
     # FECHAS
@@ -111,7 +109,6 @@ else:
     if pd.isna(promedio_entrega):
         promedio_entrega = 0
 
-    # Evitar valores absurdos
     if promedio_entrega > 365:
         promedio_entrega = 0
 
@@ -133,42 +130,16 @@ else:
     # =========================
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric(
-        "🔴 Tránsitos retrasados",
-        f"{retrasados:,}"
-    )
-
-    c2.metric(
-        "📦 Unidades en tránsito",
-        f"{unidades_transito:,.0f}"
-    )
-
-    c3.metric(
-        "📥 Recepciones parciales",
-        f"{parciales:,}"
-    )
-
-    c4.metric(
-        "📤 Despachos pendientes",
-        f"{pendientes:,}"
-    )
+    c1.metric("🔴 Tránsitos retrasados", f"{retrasados:,}")
+    c2.metric("📦 Unidades en tránsito", f"{unidades_transito:,.0f}")
+    c3.metric("📥 Recepciones parciales", f"{parciales:,}")
+    c4.metric("📤 Despachos pendientes", f"{pendientes:,}")
 
     c5, c6, c7 = st.columns(3)
 
-    c5.metric(
-        "⏱️ Tiempo promedio entrega",
-        f"{round(promedio_entrega,1)} días"
-    )
-
-    c6.metric(
-        "💰 Costo total transporte",
-        f"${costo_total:,.0f}"
-    )
-
-    c7.metric(
-        "🛣️ Costo promedio ruta",
-        f"${costo_promedio:,.2f}"
-    )
+    c5.metric("⏱️ Tiempo promedio entrega", f"{round(promedio_entrega, 1)} días")
+    c6.metric("💰 Costo total transporte", f"${costo_total:,.0f}")
+    c7.metric("🛣️ Costo promedio ruta", f"${costo_promedio:,.2f}")
 
     st.divider()
 
@@ -198,7 +169,4 @@ else:
         ]
     })
 
-    st.dataframe(
-        resumen,
-        use_container_width=True
-    )
+    st.dataframe(resumen, use_container_width=True)
