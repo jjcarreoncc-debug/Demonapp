@@ -8,6 +8,21 @@ import pandas as pd
 def aplicar_css_compras():
     st.markdown("""
     <style>
+        section[data-testid="stFileUploader"] {
+        background-color: #f5f7fa;
+        padding: 16px;
+        border-radius: 14px;
+        border-left: 6px solid #1f77b4;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 18px;
+    }
+
+    section[data-testid="stFileUploader"] button {
+        background-color: #1f77b4 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+    }
     div.stButton > button {
         width: 100%;
         height: 70px;
