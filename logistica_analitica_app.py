@@ -94,14 +94,15 @@ def logistica_analitica_app(
                 transito[col_fecha_salida],
                 errors="coerce"
             )
-
             tendencia_transito = (
                 transito
                 .dropna(subset=[col_fecha_salida])
-                .groupby(transito[col_fecha_salida].dt.date)
+                .groupby(transito[col_fecha_salida].dt.to_period("M").astype(str))
                 .size()
                 .reset_index(name="Tránsitos")
-            )
+)
+
+tendencia_transito.columns = ["Fecha", "Tránsitos"]
 
             tendencia_transito.columns = ["Fecha", "Tránsitos"]
 
