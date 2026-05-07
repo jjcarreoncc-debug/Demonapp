@@ -24,7 +24,28 @@ def indicadores_logistica_app(
     for df in [transito, recepcion, despachos, transportistas, rutas]:
         df.columns = df.columns.astype(str).str.strip()
     st.write("Columnas despachos:", list(despachos.columns))
-    
+   
+    # Buscar columna de estado despacho de forma segura
+col_estado_despacho = None
+
+for col in despachos.columns:
+    if col.upper().strip() in ["ESTADO_DESPACHO", "ESTADO DESPACHO", "ESTADO"]:
+        col_estado_despacho = col
+        break
+
+if col_estado_despacho is None:
+    st.warning("No se encontró la columna de estado de despacho.")
+    st.write("Columnas disponibles en despachos:", list(despachos.columns))
+    pendientes = 0
+else:
+    pendientes = len(
+        despachos[
+            despachos[col_estado_despacho]
+            .astype(str)
+            .str.upper()
+            .str.strip() == "PENDIENTE"
+        ]
+    )  
     # =========================
     # INDICADORES
     # =========================
@@ -59,6 +80,7 @@ def indicadores_logistica_app(
     )
 
     pendientes = len(
+        
         despachos[
             despachos[col_estado_despacho]
             .astype(str)
