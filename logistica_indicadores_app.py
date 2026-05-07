@@ -127,7 +127,7 @@ def indicadores_logistica_app(
         costo_promedio = 0
 
     # =========================
-    # TARJETAS
+    # TARJETASs
     # =========================
     c1, c2, c3, c4 = st.columns(4)
 
