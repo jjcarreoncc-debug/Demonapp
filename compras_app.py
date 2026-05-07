@@ -1,10 +1,31 @@
 # =========================
 # MENÚ COMPRAS
 # =========================
+def aplicar_css_compras():
+    st.markdown("""
+    <style>
+    div.stButton > button {
+        width: 100%;
+        height: 70px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 12px;
+        border: none;
+        background-color: #1f77b4;
+        color: white;
+    }
+
+    div.stButton > button:hover {
+        background-color: #145a86;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 if st.session_state.compras_vista == "menu":
 
     # FILA 1
     c1, c2, c3 = st.columns(3)
+    def compras_app()
 
     if c1.button("📊 Dashboard"):
         st.session_state.compras_vista = "dashboard"
