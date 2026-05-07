@@ -98,6 +98,117 @@ def dashboard_compras(df):
     st.markdown("### 📋 Vista rápida")
     st.dataframe(df.head(20), use_container_width=True)
 # =========================
+# DASHBOARD COMPRAS
+# =========================
+def dashboard_compras(df):
+
+    st.subheader("📊 Dashboard Compras")
+
+    df = df.copy()
+
+    # =========================
+    # CÁLCULOS
+    # =========================
+    df["COSTO_TOTAL"] = (
+        df["CANTIDAD"] * df["COSTO_UNITARIO"]
+    )
+
+    df["VENTA_TOTAL_ESTIMADA"] = (
+        df["CANTIDAD"] * df["PRECIO_VENTA"]
+    )
+
+    df["MARGEN_TOTAL"] = (
+        df["VENTA_TOTAL_ESTIMADA"] - df["COSTO_TOTAL"]
+    )
+
+    total_comprado = int(
+        df["CANTIDAD"].sum()
+    )
+
+    costo_total = df["COSTO_TOTAL"].sum()
+
+    margen_total = df["MARGEN_TOTAL"].sum()
+
+    productos_comprados = df[
+        "NUMERO_PRODUCTO"
+    ].nunique()
+
+    # =========================
+    # KPIs
+    # =========================
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        card_kpi(
+            "🛒 Unidades Compradas",
+            f"{total_comprado:,}",
+            "#3498db"
+        )
+
+    with c2:
+        card_kpi(
+            "💰 Costo Total",
+            f"${costo_total:,.0f}",
+            "#e67e22"
+        )
+
+    with c3:
+        card_kpi(
+            "📈 Margen Estimado",
+            f"${margen_total:,.0f}",
+            "#2ecc71"
+        )
+
+    with c4:
+        card_kpi(
+            "📦 Productos",
+            productos_comprados,
+            "#8e44ad"
+        )
+
+    st.divider()
+
+    # =========================
+    # TOP PRODUCTOS
+    # =========================
+    st.markdown(
+        "### 🔥 Top productos comprados"
+    )
+
+    top = (
+        df.groupby("NUMERO_PRODUCTO")[
+            "CANTIDAD"
+        ]
+        .sum()
+        .reset_index()
+        .sort_values(
+            "CANTIDAD",
+            ascending=False
+        )
+        .head(10)
+    )
+
+    fig = px.bar(
+        top,
+        x="CANTIDAD",
+        y="NUMERO_PRODUCTO",
+        orientation="h",
+        text="CANTIDAD",
+        title="Top 10 productos comprados"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+    st.markdown("### 📋 Vista rápida")
+
+    st.dataframe(
+        df.head(20),
+        use_container_width=True
+    )
+# =========================
 # APP COMPRAS
 # =========================
 def compras_app():
@@ -194,8 +305,9 @@ def compras_app():
     # =========================
     if st.session_state.compras_vista == "dashboard":
 
-        st.subheader("📊 Dashboard Compras")
-        st.dataframe(df.head(), use_container_width=True)
+        if st.session_state.compras_vista == "dashboard":
+
+            dashboard_compras(df)
 
     elif st.session_state.compras_vista == "productos":
         st.subheader("📦 Productos Comprados")
