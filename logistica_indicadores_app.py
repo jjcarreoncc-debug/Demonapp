@@ -60,7 +60,7 @@ def indicadores_logistica_app(
 
     pendientes = len(
         despachos[
-            despachos["ESTADO_DESPACHO"]
+            despachos[col_estado_despacho]
             .astype(str)
             .str.upper()
             .str.strip() == "PENDIENTE"
