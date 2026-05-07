@@ -226,7 +226,7 @@ def inventarios_app():
     # =========================
     if st.session_state.inv_vista == "menu":
 
-        c1, c2, c3, c4, c5 = st.columns(5)
+        c1, c2, c3, c4, c5, = st.columns(5)
 
         if c1.button("General"):
             st.session_state.inv_vista = "dash1"
