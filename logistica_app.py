@@ -90,6 +90,10 @@ def logistica_app():
     if "logistica_vista" not in st.session_state:
         st.session_state.logistica_vista = "menu"
 
+    if st.button("🏠 Ir al menú principal"):
+    st.session_state.logistica_vista = "menu"
+    st.rerun()
+    
     # =========================
     # FILES
     # =========================
