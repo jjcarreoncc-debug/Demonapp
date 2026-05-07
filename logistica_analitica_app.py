@@ -89,33 +89,49 @@ def logistica_analitica_app(
 
         st.subheader("📈 Tendencias operativas")
 
+        # =========================
+        # TRÁNSITOS
+        # =========================
         if col_fecha_salida is not None:
+
             transito[col_fecha_salida] = pd.to_datetime(
                 transito[col_fecha_salida],
                 errors="coerce"
             )
+
             tendencia_transito = (
                 transito
                 .dropna(subset=[col_fecha_salida])
-                .groupby(transito[col_fecha_salida].dt.to_period("M").astype(str))
+                .groupby(
+                    transito[col_fecha_salida]
+                    .dt.to_period("M")
+                    .astype(str)
+                )
                 .size()
                 .reset_index(name="Tránsitos")
-)
+            )
 
-tendencia_transito.columns = ["Fecha", "Tránsitos"]
+            tendencia_transito.columns = [
+                "Fecha",
+                "Tránsitos"
+            ]
 
-            tendencia_transito.columns = ["Fecha", "Tránsitos"]
+            st.write("🚛 Tránsitos por mes")
 
-            st.write("🚛 Tránsitos por fecha")
             st.line_chart(
                 tendencia_transito,
                 x="Fecha",
                 y="Tránsitos"
             )
+
         else:
             st.warning("No se encontró columna FECHA_SALIDA.")
 
+        # =========================
+        # DESPACHOS
+        # =========================
         if col_fecha_despacho is not None:
+
             despachos[col_fecha_despacho] = pd.to_datetime(
                 despachos[col_fecha_despacho],
                 errors="coerce"
@@ -124,23 +140,36 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
             tendencia_despachos = (
                 despachos
                 .dropna(subset=[col_fecha_despacho])
-                .groupby(despachos[col_fecha_despacho].dt.to_period("M").astype(str))
+                .groupby(
+                    despachos[col_fecha_despacho]
+                    .dt.to_period("M")
+                    .astype(str)
+                )
                 .size()
                 .reset_index(name="Despachos")
             )
 
-            tendencia_despachos.columns = ["Fecha", "Despachos"]
+            tendencia_despachos.columns = [
+                "Fecha",
+                "Despachos"
+            ]
 
-            st.write("📤 Despachos por fecha")
+            st.write("📤 Despachos por mes")
+
             st.line_chart(
                 tendencia_despachos,
                 x="Fecha",
                 y="Despachos"
             )
+
         else:
             st.warning("No se encontró columna FECHA_DESPACHO.")
 
+        # =========================
+        # RECEPCIONES
+        # =========================
         if col_fecha_recepcion is not None:
+
             recepcion[col_fecha_recepcion] = pd.to_datetime(
                 recepcion[col_fecha_recepcion],
                 errors="coerce"
@@ -149,19 +178,28 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
             tendencia_recepcion = (
                 recepcion
                 .dropna(subset=[col_fecha_recepcion])
-                .groupby(recepcion[col_fecha_recepcion].dt.to_period("M").astype(str))
+                .groupby(
+                    recepcion[col_fecha_recepcion]
+                    .dt.to_period("M")
+                    .astype(str)
+                )
                 .size()
                 .reset_index(name="Recepciones")
             )
 
-            tendencia_recepcion.columns = ["Fecha", "Recepciones"]
+            tendencia_recepcion.columns = [
+                "Fecha",
+                "Recepciones"
+            ]
 
-            st.write("📥 Recepciones por fecha")
+            st.write("📥 Recepciones por mes")
+
             st.line_chart(
                 tendencia_recepcion,
                 x="Fecha",
                 y="Recepciones"
             )
+
         else:
             st.warning("No se encontró columna FECHA_RECEPCION.")
 
@@ -173,14 +211,17 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
         st.subheader("💰 Análisis de costos")
 
         if col_costo_flete is not None:
+
             costo_total = pd.to_numeric(
                 transportistas[col_costo_flete],
                 errors="coerce"
             ).fillna(0).sum()
+
         else:
             costo_total = 0
 
         if col_costo_ruta is not None:
+
             costo_promedio_ruta = pd.to_numeric(
                 rutas[col_costo_ruta],
                 errors="coerce"
@@ -188,6 +229,7 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
 
             if pd.isna(costo_promedio_ruta):
                 costo_promedio_ruta = 0
+
         else:
             costo_promedio_ruta = 0
 
@@ -203,49 +245,84 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
             f"${costo_promedio_ruta:,.2f}"
         )
 
-        if col_nombre_transportista is not None and col_costo_flete is not None:
+        # =========================
+        # COSTOS TRANSPORTISTA
+        # =========================
+        if (
+            col_nombre_transportista is not None
+            and col_costo_flete is not None
+        ):
+
             costos_transportista = (
                 transportistas
                 .groupby(col_nombre_transportista)[col_costo_flete]
                 .sum()
                 .reset_index()
-                .sort_values(col_costo_flete, ascending=False)
+                .sort_values(
+                    col_costo_flete,
+                    ascending=False
+                )
                 .head(10)
             )
 
-            costos_transportista.columns = ["Transportista", "Costo"]
+            costos_transportista.columns = [
+                "Transportista",
+                "Costo"
+            ]
 
             st.write("🚚 Top costos por transportista")
+
             st.bar_chart(
                 costos_transportista,
                 x="Transportista",
                 y="Costo"
             )
-        else:
-            st.warning("No se encontraron columnas para costo por transportista.")
 
+        else:
+            st.warning(
+                "No se encontraron columnas para costo por transportista."
+            )
+
+        # =========================
+        # COSTOS RUTA
+        # =========================
         if col_costo_ruta is not None:
+
             rutas_tmp = rutas.copy()
 
-            if col_ruta_origen is not None and col_ruta_destino is not None:
+            if (
+                col_ruta_origen is not None
+                and col_ruta_destino is not None
+            ):
+
                 rutas_tmp["RUTA"] = (
                     rutas_tmp[col_ruta_origen].astype(str)
                     + " → "
                     + rutas_tmp[col_ruta_destino].astype(str)
                 )
+
             else:
                 rutas_tmp["RUTA"] = rutas_tmp.index.astype(str)
 
             costos_ruta = (
-                rutas_tmp[["RUTA", col_costo_ruta]]
+                rutas_tmp[
+                    ["RUTA", col_costo_ruta]
+                ]
                 .copy()
-                .sort_values(col_costo_ruta, ascending=False)
+                .sort_values(
+                    col_costo_ruta,
+                    ascending=False
+                )
                 .head(10)
             )
 
-            costos_ruta.columns = ["Ruta", "Costo"]
+            costos_ruta.columns = [
+                "Ruta",
+                "Costo"
+            ]
 
             st.write("🛣️ Top rutas más costosas")
+
             st.bar_chart(
                 costos_ruta,
                 x="Ruta",
@@ -259,7 +336,10 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
 
         st.subheader("🏆 Rankings operativos")
 
-        if col_estado_transito is not None and col_transportista is not None:
+        if (
+            col_estado_transito is not None
+            and col_transportista is not None
+        ):
 
             retrasados = transito[
                 transito[col_estado_transito]
@@ -269,6 +349,7 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
             ]
 
             if len(retrasados) > 0:
+
                 ranking_retrasos = (
                     retrasados[col_transportista]
                     .astype(str)
@@ -277,20 +358,36 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
                     .reset_index()
                 )
 
-                ranking_retrasos.columns = ["Transportista", "Retrasos"]
+                ranking_retrasos.columns = [
+                    "Transportista",
+                    "Retrasos"
+                ]
 
-                st.write("🔴 Top transportistas con retrasos")
+                st.write(
+                    "🔴 Top transportistas con retrasos"
+                )
+
                 st.bar_chart(
                     ranking_retrasos,
                     x="Transportista",
                     y="Retrasos"
                 )
-            else:
-                st.success("No hay tránsitos retrasados.")
-        else:
-            st.warning("No se encontraron columnas para ranking de retrasos.")
 
+            else:
+                st.success(
+                    "No hay tránsitos retrasados."
+                )
+
+        else:
+            st.warning(
+                "No se encontraron columnas para ranking de retrasos."
+            )
+
+        # =========================
+        # DISTRIBUCIÓN ESTADOS
+        # =========================
         if col_estado_transito is not None:
+
             estados = (
                 transito[col_estado_transito]
                 .astype(str)
@@ -300,9 +397,15 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
                 .reset_index()
             )
 
-            estados.columns = ["Estado", "Cantidad"]
+            estados.columns = [
+                "Estado",
+                "Cantidad"
+            ]
 
-            st.write("📊 Distribución de estados de tránsito")
+            st.write(
+                "📊 Distribución de estados de tránsito"
+            )
+
             st.bar_chart(
                 estados,
                 x="Estado",
