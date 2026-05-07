@@ -217,22 +217,22 @@ def logistica_app():
             st.rerun()
 
         if c4.button("📈 Analítica"):
-            st.session_state.logistica_vista = "analitica"
+            logistica_analitica_app( = "analitica"
             st.rerun()
 
     # =========================
     # VOLVER
     # =========================
-    if st.session_state.logistica_vista != "menu":
+    if logistica_analitica_app( != "menu":
 
         if st.button("🔙 Volver"):
-            st.session_state.logistica_vista = "menu"
+            logistica_analitica_app( = "menu"
             st.rerun()
 
     # =========================
     # DASHBOARD EJECUTIVO
     # =========================
-    if st.session_state.logistica_vista == "dashboard_ejecutivo":
+    if logistica_analitica_app( == "dashboard_ejecutivo":
 
         tab1, tab2, tab3 = st.tabs([
             "📊 Resumen",
@@ -269,7 +269,7 @@ def logistica_app():
     # =========================
     # OPERACIÓN
     # =========================
-    elif st.session_state.logistica_vista == "operacion":
+    elif logistica_analitica_app( == "operacion":
 
         tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "🚛 Tránsito",
@@ -317,7 +317,7 @@ def logistica_app():
     # ==========================
     # RIESGOS
     # =========================
-    elif st.session_state.logistica_vista == "riesgos":
+    elif logistica_analitica_app( == "riesgos":
 
         st.subheader("⚠️ Riesgos")
         st.warning("Módulo de riesgos en construcción.")
@@ -327,15 +327,15 @@ def logistica_app():
     # =========================
     elif st.session_state.logistica_vista == "analitica":
 
-    from logistica_analitica_app import logistica_analitica_app
-
-    logistica_analitica_app(
-        transito_filtrado,
-        recepcion_filtrado,
-        despachos_filtrado,
-        transportistas,
-        rutas
-    )
+        from logistica_analitica_app import logistica_analitica_app
+        
+        logistica_analitica_app(
+            transito_filtrado,
+            recepcion_filtrado,
+            despachos_filtrado,
+            transportistas,
+            rutas
+        )
 
         st.subheader("📈 Analítica")
         st.info("Módulo analítico en construcción.")
