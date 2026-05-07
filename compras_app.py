@@ -89,8 +89,15 @@ def compras_app():
 
     st.title("🛒 Compras")
 
-    if "compras_vista" not in st.session_state:
-        st.session_state.compras_vista = "menu"
+    if archivo_compras:
+
+    compras_df = pd.read_excel(archivo_compras)
+
+    compras_df.rename(columns={
+        "CANTIDAD": "ENTRADA"
+    }, inplace=True)
+
+    st.session_state.df_compras_base = compras_df
 
     archivo_compras = st.file_uploader("🛒 Compras", type=["xlsx"], key="compras_file")
     archivo_productos = st.file_uploader("📦 Productos", type=["xlsx"], key="productos_compras_file")
