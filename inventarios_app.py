@@ -25,6 +25,13 @@ from rotacion_app import (
     entradas_salidas_app,
     detalle_rotacion_app
 )
+from compras_general_app import (
+    dashboard_compras_general,
+    top_compras_app,
+    costos_compras_app,
+    compras_sin_precio_app,
+    detalle_compras_app
+)
 from ui_components import card_kpi
 
 
