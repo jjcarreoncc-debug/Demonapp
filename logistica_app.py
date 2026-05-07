@@ -1,4 +1,4 @@
-import streamlit as st
+    import streamlit as st
 import pandas as pd
 
 from logistica_dashboard_app import dashboard_logistica
@@ -93,7 +93,7 @@ def logistica_app():
     if st.button("🏠 Ir al menú principal"):
         st.session_state.logistica_vista = "menu"
         st.rerun()
-    
+
     # =========================
     # FILES
     # =========================
@@ -196,58 +196,28 @@ def logistica_app():
     )
 
     # =========================
-    # MENÚ
+    # MENÚ PRINCIPAL
     # =========================
     if st.session_state.logistica_vista == "menu":
 
+        st.subheader("Menú principal")
+
         c1, c2, c3, c4 = st.columns(4)
 
-        if c1.button("📊 Dashboard"):
-            st.session_state.logistica_vista = "dashboard"
+        if c1.button("📊 Dashboard Ejecutivo"):
+            st.session_state.logistica_vista = "dashboard_ejecutivo"
             st.rerun()
 
-        if c2.button("🏬 Bodegas"):
-            st.session_state.logistica_vista = "bodegas"
+        if c2.button("📦 Operación"):
+            st.session_state.logistica_vista = "operacion"
             st.rerun()
 
-        if c3.button("🚛 Tránsito"):
-            st.session_state.logistica_vista = "transito"
+        if c3.button("⚠️ Riesgos"):
+            st.session_state.logistica_vista = "riesgos"
             st.rerun()
 
-        if c4.button("🚚 Transportistas"):
-            st.session_state.logistica_vista = "transportistas"
-            st.rerun()
-
-        c5, c6, c7, c8 = st.columns(4)
-
-        if c5.button("🛣️ Rutas"):
-            st.session_state.logistica_vista = "rutas"
-            st.rerun()
-
-        if c6.button("📥 Recepción"):
-            st.session_state.logistica_vista = "recepcion"
-            st.rerun()
-
-        if c7.button("📤 Despachos"):
-            st.session_state.logistica_vista = "despachos"
-            st.rerun()
-
-        if c8.button("📋 Detalle"):
-            st.session_state.logistica_vista = "detalle"
-            st.rerun()
-
-        c9, c10, c11, _ = st.columns(4)
-
-        if c9.button("📊 Indicadores"):
-            st.session_state.logistica_vista = "indicadores"
-            st.rerun()
-
-        if c10.button("⚙️ Operativo"):
-            st.session_state.logistica_vista = "operativo"
-            st.rerun()
-
-        if c11.button("📈 Gráficas"):
-            st.session_state.logistica_vista = "graficas"
+        if c4.button("📈 Analítica"):
+            st.session_state.logistica_vista = "analitica"
             st.rerun()
 
     # =========================
@@ -260,78 +230,102 @@ def logistica_app():
             st.rerun()
 
     # =========================
-    # VISTAS
+    # DASHBOARD EJECUTIVO
     # =========================
-    if st.session_state.logistica_vista == "dashboard":
+    if st.session_state.logistica_vista == "dashboard_ejecutivo":
 
-        dashboard_logistica(
-            transito_filtrado,
-            bodegas,
-            transportistas
-        )
+        tab1, tab2, tab3 = st.tabs([
+            "📊 Resumen",
+            "📌 Indicadores",
+            "📈 Gráficas"
+        ])
 
-    elif st.session_state.logistica_vista == "bodegas":
+        with tab1:
+            dashboard_logistica(
+                transito_filtrado,
+                bodegas,
+                transportistas
+            )
 
-        st.subheader("🏬 Bodegas")
-        st.dataframe(bodegas, use_container_width=True)
+        with tab2:
+            indicadores_logistica_app(
+                transito_filtrado,
+                bodegas,
+                transportistas,
+                recepcion_filtrado,
+                despachos_filtrado,
+                rutas
+            )
 
-    elif st.session_state.logistica_vista == "transito":
+        with tab3:
+            logistica_graficas_app(
+                transito_filtrado,
+                recepcion_filtrado,
+                despachos_filtrado,
+                transportistas,
+                rutas
+            )
 
-        st.subheader("🚛 Tránsito")
-        st.dataframe(transito_filtrado, use_container_width=True)
+    # =========================
+    # OPERACIÓN
+    # =========================
+    elif st.session_state.logistica_vista == "operacion":
 
-    elif st.session_state.logistica_vista == "transportistas":
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "🚛 Tránsito",
+            "🏬 Bodegas",
+            "🚚 Transportistas",
+            "🛣️ Rutas",
+            "📥 Recepción",
+            "📤 Despachos",
+            "⚙️ Operativo"
+        ])
 
-        st.subheader("🚚 Transportistas")
-        st.dataframe(transportistas, use_container_width=True)
+        with tab1:
+            st.subheader("🚛 Tránsito")
+            st.dataframe(transito_filtrado, use_container_width=True)
 
-    elif st.session_state.logistica_vista == "rutas":
+        with tab2:
+            st.subheader("🏬 Bodegas")
+            st.dataframe(bodegas, use_container_width=True)
 
-        st.subheader("🛣️ Rutas")
-        st.dataframe(rutas, use_container_width=True)
+        with tab3:
+            st.subheader("🚚 Transportistas")
+            st.dataframe(transportistas, use_container_width=True)
 
-    elif st.session_state.logistica_vista == "recepcion":
+        with tab4:
+            st.subheader("🛣️ Rutas")
+            st.dataframe(rutas, use_container_width=True)
 
-        st.subheader("📥 Recepción")
-        st.dataframe(recepcion_filtrado, use_container_width=True)
+        with tab5:
+            st.subheader("📥 Recepción")
+            st.dataframe(recepcion_filtrado, use_container_width=True)
 
-    elif st.session_state.logistica_vista == "despachos":
+        with tab6:
+            st.subheader("📤 Despachos")
+            st.dataframe(despachos_filtrado, use_container_width=True)
 
-        st.subheader("📤 Despachos")
-        st.dataframe(despachos_filtrado, use_container_width=True)
+        with tab7:
+            logistica_operativa_app(
+                transito_filtrado,
+                recepcion_filtrado,
+                despachos_filtrado,
+                transportistas,
+                rutas
+            )
 
-    elif st.session_state.logistica_vista == "detalle":
+    # =========================
+    # RIESGOS
+    # =========================
+    elif st.session_state.logistica_vista == "riesgos":
 
-        st.subheader("📋 Detalle General")
-        st.dataframe(transito_filtrado, use_container_width=True)
+        st.subheader("⚠️ Riesgos")
+        st.warning("Módulo de riesgos en construcción.")
 
-    elif st.session_state.logistica_vista == "indicadores":
+    # =========================
+    # ANALÍTICA
+    # =========================
+    elif st.session_state.logistica_vista == "analitica":
 
-        indicadores_logistica_app(
-            transito_filtrado,
-            bodegas,
-            transportistas,
-            recepcion_filtrado,
-            despachos_filtrado,
-            rutas
-        )
-
-    elif st.session_state.logistica_vista == "operativo":
-
-        logistica_operativa_app(
-            transito_filtrado,
-            recepcion_filtrado,
-            despachos_filtrado,
-            transportistas,
-            rutas
-        )
-
-    elif st.session_state.logistica_vista == "graficas":
-
-        logistica_graficas_app(
-            transito_filtrado,
-            recepcion_filtrado,
-            despachos_filtrado,
-            transportistas,
-            rutas
-        )
+        st.subheader("📈 Analítica")
+        st.info("Módulo analítico en construcción.")
