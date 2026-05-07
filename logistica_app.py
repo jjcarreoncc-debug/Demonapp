@@ -5,6 +5,7 @@ from logistica_dashboard_app import dashboard_logistica
 from logistica_indicadores_app import indicadores_logistica_app
 from logistica_operativa_app import logistica_operativa_app
 from logistica_graficas_app import logistica_graficas_app
+from logistica_aplicar_filtros import aplicar_filtros_logistica
 
 
 # =========================
@@ -165,6 +166,29 @@ def logistica_app():
     ):
         st.warning("⚠️ Carga todos los archivos Excel de Logística")
         return
+
+    # =========================
+# FILTROS
+# =========================
+filtros = filtros_logistica(
+    transito,
+    recepcion,
+    despachos
+)
+
+# =========================
+# APLICAR FILTROS
+# =========================
+(
+    transito_filtrado,
+    recepcion_filtrado,
+    despachos_filtrado
+) = aplicar_filtros_logistica(
+    transito,
+    recepcion,
+    despachos,
+    filtros
+)
 
     # =========================
     # MENÚ
