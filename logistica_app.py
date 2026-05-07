@@ -337,5 +337,4 @@ def logistica_app():
             rutas
         )
 
-        st.subheader("📈 Analítica")
-        st.info("Módulo analítico en construcción.")
+        
