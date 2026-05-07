@@ -157,7 +157,20 @@ def logistica_app():
 
     if "logistica_vista" not in st.session_state:
         st.session_state.logistica_vista = "menu"
+# =========================
+# ESTRUCTURA DE ARCHIVOS LOGISTICA
+# =========================
 
+def logistica_app():
+
+    aplicar_css_logistica()
+
+    st.title("🚚 Logística")
+
+    estructura_archivos_logistica()
+
+    if "logistica_vista" not in st.session_state:
+        st.session_state.logistica_vista = "menu"    
     # =========================
     # FILES
     # =========================
