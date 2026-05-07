@@ -293,33 +293,33 @@ def inventarios_app():
 # =========================
 # MÓDULO ROTACIÓN
 # =========================
-if st.session_state.inv_vista == "dash4":
-
-    st.title("🔄 Módulo Rotación")
-
-    if st.button("🔙 Volver"):
-        st.session_state.inv_vista = "menu"
-        st.rerun()
-
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "Dashboard",
-        "Top Vendidos",
-        "Baja Rotación",
-        "Entradas vs Salidas",
-        "Detalle"
-    ])
-
-    with tab1:
-        dashboard_rotacion(df)
-
-    with tab2:
-        top_vendidos_app(df)
-
-    with tab3:
-        baja_rotacion_app(df)
-
-    with tab4:
-        entradas_salidas_app(df)
-
-    with tab5:
-        detalle_rotacion_app(df)
+    if st.session_state.inv_vista == "dash4":
+    
+        st.title("🔄 Módulo Rotación")
+    
+        if st.button("🔙 Volver"):
+            st.session_state.inv_vista = "menu"
+            st.rerun()
+    
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+            "Dashboard",
+            "Top Vendidos",
+            "Baja Rotación",
+            "Entradas vs Salidas",
+            "Detalle"
+        ])
+    
+        with tab1:
+            dashboard_rotacion(df)
+    
+        with tab2:
+            top_vendidos_app(df)
+    
+        with tab3:
+            baja_rotacion_app(df)
+    
+        with tab4:
+            entradas_salidas_app(df)
+    
+        with tab5:
+            detalle_rotacion_app(df)
