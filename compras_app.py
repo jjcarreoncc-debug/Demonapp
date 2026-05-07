@@ -175,6 +175,39 @@ def compras_app():
         return
 
     # =========================
+    # NORMALIZAR COLUMNAS
+    # =========================
+    for df_tmp in [compras, productos, proveedores, bodegas, segmentacion]:
+        df_tmp.columns = df_tmp.columns.astype(str).str.strip()
+
+    # =========================
+    # NORMALIZAR LLAVES PARA MERGE
+    # =========================
+    for df_tmp in [compras, productos, segmentacion]:
+        if "NUMERO_PRODUCTO" in df_tmp.columns:
+            df_tmp["NUMERO_PRODUCTO"] = (
+                df_tmp["NUMERO_PRODUCTO"]
+                .astype(str)
+                .str.strip()
+            )
+
+    for df_tmp in [compras, proveedores]:
+        if "ID_PROVEEDOR" in df_tmp.columns:
+            df_tmp["ID_PROVEEDOR"] = (
+                df_tmp["ID_PROVEEDOR"]
+                .astype(str)
+                .str.strip()
+            )
+
+    for df_tmp in [compras, bodegas]:
+        if "ID_BODEGA" in df_tmp.columns:
+            df_tmp["ID_BODEGA"] = (
+                df_tmp["ID_BODEGA"]
+                .astype(str)
+                .str.strip()
+            )
+
+    # =========================
     # MERGES
     # =========================
     df = compras.merge(
