@@ -91,8 +91,8 @@ def logistica_app():
         st.session_state.logistica_vista = "menu"
 
     if st.button("🏠 Ir al menú principal"):
-    st.session_state.logistica_vista = "menu"
-    st.rerun()
+        st.session_state.logistica_vista = "menu"
+        st.rerun()
     
     # =========================
     # FILES
