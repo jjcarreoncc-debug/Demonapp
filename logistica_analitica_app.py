@@ -124,7 +124,7 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
             tendencia_despachos = (
                 despachos
                 .dropna(subset=[col_fecha_despacho])
-                .groupby(despachos[col_fecha_despacho].dt.date)
+                .groupby(despachos[col_fecha_despacho].dt.to_period("M").astype(str))
                 .size()
                 .reset_index(name="Despachos")
             )
@@ -149,7 +149,7 @@ tendencia_transito.columns = ["Fecha", "Tránsitos"]
             tendencia_recepcion = (
                 recepcion
                 .dropna(subset=[col_fecha_recepcion])
-                .groupby(recepcion[col_fecha_recepcion].dt.date)
+                .groupby(recepcion[col_fecha_recepcion].dt.to_period("M").astype(str))
                 .size()
                 .reset_index(name="Recepciones")
             )
