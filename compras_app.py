@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from ui_components import card_kp
+from ui_components import card_kpi
 
 ## =========================
 # CSS COMPRAS
