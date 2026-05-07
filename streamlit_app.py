@@ -10,7 +10,7 @@ from datetime import datetime
 from PIL import Image
 from inventarios_app import inventarios_app
 from carga_app import carga_app
-from compras_app import compras app
+from compras_app import compras_app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 
     
