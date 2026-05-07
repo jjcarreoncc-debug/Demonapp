@@ -26,6 +26,7 @@ def aplicar_css_compras():
             background-color: #1f77b4;
             color: white;
         }
+
         div.stButton > button:hover {
             background-color: #145a86;
             color: white;
@@ -39,6 +40,7 @@ def aplicar_css_compras():
             box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
             margin-bottom: 18px;
         }
+
         section[data-testid="stFileUploader"] button {
             background-color: #1f77b4 !important;
             color: white !important;
@@ -89,24 +91,57 @@ def compras_app():
 
     st.title("🛒 Compras")
 
+    # =========================
+    # SESSION STATE
+    # =========================
+    if "compras_vista" not in st.session_state:
+        st.session_state.compras_vista = "menu"
+
+    # =========================
+    # FILE UPLOADERS
+    # =========================
+    archivo_compras = st.file_uploader(
+        "🛒 Compras",
+        type=["xlsx"],
+        key="compras_file"
+    )
+
+    archivo_productos = st.file_uploader(
+        "📦 Productos",
+        type=["xlsx"],
+        key="productos_compras_file"
+    )
+
+    archivo_proveedores = st.file_uploader(
+        "🏢 Proveedores",
+        type=["xlsx"],
+        key="proveedores_file"
+    )
+
+    archivo_bodegas = st.file_uploader(
+        "🏬 Bodegas",
+        type=["xlsx"],
+        key="bodegas_file"
+    )
+
+    archivo_segmentacion = st.file_uploader(
+        "🧩 Segmentación",
+        type=["xlsx"],
+        key="segmentacion_file"
+    )
+
+    # =========================
+    # CARGA ARCHIVOS
+    # =========================
     if archivo_compras:
 
-    compras_df = pd.read_excel(archivo_compras)
+        compras_df = pd.read_excel(archivo_compras)
 
-    compras_df.rename(columns={
-        "CANTIDAD": "ENTRADA"
-    }, inplace=True)
+        compras_df.rename(columns={
+            "CANTIDAD": "ENTRADA"
+        }, inplace=True)
 
-    st.session_state.df_compras_base = compras_df
-
-    archivo_compras = st.file_uploader("🛒 Compras", type=["xlsx"], key="compras_file")
-    archivo_productos = st.file_uploader("📦 Productos", type=["xlsx"], key="productos_compras_file")
-    archivo_proveedores = st.file_uploader("🏢 Proveedores", type=["xlsx"], key="proveedores_file")
-    archivo_bodegas = st.file_uploader("🏬 Bodegas", type=["xlsx"], key="bodegas_file")
-    archivo_segmentacion = st.file_uploader("🧩 Segmentación", type=["xlsx"], key="segmentacion_file")
-
-    if archivo_compras:
-        st.session_state.df_compras_base = pd.read_excel(archivo_compras)
+        st.session_state.df_compras_base = compras_df
 
     if archivo_productos:
         st.session_state.df_productos_compras = pd.read_excel(archivo_productos)
@@ -120,6 +155,9 @@ def compras_app():
     if archivo_segmentacion:
         st.session_state.df_segmentacion = pd.read_excel(archivo_segmentacion)
 
+    # =========================
+    # SESSION DATA
+    # =========================
     compras = st.session_state.get("df_compras_base")
     productos = st.session_state.get("df_productos_compras")
     proveedores = st.session_state.get("df_proveedores")
@@ -136,11 +174,36 @@ def compras_app():
         st.warning("⚠️ Carga todos los archivos Excel de Compras")
         return
 
-    df = compras.merge(productos, on="NUMERO_PRODUCTO", how="left")
-    df = df.merge(proveedores, on="ID_PROVEEDOR", how="left")
-    df = df.merge(bodegas, on="ID_BODEGA", how="left")
-    df = df.merge(segmentacion, on="NUMERO_PRODUCTO", how="left")
+    # =========================
+    # MERGES
+    # =========================
+    df = compras.merge(
+        productos,
+        on="NUMERO_PRODUCTO",
+        how="left"
+    )
 
+    df = df.merge(
+        proveedores,
+        on="ID_PROVEEDOR",
+        how="left"
+    )
+
+    df = df.merge(
+        bodegas,
+        on="ID_BODEGA",
+        how="left"
+    )
+
+    df = df.merge(
+        segmentacion,
+        on="NUMERO_PRODUCTO",
+        how="left"
+    )
+
+    # =========================
+    # MENÚ
+    # =========================
     if st.session_state.compras_vista == "menu":
 
         c1, c2, c3 = st.columns(3)
@@ -171,12 +234,18 @@ def compras_app():
             st.session_state.compras_vista = "detalle"
             st.rerun()
 
+    # =========================
+    # BOTÓN VOLVER
+    # =========================
     if st.session_state.compras_vista != "menu":
 
         if st.button("🔙 Volver"):
             st.session_state.compras_vista = "menu"
             st.rerun()
 
+    # =========================
+    # VISTAS
+    # =========================
     if st.session_state.compras_vista == "dashboard":
         dashboard_compras(df)
 
