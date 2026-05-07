@@ -43,64 +43,84 @@ def aplicar_css_logistica():
 # =========================
 # DASHBOARD LOGÍSTICA
 # =========================
+
 def dashboard_logistica(
     transito,
     bodegas,
     transportistas
 ):
 
-    st.title("🚚 Dashboard Logística")
+    st.title("🚚 Dashboard Ejecutivo Logística")
 
     total_transitos = len(transito)
+    total_bodegas = bodegas["ID_BODEGA"].nunique()
+    total_transportistas = transportistas["ID_TRANSPORTISTA"].nunique()
+    unidades_transito = int(transito["CANTIDAD"].sum())
 
-    total_bodegas = len(
-        bodegas["ID_BODEGA"].unique()
-    )
+    en_transito = transito[
+        transito["ESTADO_TRANSITO"].astype(str).str.upper() == "EN_TRANSITO"
+    ]
 
-    total_transportistas = len(
-        transportistas["ID_TRANSPORTISTA"].unique()
-    )
+    retrasados = transito[
+        transito["ESTADO_TRANSITO"].astype(str).str.upper() == "RETRASADO"
+    ]
 
-    unidades_transito = int(
-        transito["CANTIDAD"].sum()
-    )
+    recibidos = transito[
+        transito["ESTADO_TRANSITO"].astype(str).str.upper() == "RECIBIDO"
+    ]
 
     c1, c2, c3, c4 = st.columns(4)
 
     with c1:
-        st.metric(
-            "🚛 Tránsitos",
-            total_transitos
-        )
+        st.metric("🚛 Tránsitos", total_transitos)
 
     with c2:
-        st.metric(
-            "🏬 Bodegas",
-            total_bodegas
-        )
+        st.metric("📦 Unidades en Movimiento", f"{unidades_transito:,}")
 
     with c3:
-        st.metric(
-            "🚚 Transportistas",
-            total_transportistas
-        )
+        st.metric("🏬 Bodegas", total_bodegas)
 
     with c4:
-        st.metric(
-            "📦 Unidades",
-            f"{unidades_transito:,}"
-        )
+        st.metric("🚚 Transportistas", total_transportistas)
+
+    c5, c6, c7 = st.columns(3)
+
+    with c5:
+        st.metric("🟡 En Tránsito", len(en_transito))
+
+    with c6:
+        st.metric("🔴 Retrasados", len(retrasados))
+
+    with c7:
+        st.metric("🟢 Recibidos", len(recibidos))
 
     st.divider()
 
-    st.subheader("📋 Vista rápida tránsito")
+    st.subheader("📊 Estado de Tránsitos")
+
+    estado_resumen = (
+        transito["ESTADO_TRANSITO"]
+        .value_counts()
+        .reset_index()
+    )
+
+    estado_resumen.columns = [
+        "ESTADO_TRANSITO",
+        "TOTAL"
+    ]
+
+    st.bar_chart(
+        estado_resumen.set_index("ESTADO_TRANSITO")["TOTAL"]
+    )
+
+    st.divider()
+
+    st.subheader("📋 Últimos movimientos en tránsito")
 
     st.dataframe(
         transito.head(20),
         use_container_width=True
     )
-
-
 # =========================
 # APP LOGÍSTICA
 # =========================
