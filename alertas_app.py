@@ -1,7 +1,7 @@
 import streamlit as st
 from ui_components import card_kpi
 import plotly.express as px
-proximos_agotarse_app
+proximos_agotarse_app,
 detalle_criticos_app
 # =========================
 # KPI CRÍTICOS
