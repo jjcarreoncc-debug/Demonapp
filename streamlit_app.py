@@ -607,7 +607,7 @@ elif menu == "Inventarios":
    inventarios_app()
     
 elif menu == "Compras":
-   Compras_app()
+   compras_app()
     
 elif menu == "Mantenimiento":
     st.title("⚙️ Mantenimiento")
