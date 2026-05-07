@@ -25,7 +25,7 @@ if st.session_state.compras_vista == "menu":
 
     # FILA 1
     c1, c2, c3 = st.columns(3)
-    def compras_app()
+    #def compras_app()
 
     if c1.button("📊 Dashboard"):
         st.session_state.compras_vista = "dashboard"
