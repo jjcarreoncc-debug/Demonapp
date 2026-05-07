@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 
 
+# =========================
+# CSS COMPRAS
+# =========================
 def aplicar_css_compras():
     st.markdown("""
     <style>
@@ -24,6 +27,9 @@ def aplicar_css_compras():
     """, unsafe_allow_html=True)
 
 
+# =========================
+# APP COMPRAS
+# =========================
 def compras_app():
 
     aplicar_css_compras()
@@ -33,6 +39,100 @@ def compras_app():
     if "compras_vista" not in st.session_state:
         st.session_state.compras_vista = "menu"
 
+    # =========================
+    # CARGA ARCHIVOS
+    # =========================
+    archivo_compras = st.file_uploader(
+        "🛒 Compras",
+        type=["xlsx"],
+        key="compras_file"
+    )
+
+    archivo_productos = st.file_uploader(
+        "📦 Productos",
+        type=["xlsx"],
+        key="productos_compras_file"
+    )
+
+    archivo_proveedores = st.file_uploader(
+        "🏢 Proveedores",
+        type=["xlsx"],
+        key="proveedores_file"
+    )
+
+    archivo_bodegas = st.file_uploader(
+        "🏬 Bodegas",
+        type=["xlsx"],
+        key="bodegas_file"
+    )
+
+    archivo_segmentacion = st.file_uploader(
+        "🧩 Segmentación",
+        type=["xlsx"],
+        key="segmentacion_file"
+    )
+
+    if archivo_compras:
+        st.session_state.df_compras_base = pd.read_excel(archivo_compras)
+
+    if archivo_productos:
+        st.session_state.df_productos_compras = pd.read_excel(archivo_productos)
+
+    if archivo_proveedores:
+        st.session_state.df_proveedores = pd.read_excel(archivo_proveedores)
+
+    if archivo_bodegas:
+        st.session_state.df_bodegas = pd.read_excel(archivo_bodegas)
+
+    if archivo_segmentacion:
+        st.session_state.df_segmentacion = pd.read_excel(archivo_segmentacion)
+
+    compras = st.session_state.get("df_compras_base")
+    productos = st.session_state.get("df_productos_compras")
+    proveedores = st.session_state.get("df_proveedores")
+    bodegas = st.session_state.get("df_bodegas")
+    segmentacion = st.session_state.get("df_segmentacion")
+
+    if (
+        compras is None
+        or productos is None
+        or proveedores is None
+        or bodegas is None
+        or segmentacion is None
+    ):
+        st.warning("⚠️ Carga todos los archivos Excel de Compras")
+        return
+
+    # =========================
+    # RELACIONES
+    # =========================
+    df = compras.merge(
+        productos,
+        on="NUMERO_PRODUCTO",
+        how="left"
+    )
+
+    df = df.merge(
+        proveedores,
+        on="ID_PROVEEDOR",
+        how="left"
+    )
+
+    df = df.merge(
+        bodegas,
+        on="ID_BODEGA",
+        how="left"
+    )
+
+    df = df.merge(
+        segmentacion,
+        on="NUMERO_PRODUCTO",
+        how="left"
+    )
+
+    # =========================
+    # MENÚ COMPRAS
+    # =========================
     if st.session_state.compras_vista == "menu":
 
         c1, c2, c3 = st.columns(3)
@@ -62,3 +162,45 @@ def compras_app():
         if c6.button("📋 Detalle"):
             st.session_state.compras_vista = "detalle"
             st.rerun()
+
+    # =========================
+    # VOLVER
+    # =========================
+    if st.session_state.compras_vista != "menu":
+
+        if st.button("🔙 Volver"):
+            st.session_state.compras_vista = "menu"
+            st.rerun()
+
+    # =========================
+    # VISTAS TEMPORALES
+    # =========================
+    if st.session_state.compras_vista == "dashboard":
+
+        st.subheader("📊 Dashboard Compras")
+        st.dataframe(df.head(), use_container_width=True)
+
+    elif st.session_state.compras_vista == "productos":
+
+        st.subheader("📦 Productos Comprados")
+        st.dataframe(df, use_container_width=True)
+
+    elif st.session_state.compras_vista == "proveedores":
+
+        st.subheader("🏢 Proveedores")
+        st.dataframe(df, use_container_width=True)
+
+    elif st.session_state.compras_vista == "bodegas":
+
+        st.subheader("🏬 Bodegas")
+        st.dataframe(df, use_container_width=True)
+
+    elif st.session_state.compras_vista == "costos":
+
+        st.subheader("💰 Costos y Márgenes")
+        st.dataframe(df, use_container_width=True)
+
+    elif st.session_state.compras_vista == "detalle":
+
+        st.subheader("📋 Detalle Compras")
+        st.dataframe(df, use_container_width=True)
