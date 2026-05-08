@@ -39,12 +39,21 @@ def validar_login(usuario, password):
     if row["estado"] != "Activo":
         return "INACTIVO"
 
-    if row["password_hash"] != password:
-        return None
+    password_bd = str(row["password_hash"]).strip()
 
-    return row
+password_ingresado = str(password).strip()
 
+password_hash = hash_password(
+    password_ingresado
+)
 
+if (
+    password_bd != password_ingresado
+    and
+    password_bd != password_hash
+):
+    return None
+        
 def get_base64_image(image_path):
 
     file_path = Path(image_path)
