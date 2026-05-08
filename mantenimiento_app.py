@@ -2,7 +2,8 @@ import streamlit as st
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
-    consultar_usuarios_app
+    consultar_usuarios_app,
+    editar_usuario_app
 )
 
 from mantenimiento_roles_app import (
@@ -20,11 +21,11 @@ def mantenimiento_app():
     # =========================
     # VALIDACION
     # =========================
-    #if st.session_state.rol != "Admin":
+    # if st.session_state.rol != "Admin":
+    #
+    #     st.warning("⛔ No tienes permisos")
+    #     st.stop()
 
-    #    st.warning("⛔ No tienes permisos")
-    #    st.stop()
-    pass
     # =========================
     # SESSION STATE
     # =========================
@@ -52,6 +53,9 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
+        # =========================
+        # USUARIOS
+        # =========================
         if menu == "👥 Usuarios":
 
             submenu = st.radio(
@@ -65,6 +69,9 @@ def mantenimiento_app():
                 key="submenu_usuarios"
             )
 
+        # =========================
+        # ROLES
+        # =========================
         elif menu == "🧩 Roles":
 
             submenu = st.radio(
@@ -77,6 +84,9 @@ def mantenimiento_app():
                 key="submenu_roles"
             )
 
+        # =========================
+        # PERMISOS
+        # =========================
         elif menu == "🔐 Permisos":
 
             submenu = st.radio(
@@ -89,6 +99,9 @@ def mantenimiento_app():
                 key="submenu_permisos"
             )
 
+        # =========================
+        # MODULOS
+        # =========================
         elif menu == "🧱 Módulos":
 
             submenu = st.radio(
@@ -101,6 +114,9 @@ def mantenimiento_app():
                 key="submenu_modulos"
             )
 
+        # =========================
+        # AUDITORIA
+        # =========================
         elif menu == "📜 Auditoría":
 
             submenu = st.radio(
@@ -114,6 +130,9 @@ def mantenimiento_app():
                 key="submenu_auditoria"
             )
 
+        # =========================
+        # CONFIGURACION
+        # =========================
         elif menu == "⚙️ Configuración":
 
             submenu = st.radio(
@@ -135,6 +154,10 @@ def mantenimiento_app():
     # =========================
     # PANTALLAS
     # =========================
+
+    # =====================================
+    # USUARIOS
+    # =====================================
     if (
         menu == "👥 Usuarios"
         and submenu == "Crear usuario"
@@ -144,11 +167,21 @@ def mantenimiento_app():
 
     elif (
         menu == "👥 Usuarios"
+        and submenu == "Editar usuario"
+    ):
+
+        editar_usuario_app()
+
+    elif (
+        menu == "👥 Usuarios"
         and submenu == "Consultar usuarios"
     ):
 
         consultar_usuarios_app()
 
+    # =====================================
+    # ROLES
+    # =====================================
     elif (
         menu == "🧩 Roles"
         and submenu == "Asignar usuarios"
@@ -163,6 +196,9 @@ def mantenimiento_app():
 
         crear_rol_app()
 
+    # =====================================
+    # PERMISOS
+    # =====================================
     elif (
         menu == "🔐 Permisos"
         and submenu == "Permisos por módulo"
@@ -170,6 +206,9 @@ def mantenimiento_app():
 
         permisos_por_modulo_app()
 
+    # =====================================
+    # EN CONSTRUCCION
+    # =====================================
     else:
 
         st.info(
