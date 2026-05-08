@@ -524,6 +524,7 @@ if menu == "Dashboard":
             st.warning("⚠️ No se encontró columna de producto")
 
 
+
 # =========================
 # CONTROL DE PANTALLAS
 # =========================
@@ -546,13 +547,12 @@ elif menu == "logistica":
     
 elif menu == "Almacen WMS":
    wms_app() 
+elif menu == "Mantenimiento":
+   mantenimiento_app()
     
 
     
-if menu != "Mantenimiento":
-    # mostrar sidebar principal normal
-else:
-    mantenimiento_app()
+
                 
 # =========================
 # DASHBOARD
