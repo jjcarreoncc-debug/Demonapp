@@ -134,15 +134,15 @@ def mantenimiento_app():
     # =========================
     # PANTALLAS
     # =========================
-    if (
-        menu == "👥 Usuarios"
-        and submenu == "Crear usuario"
-    ):
+    if menu == "👥 Usuarios" and submenu == "Crear usuario":
 
         alta_usuario_app()
 
     else:
 
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
+       st.info(
+           f"Pantalla en construcción: {submenu}"
+       ) 
+
+
+   
