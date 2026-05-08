@@ -547,7 +547,11 @@ elif menu == "logistica":
 elif menu == "Almacen WMS":
    wms_app() 
     
-elif menu == "Mantenimiento":
+
+    
+if menu != "Mantenimiento":
+    # mostrar sidebar principal normal
+else:
     mantenimiento_app()
                 
 # =========================
