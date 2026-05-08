@@ -54,7 +54,6 @@ if "menu" not in st.session_state:
     st.session_state.menu = "Inicio"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
-logout_app()
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
 # =========================
