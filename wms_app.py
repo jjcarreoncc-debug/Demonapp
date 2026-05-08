@@ -1,6 +1,9 @@
 
 import streamlit as st
 import pandas as pd
+from wms_dashboard_app import wms_dashboard_app
+from wms_indicadores_app import wms_indicadores_app
+from wms_graficas_app import wms_graficas_app
 
 from wms_carga_datos import cargar_datos_wms
 
@@ -118,39 +121,47 @@ def wms_app():
     # =========================
     if st.session_state.wms_vista == "dashboard":
 
-        st.subheader("📊 Dashboard Ejecutivo WMS")
+    tab1, tab2, tab3 = st.tabs([
+        "📊 Dashboard",
+        "📌 Indicadores",
+        "📈 Gráficas"
+    ])
 
-        c1, c2, c3, c4 = st.columns(4)
+    with tab1:
 
-        with c1:
-            st.metric(
-                "📦 Inventario",
-                len(inventario)
-            )
-
-        with c2:
-            st.metric(
-                "📥 Entradas",
-                len(entradas)
-            )
-
-        with c3:
-            st.metric(
-                "📤 Salidas",
-                len(salidas)
-            )
-
-        with c4:
-            st.metric(
-                "🔄 Movimientos",
-                len(movimientos)
-            )
-
-        st.dataframe(
-            movimientos.head(100),
-            use_container_width=True
+        wms_dashboard_app(
+            inventario,
+            ubicaciones,
+            entradas,
+            salidas,
+            picking,
+            packing,
+            movimientos
         )
 
+    with tab2:
+
+        wms_indicadores_app(
+            inventario,
+            ubicaciones,
+            entradas,
+            salidas,
+            picking,
+            packing,
+            movimientos
+        )
+
+    with tab3:
+
+        wms_graficas_app(
+            inventario,
+            ubicaciones,
+            entradas,
+            salidas,
+            picking,
+            packing,
+            movimientos
+        )
     # =========================
     # OPERACION
     # =========================
