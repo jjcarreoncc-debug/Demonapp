@@ -1,17 +1,25 @@
 
 import streamlit as st
 
+from ui_admin import (
+    admin_css,
+    admin_header,
+    admin_card_open,
+    admin_card_close
+)
+
 
 def alta_usuario_app():
 
-    st.markdown("## 👥 Alta de Usuario")
-    st.caption("Registro seguro de nuevos usuarios del sistema.")
+    admin_css()
 
-    st.divider()
+    admin_header(
+        "👥 Alta de Usuario",
+        "Registro seguro y controlado de nuevos usuarios del sistema."
+    )
 
-    # =========================
-    # INFORMACION BASICA
-    # =========================
+    admin_card_open()
+
     st.markdown("### 📌 Información básica")
 
     col1, col2, col3 = st.columns(3)
@@ -25,37 +33,19 @@ def alta_usuario_app():
     with col3:
         email = st.text_input("Correo electrónico *")
 
-    # =========================
-    # SEGURIDAD
-    # =========================
     st.markdown("### 🔐 Seguridad")
 
     col4, col5, col6 = st.columns(3)
 
     with col4:
-        password = st.text_input(
-            "Password temporal *",
-            type="password"
-        )
+        password = st.text_input("Password temporal *", type="password")
 
     with col5:
-        confirmar_password = st.text_input(
-            "Confirmar password *",
-            type="password"
-        )
+        confirmar_password = st.text_input("Confirmar password *", type="password")
 
     with col6:
-        estado = st.selectbox(
-            "Estado",
-            [
-                "Activo",
-                "Inactivo"
-            ]
-        )
+        estado = st.selectbox("Estado", ["Activo", "Inactivo"])
 
-    # =========================
-    # ACCESO
-    # =========================
     st.markdown("### 🧩 Acceso")
 
     col7, col8 = st.columns(2)
@@ -89,55 +79,29 @@ def alta_usuario_app():
 
     st.divider()
 
-    # =========================
-    # BOTONES
-    # =========================
-    col_btn1, col_btn2 = st.columns([1, 1])
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
 
     with col_btn1:
-        guardar = st.button(
-            "💾 Guardar usuario"
-        )
+        guardar = st.button("💾 Guardar usuario")
 
     with col_btn2:
-        limpiar = st.button(
-            "🔄 Limpiar"
-        )
+        limpiar = st.button("🔄 Limpiar")
 
-    # =========================
-    # LIMPIAR
-    # =========================
+    admin_card_close()
+
     if limpiar:
         st.rerun()
 
-    # =========================
-    # VALIDACIONES
-    # =========================
     if guardar:
 
-        if (
-            not usuario
-            or not nombre
-            or not email
-            or not password
-            or not confirmar_password
-        ):
-
-            st.warning(
-                "⚠️ Completa todos los campos obligatorios."
-            )
+        if not usuario or not nombre or not email or not password or not confirmar_password:
+            st.warning("⚠️ Completa todos los campos obligatorios.")
 
         elif password != confirmar_password:
-
-            st.error(
-                "❌ Las contraseñas no coinciden."
-            )
+            st.error("❌ Las contraseñas no coinciden.")
 
         else:
-
-            st.success(
-                "✅ Usuario validado correctamente."
-            )
+            st.success("✅ Usuario validado correctamente.")
 
             st.json({
                 "usuario": usuario,
