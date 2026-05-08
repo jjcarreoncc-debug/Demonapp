@@ -121,7 +121,8 @@ def mantenimiento_app():
     # TITULO
     # =========================
     st.subheader(f"{menu} → {submenu}")
-
+st.write("DEBUG menu:", menu)
+st.write("DEBUG submenu:", submenu)
     # =========================
     # PANTALLAS
     # =========================
