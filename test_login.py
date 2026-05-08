@@ -9,7 +9,7 @@ st.set_page_config(
 st.title("PRUEBA DE LOGOS")
 
 st.write("Logo Fondo")
-st.image("logofondo.png", width=500)
+st.image("logofondo.JPG", width=500)
 
 st.write("Logo Empresa")
 st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=250)
