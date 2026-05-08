@@ -19,3 +19,40 @@ def card_kpi(titulo, valor, color="#1f77b4"):
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# =====================================
+# LOGOS
+# =====================================
+
+def mostrar_logos():
+
+    col_logo_izq, col_logo_der = st.columns([1,1])
+
+    with col_logo_izq:
+
+        st.image(
+            "LOOGO-TIDS-CONSULTING (2).jpg",
+            width=180
+        )
+
+    with col_logo_der:
+
+        st.markdown(
+            """
+            <div style="
+                display:flex;
+                justify-content:flex-end;
+            ">
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.image(
+            "logo1.png",
+            width=170
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
