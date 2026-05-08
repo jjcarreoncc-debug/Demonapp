@@ -10,32 +10,41 @@ def mantenimiento_app():
         st.stop()
 
     if "mantenimiento_opcion" not in st.session_state:
-        st.session_state.mantenimiento_opcion = "Consultas"
+        st.session_state.mantenimiento_opcion = "👥 Usuarios"
 
     with st.sidebar:
+
         st.markdown("## 🛠️ Mantenimiento")
 
         opcion = st.radio(
             "Submenú",
             [
-                "Altas",
-                "Bajas",
-                "Consultas",
-                "Modificaciones"
+                "👥 Usuarios",
+                "🧩 Roles",
+                "🔐 Permisos",
+                "🧱 Módulos",
+                "📜 Auditoría",
+                "⚙️ Configuración"
             ],
             key="mantenimiento_opcion"
         )
 
-    st.subheader(f"📌 {opcion}")
+    st.subheader(opcion)
 
-    if opcion == "Altas":
-        st.info("➕ Aquí irán altas de usuarios, roles, módulos y permisos.")
+    if opcion == "👥 Usuarios":
+        st.info("Aquí irá la administración de usuarios.")
 
-    elif opcion == "Bajas":
-        st.info("❌ Aquí irán bajas de usuarios, roles y módulos.")
+    elif opcion == "🧩 Roles":
+        st.info("Aquí irá la administración de roles.")
 
-    elif opcion == "Consultas":
-        st.info("🔎 Aquí irán consultas de usuarios, roles, permisos y auditoría.")
+    elif opcion == "🔐 Permisos":
+        st.info("Aquí irá la administración de permisos.")
 
-    elif opcion == "Modificaciones":
-        st.info("✏️ Aquí irán modificaciones de usuarios, roles, permisos y estados.")
+    elif opcion == "🧱 Módulos":
+        st.info("Aquí irá la administración de módulos.")
+
+    elif opcion == "📜 Auditoría":
+        st.info("Aquí irá el historial y auditoría del sistema.")
+
+    elif opcion == "⚙️ Configuración":
+        st.info("Aquí irá la configuración general del sistema.")
