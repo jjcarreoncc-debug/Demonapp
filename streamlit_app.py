@@ -28,16 +28,33 @@ from auth_app import login_app, logout_app
 st.set_page_config(
     page_title=" Ejecutivo",
     layout="wide")
+# ------------------------
+# LOGIN CONFIG
+# ------------------------
+
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if "usuario" not in st.session_state:
+    st.session_state.usuario = None
+
+if "nombre" not in st.session_state:
+    st.session_state.nombre = None
+
+if "rol" not in st.session_state:
+    st.session_state.rol = None
+
 
 if not st.session_state.autenticado:
     login_app()
     st.stop()
+logout_app()
     
 if "menu" not in st.session_state:
     st.session_state.menu = "Inicio"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
-
+logout_app()
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
 # =========================
@@ -206,54 +223,14 @@ button {
 
 </style>
 """, unsafe_allow_html=True)
-# ------------------------
-# BASE DE DATOS
-# ------------------------
-conn = sqlite3.connect("data.db", check_same_thread=False)
-
-conn.execute("""
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    nombre TEXT,
-    rol TEXT,
-    estado TEXT,
-    fecha_creacion TEXT,
-    area TEXT,
-    transacciones TEXT
-)
-""")
-conn.commit()
 # =========================
 # INICIALIZAR ESTADO
 # =========================
 if "vista" not in st.session_state:
     st.session_state.vista = "inicio"
 
-# ------------------------
-# LOGIN CONFIG
-# ------------------------
-
-if "autenticado" not in st.session_state:
-    st.session_state.autenticado = False
-
-if "usuario" not in st.session_state:
-    st.session_state.usuario = None
-
-if "nombre" not in st.session_state:
-    st.session_state.nombre = None
-
-if "rol" not in st.session_state:
-    st.session_state.rol = None
 
 
-if not st.session_state.autenticado:
-    login_app()
-    st.stop()
-
-
-logout_app()
 
 # =====================================
 # CSS DEL SISTEMA
