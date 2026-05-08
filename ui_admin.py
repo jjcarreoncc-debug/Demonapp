@@ -9,17 +9,8 @@ def admin_css():
     st.markdown("""
     <style>
 
-    .admin-card {
-        background: white;
-        padding: 28px;
-        border-radius: 18px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-        margin-bottom: 25px;
-        border: 1px solid #ecf0f1;
-    }
-
     .admin-title {
-        font-size: 28px;
+        font-size: 32px;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 5px;
@@ -27,16 +18,16 @@ def admin_css():
 
     .admin-subtitle {
         color: #6b7280;
+        font-size: 15px;
         margin-bottom: 25px;
-        font-size: 14px;
     }
 
     .section-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
         color: #111827;
-        margin-top: 10px;
-        margin-bottom: 15px;
+        margin-top: 15px;
+        margin-bottom: 10px;
     }
 
     div.stButton > button {
@@ -51,6 +42,14 @@ def admin_css():
     div.stButton > button:hover {
         background-color: #155a86 !important;
         color: white !important;
+    }
+
+    div[data-testid="stTextInput"] input {
+        border-radius: 10px;
+    }
+
+    div[data-testid="stSelectbox"] div {
+        border-radius: 10px;
     }
 
     </style>
@@ -80,22 +79,17 @@ def admin_header(
 
 
 # =========================
-# CARD OPEN
+# SECTION TITLE
 # =========================
-def admin_card_open():
+def admin_section(
+    titulo
+):
 
     st.markdown(
-        '<div class="admin-card">',
-        unsafe_allow_html=True
-    )
-
-
-# =========================
-# CARD CLOSE
-# =========================
-def admin_card_close():
-
-    st.markdown(
-        '</div>',
+        f"""
+        <div class="section-title">
+            {titulo}
+        </div>
+        """,
         unsafe_allow_html=True
     )
