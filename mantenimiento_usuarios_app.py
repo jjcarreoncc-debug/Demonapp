@@ -1,105 +1,148 @@
 
 import streamlit as st
+
 from mantenimiento_usuarios_app import alta_usuario_app
 
 
-def alta_usuario_app():
+def mantenimiento_app():
 
-    st.markdown("## 👥 Alta de Usuario")
-    st.caption("Registro seguro de nuevos usuarios del sistema.")
+    st.title("🛠️ Mantenimiento")
 
-    st.divider()
+    # =========================
+    # VALIDACION
+    # =========================
+    if st.session_state.rol != "Admin":
 
-    st.markdown("### 📌 Información básica")
+        st.warning("⛔ No tienes permisos")
 
-    col1, col2, col3 = st.columns(3)
+        st.stop()
 
-    with col1:
-        usuario = st.text_input("Usuario *")
+    # =========================
+    # SESSION STATE
+    # =========================
+    if "menu_mantenimiento" not in st.session_state:
+        st.session_state.menu_mantenimiento = "👥 Usuarios"
 
-    with col2:
-        nombre = st.text_input("Nombre completo *")
+    if "submenu_mantenimiento" not in st.session_state:
+        st.session_state.submenu_mantenimiento = "Consultar usuarios"
 
-    with col3:
-        email = st.text_input("Correo electrónico *")
+    # =========================
+    # SIDEBAR
+    # =========================
+    with st.sidebar:
 
-    st.markdown("### 🔐 Seguridad")
+        st.markdown("## 🛠️ Mantenimiento")
 
-    col4, col5, col6 = st.columns(3)
-
-    with col4:
-        password = st.text_input("Password temporal *", type="password")
-
-    with col5:
-        confirmar_password = st.text_input("Confirmar password *", type="password")
-
-    with col6:
-        estado = st.selectbox("Estado", ["Activo", "Inactivo"])
-
-    st.markdown("### 🧩 Acceso")
-
-    col7, col8 = st.columns(2)
-
-    with col7:
-        rol = st.selectbox(
-            "Rol *",
+        menu = st.radio(
+            "Módulo",
             [
-                "Admin",
-                "Gerencia",
-                "Compras",
-                "Logistica",
-                "WMS",
-                "Consulta"
-            ]
+                "👥 Usuarios",
+                "🧩 Roles",
+                "🔐 Permisos",
+                "🧱 Módulos",
+                "📜 Auditoría",
+                "⚙️ Configuración"
+            ],
+            key="menu_mantenimiento"
         )
 
-    with col8:
-        modulo_inicial = st.selectbox(
-            "Módulo inicial",
-            [
-                "Inicio",
-                "Dashboard",
-                "Inventarios",
-                "Compras",
-                "Logistica",
-                "Almacen WMS",
-                "Mantenimiento"
-            ]
+        # =========================
+        # SUBMENUS
+        # =========================
+        if menu == "👥 Usuarios":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Crear usuario",
+                    "Editar usuario",
+                    "Inactivar usuario",
+                    "Consultar usuarios"
+                ],
+                key="submenu_usuarios"
+            )
+
+        elif menu == "🧩 Roles":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Crear rol",
+                    "Editar rol",
+                    "Asignar usuarios"
+                ],
+                key="submenu_roles"
+            )
+
+        elif menu == "🔐 Permisos":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Permisos por módulo",
+                    "Permisos por rol",
+                    "Acciones permitidas"
+                ],
+                key="submenu_permisos"
+            )
+
+        elif menu == "🧱 Módulos":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Activar módulos",
+                    "Ocultar módulos",
+                    "Configuración visual"
+                ],
+                key="submenu_modulos"
+            )
+
+        elif menu == "📜 Auditoría":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Inicios sesión",
+                    "Cambios usuarios",
+                    "Eliminaciones",
+                    "Historial acciones"
+                ],
+                key="submenu_auditoria"
+            )
+
+        elif menu == "⚙️ Configuración":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Variables sistema",
+                    "Parámetros",
+                    "Colores",
+                    "Branding"
+                ],
+                key="submenu_configuracion"
+            )
+
+    # =========================
+    # TITULO
+    # =========================
+    st.subheader(
+        f"{menu} → {submenu}"
+    )
+
+    # =========================
+    # PANTALLAS
+    # =========================
+    if (
+        menu == "👥 Usuarios"
+        and submenu == "Crear usuario"
+    ):
+
+        alta_usuario_app()
+
+    else:
+
+        st.info(
+            f"Pantalla en construcción: {submenu}"
         )
-
-    st.divider()
-
-    col_btn1, col_btn2 = st.columns([1, 1])
-
-    with col_btn1:
-        guardar = st.button("💾 Guardar usuario")
-
-    with col_btn2:
-        limpiar = st.button("🔄 Limpiar")
-
-    if limpiar:
-        st.rerun()
-
-    if guardar:
-
-        if not usuario or not nombre or not email or not password or not confirmar_password:
-
-            st.warning("⚠️ Completa todos los campos obligatorios.")
-
-        elif password != confirmar_password:
-
-            st.error("❌ Las contraseñas no coinciden.")
-
-        else:
-
-            st.success("✅ Usuario validado correctamente. Listo para guardar en base de datos.")
-
-            st.json({
-                "usuario": usuario,
-                "nombre": nombre,
-                "email": email,
-                "rol": rol,
-                "estado": estado,
-                "modulo_inicial": modulo_inicial
-            })
-
