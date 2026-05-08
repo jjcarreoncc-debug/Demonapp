@@ -10,7 +10,7 @@ def get_base64(imagen):
         return base64.b64encode(f.read()).decode()
 
 
-fondo = get_base64("logofondo.JPG")
+fondo = get_base64("logofondo.png")
 
 
 st.markdown(f"""
@@ -54,7 +54,11 @@ header, #MainMenu, footer {{
 
     z-index: 1;
 
-    padding-top: 12vh;
+    padding-top: 8vh;
+}}
+
+.element-container:has(style) {{
+    display: none;
 }}
 
 .login-box {{
@@ -68,6 +72,24 @@ header, #MainMenu, footer {{
 
     box-shadow:
         0 20px 60px rgba(0,0,0,0.35);
+}}
+
+.logo-empresa {{
+
+    display: flex;
+
+    justify-content: center;
+
+    margin-bottom: 10px;
+}}
+
+.logo-sigem {{
+
+    display: flex;
+
+    justify-content: center;
+
+    margin-bottom: 15px;
 }}
 
 .titulo {{
@@ -126,6 +148,36 @@ with centro:
 
     st.markdown(
         '<div class="login-box">',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="logo-empresa">',
+        unsafe_allow_html=True
+    )
+
+    st.image(
+        "LOOGO-TIDS-CONSULTING (2).jpg",
+        width=170
+    )
+
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="logo-sigem">',
+        unsafe_allow_html=True
+    )
+
+    st.image(
+        "logo1.png",
+        width=230
+    )
+
+    st.markdown(
+        '</div>',
         unsafe_allow_html=True
     )
 
