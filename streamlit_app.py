@@ -13,6 +13,7 @@ from carga_app import carga_app
 from compras_app import compras_app
 from logistica_app import logistica_app
 from wms_app import wms_app
+from mantenimiento_app import mantenimiento_app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 
     
@@ -618,7 +619,7 @@ elif menu == "Almacen WMS":
    wms_app() 
     
 elif menu == "Mantenimiento":
-    st.title("⚙️ Mantenimiento")
+    mantenimiento_app()
                 
 # =========================
 # DASHBOARD
@@ -884,11 +885,6 @@ elif menu == "Principal":
     st.dataframe(df_f.head(), use_container_width=True)
 
 
-# =========================
-# MANTENIMIENTO
-# =========================
-elif menu == "Mantenimiento":
-    st.title("🛠️ Mantenimiento de Usuarios")
 
 # ------------------------
 # DATA GLOBAL
