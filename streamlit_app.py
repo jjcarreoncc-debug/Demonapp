@@ -315,8 +315,7 @@ with st.sidebar:
     # ROL
     # ------------------------
     
-    st.session_state.rol = rol
-    
+   
 
     st.markdown("---")
 
