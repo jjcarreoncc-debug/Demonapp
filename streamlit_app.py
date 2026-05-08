@@ -12,6 +12,7 @@ from inventarios_app import inventarios_app
 from carga_app import carga_app
 from compras_app import compras_app
 from logistica_app import logistica_app
+from wms_app import wms_app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 
     
@@ -468,7 +469,7 @@ with st.sidebar:
     # ------------------------
     # ------------------------
     if st.session_state.rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "logistica", "Mantenimiento"]
+        opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "logistica",Almacen WMS", "Mantenimiento"]
     else:
         opciones = ["Inicio", "Dashboard", "Inventarios"]
 
@@ -481,7 +482,7 @@ if "menu" not in st.session_state:
 # ------------------------
 # MENU
 # ------------------------
-opciones = ["Inicio", "Dashboard", "Inventarios", "Compras",  "logistica", "Mantenimiento"]
+opciones = ["Inicio", "Dashboard", "Inventarios", "Compras",  "logistica", Almacen WMS", "Mantenimiento"]
 # índice seguro
 try:
     idx = opciones.index(st.session_state.menu)
@@ -608,10 +609,13 @@ elif menu == "Inventarios":
    inventarios_app()
     
 elif menu == "Compras":
-   compras_app()
+   compras_app() 
 
 elif menu == "logistica":
    logistica_app()
+    
+elif menu == "Almacen WMS":
+   wms_app() 
     
 elif menu == "Mantenimiento":
     st.title("⚙️ Mantenimiento")
