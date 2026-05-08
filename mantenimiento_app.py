@@ -4,6 +4,7 @@ from mantenimiento_usuarios_app import alta_usuario_app
 from mantenimiento_roles_app import asignar_roles_app
 from mantenimiento_roles_app import crear_rol_app
 from mantenimiento_permisos_app import permisos_por_modulo_app
+from mantenimiento_usuarios_app import alta_usuario_app, consultar_usuarios_app
 
 
 def mantenimiento_app():
@@ -164,3 +165,9 @@ def mantenimiento_app():
         st.info(
             f"Pantalla en construcción: {submenu}"
         )
+   elif (
+       menu == "👥 Usuarios"
+       and submenu == "Consultar usuarios"
+       ):
+        
+        consultar_usuarios_app()
