@@ -18,6 +18,8 @@ st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 from database import init_database
 from seed_data import seed_data
 from auth_app import login_app, logout_app
+from ui_components import card_kpi, mostrar_logos
+
 
 
 
