@@ -384,5 +384,19 @@ def compras_app():
     elif st.session_state.compras_vista == "detalle":
         st.subheader("📋 Detalle Compras")
         st.dataframe(df, use_container_width=True)
+        
     elif st.session_state.compras_vista == "analitica":
+
+    try:
+
+        from compras_analitica_app import compras_analitica_app
+
         compras_analitica_app(df)
+
+    except Exception as e:
+
+        st.error(
+            "Error cargando Analítica de Compras."
+        )
+
+        st.exception(e)
