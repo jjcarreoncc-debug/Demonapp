@@ -253,6 +253,27 @@ if not st.session_state.autenticado:
 
 logout_app()
 
+# =====================================
+# CSS DEL SISTEMA
+# =====================================
+
+st.markdown("""
+<style>
+
+/* TU CSS NORMAL DEL DASHBOARD */
+
+.stApp {
+    background-color: #f2f2f2;
+}
+
+.block-container {
+    background-color: #f2f2f2;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
 st.sidebar.success(
     f"Usuario: {st.session_state.nombre}"
 )
