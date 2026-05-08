@@ -20,7 +20,7 @@ def get_base64(imagen):
 # IMAGENES
 # =========================
 
-fondo = get_base64("logofondo.png")
+fondo = get_base64("logofondo.JPG")
 
 sigem = get_base64("logo1.png")
 
