@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+
+# =========================
+# KPI CARD
+# =========================
 def card_kpi(titulo, valor, color):
 
     st.markdown(
@@ -22,46 +26,15 @@ def card_kpi(titulo, valor, color):
     )
 
 
-def grafica_barra(df, x, y, titulo, orientacion="v", color="#1f77b4"):
+# =========================
+# DASHBOARD GENERAL
+# =========================
+def dashboard_compras_general(df):
 
-    if df is None or df.empty:
-        st.info("No hay datos para graficar.")
-        return
-
-    fig = px.bar(
-        df,
-        x=x,
-        y=y,
-        orientation=orientacion,
-        text=x if orientacion == "h" else y,
-        title=titulo,
-        template="plotly_white"
-    )
-
-    fig.update_traces(
-        marker_color=color,
-        textposition="outside"
-    )
-
-    fig.update_layout(
-        height=430,
-        margin=dict(l=30, r=30, t=60, b=40),
-        plot_bgcolor="white",
-        paper_bgcolor="white"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def compras_analitica_app(df):
-
-    st.title("📈 Analítica de Compras")
-
-    df = df.copy()
-    df.columns = df.columns.astype(str).str.strip()
+    st.subheader("📥 Dashboard Compras")
 
     if "ENTRADA" not in df.columns:
-        st.warning("No existe la columna ENTRADA.")
+        st.warning("No existe la columna ENTRADA")
         return
 
     df["ENTRADA"] = pd.to_numeric(
@@ -69,285 +42,334 @@ def compras_analitica_app(df):
         errors="coerce"
     ).fillna(0)
 
+    compras_total = int(df["ENTRADA"].sum())
+
+    productos_comprados = df[
+        df["ENTRADA"] > 0
+    ].shape[0]
+
+    numero_compras = productos_comprados
+
     if "PRECIO_COMPRA" in df.columns:
+
         df["PRECIO_COMPRA"] = pd.to_numeric(
             df["PRECIO_COMPRA"],
             errors="coerce"
         )
 
         df["VALOR_COMPRADO"] = (
-            df["ENTRADA"] * df["PRECIO_COMPRA"]
+            df["ENTRADA"]
+            * df["PRECIO_COMPRA"]
         )
-    else:
-        df["PRECIO_COMPRA"] = 0
-        df["VALOR_COMPRADO"] = 0
 
-    compras = df[df["ENTRADA"] > 0].copy()
+        valor_comprado = df[
+            "VALOR_COMPRADO"
+        ].sum()
 
-    if compras.empty:
-        st.success("No hay compras para analizar.")
-        return
-
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📈 Tendencias",
-        "💰 Costos",
-        "🏆 Rankings",
-        "⚠️ Riesgos"
-    ])
-
-    # =========================
-    # TAB 1 - TENDENCIAS
-    # =========================
-    with tab1:
-
-        st.subheader("📈 Tendencias de compras")
-
-        fecha_col = None
-
-        for col in [
-            "FECHA_COMPRA",
-            "FECHA",
-            "FECHA_DOCUMENTO",
-            "FECHA_ORDEN"
-        ]:
-            if col in compras.columns:
-                fecha_col = col
-                break
-
-        if fecha_col is not None:
-
-            compras[fecha_col] = pd.to_datetime(
-                compras[fecha_col],
-                errors="coerce"
-            )
-
-            tendencia = (
-                compras
-                .dropna(subset=[fecha_col])
-                .groupby(
-                    compras[fecha_col]
-                    .dt.to_period("M")
-                    .astype(str)
-                )
-                .agg({
-                    "ENTRADA": "sum",
-                    "VALOR_COMPRADO": "sum"
-                })
-                .reset_index()
-            )
-
-            tendencia.columns = [
-                "Mes",
-                "Unidades Compradas",
-                "Valor Comprado"
-            ]
-
-            c1, c2 = st.columns(2)
-
-            with c1:
-                fig = px.line(
-                    tendencia,
-                    x="Mes",
-                    y="Unidades Compradas",
-                    markers=True,
-                    title="Unidades compradas por mes",
-                    template="plotly_white"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-            with c2:
-                fig = px.line(
-                    tendencia,
-                    x="Mes",
-                    y="Valor Comprado",
-                    markers=True,
-                    title="Valor comprado por mes",
-                    template="plotly_white"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-
-            st.dataframe(tendencia, use_container_width=True)
-
-        else:
-            st.warning("No se encontró columna de fecha para tendencias.")
-
-    # =========================
-    # TAB 2 - COSTOS
-    # =========================
-    with tab2:
-
-        st.subheader("💰 Análisis de costos")
-
-        valor_total = compras["VALOR_COMPRADO"].sum()
-        costo_promedio = compras["PRECIO_COMPRA"].mean()
-        registros_sin_precio = compras[
-            compras["PRECIO_COMPRA"].isna()
+        compras_sin_precio = df[
+            (df["ENTRADA"] > 0)
+            & (df["PRECIO_COMPRA"].isna())
         ].shape[0]
 
-        c1, c2, c3 = st.columns(3)
+    else:
 
-        with c1:
-            card_kpi(
-                "💰 Valor comprado",
-                f"${valor_total:,.0f}",
-                "#27ae60"
+        df["VALOR_COMPRADO"] = 0
+
+        valor_comprado = 0
+
+        compras_sin_precio = 0
+
+    promedio_compra = (
+        valor_comprado / numero_compras
+        if numero_compras > 0
+        else 0
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        card_kpi(
+            "📥 Compras Totales",
+            compras_total,
+            "#2980b9"
+        )
+
+    with c2:
+        card_kpi(
+            "💰 Valor Comprado",
+            f"${valor_comprado:,.0f}",
+            "#27ae60"
+        )
+
+    with c3:
+        card_kpi(
+            "📦 Productos Comprados",
+            productos_comprados,
+            "#8e44ad"
+        )
+
+    with c4:
+        card_kpi(
+            "📊 Promedio Compra",
+            f"${promedio_compra:,.0f}",
+            "#f39c12"
+        )
+
+    c5, c6 = st.columns(2)
+
+    with c5:
+        card_kpi(
+            "🧾 Número Compras",
+            numero_compras,
+            "#34495e"
+        )
+
+    with c6:
+        card_kpi(
+            "⚠️ Sin Precio",
+            compras_sin_precio,
+            "#c0392b"
+        )
+
+    compras = df[
+        df["ENTRADA"] > 0
+    ].copy()
+
+    if compras.empty:
+        st.success("✅ No hay compras registradas")
+        return
+
+    if "NOMBRE_PRODUCTO" in compras.columns:
+
+        st.markdown("### 🏆 Top productos comprados")
+
+        top = (
+            compras
+            .sort_values(
+                "ENTRADA",
+                ascending=False
             )
+            .head(10)
+        )
 
-        with c2:
-            card_kpi(
-                "📊 Costo promedio",
-                f"${costo_promedio:,.0f}",
-                "#2980b9"
-            )
+        fig = px.bar(
+            top,
+            x="ENTRADA",
+            y="NOMBRE_PRODUCTO",
+            orientation="h",
+            text="ENTRADA",
+            title="Productos más comprados",
+            template="plotly_white"
+        )
 
-        with c3:
-            card_kpi(
-                "⚠️ Sin precio",
-                registros_sin_precio,
-                "#c0392b"
-            )
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+            key="top_productos_dashboard"
+        )
 
-        if "NOMBRE_PRODUCTO" in compras.columns:
+    st.markdown("### 📋 Detalle compras")
 
-            top_valor = (
-                compras
-                .groupby("NOMBRE_PRODUCTO")["VALOR_COMPRADO"]
-                .sum()
-                .reset_index()
-                .sort_values("VALOR_COMPRADO", ascending=False)
-                .head(10)
-            )
+    st.dataframe(
+        compras,
+        use_container_width=True
+    )
 
-            grafica_barra(
-                top_valor,
+
+# =========================
+# TOP COMPRAS
+# =========================
+def top_compras_app(df):
+
+    st.subheader("🏆 Top Compras")
+
+    if "ENTRADA" not in df.columns:
+        st.warning("No existe la columna ENTRADA")
+        return
+
+    compras = df[
+        df["ENTRADA"] > 0
+    ].copy()
+
+    if compras.empty:
+        st.success("✅ No hay compras registradas")
+        return
+
+    if "NOMBRE_PRODUCTO" not in compras.columns:
+        st.warning("No existe NOMBRE_PRODUCTO")
+        return
+
+    top = (
+        compras
+        .sort_values(
+            "ENTRADA",
+            ascending=False
+        )
+        .head(15)
+    )
+
+    card_kpi(
+        "🏆 Producto Más Comprado",
+        top.iloc[0]["NOMBRE_PRODUCTO"],
+        "#8e44ad"
+    )
+
+    fig = px.bar(
+        top,
+        x="ENTRADA",
+        y="NOMBRE_PRODUCTO",
+        orientation="h",
+        text="ENTRADA",
+        title="Ranking productos comprados",
+        template="plotly_white"
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        key="ranking_top_compras"
+    )
+
+    st.dataframe(
+        top,
+        use_container_width=True
+    )
+
+
+# =========================
+# COSTOS
+# =========================
+def costos_compras_app(df):
+
+    st.subheader("💰 Costos Compras")
+
+    if (
+        "PRECIO_COMPRA" not in df.columns
+        or "ENTRADA" not in df.columns
+    ):
+        st.warning(
+            "No existen columnas de costos."
+        )
+        return
+
+    compras = df[
+        df["ENTRADA"] > 0
+    ].copy()
+
+    compras["PRECIO_COMPRA"] = pd.to_numeric(
+        compras["PRECIO_COMPRA"],
+        errors="coerce"
+    )
+
+    compras["VALOR_COMPRADO"] = (
+        compras["ENTRADA"]
+        * compras["PRECIO_COMPRA"]
+    )
+
+    total = compras[
+        "VALOR_COMPRADO"
+    ].sum()
+
+    card_kpi(
+        "💰 Valor Comprado Total",
+        f"${total:,.0f}",
+        "#27ae60"
+    )
+
+    if "NOMBRE_PRODUCTO" in compras.columns:
+
+        top = (
+            compras
+            .sort_values(
                 "VALOR_COMPRADO",
-                "NOMBRE_PRODUCTO",
-                "Productos con mayor valor comprado",
-                "h",
-                "#27ae60"
+                ascending=False
             )
+            .head(10)
+        )
 
-        if "NOMBRE_PROVEEDOR" in compras.columns:
+        fig = px.bar(
+            top,
+            x="VALOR_COMPRADO",
+            y="NOMBRE_PRODUCTO",
+            orientation="h",
+            text="VALOR_COMPRADO",
+            title="Productos mayor valor comprado",
+            template="plotly_white"
+        )
 
-            proveedor_valor = (
-                compras
-                .groupby("NOMBRE_PROVEEDOR")["VALOR_COMPRADO"]
-                .sum()
-                .reset_index()
-                .sort_values("VALOR_COMPRADO", ascending=False)
-                .head(10)
-            )
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+            key="costos_productos"
+        )
 
-            grafica_barra(
-                proveedor_valor,
-                "VALOR_COMPRADO",
-                "NOMBRE_PROVEEDOR",
-                "Proveedores con mayor valor comprado",
-                "h",
-                "#8e44ad"
-            )
+    st.dataframe(
+        compras,
+        use_container_width=True
+    )
 
-    # =========================
-    # TAB 3 - RANKINGS
-    # =========================
-    with tab3:
 
-        st.subheader("🏆 Rankings de compras")
+# =========================
+# SIN PRECIO
+# =========================
+def compras_sin_precio_app(df):
 
-        if "NOMBRE_PRODUCTO" in compras.columns:
+    st.subheader("⚠️ Compras Sin Precio")
 
-            top_productos = (
-                compras
-                .groupby("NOMBRE_PRODUCTO")["ENTRADA"]
-                .sum()
-                .reset_index()
-                .sort_values("ENTRADA", ascending=False)
-                .head(15)
-            )
+    if (
+        "PRECIO_COMPRA" not in df.columns
+        or "ENTRADA" not in df.columns
+    ):
+        st.warning(
+            "No existe PRECIO_COMPRA."
+        )
+        return
 
-            grafica_barra(
-                top_productos,
-                "ENTRADA",
-                "NOMBRE_PRODUCTO",
-                "Top productos comprados",
-                "h",
-                "#1f77b4"
-            )
+    sin_precio = df[
+        (df["ENTRADA"] > 0)
+        & (df["PRECIO_COMPRA"].isna())
+    ]
 
-        if "NOMBRE_PROVEEDOR" in compras.columns:
+    card_kpi(
+        "⚠️ Compras Sin Precio",
+        len(sin_precio),
+        "#c0392b"
+    )
 
-            top_proveedores = (
-                compras
-                .groupby("NOMBRE_PROVEEDOR")["ENTRADA"]
-                .sum()
-                .reset_index()
-                .sort_values("ENTRADA", ascending=False)
-                .head(15)
-            )
+    if sin_precio.empty:
+        st.success("✅ Todas las compras tienen precio")
+        return
 
-            grafica_barra(
-                top_proveedores,
-                "ENTRADA",
-                "NOMBRE_PROVEEDOR",
-                "Top proveedores por unidades compradas",
-                "h",
-                "#f39c12"
-            )
+    st.dataframe(
+        sin_precio,
+        use_container_width=True
+    )
 
-        if "NOMBRE_BODEGA" in compras.columns:
 
-            top_bodegas = (
-                compras
-                .groupby("NOMBRE_BODEGA")["ENTRADA"]
-                .sum()
-                .reset_index()
-                .sort_values("ENTRADA", ascending=False)
-                .head(15)
-            )
+# =========================
+# DETALLE
+# =========================
+def detalle_compras_app(df):
 
-            grafica_barra(
-                top_bodegas,
-                "ENTRADA",
-                "NOMBRE_BODEGA",
-                "Top bodegas por compras recibidas",
-                "h",
-                "#16a085"
-            )
+    st.subheader("📋 Detalle Compras")
 
-    # =========================
-    # TAB 4 - RIESGOS
-    # =========================
-    with tab4:
+    if "ENTRADA" in df.columns:
 
-        st.subheader("⚠️ Riesgos de compras")
+        compras = df[
+            df["ENTRADA"] > 0
+        ].copy()
 
-        sin_precio = compras[
-            compras["PRECIO_COMPRA"].isna()
-        ]
+    else:
 
-        compras_altas = compras[
-            compras["VALOR_COMPRADO"]
-            > compras["VALOR_COMPRADO"].quantile(0.90)
-        ]
+        compras = df.copy()
 
-        c1, c2 = st.columns(2)
+    card_kpi(
+        "📥 Registros Compra",
+        len(compras),
+        "#2980b9"
+    )
 
-        with c1:
-            card_kpi(
-                "⚠️ Compras sin precio",
-                len(sin_precio),
-                "#c0392b"
-            )
-
-        with c2:
-            card_kpi(
-                "🚨 Compras valor alto",
-                len(compras_altas),
-                "#e67e22"
-            )
-
-        st.markdown("### ⚠️ Compras sin precio")
-        st.dataframe(sin_precio, use_container_width=True)
-
-        st.markdown("### 🚨 Compras con valor alto")
-        st.dataframe(compras_altas, use_container_width=True)
+    st.dataframe(
+        compras,
+        use_container_width=True
+    )
