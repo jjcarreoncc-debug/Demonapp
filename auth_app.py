@@ -60,6 +60,7 @@ def get_base64_image(image_path):
 def login_app():
     bg_image = get_base64_image("logofondo.JPG")
     sigem_logo = get_base64_image("logo1.png")
+    tids_logo = get_base64_image("LOOGO-TIDS-CONSULTING (2).jpg")
 
     if bg_image:
         fondo_css = f'''
@@ -88,8 +89,20 @@ def login_app():
     }}
 
     .block-container {{
-        padding-top: 6vh !important;
+        padding-top: 2vh !important;
         max-width: 100% !important;
+    }}
+
+    .top-logos {{
+        width: 94%;
+        margin: 0 auto 20px auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }}
+
+    .top-logos img {{
+        object-fit: contain;
     }}
 
     .login-card {{
@@ -103,11 +116,6 @@ def login_app():
         box-shadow: 0 20px 60px rgba(0,0,0,0.35);
         border: 1px solid rgba(255,255,255,0.14);
         backdrop-filter: blur(6px);
-    }}
-
-    .logo-sigem {{
-        text-align: center;
-        margin-bottom: -5px;
     }}
 
     .login-title {{
@@ -179,22 +187,18 @@ def login_app():
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="top-logos">
+        <div>
+            {'<img src="data:image/jpg;base64,' + tids_logo + '" width="190">' if tids_logo else ''}
+        </div>
+        <div>
+            {'<img src="data:image/png;base64,' + sigem_logo + '" width="190">' if sigem_logo else '<span style="color:white;font-size:28px;font-weight:800;">SIGEM</span>'}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    if sigem_logo:
-        st.markdown(
-            f'''
-            <div class="logo-sigem">
-                <img src="data:image/png;base64,{sigem_logo}" width="300">
-            </div>
-            ''',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '<div class="login-title">SIGEM</div>',
-            unsafe_allow_html=True
-        )
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
 
     st.markdown(
         '<div class="login-title">Inicio de sesión</div>',
@@ -247,7 +251,7 @@ def login_app():
 
 
 def logout_app():
-    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem"):
+    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
         st.session_state.autenticado = False
         st.session_state.usuario = None
         st.session_state.nombre = None
