@@ -309,17 +309,12 @@ with st.sidebar:
     # 👇 CSS aquí arriba
     st.markdown(""" ... """, unsafe_allow_html=True)
 
-    st.title("📌 Navegación")
-    st.markdown(f"👋 **Bienvenido {st.session_state.nombre}**")
-# ------------------------
-    # ROL
-    # ------------------------
+    #st.title("📌 Navegación")
+    #st.markdown(f"👋 **Bienvenido {st.session_state.nombre}**")
     
    
 
-    st.markdown("---")
-
-    authenticator.logout("Cerrar sesión", "sidebar")
+      
 
     
     # OPCIONES
