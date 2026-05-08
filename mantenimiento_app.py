@@ -165,9 +165,9 @@ def mantenimiento_app():
         st.info(
             f"Pantalla en construcción: {submenu}"
         )
-   elif (
-       menu == "👥 Usuarios"
-       and submenu == "Consultar usuarios"
-       ):
+    elif (
+        menu == "👥 Usuarios"
+        and submenu == "Consultar usuarios"
+        ):
         
         consultar_usuarios_app()
