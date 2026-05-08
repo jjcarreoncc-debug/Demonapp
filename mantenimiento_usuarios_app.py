@@ -3,11 +3,8 @@ import streamlit as st
 from database import get_connection
 
 
-
-
 def alta_usuario_app():
-
-    
+ 
 
    
     
