@@ -18,11 +18,8 @@ st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 from database import init_database
 from seed_data import seed_data
 from auth_app import login_app, logout_app
-# =========================
-# INIT DATABASE
-# =========================
-init_database()
-seed_data()    
+
+
 # ------------------------
 # CONFIG
 #
@@ -31,6 +28,11 @@ seed_data()
 st.set_page_config(
     page_title=" Ejecutivo",
     layout="wide")
+
+if not st.session_state.autenticado:
+    login_app()
+    st.stop()
+    
 if "menu" not in st.session_state:
     st.session_state.menu = "Inicio"
 if "rol" not in st.session_state:
