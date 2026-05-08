@@ -16,16 +16,18 @@ def get_base64(imagen):
         ).decode()
 
 
-fondo = get_base64("logofondo.JPG")
+# =========================
+# IMAGENES
+# =========================
 
-empresa = get_base64(
-    "LOOGO-TIDS-CONSULTING (2).jpg"
-)
+fondo = get_base64("logofondo.png")
 
-sigem = get_base64(
-    "logo1.png"
-)
+sigem = get_base64("logo1.png")
 
+
+# =========================
+# CSS
+# =========================
 
 st.markdown(f"""
 <style>
@@ -86,17 +88,11 @@ footer {{
         0 20px 60px rgba(0,0,0,0.35);
 }}
 
-.logo-empresa,
 .logo-sigem {{
 
     display: flex;
 
     justify-content: center;
-}}
-
-.logo-empresa img {{
-
-    margin-bottom: 10px;
 }}
 
 .logo-sigem img {{
@@ -113,6 +109,17 @@ footer {{
     font-weight: 800;
 
     color: #0f172a;
+
+    margin-bottom: 10px;
+}}
+
+.subtitulo {{
+
+    text-align: center;
+
+    font-size: 16px;
+
+    color: #475569;
 
     margin-bottom: 30px;
 }}
@@ -154,43 +161,48 @@ footer {{
 """, unsafe_allow_html=True)
 
 
+# =========================
+# COLUMNAS
+# =========================
+
 izq, centro, der = st.columns([1,1,1])
+
+
+# =========================
+# LOGIN
+# =========================
 
 with centro:
 
-    contenedor = st.container(border=False)
+    st.markdown(
+        '<div class="login-box">',
+        unsafe_allow_html=True
+    )
 
-    with contenedor:
+    st.markdown(f"""
+    <div class="logo-sigem">
+        <img src="data:image/png;base64,{sigem}" width="240">
+    </div>
 
-        st.markdown(
-            '<div class="login-box">',
-            unsafe_allow_html=True
-        )
+    <div class="titulo">
+        Inicio de sesión
+    </div>
 
-        st.markdown(f"""
-        <div class="logo-empresa">
-            <img src="data:image/jpg;base64,{empresa}" width="170">
-        </div>
+    <div class="subtitulo">
+        Sistema de Gestión Empresarial
+    </div>
+    """, unsafe_allow_html=True)
 
-        <div class="logo-sigem">
-            <img src="data:image/png;base64,{sigem}" width="230">
-        </div>
+    st.text_input("Usuario")
 
-        <div class="titulo">
-            Inicio de sesión
-        </div>
-        """, unsafe_allow_html=True)
+    st.text_input(
+        "Contraseña",
+        type="password"
+    )
 
-        st.text_input("Usuario")
+    st.button("Ingresar")
 
-        st.text_input(
-            "Contraseña",
-            type="password"
-        )
-
-        st.button("Ingresar")
-
-        st.markdown(
-            '</div>',
-            unsafe_allow_html=True
-        )
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
