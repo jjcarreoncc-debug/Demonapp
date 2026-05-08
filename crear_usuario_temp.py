@@ -1,60 +1,71 @@
 import streamlit as st
-import pandas as pd
 
 from database import get_connection
 
-st.title("Crear usuario temporal")
+st.title("Inicializar sistema de usuarios")
 
 conn = get_connection()
 
-st.subheader("Tablas en la base de datos")
+if st.button("Crear tablas y usuario admin"):
 
-tablas = pd.read_sql(
-    "SELECT name FROM sqlite_master WHERE type='table'",
-    conn
-)
-
-st.dataframe(tablas)
-
-st.subheader("Crear usuario temporal")
-
-usuario = st.text_input("Usuario", "admin_temp")
-nombre = st.text_input("Nombre", "Administrador Temporal")
-password = st.text_input("Contraseña", "1234")
-estado = st.selectbox("Estado", ["Activo", "Inactivo"])
-
-if st.button("Crear usuario"):
     try:
-        conn.execute(
-            """
-            INSERT INTO usuarios (
-                usuario,
-                nombre,
-                password_hash,
-                estado
-            )
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                usuario,
-                nombre,
-                password,
-                estado
-            )
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS roles (
+            id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_rol TEXT
         )
+        """)
+
+        conn.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT UNIQUE,
+            nombre TEXT,
+            password_hash TEXT,
+            estado TEXT,
+            id_rol INTEGER,
+            FOREIGN KEY (id_rol)
+                REFERENCES roles(id_rol)
+        )
+        """)
+
+        # Crear rol admin
+        conn.execute("""
+        INSERT OR IGNORE INTO roles (
+            id_rol,
+            nombre_rol
+        )
+        VALUES (
+            1,
+            'Admin'
+        )
+        """)
+
+        # Crear usuario admin
+        conn.execute("""
+        INSERT OR IGNORE INTO usuarios (
+            usuario,
+            nombre,
+            password_hash,
+            estado,
+            id_rol
+        )
+        VALUES (
+            'admin',
+            'Administrador',
+            '1234',
+            'Activo',
+            1
+        )
+        """)
 
         conn.commit()
-        st.success("Usuario creado correctamente")
+
+        st.success("Sistema inicializado correctamente")
 
     except Exception as e:
+
         st.error(f"Error: {e}")
-
-st.subheader("Usuarios actuales")
-
-try:
-    usuarios = pd.read_sql("SELECT * FROM usuarios", conn)
-    st.dataframe(usuarios)
-except Exception as e:
-    st.error(f"No pude leer usuarios: {e}")
 
 conn.close()
