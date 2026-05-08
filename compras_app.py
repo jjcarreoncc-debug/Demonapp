@@ -93,9 +93,6 @@ def compras_app():
 
     st.title("🛒 Compras")
 
-    # =========================
-    # SESSION STATE
-    # =========================
     if "compras_vista" not in st.session_state:
         st.session_state.compras_vista = "menu"
 
@@ -125,10 +122,7 @@ def compras_app():
         )
 
         if "CANTIDAD" in compras.columns:
-
-            compras = compras.rename(columns={
-                "CANTIDAD": "ENTRADA"
-            })
+            compras = compras.rename(columns={"CANTIDAD": "ENTRADA"})
 
     else:
 
@@ -167,14 +161,10 @@ def compras_app():
         )
 
         if archivo_compras:
-
             compras = pd.read_excel(archivo_compras)
 
             if "CANTIDAD" in compras.columns:
-
-                compras.rename(columns={
-                    "CANTIDAD": "ENTRADA"
-                }, inplace=True)
+                compras.rename(columns={"CANTIDAD": "ENTRADA"}, inplace=True)
 
         if archivo_productos:
             productos = pd.read_excel(archivo_productos)
@@ -198,85 +188,83 @@ def compras_app():
         or bodegas is None
         or segmentacion is None
     ):
-        st.warning(
-            "⚠️ Carga todos los archivos Excel de Compras"
-        )
+        st.warning("⚠️ Carga todos los archivos Excel de Compras")
         return
 
     # =========================
     # NORMALIZAR COLUMNAS
     # =========================
-    for df_tmp in [
-        compras,
-        productos,
-        proveedores,
-        bodegas,
-        segmentacion
-    ]:
-
-        df_tmp.columns = (
-            df_tmp.columns
-            .astype(str)
-            .str.strip()
-        )
+    for df_tmp in [compras, productos, proveedores, bodegas, segmentacion]:
+        df_tmp.columns = df_tmp.columns.astype(str).str.strip()
 
     # =========================
     # NORMALIZAR LLAVES
     # =========================
-    for df_tmp in [
-        compras,
-        productos,
-        segmentacion
-    ]:
-
+    for df_tmp in [compras, productos, segmentacion]:
         if "NUMERO_PRODUCTO" in df_tmp.columns:
-
             df_tmp["NUMERO_PRODUCTO"] = (
-                df_tmp["NUMERO_PRODUCTO"]
-                .astype(str)
-                .str.strip()
+                df_tmp["NUMERO_PRODUCTO"].astype(str).str.strip()
             )
 
-    for df_tmp in [
-        compras,
-        proveedores
-    ]:
-
+    for df_tmp in [compras, proveedores]:
         if "ID_PROVEEDOR" in df_tmp.columns:
-
             df_tmp["ID_PROVEEDOR"] = (
-                df_tmp["ID_PROVEEDOR"]
-                .astype(str)
-                .str.strip()
+                df_tmp["ID_PROVEEDOR"].astype(str).str.strip()
             )
 
-    for df_tmp in [
-        compras,
-        bodegas
-    ]:
-
+    for df_tmp in [compras, bodegas]:
         if "ID_BODEGA" in df_tmp.columns:
-
             df_tmp["ID_BODEGA"] = (
-                df_tmp["ID_BODEGA"]
-                .astype(str)
-                .str.strip()
+                df_tmp["ID_BODEGA"].astype(str).str.strip()
             )
 
     # =========================
-    # MERGES
+    # MERGE PRODUCTOS SEGURO
     # =========================
-    df = compras.merge(
-        productos,
-        on="NUMERO_PRODUCTO",
-        how="left"
-    )
+    df = compras.copy()
 
-    df = df.merge(
-        proveedores,
-        on="ID_PROVEEDOR",
-        how="left"
-    )
+    if (
+        "NUMERO_PRODUCTO" in df.columns
+        and "NUMERO_PRODUCTO" in productos.columns
+    ):
+
+        df = df.merge(
+            productos,
+            on="NUMERO_PRODUCTO",
+            how="left"
+        )
+
+    else:
+
+        st.warning(
+            "No se pudo cruzar Productos porque falta NUMERO_PRODUCTO."
+        )
+
+        st.write("Columnas compras:", list(df.columns))
+        st.write("Columnas productos:", list(productos.columns))
+
+    # =========================
+    # MERGE PROVEEDORES SEGURO
+    # =========================
+    if (
+        "ID_PROVEEDOR" in df.columns
+        and "ID_PROVEEDOR" in proveedores.columns
+    ):
+
+        df = df.merge(
+            proveedores,
+            on="ID_PROVEEDOR",
+            how="left"
+        )
+
+    else:
+
+        st.warning(
+            "No se pudo cruzar Proveedores porque falta ID_PROVEEDOR."
+        )
+
+        st.write("Columnas df:", list(df.columns))
+        st.write("Columnas proveedores:", list(proveedores.columns))
 
     # =========================
     # MERGE BODEGAS SEGURO
@@ -298,21 +286,31 @@ def compras_app():
             "No se pudo cruzar Bodegas porque falta ID_BODEGA."
         )
 
-        st.write(
-            "Columnas df:",
-            list(df.columns)
+        st.write("Columnas df:", list(df.columns))
+        st.write("Columnas bodegas:", list(bodegas.columns))
+
+    # =========================
+    # MERGE SEGMENTACIÓN SEGURO
+    # =========================
+    if (
+        "NUMERO_PRODUCTO" in df.columns
+        and "NUMERO_PRODUCTO" in segmentacion.columns
+    ):
+
+        df = df.merge(
+            segmentacion,
+            on="NUMERO_PRODUCTO",
+            how="left"
         )
 
-        st.write(
-            "Columnas bodegas:",
-            list(bodegas.columns)
+    else:
+
+        st.warning(
+            "No se pudo cruzar Segmentación porque falta NUMERO_PRODUCTO."
         )
 
-    df = df.merge(
-        segmentacion,
-        on="NUMERO_PRODUCTO",
-        how="left"
-    )
+        st.write("Columnas df:", list(df.columns))
+        st.write("Columnas segmentacion:", list(segmentacion.columns))
 
     # =========================
     # MENÚ
@@ -353,7 +351,6 @@ def compras_app():
     if st.session_state.compras_vista != "menu":
 
         if st.button("🔙 Volver"):
-
             st.session_state.compras_vista = "menu"
             st.rerun()
 
@@ -361,50 +358,24 @@ def compras_app():
     # VISTAS
     # =========================
     if st.session_state.compras_vista == "dashboard":
-
         dashboard_compras(df)
 
     elif st.session_state.compras_vista == "productos":
-
         st.subheader("📦 Productos Comprados")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.dataframe(df, use_container_width=True)
 
     elif st.session_state.compras_vista == "proveedores":
-
         st.subheader("🏢 Proveedores")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.dataframe(df, use_container_width=True)
 
     elif st.session_state.compras_vista == "bodegas":
-
         st.subheader("🏬 Bodegas")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.dataframe(df, use_container_width=True)
 
     elif st.session_state.compras_vista == "costos":
-
         st.subheader("💰 Costos y Márgenes")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.dataframe(df, use_container_width=True)
 
     elif st.session_state.compras_vista == "detalle":
-
         st.subheader("📋 Detalle Compras")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.dataframe(df, use_container_width=True)
