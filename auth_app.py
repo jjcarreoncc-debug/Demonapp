@@ -1,397 +1,295 @@
 import streamlit as st
-import hashlib
+import base64
 
-from database import get_connection
+# ======================================
+# CONFIGURACION PAGINA
+# ======================================
 
+st.set_page_config(
+    page_title="SIGEM",
+    layout="wide"
+)
 
-def hash_password(password):
-    return hashlib.sha256(
-        password.encode()
-    ).hexdigest()
+# ======================================
+# FUNCION BASE64
+# ======================================
 
+def get_base64(imagen):
 
-def validar_login(usuario, password):
+    with open(imagen, "rb") as f:
 
-    conn = get_connection()
-    cursor = conn.cursor()
+        return base64.b64encode(
+            f.read()
+        ).decode()
 
-    row = cursor.execute(
-        """
-        SELECT
-            u.usuario,
-            u.nombre,
-            u.password_hash,
-            u.estado,
-            r.nombre_rol AS rol
-        FROM usuarios u
-        LEFT JOIN roles r
-            ON u.id_rol = r.id_rol
-        WHERE u.usuario = ?
-        """,
-        (usuario,)
-    ).fetchone()
 
-    conn.close()
+# ======================================
+# IMAGENES
+# ======================================
 
-    if row is None:
-        return None
+fondo = get_base64("logofondo.png")
 
-    if row["estado"] != "Activo":
-        return "INACTIVO"
+sigem = get_base64("logo1.png")
 
-    if row["password_hash"] != password:
-        return None
 
-    return row
+# ======================================
+# CSS
+# ======================================
 
+st.markdown(f"""
+<style>
 
-def login_app():
+/* ======================================
+   OCULTAR STREAMLIT
+====================================== */
 
-    st.markdown("""
-    <style>
+header,
+#MainMenu,
+footer {{
+    visibility: hidden;
+}}
 
-    /* =========================
-       OCULTAR STREAMLIT
-    ========================= */
+/* ======================================
+   FONDO
+====================================== */
 
-    header, #MainMenu, footer {
-        visibility: hidden;
-    }
+.stApp {{
 
-    /* =========================
-       FONDO GENERAL
-    ========================= */
+    background-image:
+        url("data:image/png;base64,{fondo}");
 
-    .stApp {
+    background-size: cover;
 
-        background-image: url("logofondo.png");
+    background-position: center;
 
-        background-size: cover;
+    background-repeat: no-repeat;
 
-        background-position: center;
+    background-attachment: fixed;
+}}
 
-        background-repeat: no-repeat;
+/* ======================================
+   OVERLAY OSCURO
+====================================== */
 
-        background-attachment: fixed;
-    }
+.stApp::before {{
 
-    /* =========================
-       CAPA TRANSPARENTE
-    ========================= */
+    content: "";
 
-    .stApp::before {
+    position: fixed;
 
-        content: "";
+    inset: 0;
 
-        position: fixed;
+    background:
+        rgba(0,0,0,0.45);
 
-        top: 0;
-        left: 0;
+    z-index: 0;
+}}
 
-        width: 100%;
-        height: 100%;
+/* ======================================
+   CONTENIDO
+====================================== */
 
-        background: rgba(255,255,255,0.72);
+.main .block-container {{
 
-        backdrop-filter: blur(3px);
+    position: relative;
 
-        z-index: 0;
-    }
+    z-index: 1;
 
-    /* =========================
-       CONTENIDO
-    ========================= */
+    padding-top: 8vh;
 
-    .main .block-container {
+    max-width: 1000px;
+}}
 
-        position: relative;
+/* ======================================
+   LOGO
+====================================== */
 
-        z-index: 1;
+.logo-sigem {{
 
-        max-width: 100% !important;
+    display: flex;
 
-        padding-top: 4vh !important;
+    justify-content: center;
 
-        padding-bottom: 0rem !important;
-    }
+    margin-bottom: 15px;
+}}
 
-    /* =========================
-       LOGIN CARD
-    ========================= */
+/* ======================================
+   TITULOS
+====================================== */
 
-    .login-card {
+.titulo {{
 
-        background: rgba(255,255,255,0.96);
+    text-align: center;
 
-        border-radius: 30px;
+    font-size: 52px;
 
-        padding:
-            45px
-            50px
-            35px
-            50px;
+    font-weight: 800;
 
-        width: 470px;
+    color: white;
 
-        margin: auto;
+    margin-bottom: 10px;
 
-        margin-top: 5vh;
+    text-shadow:
+        0 5px 20px rgba(0,0,0,0.40);
+}}
 
-        box-shadow:
-            0 20px 50px rgba(0,0,0,0.15);
+.subtitulo {{
 
-        border:
-            1px solid rgba(255,255,255,0.5);
-    }
+    text-align: center;
 
-    /* =========================
-       LOGOS
-    ========================= */
+    font-size: 22px;
 
-    .logo-tids,
-    .logo-sigem {
+    color: white;
 
-        display: flex;
+    margin-bottom: 45px;
 
-        justify-content: center;
+    text-shadow:
+        0 5px 20px rgba(0,0,0,0.40);
+}}
 
-        align-items: center;
-    }
+/* ======================================
+   INPUTS
+====================================== */
 
-    .logo-tids {
+.stTextInput input {{
 
-        margin-bottom: 10px;
-    }
+    height: 58px;
 
-    .logo-sigem {
+    border-radius: 14px;
 
-        margin-bottom: 10px;
-    }
+    border:
+        1px solid rgba(255,255,255,0.25);
 
-    /* =========================
-       TITULOS
-    ========================= */
+    background:
+        rgba(0,0,0,0.45);
 
-    .login-title {
+    color: white;
 
-        text-align: center;
+    font-size: 18px;
 
-        font-size: 36px;
+    backdrop-filter: blur(5px);
+}}
 
-        font-weight: 700;
+.stTextInput label {{
 
-        color: #0f172a;
+    color: white !important;
 
-        margin-top: 10px;
+    font-size: 15px;
 
-        margin-bottom: 8px;
-    }
+    font-weight: 600;
+}}
 
-    .login-subtitle {
+/* ======================================
+   BOTON
+====================================== */
 
-        text-align: center;
+.stButton button {{
 
-        font-size: 15px;
+    width: 100%;
 
-        color: #64748b;
+    height: 58px;
 
-        margin-bottom: 30px;
-    }
+    border-radius: 14px;
 
-    /* =========================
-       INPUTS
-    ========================= */
+    border: none;
 
-    .stTextInput input {
+    background:
+        linear-gradient(
+            90deg,
+            #0f3fae 0%,
+            #2563eb 100%
+        );
 
-        border-radius: 14px !important;
+    color: white;
 
-        height: 55px !important;
+    font-size: 22px;
 
-        border: 1px solid #dbe4f0 !important;
+    font-weight: 700;
 
-        font-size: 16px !important;
+    margin-top: 15px;
 
-        padding-left: 15px !important;
-    }
+    transition: 0.2s;
+}}
 
-    .stTextInput label {
+.stButton button:hover {{
 
-        font-weight: 600;
+    transform: scale(1.01);
 
-        color: #0f172a;
-    }
+    background:
+        linear-gradient(
+            90deg,
+            #2563eb 0%,
+            #3b82f6 100%
+        );
+}}
 
-    /* =========================
-       BOTON
-    ========================= */
+</style>
+""", unsafe_allow_html=True)
 
-    .stButton button {
 
-        width: 100%;
+# ======================================
+# CENTRAR LOGIN
+# ======================================
 
-        height: 56px;
+izq, centro, der = st.columns([1,1,1])
 
-        border-radius: 14px;
+with centro:
 
-        border: none;
+    # ======================================
+    # LOGO
+    # ======================================
 
-        background:
-            linear-gradient(
-                90deg,
-                #0f3fae 0%,
-                #2563eb 100%
-            );
-
-        color: white;
-
-        font-size: 18px;
-
-        font-weight: 700;
-
-        margin-top: 15px;
-
-        transition: 0.2s;
-    }
-
-    .stButton button:hover {
-
-        transform: scale(1.02);
-
-        background:
-            linear-gradient(
-                90deg,
-                #1d4ed8 0%,
-                #3b82f6 100%
-            );
-
-        color: white;
-    }
-
-    /* =========================
-       FOOTER
-    ========================= */
-
-    .footer-login {
-
-        text-align: center;
-
-        margin-top: 25px;
-
-        color: #64748b;
-
-        font-size: 14px;
-    }
-
-    </style>
+    st.markdown(f"""
+    <div class="logo-sigem">
+        <img src="data:image/png;base64,{sigem}" width="320">
+    </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="login-card">',
-        unsafe_allow_html=True
-    )
+    # ======================================
+    # TITULOS
+    # ======================================
 
-    st.markdown(
-        '<div class="logo-tids">',
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <div class="titulo">
+        INICIO DE SESIÓN
+    </div>
 
-    st.image(
-        "LOOGO-TIDS-CONSULTING (2).jpg",
-        width=170
-    )
+    <div class="subtitulo">
+        Sistema de Gestión Empresarial
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
+    # ======================================
+    # FORMULARIO
+    # ======================================
 
-    st.markdown(
-        '<div class="logo-sigem">',
-        unsafe_allow_html=True
+    usuario = st.text_input(
+        "Usuario"
     )
-
-    st.image(
-        "logo1.png",
-        width=230
-    )
-
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="login-title">Inicio de sesión</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '''
-        <div class="login-subtitle">
-        Ingresa tus credenciales para continuar
-        </div>
-        ''',
-        unsafe_allow_html=True
-    )
-
-    usuario = st.text_input("Usuario")
 
     password = st.text_input(
         "Contraseña",
         type="password"
     )
 
-    if st.button("Ingresar"):
+    ingresar = st.button(
+        "INGRESAR"
+    )
 
-        resultado = validar_login(
-            usuario.strip(),
-            password.strip()
-        )
+    # ======================================
+    # LOGIN DEMO
+    # ======================================
 
-        if resultado == "INACTIVO":
+    if ingresar:
 
-            st.warning(
-                "⛔ Usuario inactivo"
-            )
+        if usuario == "admin" and password == "1234":
 
-        elif resultado is None:
-
-            st.error(
-                "❌ Usuario o contraseña incorrectos"
+            st.success(
+                "Bienvenido a SIGEM"
             )
 
         else:
 
-            st.session_state.autenticado = True
-            st.session_state.usuario = resultado["usuario"]
-            st.session_state.nombre = resultado["nombre"]
-            st.session_state.rol = resultado["rol"]
-
-            st.rerun()
-
-    st.markdown(
-        '''
-        <div class="footer-login">
-        © 2026 SIGEM | Desarrollado por TIDS Consulting
-        </div>
-        ''',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-
-def logout_app():
-
-    if st.sidebar.button("🚪 Cerrar sesión"):
-
-        st.session_state.autenticado = False
-        st.session_state.usuario = None
-        st.session_state.nombre = None
-        st.session_state.rol = None
-
-        st.rerun()
+            st.error(
+                "Usuario o contraseña incorrectos"
+            )
