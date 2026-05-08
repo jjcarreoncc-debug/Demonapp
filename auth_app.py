@@ -1,295 +1,138 @@
 import streamlit as st
 import base64
 
-# ======================================
-# CONFIGURACION PAGINA
-# ======================================
-
-st.set_page_config(
-    page_title="SIGEM",
-    layout="wide"
-)
-
-# ======================================
-# FUNCION BASE64
-# ======================================
 
 def get_base64(imagen):
-
     with open(imagen, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
-        return base64.b64encode(
-            f.read()
-        ).decode()
 
+def login_app():
 
-# ======================================
-# IMAGENES
-# ======================================
-
-fondo = get_base64("logofondo.JPG")
-
-sigem = get_base64("logo1.png")
-
-
-# ======================================
-# CSS
-# ======================================
-
-st.markdown(f"""
-<style>
-
-/* ======================================
-   OCULTAR STREAMLIT
-====================================== */
-
-header,
-#MainMenu,
-footer {{
-    visibility: hidden;
-}}
-
-/* ======================================
-   FONDO
-====================================== */
-
-.stApp {{
-
-    background-image:
-        url("data:image/png;base64,{fondo}");
-
-    background-size: cover;
-
-    background-position: center;
-
-    background-repeat: no-repeat;
-
-    background-attachment: fixed;
-}}
-
-/* ======================================
-   OVERLAY OSCURO
-====================================== */
-
-.stApp::before {{
-
-    content: "";
-
-    position: fixed;
-
-    inset: 0;
-
-    background:
-        rgba(0,0,0,0.45);
-
-    z-index: 0;
-}}
-
-/* ======================================
-   CONTENIDO
-====================================== */
-
-.main .block-container {{
-
-    position: relative;
-
-    z-index: 1;
-
-    padding-top: 8vh;
-
-    max-width: 1000px;
-}}
-
-/* ======================================
-   LOGO
-====================================== */
-
-.logo-sigem {{
-
-    display: flex;
-
-    justify-content: center;
-
-    margin-bottom: 15px;
-}}
-
-/* ======================================
-   TITULOS
-====================================== */
-
-.titulo {{
-
-    text-align: center;
-
-    font-size: 52px;
-
-    font-weight: 800;
-
-    color: white;
-
-    margin-bottom: 10px;
-
-    text-shadow:
-        0 5px 20px rgba(0,0,0,0.40);
-}}
-
-.subtitulo {{
-
-    text-align: center;
-
-    font-size: 22px;
-
-    color: white;
-
-    margin-bottom: 45px;
-
-    text-shadow:
-        0 5px 20px rgba(0,0,0,0.40);
-}}
-
-/* ======================================
-   INPUTS
-====================================== */
-
-.stTextInput input {{
-
-    height: 58px;
-
-    border-radius: 14px;
-
-    border:
-        1px solid rgba(255,255,255,0.25);
-
-    background:
-        rgba(0,0,0,0.45);
-
-    color: white;
-
-    font-size: 18px;
-
-    backdrop-filter: blur(5px);
-}}
-
-.stTextInput label {{
-
-    color: white !important;
-
-    font-size: 15px;
-
-    font-weight: 600;
-}}
-
-/* ======================================
-   BOTON
-====================================== */
-
-.stButton button {{
-
-    width: 100%;
-
-    height: 58px;
-
-    border-radius: 14px;
-
-    border: none;
-
-    background:
-        linear-gradient(
-            90deg,
-            #0f3fae 0%,
-            #2563eb 100%
-        );
-
-    color: white;
-
-    font-size: 22px;
-
-    font-weight: 700;
-
-    margin-top: 15px;
-
-    transition: 0.2s;
-}}
-
-.stButton button:hover {{
-
-    transform: scale(1.01);
-
-    background:
-        linear-gradient(
-            90deg,
-            #2563eb 0%,
-            #3b82f6 100%
-        );
-}}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ======================================
-# CENTRAR LOGIN
-# ======================================
-
-izq, centro, der = st.columns([1,1,1])
-
-with centro:
-
-    # ======================================
-    # LOGO
-    # ======================================
+    fondo = get_base64("logofondo.JPG")
+    sigem = get_base64("logo1.png")
 
     st.markdown(f"""
-    <div class="logo-sigem">
-        <img src="data:image/png;base64,{sigem}" width="320">
-    </div>
+    <style>
+    header, #MainMenu, footer {{
+        visibility: hidden;
+    }}
+
+    .stApp {{
+        background-image: url("data:image/jpeg;base64,{fondo}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+
+    .stApp::before {{
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 0;
+    }}
+
+    .main .block-container {{
+        position: relative;
+        z-index: 1;
+        padding-top: 8vh;
+        max-width: 1000px;
+    }}
+
+    .logo-sigem {{
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }}
+
+    .titulo {{
+        text-align: center;
+        font-size: 52px;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 10px;
+        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
+    }}
+
+    .subtitulo {{
+        text-align: center;
+        font-size: 22px;
+        color: white;
+        margin-bottom: 45px;
+        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
+    }}
+
+    .stTextInput input {{
+        height: 58px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(0,0,0,0.45);
+        color: white;
+        font-size: 18px;
+    }}
+
+    .stTextInput label {{
+        color: white !important;
+        font-size: 15px;
+        font-weight: 600;
+    }}
+
+    .stButton button {{
+        width: 100%;
+        height: 58px;
+        border-radius: 14px;
+        border: none;
+        background: linear-gradient(90deg,#0f3fae 0%,#2563eb 100%);
+        color: white;
+        font-size: 22px;
+        font-weight: 700;
+        margin-top: 15px;
+    }}
+    </style>
     """, unsafe_allow_html=True)
 
-    # ======================================
-    # TITULOS
-    # ======================================
+    izq, centro, der = st.columns([1, 1, 1])
 
-    st.markdown("""
-    <div class="titulo">
-        INICIO DE SESIÓN
-    </div>
+    with centro:
+        st.markdown(f"""
+        <div class="logo-sigem">
+            <img src="data:image/png;base64,{sigem}" width="320">
+        </div>
 
-    <div class="subtitulo">
-        Sistema de Gestión Empresarial
-    </div>
-    """, unsafe_allow_html=True)
+        <div class="titulo">
+            INICIO DE SESIÓN
+        </div>
 
-    # ======================================
-    # FORMULARIO
-    # ======================================
+        <div class="subtitulo">
+            Sistema de Gestión Empresarial
+        </div>
+        """, unsafe_allow_html=True)
 
-    usuario = st.text_input(
-        "Usuario"
-    )
+        usuario = st.text_input("Usuario")
 
-    password = st.text_input(
-        "Contraseña",
-        type="password"
-    )
+        password = st.text_input(
+            "Contraseña",
+            type="password"
+        )
 
-    ingresar = st.button(
-        "INGRESAR"
-    )
+        if st.button("INGRESAR"):
 
-    # ======================================
-    # LOGIN DEMO
-    # ======================================
+            if usuario == "admin" and password == "1234":
+                st.session_state.autenticado = True
+                st.session_state.usuario = usuario
+                st.session_state.nombre = "Administrador"
+                st.session_state.rol = "Admin"
+                st.rerun()
+            else:
+                st.error("Usuario o contraseña incorrectos")
 
-    if ingresar:
 
-        if usuario == "admin" and password == "1234":
-
-            st.success(
-                "Bienvenido a SIGEM"
-            )
-
-        else:
-
-            st.error(
-                "Usuario o contraseña incorrectos"
-            )
+def logout_app():
+    if st.sidebar.button("🚪 Cerrar sesión"):
+        st.session_state.autenticado = False
+        st.session_state.usuario = None
+        st.session_state.nombre = None
+        st.session_state.rol = None
+        st.rerun()
