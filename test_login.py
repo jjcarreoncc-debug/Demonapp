@@ -1,22 +1,48 @@
-
 import streamlit as st
 import base64
 
-st.set_page_config(layout="wide")
+st.set_page_config(
+    page_title="SIGEM",
+    layout="wide"
+)
 
 
 def get_base64(imagen):
+
     with open(imagen, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+
+        return base64.b64encode(
+            f.read()
+        ).decode()
 
 
-fondo = get_base64("logofondo.JPG")
+# =========================
+# IMAGENES
+# =========================
 
+fondo = get_base64(
+    "logofondo.png"
+)
+
+empresa = get_base64(
+    "LOOGO-TIDS-CONSULTING (2).jpg"
+)
+
+sigem = get_base64(
+    "logo1.png"
+)
+
+
+# =========================
+# CSS
+# =========================
 
 st.markdown(f"""
 <style>
 
-header, #MainMenu, footer {{
+header,
+#MainMenu,
+footer {{
     visibility: hidden;
 }}
 
@@ -43,7 +69,7 @@ header, #MainMenu, footer {{
     inset: 0;
 
     background:
-        rgba(0,0,0,0.35);
+        rgba(0,0,0,0.45);
 
     z-index: 0;
 }}
@@ -54,7 +80,7 @@ header, #MainMenu, footer {{
 
     z-index: 1;
 
-    padding-top: 8vh;
+    padding-top: 7vh;
 }}
 
 .element-container:has(style) {{
@@ -66,30 +92,36 @@ header, #MainMenu, footer {{
     background:
         rgba(255,255,255,0.92);
 
-    padding: 45px;
+    padding:
+        45px;
 
-    border-radius: 24px;
+    border-radius:
+        24px;
 
     box-shadow:
         0 20px 60px rgba(0,0,0,0.35);
 }}
 
-.logo-empresa {{
-
-    display: flex;
-
-    justify-content: center;
-
-    margin-bottom: 10px;
-}}
-
+.logo-empresa,
 .logo-sigem {{
 
     display: flex;
 
     justify-content: center;
 
-    margin-bottom: 15px;
+    align-items: center;
+
+    width: 100%;
+}}
+
+.logo-empresa img {{
+
+    margin-bottom: 10px;
+}}
+
+.logo-sigem img {{
+
+    margin-bottom: 20px;
 }}
 
 .titulo {{
@@ -142,7 +174,16 @@ header, #MainMenu, footer {{
 """, unsafe_allow_html=True)
 
 
+# =========================
+# COLUMNAS
+# =========================
+
 izq, centro, der = st.columns([1,1,1])
+
+
+# =========================
+# LOGIN
+# =========================
 
 with centro:
 
@@ -151,35 +192,15 @@ with centro:
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        '<div class="logo-empresa">',
-        unsafe_allow_html=True
-    )
+    st.markdown(f"""
+    <div class="logo-empresa">
+        <img src="data:image/jpg;base64,{empresa}" width="170">
+    </div>
 
-    st.image(
-        "LOOGO-TIDS-CONSULTING (2).jpg",
-        width=170
-    )
-
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        '<div class="logo-sigem">',
-        unsafe_allow_html=True
-    )
-
-    st.image(
-        "logo1.png",
-        width=230
-    )
-
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
+    <div class="logo-sigem">
+        <img src="data:image/png;base64,{sigem}" width="230">
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown(
         '<div class="titulo">Inicio de sesión</div>',
