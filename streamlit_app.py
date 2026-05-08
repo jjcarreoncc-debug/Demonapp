@@ -15,8 +15,13 @@ from logistica_app import logistica_app
 from wms_app import wms_app
 from mantenimiento_app import mantenimiento_app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
-
-    
+from database import init_database
+from seed_data import seed_data
+# =========================
+# INIT DATABASE
+# =========================
+init_database()
+seed_data()    
 # ------------------------
 # CONFIG
 #
