@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from compras_analitica_app import compras_analitica_app
+from compras_carga_datos import cargar_datos_compras
+
 from compras_general_app import (
     dashboard_compras_general,
     top_compras_app,
@@ -9,7 +11,7 @@ from compras_general_app import (
     detalle_compras_app
 )
 
-from compras_carga_datos import cargar_datos_compras
+
 
 
 # =========================
