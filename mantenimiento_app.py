@@ -1,4 +1,5 @@
 import streamlit as st
+from mantenimiento_usuarios_app import alta_usuario_app
 
 
 def mantenimiento_app():
@@ -129,6 +130,12 @@ def mantenimiento_app():
     # =========================
     # PLACEHOLDERS
     # =========================
-    st.info(
-        f"Pantalla en construcción: {submenu}"
-    )
+    if menu == "👥 Usuarios" and submenu == "Crear usuario":
+
+        alta_usuario_app()
+        
+    else:
+        
+        st.info(
+            f"Pantalla en construcción: {submenu}"
+        )
