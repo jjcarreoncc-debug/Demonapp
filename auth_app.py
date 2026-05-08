@@ -1,5 +1,7 @@
 import streamlit as st
 import hashlib
+import base64
+from pathlib import Path
 
 from database import get_connection
 
@@ -45,39 +47,35 @@ def validar_login(usuario, password):
     return row
 
 
+def get_base64_image(image_path):
+
+    file_path = Path(image_path)
+
+    if not file_path.exists():
+        return None
+
+    with open(file_path, "rb") as img_file:
+
+        return base64.b64encode(
+            img_file.read()
+        ).decode()
+
+
 def login_app():
 
-    st.markdown("""
-    <style>
+    bg_image = get_base64_image(
+        "logofondo.JPG"
+    )
 
-    /* =========================
-       OCULTAR STREAMLIT
-    ========================= */
+    if bg_image:
 
-    header {
-        visibility: hidden;
-    }
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-    /* =========================
-       FONDO
-    ========================= */
-
-    .stApp {
-
+        fondo_css = f"""
         background-image:
             linear-gradient(
-                rgba(255,255,255,0.84),
-                rgba(255,255,255,0.84)
+                rgba(255,255,255,0.82),
+                rgba(255,255,255,0.82)
             ),
-            url("logofondo.JPG");
+            url("data:image/jpg;base64,{bg_image}");
 
         background-size: cover;
 
@@ -86,20 +84,53 @@ def login_app():
         background-repeat: no-repeat;
 
         background-attachment: fixed;
-    }
+        """
 
-    .block-container {
+    else:
+
+        fondo_css = """
+        background-color: #f4f8fc;
+        """
+
+    st.markdown(f"""
+    <style>
+
+    /* =========================
+       OCULTAR STREAMLIT
+    ========================= */
+
+    header {{
+        visibility: hidden;
+    }}
+
+    #MainMenu {{
+        visibility: hidden;
+    }}
+
+    footer {{
+        visibility: hidden;
+    }}
+
+    /* =========================
+       FONDO
+    ========================= */
+
+    .stApp {{
+        {fondo_css}
+    }}
+
+    .block-container {{
         padding-top: 0rem !important;
         max-width: 100% !important;
-    }
+    }}
 
     /* =========================
        CARD LOGIN
     ========================= */
 
-    .login-card {
+    .login-card {{
 
-        background: rgba(255,255,255,0.94);
+        background: rgba(255,255,255,0.93);
 
         border-radius: 30px;
 
@@ -122,27 +153,27 @@ def login_app():
 
         border:
             1px solid #dbe4f0;
-    }
+    }}
 
     /* =========================
        LOGOS
     ========================= */
 
-    .logo-tids {
+    .logo-tids {{
         text-align: center;
         margin-bottom: 10px;
-    }
+    }}
 
-    .logo-sigem {
+    .logo-sigem {{
         text-align: center;
         margin-bottom: 10px;
-    }
+    }}
 
     /* =========================
        TITULOS
     ========================= */
 
-    .login-title {
+    .login-title {{
 
         text-align: center;
 
@@ -155,9 +186,9 @@ def login_app():
         margin-top: 15px;
 
         margin-bottom: 5px;
-    }
+    }}
 
-    .login-subtitle {
+    .login-subtitle {{
 
         text-align: center;
 
@@ -166,13 +197,13 @@ def login_app():
         color: #64748b;
 
         margin-bottom: 30px;
-    }
+    }}
 
     /* =========================
        INPUTS
     ========================= */
 
-    .stTextInput > div > div > input {
+    .stTextInput > div > div > input {{
 
         border-radius: 14px;
 
@@ -183,20 +214,20 @@ def login_app():
         font-size: 16px;
 
         padding-left: 15px;
-    }
+    }}
 
-    .stTextInput > label {
+    .stTextInput > label {{
 
         font-weight: 600;
 
         color: #0f172a;
-    }
+    }}
 
     /* =========================
        BOTON
     ========================= */
 
-    div.stButton > button {
+    div.stButton > button {{
 
         width: 100%;
 
@@ -220,9 +251,9 @@ def login_app():
         border: none;
 
         margin-top: 15px;
-    }
+    }}
 
-    div.stButton > button:hover {
+    div.stButton > button:hover {{
 
         background:
             linear-gradient(
@@ -232,13 +263,13 @@ def login_app():
             );
 
         color: white;
-    }
+    }}
 
     /* =========================
        FOOTER
     ========================= */
 
-    .footer-login {
+    .footer-login {{
 
         text-align: center;
 
@@ -247,7 +278,7 @@ def login_app():
         color: #64748b;
 
         font-size: 14px;
-    }
+    }}
 
     </style>
     """, unsafe_allow_html=True)
