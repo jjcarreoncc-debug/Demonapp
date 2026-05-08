@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-
+from compras_analitica_app import compras_analitica_app
 from compras_general_app import (
     dashboard_compras_general,
     top_compras_app,
@@ -317,7 +317,7 @@ def compras_app():
     # =========================
     if st.session_state.compras_vista == "menu":
 
-        c1, c2, c3 = st.columns(3)
+        c4, c5, c6, c7 = st.columns(4)
 
         if c1.button("📊 Dashboard"):
             st.session_state.compras_vista = "dashboard"
@@ -343,6 +343,9 @@ def compras_app():
 
         if c6.button("📋 Detalle"):
             st.session_state.compras_vista = "detalle"
+            st.rerun()
+        if c7.button("📈 Analítica"):
+            st.session_state.compras_vista = "analitica"
             st.rerun()
 
     # =========================
@@ -379,3 +382,5 @@ def compras_app():
     elif st.session_state.compras_vista == "detalle":
         st.subheader("📋 Detalle Compras")
         st.dataframe(df, use_container_width=True)
+    elif st.session_state.compras_vista == "analitica":
+        compras_analitica_app(df)
