@@ -16,6 +16,7 @@ def asignar_roles_app():
     )
 
     st.divider()
+    def crear_rol_app():
 
     # =========================
     # DATA DEMO
