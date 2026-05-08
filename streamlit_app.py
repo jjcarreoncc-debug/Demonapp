@@ -469,7 +469,7 @@ with st.sidebar:
     # ------------------------
     # ------------------------
     if st.session_state.rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "logistica",Almacen WMS", "Mantenimiento"]
+        opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "logistica", "Almacen WMS", "Mantenimiento"]
     else:
         opciones = ["Inicio", "Dashboard", "Inventarios"]
 
@@ -482,7 +482,7 @@ if "menu" not in st.session_state:
 # ------------------------
 # MENU
 # ------------------------
-opciones = ["Inicio", "Dashboard", "Inventarios", "Compras",  "logistica", Almacen WMS", "Mantenimiento"]
+opciones = ["Inicio", "Dashboard", "Inventarios", "Compras",  "logistica", "Almacen WMS", "Mantenimiento"]
 # índice seguro
 try:
     idx = opciones.index(st.session_state.menu)
