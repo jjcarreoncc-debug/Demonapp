@@ -9,6 +9,8 @@ from compras_general_app import (
     detalle_compras_app
 )
 
+from compras_carga_datos import cargar_datos_compras
+
 
 # =========================
 # CSS COMPRAS
@@ -98,71 +100,89 @@ def compras_app():
         st.session_state.compras_vista = "menu"
 
     # =========================
-    # FILE UPLOADERS
+    # CARGA AUTOMÁTICA
     # =========================
-    archivo_compras = st.file_uploader(
-        "🛒 Compras",
-        type=["xlsx"],
-        key="compras_file"
-    )
+    (
+        compras,
+        productos,
+        proveedores,
+        bodegas,
+        segmentacion
+    ) = cargar_datos_compras()
 
-    archivo_productos = st.file_uploader(
-        "📦 Productos",
-        type=["xlsx"],
-        key="productos_compras_file"
-    )
+    carga_automatica_ok = all([
+        compras is not None,
+        productos is not None,
+        proveedores is not None,
+        bodegas is not None,
+        segmentacion is not None
+    ])
 
-    archivo_proveedores = st.file_uploader(
-        "🏢 Proveedores",
-        type=["xlsx"],
-        key="proveedores_file"
-    )
+    if carga_automatica_ok:
 
-    archivo_bodegas = st.file_uploader(
-        "🏬 Bodegas",
-        type=["xlsx"],
-        key="bodegas_file"
-    )
+        st.success("✅ Datos de compras cargados automáticamente desde GitHub.")
 
-    archivo_segmentacion = st.file_uploader(
-        "🧩 Segmentación",
-        type=["xlsx"],
-        key="segmentacion_file"
-    )
+        if "CANTIDAD" in compras.columns:
+            compras = compras.rename(columns={
+                "CANTIDAD": "ENTRADA"
+            })
 
-    # =========================
-    # CARGA ARCHIVOS
-    # =========================
-    if archivo_compras:
+    else:
 
-        compras_df = pd.read_excel(archivo_compras)
+        st.warning(
+            "⚠️ No se pudieron cargar los archivos automáticos. Usa carga manual."
+        )
 
-        compras_df.rename(columns={
-            "CANTIDAD": "ENTRADA"
-        }, inplace=True)
+        archivo_compras = st.file_uploader(
+            "🛒 Compras",
+            type=["xlsx"],
+            key="compras_file"
+        )
 
-        st.session_state.df_compras_base = compras_df
+        archivo_productos = st.file_uploader(
+            "📦 Productos",
+            type=["xlsx"],
+            key="productos_compras_file"
+        )
 
-    if archivo_productos:
-        st.session_state.df_productos_compras = pd.read_excel(archivo_productos)
+        archivo_proveedores = st.file_uploader(
+            "🏢 Proveedores",
+            type=["xlsx"],
+            key="proveedores_file"
+        )
 
-    if archivo_proveedores:
-        st.session_state.df_proveedores = pd.read_excel(archivo_proveedores)
+        archivo_bodegas = st.file_uploader(
+            "🏬 Bodegas",
+            type=["xlsx"],
+            key="bodegas_file"
+        )
 
-    if archivo_bodegas:
-        st.session_state.df_bodegas = pd.read_excel(archivo_bodegas)
+        archivo_segmentacion = st.file_uploader(
+            "🧩 Segmentación",
+            type=["xlsx"],
+            key="segmentacion_file"
+        )
 
-    if archivo_segmentacion:
-        st.session_state.df_segmentacion = pd.read_excel(archivo_segmentacion)
+        if archivo_compras:
 
-    # =========================
-    # SESSION DATA
-    # =========================
-    compras = st.session_state.get("df_compras_base")
-    productos = st.session_state.get("df_productos_compras")
-    proveedores = st.session_state.get("df_proveedores")
-    bodegas = st.session_state.get("df_bodegas")
-    segmentacion = st.session_state.get("df_segmentacion")
+            compras = pd.read_excel(archivo_compras)
+
+            if "CANTIDAD" in compras.columns:
+                compras.rename(columns={
+                    "CANTIDAD": "ENTRADA"
+                }, inplace=True)
+
+        if archivo_productos:
+            productos = pd.read_excel(archivo_productos)
+
+        if archivo_proveedores:
+            proveedores = pd.read_excel(archivo_proveedores)
+
+        if archivo_bodegas:
+            bodegas = pd.read_excel(archivo_bodegas)
+
+        if archivo_segmentacion:
+            segmentacion = pd.read_excel(archivo_segmentacion)
 
     if (
         compras is None
