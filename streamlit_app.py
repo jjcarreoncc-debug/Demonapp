@@ -268,21 +268,17 @@ col1, col2, col3 = st.columns([1,2,1])
 with col2:
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
 
+
+
 # ------------------------
 # USUARIO ACTUAL
 # ------------------------
-df_users = obtener_usuarios()
+usuario_actual = {
+    "usuario": st.session_state.usuario,
+    "nombre": st.session_state.nombre,
+    "rol": st.session_state.rol
+}
 
-usuario_actual = df_users[
-    df_users["username"]
-    == st.session_state.usuario
-]
-
-if not usuario_actual.empty:
-    usuario_actual = usuario_actual.iloc[0]
-else:
-    usuario_actual = None
-    
 # ------------------------
 # SIDEBAR
 # ------------------------
