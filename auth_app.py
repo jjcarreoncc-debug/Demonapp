@@ -11,6 +11,7 @@ def hash_password(password):
 
 
 def validar_login(usuario, password):
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -45,42 +46,69 @@ def validar_login(usuario, password):
 
 
 def login_app():
+
     st.markdown("""
     <style>
+
+    /* Fondo general */
     .stApp {
         background: #f4f6f8 !important;
     }
 
-    section.main > div {
-        padding-top: 2rem;
-        max-width: 520px;
+    /* Contenedor principal */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 1rem !important;
+        max-width: 430px !important;
     }
 
+    /* Ocultar header */
+    header {
+        visibility: hidden;
+    }
+
+    /* Card login */
     .login-card {
         background: white;
-        padding: 35px 35px 30px 35px;
+        padding: 35px;
         border-radius: 22px;
-        box-shadow: 0 12px 35px rgba(0,0,0,0.12);
-        text-align: center;
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
         margin-top: 20px;
     }
 
+    /* Logo */
+    .logo-container {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    /* Título */
     .login-title {
         font-size: 32px;
         font-weight: 800;
         color: #24364b;
+        margin-top: 10px;
         margin-bottom: 5px;
+        text-align: center;
     }
 
+    /* Subtitulo */
     .login-subtitle {
         font-size: 14px;
         color: #7b8794;
         margin-bottom: 25px;
+        text-align: center;
     }
 
+    /* Inputs */
+    .stTextInput > div > div > input {
+        border-radius: 10px;
+    }
+
+    /* Botón */
     div.stButton > button {
         width: 100%;
-        height: 45px;
+        height: 46px;
         border-radius: 12px;
         background-color: #1f5f7a;
         color: white;
@@ -88,19 +116,39 @@ def login_app():
         border: none;
     }
 
+    /* Hover botón */
     div.stButton > button:hover {
         background-color: #17495e;
         color: white;
     }
+
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="login-card">',
+        unsafe_allow_html=True
+    )
 
     try:
-        st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=220)
+
+        st.markdown(
+            '<div class="logo-container">',
+            unsafe_allow_html=True
+        )
+
+        st.image(
+            "LOOGO-TIDS-CONSULTING (2).jpg",
+            width=180
+        )
+
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True
+        )
+
     except Exception:
-        st.markdown("### 📦")
+        st.markdown("### 🔐")
 
     st.markdown(
         '<div class="login-title">Inicio de sesión</div>',
@@ -113,28 +161,33 @@ def login_app():
     )
 
     usuario = st.text_input("Usuario")
+
     password = st.text_input(
         "Contraseña",
         type="password"
     )
 
     if st.button("Ingresar"):
+
         resultado = validar_login(
             usuario.strip(),
             password.strip()
         )
 
         if resultado == "INACTIVO":
+
             st.warning(
                 "⛔ Usuario inactivo. Contacta al administrador."
             )
 
         elif resultado is None:
+
             st.error(
                 "❌ Usuario o contraseña incorrectos."
             )
 
         else:
+
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
@@ -142,11 +195,16 @@ def login_app():
 
             st.rerun()
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 
 def logout_app():
+
     if st.sidebar.button("🚪 Cerrar sesión"):
+
         st.session_state.autenticado = False
         st.session_state.usuario = None
         st.session_state.nombre = None
