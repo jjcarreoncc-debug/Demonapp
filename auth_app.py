@@ -52,7 +52,7 @@ def login_app():
     # FONDO BASE64
     # =========================
 
-    with open("logofondo.png", "rb") as f:
+    with open("logofondo.JPG", "rb") as f:
         fondo_base64 = base64.b64encode(
             f.read()
         ).decode()
