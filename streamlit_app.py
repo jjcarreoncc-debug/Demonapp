@@ -17,6 +17,7 @@ from mantenimiento_app import mantenimiento_app
 st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 from database import init_database
 from seed_data import seed_data
+from auth_app import login_app, logout_app
 # =========================
 # INIT DATABASE
 # =========================
@@ -227,123 +228,44 @@ conn.commit()
 # =========================
 if "vista" not in st.session_state:
     st.session_state.vista = "inicio"
+
 # ------------------------
 # LOGIN CONFIG
 # ------------------------
-passwords = ["1234", "abcd"]
-hashed_passwords = Hasher(passwords).generate()
 
-credentials = {
-    "usernames": {
-        "admin": {"name": "Admin", "password": hashed_passwords[0]},
-        "ventas": {"name": "Ventas", "password": hashed_passwords[1]}
-    }
-}
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
 
-authenticator = stauth.Authenticate(
-    credentials,
-    "mi_dashboard",
-    "abcdef",
-    cookie_expiry_days=1
+if "usuario" not in st.session_state:
+    st.session_state.usuario = None
+
+if "nombre" not in st.session_state:
+    st.session_state.nombre = None
+
+if "rol" not in st.session_state:
+    st.session_state.rol = None
+
+
+if not st.session_state.autenticado:
+    login_app()
+    st.stop()
+
+
+logout_app()
+
+st.sidebar.success(
+    f"Usuario: {st.session_state.nombre}"
 )
 
+st.sidebar.info(
+    f"Rol: {st.session_state.rol}"
+)
 # ------------------------
 # LOGO
 # ------------------------
 col1, col2, col3 = st.columns([1,2,1])
 with col2:
     st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
-# ------------------------
-# LOGIN	
-# ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    name, authentication_status, username = authenticator.login("Login", location="main")
-
-
-# =========================
-# LOGIN CONTROL
-# =========================
-
-if authentication_status is False:
-    st.error("Usuario o contraseña incorrectos")
-
-    # 🔥 LOGIN SIEMPRE BLANCO
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.stop()
-
-
-if authentication_status is None:
-
-    # 🔥 LOGIN SIEMPRE BLANCO
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    col1, col2 = st.columns([2,6])
-    with col2:
-        img = Image.open("imagen7.png")
-        st.image(img, width=2000)
-
-    st.stop()
-
-
-# =========================
-# DESPUÉS DE LOGIN → GRIS
-# =========================
-if authentication_status:
-
-    st.markdown("""
-    <style>
-    .stApp {
-        background-color: #f2f2f2;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-# ------------------------
-# FUNCIONES USUARIOS
-# ------------------------
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def obtener_usuarios():
-    return pd.read_sql("SELECT * FROM usuarios", conn)
-
-def crear_usuario(username, password, nombre, rol, area, transacciones):
-    try:
-        trans_str = ",".join(transacciones)
-        conn.execute("""
-        INSERT INTO usuarios (username, password, nombre, rol, estado, fecha_creacion, area, transacciones)
-        VALUES (?, ?, ?, ?, 'Activo', ?, ?, ?)
-        """, (
-            username,
-            hash_password(password),
-            nombre,
-            rol,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            area,
-            trans_str
-        ))
-        conn.commit()
-        return True
-    except Exception as e:
-        return str(e)
-
-def desactivar_usuario(user_id):
-    conn.execute("UPDATE usuarios SET estado='Inactivo' WHERE id=?", (user_id,))
-    conn.commit()
 
 # ------------------------
 # USUARIO ACTUAL
