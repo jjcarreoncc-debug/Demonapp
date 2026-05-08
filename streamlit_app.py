@@ -314,7 +314,7 @@ with st.sidebar:
 # ------------------------
     # ROL
     # ------------------------
-    rol = "Admin" if username == "admin" else "Usuario"
+    
     st.session_state.rol = rol
     
 
