@@ -97,6 +97,7 @@ def login_app():
         border-radius: 30px;
         padding: 35px 50px 35px 50px;
         width: 500px;
+        max-width: 90%;
         margin: auto;
         margin-top: 2vh;
         box-shadow: 0 20px 60px rgba(0,0,0,0.35);
@@ -125,6 +126,16 @@ def login_app():
         color: white;
         margin-bottom: 30px;
         text-shadow: 0 5px 20px rgba(0,0,0,0.40);
+    }}
+
+    .stTextInput {{
+        max-width: 420px;
+        margin: auto;
+    }}
+
+    .stButton {{
+        max-width: 420px;
+        margin: auto;
     }}
 
     .stTextInput > div > div > input {{
