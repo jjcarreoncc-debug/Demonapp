@@ -98,7 +98,7 @@ def login_app():
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
 
     try:
-        st.image("imagen7.png", width=220)
+        st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=220)
     except Exception:
         st.markdown("### 📦")
 
