@@ -4,27 +4,18 @@ from mantenimiento_usuarios_app import alta_usuario_app
 from mantenimiento_roles_app import asignar_roles_app
 from mantenimiento_roles_app import crear_rol_app
 
+
 def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
 
-    # =========================
-    # VALIDACION
-    # =========================
     if st.session_state.rol != "Admin":
-
         st.warning("⛔ No tienes permisos")
         st.stop()
 
-    # =========================
-    # SESSION STATE
-    # =========================
     if "menu_mantenimiento" not in st.session_state:
         st.session_state.menu_mantenimiento = "👥 Usuarios"
 
-    # =========================
-    # MENU PRINCIPAL
-    # =========================
     with st.sidebar:
 
         st.markdown("## 🛠️ Mantenimiento")
@@ -117,39 +108,31 @@ def mantenimiento_app():
                 key="submenu_configuracion"
             )
 
-    # =========================
-    # TITULO
-    # =========================
     st.subheader(f"{menu} → {submenu}")
-    st.write("DEBUG menu:", menu)
-    st.write("DEBUG submenu:", submenu)
-    
-    # =========================
-    # PANTALLAS
-    # =========================
+
     if (
-    menu == "👥 Usuarios"
-    and submenu == "Crear usuario"
+        menu == "👥 Usuarios"
+        and submenu == "Crear usuario"
     ):
 
-    alta_usuario_app()
+        alta_usuario_app()
 
-elif (
-    menu == "🧩 Roles"
-    and submenu == "Asignar usuarios"
-):
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Asignar usuarios"
+    ):
 
-    asignar_roles_app()
+        asignar_roles_app()
 
-elif (
-    menu == "🧩 Roles"
-    and submenu == "Crear rol"
-):
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Crear rol"
+    ):
 
-    crear_rol_app()
+        crear_rol_app()
 
-else:
+    else:
 
-    st.info(
-        f"Pantalla en construcción: {submenu}"
-    )
+        st.info(
+            f"Pantalla en construcción: {submenu}"
+        )
