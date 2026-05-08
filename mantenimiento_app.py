@@ -123,25 +123,33 @@ def mantenimiento_app():
     st.subheader(f"{menu} → {submenu}")
     st.write("DEBUG menu:", menu)
     st.write("DEBUG submenu:", submenu)
+    
     # =========================
     # PANTALLAS
     # =========================
     if (
-        menu == "👥 Usuarios"
-        and submenu == "Crear usuario"
-    ):
+    menu == "👥 Usuarios"
+    and submenu == "Crear usuario"
+):
 
-        alta_usuario_app()
+    alta_usuario_app()
 
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Asignar usuarios"
-    ):
+elif (
+    menu == "🧩 Roles"
+    and submenu == "Asignar usuarios"
+):
 
-        asignar_roles_app()
+    asignar_roles_app()
 
-    else:
+elif (
+    menu == "🧩 Roles"
+    and submenu == "Crear rol"
+):
 
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
+    crear_rol_app()
+
+else:
+
+    st.info(
+        f"Pantalla en construcción: {submenu}"
+    )
