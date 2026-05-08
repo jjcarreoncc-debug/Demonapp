@@ -10,13 +10,24 @@ def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
 
+    # =========================
+    # VALIDACION
+    # =========================
     if st.session_state.rol != "Admin":
+
         st.warning("⛔ No tienes permisos")
         st.stop()
 
+    # =========================
+    # SESSION STATE
+    # =========================
     if "menu_mantenimiento" not in st.session_state:
+
         st.session_state.menu_mantenimiento = "👥 Usuarios"
 
+    # =========================
+    # SIDEBAR
+    # =========================
     with st.sidebar:
 
         st.markdown("## 🛠️ Mantenimiento")
@@ -34,6 +45,9 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
+        # =========================
+        # SUBMENUS
+        # =========================
         if menu == "👥 Usuarios":
 
             submenu = st.radio(
@@ -108,39 +122,45 @@ def mantenimiento_app():
                 ],
                 key="submenu_configuracion"
             )
-    ######
+
+    # =========================
+    # TITULO
+    # =========================
     st.subheader(f"{menu} → {submenu}")
 
-if (
-    menu == "👥 Usuarios"
-    and submenu == "Crear usuario"
-):
+    # =========================
+    # PANTALLAS
+    # =========================
+    if (
+        menu == "👥 Usuarios"
+        and submenu == "Crear usuario"
+    ):
 
-    alta_usuario_app()
+        alta_usuario_app()
 
-elif (
-    menu == "🧩 Roles"
-    and submenu == "Asignar usuarios"
-):
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Asignar usuarios"
+    ):
 
-    asignar_roles_app()
+        asignar_roles_app()
 
-elif (
-    menu == "🧩 Roles"
-    and submenu == "Crear rol"
-):
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Crear rol"
+    ):
 
-    crear_rol_app()
+        crear_rol_app()
 
-elif (
-    menu == "🔐 Permisos"
-    and submenu == "Permisos por módulo"
-):
+    elif (
+        menu == "🔐 Permisos"
+        and submenu == "Permisos por módulo"
+    ):
 
-    permisos_por_modulo_app()
+        permisos_por_modulo_app()
 
-else:
+    else:
 
-    st.info(
-        f"Pantalla en construcción: {submenu}"
-    )
+        st.info(
+            f"Pantalla en construcción: {submenu}"
+        )
