@@ -9,7 +9,7 @@ def alta_usuario_app():
     
 
    
-    admin_card_open()
+    
 
     st.markdown("### 📌 Información básica")
 
@@ -78,7 +78,7 @@ def alta_usuario_app():
     with col_btn2:
         limpiar = st.button("🔄 Limpiar")
 
-    admin_card_close()
+    
 
     if limpiar:
         st.rerun()
