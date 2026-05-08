@@ -10,7 +10,7 @@ def get_base64(imagen):
         return base64.b64encode(f.read()).decode()
 
 
-fondo = get_base64("logofondo.JPG")
+fondo = get_base64("logofondo.png")
 
 
 st.markdown(f"""
@@ -34,15 +34,14 @@ header, #MainMenu, footer {{
     background-attachment: fixed;
 }}
 
-.bloque {{
+[data-testid="column"] {{
+    display: flex;
+    justify-content: center;
+}}
+
+.login-box {{
 
     background: rgba(255,255,255,0.88);
-
-    width: 430px;
-
-    margin: auto;
-
-    margin-top: 7vh;
 
     padding: 40px;
 
@@ -51,10 +50,12 @@ header, #MainMenu, footer {{
     box-shadow:
         0 20px 50px rgba(0,0,0,0.25);
 
-    text-align: center;
+    width: 100%;
 }}
 
 .titulo {{
+
+    text-align: center;
 
     font-size: 38px;
 
@@ -62,9 +63,9 @@ header, #MainMenu, footer {{
 
     color: #0f172a;
 
-    margin-top: 10px;
+    margin-top: 15px;
 
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }}
 
 .stTextInput input {{
@@ -102,36 +103,30 @@ header, #MainMenu, footer {{
 """, unsafe_allow_html=True)
 
 
-st.markdown(
-    '<div class="bloque">',
-    unsafe_allow_html=True
-)
+izq, centro, der = st.columns([1,1,1])
 
-st.image(
-    "LOOGO-TIDS-CONSULTING (2).jpg",
-    width=170
-)
+with centro:
 
-st.image(
-    "logo1.png",
-    width=240
-)
+    st.markdown(
+        '<div class="login-box">',
+        unsafe_allow_html=True
+    )
 
-st.markdown(
-    '<div class="titulo">Inicio de sesión</div>',
-    unsafe_allow_html=True
-)
+    st.markdown(
+        '<div class="titulo">Inicio de sesión</div>',
+        unsafe_allow_html=True
+    )
 
-st.text_input("Usuario")
+    st.text_input("Usuario")
 
-st.text_input(
-    "Contraseña",
-    type="password"
-)
+    st.text_input(
+        "Contraseña",
+        type="password"
+    )
 
-st.button("Ingresar")
+    st.button("Ingresar")
 
-st.markdown(
-    '</div>',
-    unsafe_allow_html=True
-)
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
