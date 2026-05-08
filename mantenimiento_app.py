@@ -6,7 +6,7 @@ def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
 
-    # =========================
+    # =========================s
     # VALIDACION
     # =========================
     if st.session_state.rol != "Admin":
