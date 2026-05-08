@@ -37,7 +37,7 @@ def login_app():
     .main .block-container {{
         position: relative;
         z-index: 1;
-        padding-top: 4vh;
+        padding-top: 8vh;
         max-width: 1000px;
     }}
 
