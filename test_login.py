@@ -10,7 +10,7 @@ def get_base64(imagen):
         return base64.b64encode(f.read()).decode()
 
 
-fondo = get_base64("logofondo.png")
+fondo = get_base64("logofondo.JPG")
 
 
 st.markdown(f"""
