@@ -1,7 +1,5 @@
 import streamlit as st
 import hashlib
-import base64
-from pathlib import Path
 
 from database import get_connection
 
@@ -47,90 +45,56 @@ def validar_login(usuario, password):
     return row
 
 
-def get_base64_image(image_path):
-
-    file_path = Path(image_path)
-
-    if not file_path.exists():
-        return None
-
-    with open(file_path, "rb") as img_file:
-
-        return base64.b64encode(
-            img_file.read()
-        ).decode()
-
-
 def login_app():
 
-    bg_image = get_base64_image(
-        "logofondo.JPG"
-    )
-
-    if bg_image:
-
-        fondo_css = f"""
-        background-image:
-            linear-gradient(
-                rgba(255,255,255,0.82),
-                rgba(255,255,255,0.82)
-            ),
-            url("data:image/jpg;base64,{bg_image}");
-
-        background-size: cover;
-
-        background-position: center;
-
-        background-repeat: no-repeat;
-
-        background-attachment: fixed;
-        """
-
-    else:
-
-        fondo_css = """
-        background-color: #f4f8fc;
-        """
-
-    st.markdown(f"""
+    st.markdown("""
     <style>
 
     /* =========================
        OCULTAR STREAMLIT
     ========================= */
 
-    header {{
+    header {
         visibility: hidden;
-    }}
+    }
 
-    #MainMenu {{
+    #MainMenu {
         visibility: hidden;
-    }}
+    }
 
-    footer {{
+    footer {
         visibility: hidden;
-    }}
+    }
 
     /* =========================
        FONDO
     ========================= */
 
-    .stApp {{
-        {fondo_css}
-    }}
+    .stApp {
+        background-color: #ffffff;
+    }
 
-    .block-container {{
-        padding-top: 0rem !important;
+    /* =========================
+       CENTRAR LOGIN
+    ========================= */
+
+    .main .block-container {
+
         max-width: 100% !important;
-    }}
+
+        padding-top: 0rem !important;
+
+        padding-bottom: 0rem !important;
+    }
 
     /* =========================
        CARD LOGIN
     ========================= */
 
-    .login-card {{
+    .login-card {
 
-        background: red;
+        background: #ffffff;
+
         border-radius: 30px;
 
         padding:
@@ -145,34 +109,34 @@ def login_app():
             auto;
 
         margin-top:
-            8vh;
+            7vh;
 
         box-shadow:
             0 15px 40px rgba(0,0,0,0.10);
 
         border:
-            1px solid #dbe4f0;
-    }}
+            1px solid #e2e8f0;
+    }
 
     /* =========================
        LOGOS
     ========================= */
 
-    .logo-tids {{
+    .logo-tids {
         text-align: center;
         margin-bottom: 10px;
-    }}
+    }
 
-    .logo-sigem {{
+    .logo-sigem {
         text-align: center;
         margin-bottom: 10px;
-    }}
+    }
 
     /* =========================
        TITULOS
     ========================= */
 
-    .login-title {{
+    .login-title {
 
         text-align: center;
 
@@ -185,9 +149,9 @@ def login_app():
         margin-top: 15px;
 
         margin-bottom: 5px;
-    }}
+    }
 
-    .login-subtitle {{
+    .login-subtitle {
 
         text-align: center;
 
@@ -196,13 +160,13 @@ def login_app():
         color: #64748b;
 
         margin-bottom: 30px;
-    }}
+    }
 
     /* =========================
        INPUTS
     ========================= */
 
-    .stTextInput > div > div > input {{
+    .stTextInput > div > div > input {
 
         border-radius: 14px;
 
@@ -213,20 +177,20 @@ def login_app():
         font-size: 16px;
 
         padding-left: 15px;
-    }}
+    }
 
-    .stTextInput > label {{
+    .stTextInput > label {
 
         font-weight: 600;
 
         color: #0f172a;
-    }}
+    }
 
     /* =========================
        BOTON
     ========================= */
 
-    div.stButton > button {{
+    div.stButton > button {
 
         width: 100%;
 
@@ -250,9 +214,9 @@ def login_app():
         border: none;
 
         margin-top: 15px;
-    }}
+    }
 
-    div.stButton > button:hover {{
+    div.stButton > button:hover {
 
         background:
             linear-gradient(
@@ -262,13 +226,13 @@ def login_app():
             );
 
         color: white;
-    }}
+    }
 
     /* =========================
        FOOTER
     ========================= */
 
-    .footer-login {{
+    .footer-login {
 
         text-align: center;
 
@@ -277,7 +241,7 @@ def login_app():
         color: #64748b;
 
         font-size: 14px;
-    }}
+    }
 
     </style>
     """, unsafe_allow_html=True)
