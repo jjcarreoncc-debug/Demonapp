@@ -20,7 +20,7 @@ def get_base64(imagen):
 # IMAGENES
 # =========================
 
-fondo = get_base64("logofondo.JPG")
+fondo = get_base64("logofondo.png")
 
 sigem = get_base64("logo1.png")
 
@@ -72,20 +72,7 @@ footer {{
 
     z-index: 1;
 
-    padding-top: 8vh;
-}}
-
-.login-box {{
-
-    background:
-        rgba(255,255,255,0.92);
-
-    padding: 45px;
-
-    border-radius: 24px;
-
-    box-shadow:
-        0 20px 60px rgba(0,0,0,0.35);
+    padding-top: 10vh;
 }}
 
 .logo-sigem {{
@@ -93,9 +80,6 @@ footer {{
     display: flex;
 
     justify-content: center;
-}}
-
-.logo-sigem img {{
 
     margin-bottom: 20px;
 }}
@@ -108,38 +92,49 @@ footer {{
 
     font-weight: 800;
 
-    color: #0f172a;
+    color: white;
 
     margin-bottom: 10px;
+
+    text-shadow:
+        0 4px 15px rgba(0,0,0,0.4);
 }}
 
 .subtitulo {{
 
     text-align: center;
 
-    font-size: 16px;
+    font-size: 18px;
 
-    color: #475569;
+    color: white;
 
-    margin-bottom: 30px;
+    margin-bottom: 35px;
+
+    text-shadow:
+        0 4px 15px rgba(0,0,0,0.4);
 }}
 
 .stTextInput input {{
 
-    height: 52px;
+    height: 55px;
 
-    border-radius: 12px;
+    border-radius: 14px;
 
     border: none;
+
+    background:
+        rgba(255,255,255,0.92);
+
+    font-size: 16px;
 }}
 
 .stButton button {{
 
     width: 100%;
 
-    height: 52px;
+    height: 55px;
 
-    border-radius: 12px;
+    border-radius: 14px;
 
     border: none;
 
@@ -174,14 +169,9 @@ izq, centro, der = st.columns([1,1,1])
 
 with centro:
 
-    st.markdown(
-        '<div class="login-box">',
-        unsafe_allow_html=True
-    )
-
     st.markdown(f"""
     <div class="logo-sigem">
-        <img src="data:image/png;base64,{sigem}" width="240">
+        <img src="data:image/png;base64,{sigem}" width="260">
     </div>
 
     <div class="titulo">
@@ -201,8 +191,3 @@ with centro:
     )
 
     st.button("Ingresar")
-
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
