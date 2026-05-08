@@ -20,11 +20,11 @@ def mantenimiento_app():
     # =========================
     # VALIDACION
     # =========================
-    if st.session_state.rol != "Admin":
+    #if st.session_state.rol != "Admin":
 
-        st.warning("⛔ No tienes permisos")
-        st.stop()
-
+    #    st.warning("⛔ No tienes permisos")
+    #    st.stop()
+    pass
     # =========================
     # SESSION STATE
     # =========================
