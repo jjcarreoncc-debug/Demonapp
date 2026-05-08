@@ -203,7 +203,7 @@ def login_app():
     with col1:
 
         st.image(
-            "logo_tids.png",
+            "LOOGO-TIDS-CONSULTING(2).png",
             width=180
         )
 
