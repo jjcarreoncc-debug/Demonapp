@@ -387,11 +387,11 @@ def compras_app():
         
     elif st.session_state.compras_vista == "analitica":
 
-    try:
+        try:
 
-        from compras_analitica_app import compras_analitica_app
+           from compras_analitica_app import compras_analitica_app
 
-        compras_analitica_app(df)
+           compras_analitica_app(df)
 
     except Exception as e:
 
