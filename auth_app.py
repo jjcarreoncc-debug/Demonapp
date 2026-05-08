@@ -49,7 +49,7 @@ def login_app():
 
     .titulo {{
         text-align: center;
-        font-size: 52px;
+        font-size: 42px;
         font-weight: 800;
         color: white;
         margin-bottom: 10px;
