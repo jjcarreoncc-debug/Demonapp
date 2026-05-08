@@ -1,6 +1,7 @@
 
 import streamlit as st
 import pandas as pd
+
 from wms_dashboard_app import wms_dashboard_app
 from wms_indicadores_app import wms_indicadores_app
 from wms_graficas_app import wms_graficas_app
@@ -45,9 +46,15 @@ def wms_app():
 
     st.title("🏭 WMS")
 
+    # =========================
+    # SESSION STATE
+    # =========================
     if "wms_vista" not in st.session_state:
         st.session_state.wms_vista = "menu"
 
+    # =========================
+    # CARGA DATOS
+    # =========================
     (
         inventario,
         ubicaciones,
@@ -127,41 +134,42 @@ def wms_app():
             "📈 Gráficas"
         ])
 
-    with tab1:
+        with tab1:
 
-        wms_dashboard_app(
-            inventario,
-            ubicaciones,
-            entradas,
-            salidas,
-            picking,
-            packing,
-            movimientos
-        )
+            wms_dashboard_app(
+                inventario,
+                ubicaciones,
+                entradas,
+                salidas,
+                picking,
+                packing,
+                movimientos
+            )
 
-    with tab2:
+        with tab2:
 
-        wms_indicadores_app(
-            inventario,
-            ubicaciones,
-            entradas,
-            salidas,
-            picking,
-            packing,
-            movimientos
-        )
+            wms_indicadores_app(
+                inventario,
+                ubicaciones,
+                entradas,
+                salidas,
+                picking,
+                packing,
+                movimientos
+            )
 
-    with tab3:
+        with tab3:
 
-        wms_graficas_app(
-            inventario,
-            ubicaciones,
-            entradas,
-            salidas,
-            picking,
-            packing,
-            movimientos
-        )
+            wms_graficas_app(
+                inventario,
+                ubicaciones,
+                entradas,
+                salidas,
+                picking,
+                packing,
+                movimientos
+            )
+
     # =========================
     # OPERACION
     # =========================
@@ -224,7 +232,10 @@ def wms_app():
         if "ESTADO_STOCK" in inventario.columns:
 
             criticos = inventario[
-                inventario["ESTADO_STOCK"] == "CRITICO"
+                inventario["ESTADO_STOCK"]
+                .astype(str)
+                .str.upper()
+                .str.strip() == "CRITICO"
             ]
 
             st.metric(
