@@ -130,8 +130,7 @@ def login_app():
 
     .login-card {{
 
-        background: rgba(255,255,255,0.93);
-
+        background: red;
         border-radius: 30px;
 
         padding:
