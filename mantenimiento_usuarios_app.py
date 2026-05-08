@@ -1,23 +1,14 @@
 
 import streamlit as st
 
-from ui_admin import (
-    admin_css,
-    admin_header,
-    admin_card_open,
-    admin_card_close
-)
+
 
 
 def alta_usuario_app():
 
-    admin_css()
+    
 
-    admin_header(
-        "👥 Alta de Usuario",
-        "Registro seguro y controlado de nuevos usuarios del sistema."
-    )
-
+   
     admin_card_open()
 
     st.markdown("### 📌 Información básica")
