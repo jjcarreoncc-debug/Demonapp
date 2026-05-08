@@ -3,6 +3,7 @@ import streamlit as st
 from mantenimiento_usuarios_app import alta_usuario_app
 from mantenimiento_roles_app import asignar_roles_app
 from mantenimiento_roles_app import crear_rol_app
+from mantenimiento_permisos_app import permisos_por_modulo_app
 
 
 def mantenimiento_app():
@@ -136,3 +137,15 @@ def mantenimiento_app():
         st.info(
             f"Pantalla en construcción: {submenu}"
         )
+    elif (
+        menu == "🔐 Permisos"
+        and submenu == "Permisos por módulo"
+):
+
+        permisos_por_modulo_app()   
+    
+    else:
+    
+        st.info(
+            "Pantalla en construcción: {submenu}"
+    )
