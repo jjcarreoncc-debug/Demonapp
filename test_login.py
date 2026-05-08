@@ -16,13 +16,7 @@ def get_base64(imagen):
         ).decode()
 
 
-# =========================
-# IMAGENES
-# =========================
-
-fondo = get_base64(
-    "logofondo.JPG"
-)
+fondo = get_base64("logofondo.JPG")
 
 empresa = get_base64(
     "LOOGO-TIDS-CONSULTING (2).jpg"
@@ -32,10 +26,6 @@ sigem = get_base64(
     "logo1.png"
 )
 
-
-# =========================
-# CSS
-# =========================
 
 st.markdown(f"""
 <style>
@@ -80,11 +70,7 @@ footer {{
 
     z-index: 1;
 
-    padding-top: 7vh;
-}}
-
-.element-container:has(style) {{
-    display: none;
+    padding-top: 8vh;
 }}
 
 .login-box {{
@@ -92,11 +78,9 @@ footer {{
     background:
         rgba(255,255,255,0.92);
 
-    padding:
-        45px;
+    padding: 45px;
 
-    border-radius:
-        24px;
+    border-radius: 24px;
 
     box-shadow:
         0 20px 60px rgba(0,0,0,0.35);
@@ -108,10 +92,6 @@ footer {{
     display: flex;
 
     justify-content: center;
-
-    align-items: center;
-
-    width: 100%;
 }}
 
 .logo-empresa img {{
@@ -174,49 +154,43 @@ footer {{
 """, unsafe_allow_html=True)
 
 
-# =========================
-# COLUMNAS
-# =========================
-
 izq, centro, der = st.columns([1,1,1])
-
-
-# =========================
-# LOGIN
-# =========================
 
 with centro:
 
-    st.markdown(
-        '<div class="login-box">',
-        unsafe_allow_html=True
-    )
+    contenedor = st.container(border=False)
 
-    st.markdown(f"""
-    <div class="logo-empresa">
-        <img src="data:image/jpg;base64,{empresa}" width="170">
-    </div>
+    with contenedor:
 
-    <div class="logo-sigem">
-        <img src="data:image/png;base64,{sigem}" width="230">
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(
+            '<div class="login-box">',
+            unsafe_allow_html=True
+        )
 
-    st.markdown(
-        '<div class="titulo">Inicio de sesión</div>',
-        unsafe_allow_html=True
-    )
+        st.markdown(f"""
+        <div class="logo-empresa">
+            <img src="data:image/jpg;base64,{empresa}" width="170">
+        </div>
 
-    st.text_input("Usuario")
+        <div class="logo-sigem">
+            <img src="data:image/png;base64,{sigem}" width="230">
+        </div>
 
-    st.text_input(
-        "Contraseña",
-        type="password"
-    )
+        <div class="titulo">
+            Inicio de sesión
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.button("Ingresar")
+        st.text_input("Usuario")
 
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
+        st.text_input(
+            "Contraseña",
+            type="password"
+        )
+
+        st.button("Ingresar")
+
+        st.markdown(
+            '</div>',
+            unsafe_allow_html=True
+        )
