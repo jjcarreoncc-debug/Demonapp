@@ -121,11 +121,11 @@ def wms_app():
     # =========================
     if st.session_state.wms_vista == "dashboard":
 
-    tab1, tab2, tab3 = st.tabs([
-        "📊 Dashboard",
-        "📌 Indicadores",
-        "📈 Gráficas"
-    ])
+        tab1, tab2, tab3 = st.tabs([
+            "📊 Dashboard",
+            "📌 Indicadores",
+            "📈 Gráficas"
+        ])
 
     with tab1:
 
