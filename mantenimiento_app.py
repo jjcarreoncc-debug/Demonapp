@@ -1,4 +1,5 @@
 import streamlit as st
+
 from mantenimiento_usuarios_app import alta_usuario_app
 from mantenimiento_roles_app import asignar_roles_app
 
@@ -7,13 +8,12 @@ def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
 
-    # =========================s
+    # =========================
     # VALIDACION
     # =========================
     if st.session_state.rol != "Admin":
 
         st.warning("⛔ No tienes permisos")
-
         st.stop()
 
     # =========================
@@ -21,9 +21,6 @@ def mantenimiento_app():
     # =========================
     if "menu_mantenimiento" not in st.session_state:
         st.session_state.menu_mantenimiento = "👥 Usuarios"
-
-    if "submenu_mantenimiento" not in st.session_state:
-        st.session_state.submenu_mantenimiento = "Consultar usuarios"
 
     # =========================
     # MENU PRINCIPAL
@@ -45,9 +42,6 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
-        # =========================
-        # SUBMENUS
-        # =========================
         if menu == "👥 Usuarios":
 
             submenu = st.radio(
@@ -128,27 +122,25 @@ def mantenimiento_app():
     # =========================
     st.subheader(f"{menu} → {submenu}")
 
-# =========================
-# PANTALLAS
-# =========================
+    # =========================
+    # PANTALLAS
+    # =========================
+    if (
+        menu == "👥 Usuarios"
+        and submenu == "Crear usuario"
+    ):
 
-if (
-    menu == "👥 Usuarios"
-    and submenu == "Crear usuario"
-):
+        alta_usuario_app()
 
-    alta_usuario_app()
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Asignar usuarios"
+    ):
 
-elif (
-    menu == "🧩 Roles"
-    and submenu == "Asignar usuarios"
-):
+        asignar_roles_app()
 
-    asignar_roles_app()
+    else:
 
-else:
-
-    st.info(
-        f"Pantalla en construcción: {submenu}"
-    )
-    
+        st.info(
+            f"Pantalla en construcción: {submenu}"
+        )
