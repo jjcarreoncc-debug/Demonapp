@@ -5,19 +5,33 @@ def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
 
+    # =========================
+    # VALIDACION
+    # =========================
     if st.session_state.rol != "Admin":
+
         st.warning("⛔ No tienes permisos")
+
         st.stop()
 
-    if "mantenimiento_opcion" not in st.session_state:
-        st.session_state.mantenimiento_opcion = "👥 Usuarios"
+    # =========================
+    # SESSION STATE
+    # =========================
+    if "menu_mantenimiento" not in st.session_state:
+        st.session_state.menu_mantenimiento = "👥 Usuarios"
 
+    if "submenu_mantenimiento" not in st.session_state:
+        st.session_state.submenu_mantenimiento = "Consultar usuarios"
+
+    # =========================
+    # MENU PRINCIPAL
+    # =========================
     with st.sidebar:
 
         st.markdown("## 🛠️ Mantenimiento")
 
-        opcion = st.radio(
-            "Submenú",
+        menu = st.radio(
+            "Módulo",
             [
                 "👥 Usuarios",
                 "🧩 Roles",
@@ -26,25 +40,95 @@ def mantenimiento_app():
                 "📜 Auditoría",
                 "⚙️ Configuración"
             ],
-            key="mantenimiento_opcion"
+            key="menu_mantenimiento"
         )
 
-    st.subheader(opcion)
+        # =========================
+        # SUBMENUS
+        # =========================
+        if menu == "👥 Usuarios":
 
-    if opcion == "👥 Usuarios":
-        st.info("Aquí irá la administración de usuarios.")
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Crear usuario",
+                    "Editar usuario",
+                    "Inactivar usuario",
+                    "Consultar usuarios"
+                ],
+                key="submenu_usuarios"
+            )
 
-    elif opcion == "🧩 Roles":
-        st.info("Aquí irá la administración de roles.")
+        elif menu == "🧩 Roles":
 
-    elif opcion == "🔐 Permisos":
-        st.info("Aquí irá la administración de permisos.")
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Crear rol",
+                    "Editar rol",
+                    "Asignar usuarios"
+                ],
+                key="submenu_roles"
+            )
 
-    elif opcion == "🧱 Módulos":
-        st.info("Aquí irá la administración de módulos.")
+        elif menu == "🔐 Permisos":
 
-    elif opcion == "📜 Auditoría":
-        st.info("Aquí irá el historial y auditoría del sistema.")
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Permisos por módulo",
+                    "Permisos por rol",
+                    "Acciones permitidas"
+                ],
+                key="submenu_permisos"
+            )
 
-    elif opcion == "⚙️ Configuración":
-        st.info("Aquí irá la configuración general del sistema.")
+        elif menu == "🧱 Módulos":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Activar módulos",
+                    "Ocultar módulos",
+                    "Configuración visual"
+                ],
+                key="submenu_modulos"
+            )
+
+        elif menu == "📜 Auditoría":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Inicios sesión",
+                    "Cambios usuarios",
+                    "Eliminaciones",
+                    "Historial acciones"
+                ],
+                key="submenu_auditoria"
+            )
+
+        elif menu == "⚙️ Configuración":
+
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Variables sistema",
+                    "Parámetros",
+                    "Colores",
+                    "Branding"
+                ],
+                key="submenu_configuracion"
+            )
+
+    # =========================
+    # TITULO
+    # =========================
+    st.subheader(f"{menu} → {submenu}")
+
+    # =========================
+    # PLACEHOLDERS
+    # =========================
+    st.info(
+        f"Pantalla en construcción: {submenu}"
+    )
