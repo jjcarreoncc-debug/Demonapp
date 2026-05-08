@@ -21,7 +21,7 @@ def get_base64(imagen):
 # =========================
 
 fondo = get_base64(
-    "logofondo.png"
+    "logofondo.JPG"
 )
 
 empresa = get_base64(
