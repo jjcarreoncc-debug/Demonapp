@@ -309,7 +309,7 @@ with st.sidebar:
     # 👇 CSS aquí arriba
     st.markdown(""" ... """, unsafe_allow_html=True)
 
-    #st.title("📌 Navegación")
+    st.title("📌 Navegación")
     #st.markdown(f"👋 **Bienvenido {st.session_state.nombre}**")
     
    
