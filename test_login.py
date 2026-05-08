@@ -10,7 +10,7 @@ def get_base64(imagen):
         return base64.b64encode(f.read()).decode()
 
 
-fondo = get_base64("logofondo.JPG")
+fondo = get_base64("logofondo.png")
 
 
 st.markdown(f"""
@@ -34,38 +34,53 @@ header, #MainMenu, footer {{
     background-attachment: fixed;
 }}
 
-[data-testid="column"] {{
-    display: flex;
-    justify-content: center;
+.stApp::before {{
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+        rgba(0,0,0,0.35);
+
+    z-index: 0;
+}}
+
+.main .block-container {{
+
+    position: relative;
+
+    z-index: 1;
+
+    padding-top: 12vh;
 }}
 
 .login-box {{
 
-    background: rgba(255,255,255,0.88);
+    background:
+        rgba(255,255,255,0.92);
 
-    padding: 40px;
+    padding: 45px;
 
-    border-radius: 25px;
+    border-radius: 24px;
 
     box-shadow:
-        0 20px 50px rgba(0,0,0,0.25);
-
-    width: 100%;
+        0 20px 60px rgba(0,0,0,0.35);
 }}
 
 .titulo {{
 
     text-align: center;
 
-    font-size: 38px;
+    font-size: 42px;
 
     font-weight: 800;
 
     color: #0f172a;
 
-    margin-top: 15px;
-
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }}
 
 .stTextInput input {{
@@ -73,6 +88,8 @@ header, #MainMenu, footer {{
     height: 52px;
 
     border-radius: 12px;
+
+    border: none;
 }}
 
 .stButton button {{
