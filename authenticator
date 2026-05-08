@@ -260,6 +260,7 @@ st.sidebar.success(
 st.sidebar.info(
     f"Rol: {st.session_state.rol}"
 )
+
 # ------------------------
 # LOGO
 # ------------------------
@@ -272,7 +273,11 @@ with col2:
 # ------------------------
 df_users = obtener_usuarios()
 
-usuario_actual = df_users[df_users["username"] == username]
+usuario_actual = df_users[
+    df_users["username"]
+    == st.session_state.usuario
+]
+
 if not usuario_actual.empty:
     usuario_actual = usuario_actual.iloc[0]
 else:
