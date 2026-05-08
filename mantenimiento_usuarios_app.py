@@ -1,5 +1,6 @@
 
 import streamlit as st
+from mantenimiento_usuarios_app import alta_usuario_app
 
 
 def alta_usuario_app():
@@ -101,3 +102,4 @@ def alta_usuario_app():
                 "estado": estado,
                 "modulo_inicial": modulo_inicial
             })
+
