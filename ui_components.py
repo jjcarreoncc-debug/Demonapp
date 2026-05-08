@@ -49,7 +49,7 @@ def mostrar_logos():
 
         st.image(
             "logo1.png",
-            width=180
+            width=120
         )
 
         st.markdown(
