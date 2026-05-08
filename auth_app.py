@@ -2,7 +2,6 @@ import streamlit as st
 import hashlib
 import base64
 from pathlib import Path
-
 from database import get_connection
 
 
@@ -11,7 +10,6 @@ def hash_password(password):
 
 
 def validar_login(usuario, password):
-
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -40,22 +38,16 @@ def validar_login(usuario, password):
         return "INACTIVO"
 
     password_bd = str(row["password_hash"]).strip()
+    password_ingresado = str(password).strip()
+    password_hash = hash_password(password_ingresado)
 
-password_ingresado = str(password).strip()
+    if password_bd != password_ingresado and password_bd != password_hash:
+        return None
 
-password_hash = hash_password(
-    password_ingresado
-)
+    return row
 
-if (
-    password_bd != password_ingresado
-    and
-    password_bd != password_hash
-):
-    return None
-        
+
 def get_base64_image(image_path):
-
     file_path = Path(image_path)
 
     if not file_path.exists():
@@ -66,12 +58,11 @@ def get_base64_image(image_path):
 
 
 def login_app():
-
     bg_image = get_base64_image("logofondo.JPG")
     sigem_logo = get_base64_image("logo1.png")
 
     if bg_image:
-        fondo_css = f"""
+        fondo_css = f'''
         background-image:
             linear-gradient(
                 rgba(0,0,0,0.45),
@@ -82,13 +73,12 @@ def login_app():
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
-        """
+        '''
     else:
         fondo_css = "background-color: #0f172a;"
 
     st.markdown(f"""
     <style>
-
     header, #MainMenu, footer {{
         visibility: hidden;
     }}
@@ -175,7 +165,6 @@ def login_app():
         color: rgba(255,255,255,0.78);
         font-size: 14px;
     }}
-
     </style>
     """, unsafe_allow_html=True)
 
@@ -204,7 +193,7 @@ def login_app():
     st.markdown(
         '''
         <div class="login-subtitle">
-        Sistema de Gestión Empresarial
+            Sistema de Gestión Empresarial
         </div>
         ''',
         unsafe_allow_html=True
@@ -219,11 +208,7 @@ def login_app():
     )
 
     if st.button("Ingresar", key="btn_login_sigem"):
-
-        resultado = validar_login(
-            usuario.strip(),
-            password.strip()
-        )
+        resultado = validar_login(usuario.strip(), password.strip())
 
         if resultado == "INACTIVO":
             st.warning("⛔ Usuario inactivo")
@@ -236,13 +221,12 @@ def login_app():
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
-
             st.rerun()
 
     st.markdown(
         '''
         <div class="footer-login">
-        © 2026 SIGEM
+            © 2026 SIGEM
         </div>
         ''',
         unsafe_allow_html=True
@@ -252,12 +236,9 @@ def login_app():
 
 
 def logout_app():
-
     if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem"):
-
         st.session_state.autenticado = False
         st.session_state.usuario = None
         st.session_state.nombre = None
         st.session_state.rol = None
-
         st.rerun()
