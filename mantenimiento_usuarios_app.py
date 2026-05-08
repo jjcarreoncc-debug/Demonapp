@@ -38,10 +38,7 @@ def alta_usuario_app():
     with col6:
         estado = st.selectbox(
             "Estado",
-            [
-                "Activo",
-                "Inactivo"
-            ]
+            ["Activo", "Inactivo"]
         )
 
     st.markdown("### 🧩 Acceso")
@@ -152,21 +149,267 @@ def alta_usuario_app():
 
                 conn.commit()
 
-                st.success(
-                    "✅ Usuario guardado correctamente en la base de datos."
-                )
+                st.success("✅ Usuario guardado correctamente en la base de datos.")
 
             except Exception as e:
 
-                st.error(
-                    "❌ No se pudo guardar el usuario. Puede que ya exista."
-                )
-
+                st.error("❌ No se pudo guardar el usuario. Puede que ya exista.")
                 st.exception(e)
 
             finally:
 
                 conn.close()
+
+
+def editar_usuario_app():
+
+    st.markdown("## ✏️ Editar usuario")
+    st.caption("Modifica datos básicos, rol, estado y módulo inicial del usuario.")
+
+    conn = get_connection()
+
+    query = """
+        SELECT
+            u.id_usuario,
+            u.usuario,
+            u.nombre,
+            u.email,
+            r.nombre_rol AS rol,
+            u.id_rol,
+            u.estado,
+            u.modulo_inicial
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        ORDER BY u.usuario ASC
+    """
+
+    df = pd.read_sql_query(query, conn)
+
+    roles_df = pd.read_sql_query(
+        """
+        SELECT id_rol, nombre_rol
+        FROM roles
+        ORDER BY nombre_rol ASC
+        """,
+        conn
+    )
+
+    conn.close()
+
+    if df.empty:
+        st.info("No hay usuarios registrados para editar.")
+        return
+
+    if roles_df.empty:
+        st.warning("No hay roles registrados. Primero crea roles.")
+        return
+
+    usuario_sel = st.selectbox(
+        "Selecciona el usuario a editar",
+        df["usuario"].tolist()
+    )
+
+    usuario_actual = df[df["usuario"] == usuario_sel].iloc[0]
+
+    st.divider()
+
+    st.markdown("### 📌 Información básica")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        nuevo_usuario = st.text_input(
+            "Usuario *",
+            value=str(usuario_actual["usuario"])
+        )
+
+    with col2:
+        nuevo_nombre = st.text_input(
+            "Nombre completo *",
+            value=str(usuario_actual["nombre"])
+        )
+
+    with col3:
+        nuevo_email = st.text_input(
+            "Correo electrónico *",
+            value=str(usuario_actual["email"])
+        )
+
+    st.markdown("### 🧩 Acceso")
+
+    lista_roles = roles_df["nombre_rol"].tolist()
+
+    rol_actual = (
+        usuario_actual["rol"]
+        if usuario_actual["rol"] in lista_roles
+        else lista_roles[0]
+    )
+
+    index_rol = lista_roles.index(rol_actual)
+
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+        nuevo_rol = st.selectbox(
+            "Rol *",
+            lista_roles,
+            index=index_rol
+        )
+
+    with col5:
+        nuevo_estado = st.selectbox(
+            "Estado",
+            ["Activo", "Inactivo"],
+            index=0 if usuario_actual["estado"] == "Activo" else 1
+        )
+
+    with col6:
+        modulos = [
+            "Inicio",
+            "Dashboard",
+            "Inventarios",
+            "Compras",
+            "Logistica",
+            "Almacen WMS",
+            "Mantenimiento"
+        ]
+
+        modulo_actual = (
+            usuario_actual["modulo_inicial"]
+            if usuario_actual["modulo_inicial"] in modulos
+            else "Inicio"
+        )
+
+        nuevo_modulo = st.selectbox(
+            "Módulo inicial",
+            modulos,
+            index=modulos.index(modulo_actual)
+        )
+
+    st.markdown("### 🔐 Seguridad")
+
+    cambiar_password = st.checkbox("Cambiar password")
+
+    nuevo_password = ""
+    confirmar_password = ""
+
+    if cambiar_password:
+
+        col7, col8 = st.columns(2)
+
+        with col7:
+            nuevo_password = st.text_input(
+                "Nuevo password",
+                type="password"
+            )
+
+        with col8:
+            confirmar_password = st.text_input(
+                "Confirmar nuevo password",
+                type="password"
+            )
+
+    st.divider()
+
+    guardar = st.button("💾 Guardar cambios")
+
+    if guardar:
+
+        if not nuevo_usuario or not nuevo_nombre or not nuevo_email:
+
+            st.warning("⚠️ Completa todos los campos obligatorios.")
+            return
+
+        if cambiar_password and nuevo_password != confirmar_password:
+
+            st.error("❌ Las contraseñas no coinciden.")
+            return
+
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        rol_row = cursor.execute(
+            """
+            SELECT id_rol
+            FROM roles
+            WHERE nombre_rol = ?
+            """,
+            (nuevo_rol,)
+        ).fetchone()
+
+        if rol_row is None:
+
+            st.error("❌ El rol seleccionado no existe.")
+            conn.close()
+            return
+
+        try:
+
+            if cambiar_password and nuevo_password:
+
+                cursor.execute(
+                    """
+                    UPDATE usuarios
+                    SET
+                        usuario = ?,
+                        nombre = ?,
+                        email = ?,
+                        password_hash = ?,
+                        id_rol = ?,
+                        estado = ?,
+                        modulo_inicial = ?
+                    WHERE id_usuario = ?
+                    """,
+                    (
+                        nuevo_usuario,
+                        nuevo_nombre,
+                        nuevo_email,
+                        nuevo_password,
+                        rol_row["id_rol"],
+                        nuevo_estado,
+                        nuevo_modulo,
+                        int(usuario_actual["id_usuario"])
+                    )
+                )
+
+            else:
+
+                cursor.execute(
+                    """
+                    UPDATE usuarios
+                    SET
+                        usuario = ?,
+                        nombre = ?,
+                        email = ?,
+                        id_rol = ?,
+                        estado = ?,
+                        modulo_inicial = ?
+                    WHERE id_usuario = ?
+                    """,
+                    (
+                        nuevo_usuario,
+                        nuevo_nombre,
+                        nuevo_email,
+                        rol_row["id_rol"],
+                        nuevo_estado,
+                        nuevo_modulo,
+                        int(usuario_actual["id_usuario"])
+                    )
+                )
+
+            conn.commit()
+
+            st.success("✅ Usuario actualizado correctamente.")
+
+        except Exception as e:
+
+            st.error("❌ No se pudo actualizar el usuario.")
+            st.exception(e)
+
+        finally:
+
+            conn.close()
 
 
 def consultar_usuarios_app():
@@ -215,45 +458,22 @@ def consultar_usuarios_app():
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.metric(
-            "👤 Usuario",
-            usuario["usuario"]
-        )
+        st.metric("👤 Usuario", usuario["usuario"])
 
     with c2:
-        st.metric(
-            "🧩 Rol",
-            usuario["rol"] if usuario["rol"] else "Sin rol"
-        )
+        st.metric("🧩 Rol", usuario["rol"] if usuario["rol"] else "Sin rol")
 
     with c3:
-        st.metric(
-            "✅ Estado",
-            usuario["estado"]
-        )
+        st.metric("✅ Estado", usuario["estado"])
 
     st.markdown("### 📌 Datos generales")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.text_input(
-            "Nombre",
-            usuario["nombre"],
-            disabled=True
-        )
-
-        st.text_input(
-            "Email",
-            usuario["email"],
-            disabled=True
-        )
-
-        st.text_input(
-            "Fecha creación",
-            str(usuario["fecha_creacion"]),
-            disabled=True
-        )
+        st.text_input("Nombre", usuario["nombre"], disabled=True)
+        st.text_input("Email", usuario["email"], disabled=True)
+        st.text_input("Fecha creación", str(usuario["fecha_creacion"]), disabled=True)
 
     with col2:
         st.text_input(
@@ -264,17 +484,13 @@ def consultar_usuarios_app():
 
         st.text_input(
             "Módulo inicial",
-            usuario["modulo_inicial"]
-            if usuario["modulo_inicial"]
-            else "",
+            usuario["modulo_inicial"] if usuario["modulo_inicial"] else "",
             disabled=True
         )
 
         st.text_input(
             "Último login",
-            str(usuario["ultimo_login"])
-            if usuario["ultimo_login"]
-            else "Sin acceso",
+            str(usuario["ultimo_login"]) if usuario["ultimo_login"] else "Sin acceso",
             disabled=True
         )
 
