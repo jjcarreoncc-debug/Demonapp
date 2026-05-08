@@ -310,7 +310,7 @@ with st.sidebar:
     st.markdown(""" ... """, unsafe_allow_html=True)
 
     st.title("📌 Navegación")
-    st.markdown(f"👋 **Bienvenido {name}**")
+    st.markdown(f"👋 **Bienvenido {st.session_state.nombre}**")
 # ------------------------
     # ROL
     # ------------------------
