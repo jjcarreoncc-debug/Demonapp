@@ -71,14 +71,25 @@ def login_app():
     ========================= */
 
     .stApp {
-        background:
-            radial-gradient(circle at top left, #dbeafe 0%, transparent 30%),
-            radial-gradient(circle at bottom right, #bfdbfe 0%, transparent 30%),
-            linear-gradient(135deg, #f8fafc 0%, #eef4ff 100%);
+
+        background-image:
+            linear-gradient(
+                rgba(255,255,255,0.84),
+                rgba(255,255,255,0.84)
+            ),
+            url("logofondo.JPG");
+
+        background-size: cover;
+
+        background-position: center;
+
+        background-repeat: no-repeat;
+
+        background-attachment: fixed;
     }
 
     .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0rem !important;
         max-width: 100% !important;
     }
 
@@ -88,7 +99,7 @@ def login_app():
 
     .login-card {
 
-        background: rgba(255,255,255,0.95);
+        background: rgba(255,255,255,0.94);
 
         border-radius: 30px;
 
@@ -104,7 +115,7 @@ def login_app():
             auto;
 
         margin-top:
-            4vh;
+            8vh;
 
         box-shadow:
             0 15px 40px rgba(0,0,0,0.10);
@@ -118,44 +129,18 @@ def login_app():
     ========================= */
 
     .logo-tids {
-        text-align: left;
-        margin-bottom: 15px;
+        text-align: center;
+        margin-bottom: 10px;
     }
 
     .logo-sigem {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
 
     /* =========================
        TITULOS
     ========================= */
-
-    .sigem-title {
-
-        text-align: center;
-
-        font-size: 62px;
-
-        font-weight: 800;
-
-        color: #0f3fae;
-
-        margin-top: 10px;
-
-        margin-bottom: 0px;
-    }
-
-    .sigem-subtitle {
-
-        text-align: center;
-
-        font-size: 18px;
-
-        color: #334155;
-
-        margin-bottom: 35px;
-    }
 
     .login-title {
 
@@ -166,6 +151,8 @@ def login_app():
         font-weight: 700;
 
         color: #0f172a;
+
+        margin-top: 15px;
 
         margin-bottom: 5px;
     }
@@ -277,7 +264,7 @@ def login_app():
 
     st.image(
         "LOOGO-TIDS-CONSULTING (2).jpg",
-        width=130
+        width=140
     )
 
     st.markdown(
@@ -292,7 +279,7 @@ def login_app():
 
     st.image(
         "logo1.png",
-        width=240
+        width=260
     )
 
     st.markdown(
