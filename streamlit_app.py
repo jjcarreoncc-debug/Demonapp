@@ -20,6 +20,7 @@ from seed_data import seed_data
 from auth_app import login_app, logout_app
 
 
+
 # ------------------------
 # CONFIG
 #
@@ -263,11 +264,7 @@ st.sidebar.info(
 # ------------------------
 # LOGO
 # ------------------------
-col1, col2, col3 = st.columns([1,2,1])
-with col2:
-    st.image("LOOGO-TIDS-CONSULTING (2).jpg", width=200)
-
-
+mostrar_logos()
 
 # ------------------------
 # USUARIO ACTUAL
