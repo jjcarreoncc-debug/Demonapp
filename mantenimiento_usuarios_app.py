@@ -1,5 +1,6 @@
 
 import streamlit as st
+from database import get_connection
 
 
 
@@ -102,3 +103,71 @@ def alta_usuario_app():
                 "estado": estado,
                 "modulo_inicial": modulo_inicial
             })
+def consultar_usuarios_app():
+
+    st.markdown("## 👥 Consulta de Usuarios")
+    st.caption("Consulta consolidada de usuarios, roles y estado.")
+
+    conn = get_connection()
+
+    query = """
+        SELECT
+            u.id_usuario,
+            u.usuario,
+            u.nombre,
+            u.email,
+            r.nombre_rol AS rol,
+            u.estado,
+            u.modulo_inicial,
+            u.fecha_creacion,
+            u.ultimo_login
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        ORDER BY u.fecha_creacion DESC
+    """
+
+    df = pd.read_sql_query(query, conn)
+
+    conn.close()
+
+    if df.empty:
+        st.info("No hay usuarios registrados en la base de datos.")
+        return
+
+    usuario_sel = st.selectbox(
+        "Selecciona usuario",
+        df["usuario"].tolist()
+    )
+
+    usuario = df[df["usuario"] == usuario_sel].iloc[0]
+
+    st.divider()
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric("👤 Usuario", usuario["usuario"])
+
+    with c2:
+        st.metric("🧩 Rol", usuario["rol"] if usuario["rol"] else "Sin rol")
+
+    with c3:
+        st.metric("✅ Estado", usuario["estado"])
+
+    st.markdown("### 📌 Datos generales")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.text_input("Nombre", usuario["nombre"], disabled=True)
+        st.text_input("Email", usuario["email"], disabled=True)
+        st.text_input("Fecha creación", str(usuario["fecha_creacion"]), disabled=True)
+
+    with col2:
+        st.text_input("Rol asignado", usuario["rol"] if usuario["rol"] else "Sin rol", disabled=True)
+        st.text_input("Módulo inicial", usuario["modulo_inicial"] if usuario["modulo_inicial"] else "", disabled=True)
+        st.text_input("Último login", str(usuario["ultimo_login"]) if usuario["ultimo_login"] else "Sin acceso", disabled=True)
+
+    st.markdown("### 📋 Todos los usuarios")
+    st.dataframe(df, use_container_width=True)
