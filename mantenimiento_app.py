@@ -108,44 +108,39 @@ def mantenimiento_app():
                 ],
                 key="submenu_configuracion"
             )
-
+    ######
     st.subheader(f"{menu} → {submenu}")
 
-    if (
-        menu == "👥 Usuarios"
-        and submenu == "Crear usuario"
-    ):
-
-        alta_usuario_app()
-
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Asignar usuarios"
-    ):
-
-        asignar_roles_app()
-
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Crear rol"
-    ):
-
-        crear_rol_app()
-
-    else:
-
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
-    elif (
-        menu == "🔐 Permisos"
-        and submenu == "Permisos por módulo"
+if (
+    menu == "👥 Usuarios"
+    and submenu == "Crear usuario"
 ):
 
-        permisos_por_modulo_app()   
-    
-    else:
-    
-        st.info(
-            "Pantalla en construcción: {submenu}"
+    alta_usuario_app()
+
+elif (
+    menu == "🧩 Roles"
+    and submenu == "Asignar usuarios"
+):
+
+    asignar_roles_app()
+
+elif (
+    menu == "🧩 Roles"
+    and submenu == "Crear rol"
+):
+
+    crear_rol_app()
+
+elif (
+    menu == "🔐 Permisos"
+    and submenu == "Permisos por módulo"
+):
+
+    permisos_por_modulo_app()
+
+else:
+
+    st.info(
+        f"Pantalla en construcción: {submenu}"
     )
