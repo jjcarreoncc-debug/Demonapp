@@ -2,7 +2,24 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-from ui_components import card_kpi
+def card_kpi(titulo, valor, color):
+
+    st.markdown(
+        f"""
+        <div style="
+            background:{color};
+            padding:20px;
+            border-radius:14px;
+            color:white;
+            text-align:center;
+            margin-bottom:15px;
+        ">
+            <h4>{titulo}</h4>
+            <h2>{valor}</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 def grafica_barra(df, x, y, titulo, orientacion="v", color="#1f77b4"):
