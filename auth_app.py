@@ -54,46 +54,74 @@ def login_app():
        OCULTAR STREAMLIT
     ========================= */
 
-    header {
-        visibility: hidden;
-    }
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
+    header, #MainMenu, footer {
         visibility: hidden;
     }
 
     /* =========================
-       FONDO
+       FONDO GENERAL
     ========================= */
 
     .stApp {
-        background-color: #ffffff;
+
+        background-image: url("logofondo.png");
+
+        background-size: cover;
+
+        background-position: center;
+
+        background-repeat: no-repeat;
+
+        background-attachment: fixed;
     }
 
     /* =========================
-       CENTRAR LOGIN
+       CAPA TRANSPARENTE
+    ========================= */
+
+    .stApp::before {
+
+        content: "";
+
+        position: fixed;
+
+        top: 0;
+        left: 0;
+
+        width: 100%;
+        height: 100%;
+
+        background: rgba(255,255,255,0.72);
+
+        backdrop-filter: blur(3px);
+
+        z-index: 0;
+    }
+
+    /* =========================
+       CONTENIDO
     ========================= */
 
     .main .block-container {
 
+        position: relative;
+
+        z-index: 1;
+
         max-width: 100% !important;
 
-        padding-top: 0rem !important;
+        padding-top: 4vh !important;
 
         padding-bottom: 0rem !important;
     }
 
     /* =========================
-       CARD LOGIN
+       LOGIN CARD
     ========================= */
 
     .login-card {
 
-        background: #ffffff;
+        background: rgba(255,255,255,0.96);
 
         border-radius: 30px;
 
@@ -103,32 +131,40 @@ def login_app():
             35px
             50px;
 
-        width: 520px;
+        width: 470px;
 
-        margin:
-            auto;
+        margin: auto;
 
-        margin-top:
-            7vh;
+        margin-top: 5vh;
 
         box-shadow:
-            0 15px 40px rgba(0,0,0,0.10);
+            0 20px 50px rgba(0,0,0,0.15);
 
         border:
-            1px solid #e2e8f0;
+            1px solid rgba(255,255,255,0.5);
     }
 
     /* =========================
        LOGOS
     ========================= */
 
+    .logo-tids,
+    .logo-sigem {
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+    }
+
     .logo-tids {
-        text-align: center;
+
         margin-bottom: 10px;
     }
 
     .logo-sigem {
-        text-align: center;
+
         margin-bottom: 10px;
     }
 
@@ -140,15 +176,15 @@ def login_app():
 
         text-align: center;
 
-        font-size: 34px;
+        font-size: 36px;
 
         font-weight: 700;
 
         color: #0f172a;
 
-        margin-top: 15px;
+        margin-top: 10px;
 
-        margin-bottom: 5px;
+        margin-bottom: 8px;
     }
 
     .login-subtitle {
@@ -166,20 +202,20 @@ def login_app():
        INPUTS
     ========================= */
 
-    .stTextInput > div > div > input {
+    .stTextInput input {
 
-        border-radius: 14px;
+        border-radius: 14px !important;
 
-        height: 55px;
+        height: 55px !important;
 
-        border: 1px solid #dbe4f0;
+        border: 1px solid #dbe4f0 !important;
 
-        font-size: 16px;
+        font-size: 16px !important;
 
-        padding-left: 15px;
+        padding-left: 15px !important;
     }
 
-    .stTextInput > label {
+    .stTextInput label {
 
         font-weight: 600;
 
@@ -190,13 +226,15 @@ def login_app():
        BOTON
     ========================= */
 
-    div.stButton > button {
+    .stButton button {
 
         width: 100%;
 
         height: 56px;
 
         border-radius: 14px;
+
+        border: none;
 
         background:
             linear-gradient(
@@ -207,16 +245,18 @@ def login_app():
 
         color: white;
 
-        font-size: 20px;
+        font-size: 18px;
 
         font-weight: 700;
 
-        border: none;
-
         margin-top: 15px;
+
+        transition: 0.2s;
     }
 
-    div.stButton > button:hover {
+    .stButton button:hover {
+
+        transform: scale(1.02);
 
         background:
             linear-gradient(
@@ -258,7 +298,7 @@ def login_app():
 
     st.image(
         "LOOGO-TIDS-CONSULTING (2).jpg",
-        width=140
+        width=170
     )
 
     st.markdown(
@@ -273,7 +313,7 @@ def login_app():
 
     st.image(
         "logo1.png",
-        width=260
+        width=230
     )
 
     st.markdown(
