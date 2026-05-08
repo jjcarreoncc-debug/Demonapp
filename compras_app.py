@@ -242,10 +242,25 @@ def compras_app():
         how="left"
     )
 
+# =========================
+# MERGE BODEGAS SEGURO
+# =========================
+if (
+    "ID_BODEGA" in df.columns
+    and "ID_BODEGA" in bodegas.columns
+):
+
     df = df.merge(
         bodegas,
         on="ID_BODEGA",
         how="left"
+    )
+
+else:
+
+    st.warning(
+        "No se pudo cruzar Bodegas porque falta ID_BODEGA."
+    )
     )
 
     df = df.merge(
