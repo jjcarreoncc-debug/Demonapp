@@ -48,12 +48,69 @@ def login_app():
     st.markdown("""
     <style>
     .stApp {
-        background-color: white !important;
+        background: #f4f6f8 !important;
+    }
+
+    section.main > div {
+        padding-top: 2rem;
+        max-width: 520px;
+    }
+
+    .login-card {
+        background: white;
+        padding: 35px 35px 30px 35px;
+        border-radius: 22px;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .login-title {
+        font-size: 32px;
+        font-weight: 800;
+        color: #24364b;
+        margin-bottom: 5px;
+    }
+
+    .login-subtitle {
+        font-size: 14px;
+        color: #7b8794;
+        margin-bottom: 25px;
+    }
+
+    div.stButton > button {
+        width: 100%;
+        height: 45px;
+        border-radius: 12px;
+        background-color: #1f5f7a;
+        color: white;
+        font-weight: 700;
+        border: none;
+    }
+
+    div.stButton > button:hover {
+        background-color: #17495e;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.title("🔐 Login")
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+
+    try:
+        st.image("imagen7.png", width=220)
+    except Exception:
+        st.markdown("### 📦")
+
+    st.markdown(
+        '<div class="login-title">Inicio de sesión</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="login-subtitle">Ingresa tus credenciales para continuar</div>',
+        unsafe_allow_html=True
+    )
 
     usuario = st.text_input("Usuario")
     password = st.text_input(
@@ -63,8 +120,8 @@ def login_app():
 
     if st.button("Ingresar"):
         resultado = validar_login(
-            usuario,
-            password
+            usuario.strip(),
+            password.strip()
         )
 
         if resultado == "INACTIVO":
@@ -84,6 +141,8 @@ def login_app():
             st.session_state.rol = resultado["rol"]
 
             st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 def logout_app():
