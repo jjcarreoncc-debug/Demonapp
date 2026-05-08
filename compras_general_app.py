@@ -4,7 +4,7 @@ import plotly.express as px
 
 
 # =========================
-# KPI CARD
+# KPI CARD1
 # =========================
 def card_kpi(titulo, valor, color):
 
