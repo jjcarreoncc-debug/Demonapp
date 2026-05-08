@@ -1,5 +1,6 @@
 import streamlit as st
 from mantenimiento_usuarios_app import alta_usuario_app
+from mantenimiento_roles_app import asignar_roles_app
 
 
 def mantenimiento_app():
@@ -127,15 +128,27 @@ def mantenimiento_app():
     # =========================
     st.subheader(f"{menu} → {submenu}")
 
-    # =========================
-    # PLACEHOLDERS
-    # =========================
-    if menu == "👥 Usuarios" and submenu == "Crear usuario":
+# =========================
+# PANTALLAS
+# =========================
 
-        alta_usuario_app()
-        
-    else:
-        
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
+if (
+    menu == "👥 Usuarios"
+    and submenu == "Crear usuario"
+):
+
+    alta_usuario_app()
+
+elif (
+    menu == "🧩 Roles"
+    and submenu == "Asignar usuarios"
+):
+
+    asignar_roles_app()
+
+else:
+
+    st.info(
+        f"Pantalla en construcción: {submenu}"
+    )
+    
