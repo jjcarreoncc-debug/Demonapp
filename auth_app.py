@@ -1,5 +1,6 @@
 import streamlit as st
 import hashlib
+import base64
 
 from database import get_connection
 
@@ -47,24 +48,42 @@ def validar_login(usuario, password):
 
 def login_app():
 
-    st.markdown("""
+    # =========================
+    # FONDO BASE64
+    # =========================
+
+    with open("logofondo.png", "rb") as f:
+        fondo_base64 = base64.b64encode(
+            f.read()
+        ).decode()
+
+    st.markdown(f"""
     <style>
 
     /* =========================
        OCULTAR STREAMLIT
     ========================= */
 
-    header, #MainMenu, footer {
+    header {{
         visibility: hidden;
-    }
+    }}
+
+    #MainMenu {{
+        visibility: hidden;
+    }}
+
+    footer {{
+        visibility: hidden;
+    }}
 
     /* =========================
-       FONDO GENERAL
+       FONDO
     ========================= */
 
-    .stApp {
+    .stApp {{
 
-        background-image: url("logofondo.png");
+        background-image:
+            url("data:image/png;base64,{fondo_base64}");
 
         background-size: cover;
 
@@ -73,13 +92,13 @@ def login_app():
         background-repeat: no-repeat;
 
         background-attachment: fixed;
-    }
+    }}
 
     /* =========================
-       CAPA TRANSPARENTE
+       OVERLAY
     ========================= */
 
-    .stApp::before {
+    .stApp::before {{
 
         content: "";
 
@@ -91,18 +110,20 @@ def login_app():
         width: 100%;
         height: 100%;
 
-        background: rgba(255,255,255,0.72);
+        background:
+            rgba(255,255,255,0.72);
 
-        backdrop-filter: blur(3px);
+        backdrop-filter:
+            blur(3px);
 
         z-index: 0;
-    }
+    }}
 
     /* =========================
        CONTENIDO
     ========================= */
 
-    .main .block-container {
+    .main .block-container {{
 
         position: relative;
 
@@ -113,15 +134,16 @@ def login_app():
         padding-top: 4vh !important;
 
         padding-bottom: 0rem !important;
-    }
+    }}
 
     /* =========================
-       LOGIN CARD
+       CARD LOGIN
     ========================= */
 
-    .login-card {
+    .login-card {{
 
-        background: rgba(255,255,255,0.96);
+        background:
+            rgba(255,255,255,0.96);
 
         border-radius: 30px;
 
@@ -142,37 +164,35 @@ def login_app():
 
         border:
             1px solid rgba(255,255,255,0.5);
-    }
+    }}
 
     /* =========================
        LOGOS
     ========================= */
 
     .logo-tids,
-    .logo-sigem {
+    .logo-sigem {{
 
         display: flex;
 
         justify-content: center;
 
         align-items: center;
-    }
+    }}
 
-    .logo-tids {
-
+    .logo-tids {{
         margin-bottom: 10px;
-    }
+    }}
 
-    .logo-sigem {
-
+    .logo-sigem {{
         margin-bottom: 10px;
-    }
+    }}
 
     /* =========================
        TITULOS
     ========================= */
 
-    .login-title {
+    .login-title {{
 
         text-align: center;
 
@@ -185,9 +205,9 @@ def login_app():
         margin-top: 10px;
 
         margin-bottom: 8px;
-    }
+    }}
 
-    .login-subtitle {
+    .login-subtitle {{
 
         text-align: center;
 
@@ -196,13 +216,13 @@ def login_app():
         color: #64748b;
 
         margin-bottom: 30px;
-    }
+    }}
 
     /* =========================
        INPUTS
     ========================= */
 
-    .stTextInput input {
+    .stTextInput input {{
 
         border-radius: 14px !important;
 
@@ -213,20 +233,20 @@ def login_app():
         font-size: 16px !important;
 
         padding-left: 15px !important;
-    }
+    }}
 
-    .stTextInput label {
+    .stTextInput label {{
 
         font-weight: 600;
 
         color: #0f172a;
-    }
+    }}
 
     /* =========================
        BOTON
     ========================= */
 
-    .stButton button {
+    .stButton button {{
 
         width: 100%;
 
@@ -252,9 +272,9 @@ def login_app():
         margin-top: 15px;
 
         transition: 0.2s;
-    }
+    }}
 
-    .stButton button:hover {
+    .stButton button:hover {{
 
         transform: scale(1.02);
 
@@ -266,13 +286,13 @@ def login_app():
             );
 
         color: white;
-    }
+    }}
 
     /* =========================
        FOOTER
     ========================= */
 
-    .footer-login {
+    .footer-login {{
 
         text-align: center;
 
@@ -281,7 +301,7 @@ def login_app():
         color: #64748b;
 
         font-size: 14px;
-    }
+    }}
 
     </style>
     """, unsafe_allow_html=True)
