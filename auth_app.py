@@ -276,7 +276,7 @@ def login_app():
     )
 
     st.image(
-        "logo_tids.png",
+        "LOOGO-TIDS-CONSULTING(2).jpg",
         width=130
     )
 
