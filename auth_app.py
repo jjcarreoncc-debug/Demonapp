@@ -5,7 +5,7 @@ import base64
 from pathlib import Path
 
 from database import get_connection
-st.error("DEBUG: estoy usando auth_app.py actualizado
+
 
 
 # =====================================
