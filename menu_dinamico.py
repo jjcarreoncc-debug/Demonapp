@@ -60,6 +60,10 @@ st.stop()
     params=(st.session_state.rol,)
         
 )
+
+st.sidebar.write("DEBUG rol:", st.session_state.rol)
+st.sidebar.write("DEBUG registros query:", len(menu_df))
+
 menu_df = (
     menu_df
     .sort_values("orden_menu")
@@ -96,6 +100,9 @@ opciones = (
             opciones,
             index=opciones.index(st.session_state.menu)
         )
+    
+    st.sidebar.write("DEBUG rol:", st.session_state.rol)
+    st.sidebar.write("DEBUG registros query:", len(menu_df))
 
     st.session_state.menu = menu
 
