@@ -17,9 +17,7 @@ from mantenimiento_permisos_app import permisos_por_modulo_app
 def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
-    st.write("DEBUG menu:", repr(menu))
-    st.write("DEBUG submenu:", repr(submenu))
-
+    
     # =========================
     # VALIDACION
     # =========================
@@ -152,6 +150,8 @@ def mantenimiento_app():
     # TITULO
     # =========================
     st.caption(f"{menu} / {submenu}")
+    st.write("DEBUG menu:", repr(menu))
+    st.write("DEBUG submenu:", repr(submenu))
 
     
     # =====================================
