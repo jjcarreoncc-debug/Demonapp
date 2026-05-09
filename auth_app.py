@@ -231,26 +231,23 @@ def login_app():
 
         elif resultado is None:
             st.error("❌ Usuario o contraseña incorrectos")
-
         else:
             
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
-             
-            
-            # 👇 PEGA AQUÍ
-               registrar_auditoria(
-                   resultado["usuario"],
-                   "Login",
-                   "ACCESO",
-                   "SEGURIDAD",
-                   "Inicio de sesión exitoso"
-              )         
 
-              st.rerun()
+            registrar_auditoria(
+                resultado["usuario"],
+                "Login",
+                "ACCESO",
+                "SEGURIDAD",
+                "Inicio de sesión exitoso"
+            )
 
+            st.rerun()    
+        
     st.markdown(
         '''
         <div class="footer-login">
