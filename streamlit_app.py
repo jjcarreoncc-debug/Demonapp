@@ -15,6 +15,7 @@ from logistica_app import logistica_app
 from wms_app import wms_app
 from mantenimiento_app import mantenimiento_app
 #st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
+from mantenimiento_auditoria_app import registrar_auditoria
 
 from seed_data import seed_data
 from auth_app import login_app, logout_app
@@ -305,6 +306,24 @@ menu = st.sidebar.radio(
     index=opciones.index(st.session_state.menu)
 )
 st.session_state.menu = menu
+
+# =========================
+# SIDEBAR DINAMICO
+# =========================
+
+ruta = sidebar_dinamico()
+
+if "ultima_ruta_auditada" not in st.session_state:
+    st.session_state.ultima_ruta_auditada = None
+
+if st.session_state.ultima_ruta_auditada != ruta:
+
+    registrar_auditoria(
+        st.session_state.usuario,
+        ruta,
+        "ACCESO_MODULO",
+        f"Ingresó al módulo {ruta}"
+    )
 
 
 # =========================
