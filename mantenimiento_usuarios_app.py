@@ -162,7 +162,7 @@ def alta_usuario_app():
 
 
 def editar_usuario_app():
-
+    st.success("✅ Entré a editar_usuario_app")
     st.markdown("## ✏️ Editar usuario")
     st.caption("Modifica datos básicos, rol, estado y módulo inicial del usuario.")
 
