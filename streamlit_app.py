@@ -278,52 +278,10 @@ usuario_actual = {
     "nombre": st.session_state.nombre,
     "rol": st.session_state.rol
 }
-
-# ------------------------
-# SIDEBAR
-# ------------------------
-st.markdown("""
-<style>
-
-/* 🔥 SUBIR TODO EL CONTENIDO DEL SIDEBAR */
-section[data-testid="stSidebar"] .block-container {
-    padding-top: 0rem !important;
-    margin-top: -20px !important;
-}
-
-/* 🔥 QUITAR ESPACIO DEL TÍTULO */
-section[data-testid="stSidebar"] h1 {
-    margin-top: 0px !important;
-    padding-top: 0px !important;
-}
-
-/* 🔥 AJUSTAR TEXTO BIENVENIDO */
-section[data-testid="stSidebar"] p {
-    margin-top: 5px !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-with st.sidebar:
-
-    # 👇 CSS aquí arriba
-    st.markdown(""" ... """, unsafe_allow_html=True)
-
-    st.title("📌 Navegación")
-    #st.markdown(f"👋 **Bienvenido {st.session_state.nombre}**")
-    
-   
-
-      
+  
+  
 
     
-    # OPCIONES
-    # ------------------------
-    # ------------------------
-    if st.session_state.rol == "Admin":
-        opciones = ["Inicio", "Dashboard", "Inventarios", "Compras", "logistica", "Almacen WMS", "Mantenimiento"]
-    else:
-        opciones = ["Inicio", "Dashboard", "Inventarios"]
 
 # ------------------------
 # INICIALIZAR MENU
