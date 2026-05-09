@@ -1,5 +1,4 @@
 import sqlite3
-import crear_tablas
 
 
 # =========================================
@@ -80,11 +79,16 @@ def crear_tabla_auditoria():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # BORRAR SI EXISTE
+    # =====================================
+    # BORRAR TABLA VIEJA
+    # =====================================
     cursor.execute(
         "DROP TABLE IF EXISTS auditoria"
     )
 
+    # =====================================
+    # CREAR TABLA NUEVA
+    # =====================================
     cursor.execute(
         """
         CREATE TABLE auditoria (
@@ -143,27 +147,9 @@ def insertar_roles_base():
 
 
 # =========================================
-# MAIN
+# EJECUTAR
 # =========================================
-def inicializar_bd():
-
-    print("===================================")
-    print("CREANDO TABLAS ERP")
-    print("===================================")
-
-    crear_tabla_roles()
-    print("✅ Tabla roles creada")
-
-    crear_tabla_usuarios()
-    print("✅ Tabla usuarios creada")
-
-    crear_tabla_auditoria()
-    print("✅ Tabla auditoria creada")
-
-    insertar_roles_base()
-    print("✅ Roles base insertados")
-
-    print("===================================")
-    print("PROCESO FINALIZADO")
-    print("===================================")
-inicializar_bd()
+crear_tabla_roles()
+crear_tabla_usuarios()
+crear_tabla_auditoria()
+insertar_roles_base()
