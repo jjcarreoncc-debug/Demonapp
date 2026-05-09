@@ -12,6 +12,10 @@ from mantenimiento_roles_app import (
     crear_rol_app
 )
 
+from mantenimiento_permisos_app import (
+    permisos_por_modulo_app,
+    permisos_por_rol_app
+)
 from mantenimiento_permisos_app import permisos_por_modulo_app
 from mantenimiento_auditoria_app import (
     consultar_auditoria_app
@@ -213,6 +217,12 @@ def mantenimiento_app():
     ):
 
         permisos_por_modulo_app()
+    elif (
+        menu == "🔐 Permisos"
+        and submenu == "Permisos por rol"
+    ):
+    
+        permisos_por_rol_app()
 
     # =====================================
     # EN CONSTRUCCION
