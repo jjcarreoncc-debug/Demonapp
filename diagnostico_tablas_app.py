@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from diagnostico_tablas_app import diagnostico_tablas_app
 
 from database import get_connection
 
