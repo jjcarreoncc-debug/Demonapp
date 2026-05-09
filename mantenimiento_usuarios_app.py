@@ -151,7 +151,7 @@ def alta_usuario_app():
                 conn.commit()
 
                 st.success("✅ Usuario guardado correctamente en la base de datos.")
-                registrar_auditoria(
+                auditoria.registrar_auditoria(
                     usuario=usuario,
                     modulo="Usuarios",
                     accion="Crear usuario",
