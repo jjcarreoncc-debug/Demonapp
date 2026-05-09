@@ -222,32 +222,28 @@ def login_app():
         type="password",
         key="login_password"
     )
-
+    #
     if st.button("Ingresar", key="btn_login_sigem"):
-        resultado = validar_login(usuario.strip(), password.strip())
 
-        if resultado == "INACTIVO":
-            st.warning("⛔ Usuario inactivo")
+        resultado = validar_login(
+        usuario.strip(),
+        password.strip()
+    )
 
-        elif resultado is None:
-            st.error("❌ Usuario o contraseña incorrectos")
-        else:
-            
-            st.session_state.autenticado = True
-            st.session_state.usuario = resultado["usuario"]
-            st.session_state.nombre = resultado["nombre"]
-            st.session_state.rol = resultado["rol"]
+    if resultado is None:
 
-            registrar_auditoria(
-                resultado["usuario"],
-                "Login",
-                "ACCESO",
-                "SEGURIDAD",
-                "Inicio de sesión exitoso"
-            )
+        st.error(
+            "❌ Usuario o contraseña incorrectos"
+        )
 
-            st.rerun()    
-        
+    else:
+
+        st.session_state.autenticado = True
+        st.session_state.usuario = resultado["usuario"]
+        st.session_state.nombre = resultado["nombre"]
+        st.session_state.rol = resultado["rol"]
+
+        st.rerun()    
     st.markdown(
         '''
         <div class="footer-login">
