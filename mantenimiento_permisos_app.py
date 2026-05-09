@@ -1,5 +1,6 @@
 
 import streamlit as st
+import pandas as pd
 from database import get_connection
 def permisos_por_rol_app():
 
@@ -237,4 +238,4 @@ def permisos_por_modulo_app():
             "rol": rol,
             "modulos_permitidos": modulos_permitidos
         })
-def permisos_por_rol_app():
+
