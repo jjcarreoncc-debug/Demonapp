@@ -57,8 +57,8 @@ if not st.session_state.autenticado:
     st.stop()
 logout_app()
     
-if "menu" not in st.session_state:
-    st.session_state.menu = "Inicio"
+if ruta not in st.session_state:
+    st.session_state.ruta = "Inicio"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
 # =========================
@@ -288,8 +288,8 @@ usuario_actual = {
 # ------------------------
 # INICIALIZAR MENU
 # ------------------------
-if "menu" not in st.session_state:
-    st.session_state.menu = "Inicio"
+if "ruta" not in st.session_state:
+    st.session_state.ruta = "Inicio"
 
 # =========================
 # SIDEBAR DINAMICO
@@ -324,7 +324,7 @@ def pantalla_inicio():
         st.success("✅ Archivo cargado correctamente")
 
         if st.button("🔙 Ir al menú principal"):
-            st.session_state.menu = "Dashboard"
+            st.session_state.ruta = "Dashboard"
             st.rerun()
 
     elif "archivo" in st.session_state:
@@ -332,7 +332,7 @@ def pantalla_inicio():
         st.success("✅ Archivo ya cargado")
 
         if st.button("🔙 Ir al menú principal"):
-            st.session_state.menu = "Dashboard"
+            st.session_state.ruta = "Dashboard"
             st.rerun()
 
     else:
@@ -368,7 +368,7 @@ def dashboard():   # 👈 AQUÍ VA TU FUNCIÓN
 # =========================
 # FILTROS (SOLO DASHBOARD)
 # =========================
-if menu == "Dashboard":
+if ruta == "Dashboard":
 
     st.markdown("---")
     st.markdown("### 🎯 Filtros")
@@ -436,7 +436,7 @@ elif ruta == "mantenimiento":
 # =========================
 # DASHBOARD
 # =========================
-elif menu == "Dashboard":
+elif ruta  == "Dashboard":
 
     # =========================
     # TOMAR VALORES DEL SIDEBAR
@@ -551,7 +551,7 @@ elif menu == "Dashboard":
             col1.metric("Ventas Totales", f"${df_filtrado['Ventas'].sum():,.0f}")
             col2.metric("Costos Totales", f"${df_filtrado['Costos'].sum():,.0f}")
             col3.metric("Ganancia", f"${df_filtrado['Ganancia'].sum():,.0f}")
-elif menu == "Principal":
+elif ruta == "Principal":
 
     st.header("📊 Dashboard Ejecutivo")
 
