@@ -10,6 +10,14 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
+def get_base64_image(image_path):
+    file_path = Path(image_path)
+
+    if not file_path.exists():
+        return None
+
+    with open(file_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
 def validar_login(usuario, password):
     conn = get_connection()
     cursor = conn.cursor()
@@ -25,22 +33,16 @@ def validar_login(usuario, password):
         FROM usuarios u
         LEFT JOIN roles r
             ON u.id_rol = r.id_rol
-        WHERE u.usuario = ?
+        WHERE UPPER(u.usuario) = UPPER(?)
         """,
         (usuario,)
     ).fetchone()
 
-    
     conn.close()
 
     if row is None:
         return None
 
-    if row["estado"] != "Activo":
-        return "INACTIVO"
-    
-    
-    
     password_bd = str(row["password_hash"]).strip()
     password_ingresado = str(password).strip()
     password_hash = hash_password(password_ingresado)
@@ -48,17 +50,7 @@ def validar_login(usuario, password):
     if password_bd != password_ingresado and password_bd != password_hash:
         return None
 
-    return row
-
-def get_base64_image(image_path):
-    file_path = Path(image_path)
-
-    if not file_path.exists():
-        return None
-
-    with open(file_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
-
+    return row    
 
 def login_app():
     bg_image = get_base64_image("logofondo.JPG")
