@@ -50,7 +50,6 @@ def validar_login(usuario, password):
 
     return row
 
-
 def get_base64_image(image_path):
     file_path = Path(image_path)
 
@@ -217,7 +216,7 @@ def login_app():
         ''',
         unsafe_allow_html=True
     )
-    ########################################3333
+
     usuario = st.text_input("Usuario", key="login_usuario")
 
     password = st.text_input(
@@ -250,25 +249,6 @@ def login_app():
 
     st.markdown(
         '''
-        <div class="footer-login">
-            © 2026 SIGEM
-        </div>
-        ''',
-        unsafe_allow_html=True
-    )
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-def logout_app():
-    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
-        st.session_state.autenticado = False
-        st.session_state.usuario = None
-        st.session_state.nombre = None
-        st.session_state.rol = None
-        st.rerun()
-    st.markdown(
-            '''
         <div class="footer-login">
             © 2026 SIGEM
         </div>
