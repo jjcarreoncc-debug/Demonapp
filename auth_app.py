@@ -1,35 +1,16 @@
 import streamlit as st
 import hashlib
 import base64
-
 from pathlib import Path
-
 from database import get_connection
 
 
-
-# =====================================
-# HASH PASSWORD
-# =====================================
 def hash_password(password):
-
-    return hashlib.sha256(
-        password.encode()
-    ).hexdigest()
+    return hashlib.sha256(password.encode()).hexdigest()
 
 
-# =====================================
-# VALIDAR LOGIN
-# =====================================
 def validar_login(usuario, password):
-
-    st.write(
-        "DEBUG usuario ingresado:",
-        usuario
-    )
-
     conn = get_connection()
-
     cursor = conn.cursor()
 
     row = cursor.execute(
@@ -48,132 +29,40 @@ def validar_login(usuario, password):
         (usuario,)
     ).fetchone()
 
-    st.write(
-        "DEBUG row BD:",
-        row
-    )
-
     conn.close()
 
-    # =====================================
-    # USUARIO NO EXISTE
-    # =====================================
     if row is None:
-
-        st.write(
-            "❌ Usuario NO encontrado"
-        )
-
         return None
-
-    # =====================================
-    # ESTADO
-    # =====================================
-    st.write(
-        "DEBUG estado:",
-        row["estado"]
-    )
 
     if row["estado"] != "Activo":
-
-        st.write(
-            "⛔ Usuario inactivo"
-        )
-
         return "INACTIVO"
 
-    # =====================================
-    # PASSWORDS
-    # =====================================
-    password_bd = str(
-        row["password_hash"]
-    ).strip()
+    password_bd = str(row["password_hash"]).strip()
+    password_ingresado = str(password).strip()
+    password_hash = hash_password(password_ingresado)
 
-    password_ingresado = str(
-        password
-    ).strip()
-
-    password_hash = hash_password(
-        password_ingresado
-    )
-
-    st.write(
-        "DEBUG password BD:",
-        password_bd
-    )
-
-    st.write(
-        "DEBUG password ingresado:",
-        password_ingresado
-    )
-
-    st.write(
-        "DEBUG hash ingresado:",
-        password_hash
-    )
-
-    # =====================================
-    # VALIDAR PASSWORD
-    # =====================================
-    if (
-        password_bd != password_ingresado
-        and
-        password_bd != password_hash
-    ):
-
-        st.write(
-            "❌ Password incorrecto"
-        )
-
+    if password_bd != password_ingresado and password_bd != password_hash:
         return None
-
-    # =====================================
-    # LOGIN OK
-    # =====================================
-    st.write(
-        "✅ LOGIN CORRECTO"
-    )
 
     return row
 
 
-# =====================================
-# IMAGEN BASE64
-# =====================================
 def get_base64_image(image_path):
-
     file_path = Path(image_path)
 
     if not file_path.exists():
-
         return None
 
     with open(file_path, "rb") as img_file:
-
-        return base64.b64encode(
-            img_file.read()
-        ).decode()
+        return base64.b64encode(img_file.read()).decode()
 
 
-# =====================================
-# LOGIN APP
-# =====================================
 def login_app():
-
-    bg_image = get_base64_image(
-        "logofondo.JPG"
-    )
-
-    sigem_logo = get_base64_image(
-        "logo1.png"
-    )
-
-    tids_logo = get_base64_image(
-        "LOOGO-TIDS-CONSULTING (2).jpg"
-    )
+    bg_image = get_base64_image("logofondo.JPG")
+    sigem_logo = get_base64_image("logo1.png")
+    tids_logo = get_base64_image("LOOGO-TIDS-CONSULTING (2).jpg")
 
     if bg_image:
-
         fondo_css = f'''
         background-image:
             linear-gradient(
@@ -186,19 +75,12 @@ def login_app():
         background-repeat: no-repeat;
         background-attachment: fixed;
         '''
-
     else:
-
-        fondo_css = (
-            "background-color: #0f172a;"
-        )
+        fondo_css = "background-color: #0f172a;"
 
     st.markdown(f"""
     <style>
-
-    header,
-    #MainMenu,
-    footer {{
+    header, #MainMenu, footer {{
         visibility: hidden;
     }}
 
@@ -243,6 +125,7 @@ def login_app():
         color: white;
         margin-top: 5px;
         margin-bottom: 5px;
+        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .login-subtitle {{
@@ -250,37 +133,72 @@ def login_app():
         font-size: 18px;
         color: white;
         margin-bottom: 30px;
+        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
+    .stTextInput {{
+        max-width: 420px;
+        margin: auto;
+    }}
+
+    .stButton {{
+        max-width: 420px;
+        margin: auto;
+    }}
+
+    .stTextInput > div > div > input {{
+        border-radius: 14px;
+        height: 55px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(0,0,0,0.38);
+        color: white;
+        font-size: 16px;
+        padding-left: 15px;
+    }}
+
+    .stTextInput > label {{
+        font-weight: 600;
+        color: white !important;
+    }}
+
+    div.stButton > button {{
+        width: 100%;
+        height: 56px;
+        border-radius: 14px;
+        background: linear-gradient(90deg, #0f3fae 0%, #2563eb 100%);
+        color: white !important;
+        font-size: 20px;
+        font-weight: 700;
+        border: none;
+        margin-top: 15px;
+    }}
+
+    div.stButton > button:hover {{
+        background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
+        color: white !important;
+    }}
+
+    .footer-login {{
+        text-align: center;
+        margin-top: 25px;
+        color: rgba(255,255,255,0.78);
+        font-size: 14px;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="top-logos">
-
         <div>
-            {
-                '<img src="data:image/jpg;base64,' + tids_logo + '" width="190">'
-                if tids_logo
-                else ''
-            }
+            {'<img src="data:image/jpg;base64,' + tids_logo + '" width="190">' if tids_logo else ''}
         </div>
-
         <div>
-            {
-                '<img src="data:image/png;base64,' + sigem_logo + '" width="190">'
-                if sigem_logo
-                else '<span style="color:white;font-size:28px;font-weight:800;">SIGEM</span>'
-            }
+            {'<img src="data:image/png;base64,' + sigem_logo + '" width="190">' if sigem_logo else '<span style="color:white;font-size:28px;font-weight:800;">SIGEM</span>'}
         </div>
-
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(
-        '<div class="login-card">',
-        unsafe_allow_html=True
-    )
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
 
     st.markdown(
         '<div class="login-title">Inicio de sesión</div>',
@@ -296,10 +214,7 @@ def login_app():
         unsafe_allow_html=True
     )
 
-    usuario = st.text_input(
-        "Usuario",
-        key="login_usuario"
-    )
+    usuario = st.text_input("Usuario", key="login_usuario")
 
     password = st.text_input(
         "Contraseña",
@@ -307,61 +222,20 @@ def login_app():
         key="login_password"
     )
 
-    # =====================================
-    # LOGIN BUTTON
-    # =====================================
-    if st.button(
-        "Ingresar",
-        key="btn_login_sigem"
-    ):
-
-        resultado = validar_login(
-            usuario.strip(),
-            password.strip()
-        )
-
-        st.write(
-            "DEBUG resultado:",
-            resultado
-        )
+    if st.button("Ingresar", key="btn_login_sigem"):
+        resultado = validar_login(usuario.strip(), password.strip())
 
         if resultado == "INACTIVO":
-
-            st.warning(
-                "⛔ Usuario inactivo"
-            )
+            st.warning("⛔ Usuario inactivo")
 
         elif resultado is None:
-
-            st.error(
-                "❌ Usuario o contraseña incorrectos"
-            )
+            st.error("❌ Usuario o contraseña incorrectos")
 
         else:
-
-            st.write(
-                "✅ SESSION OK"
-            )
-
             st.session_state.autenticado = True
-
-            st.session_state.usuario = (
-                resultado["usuario"]
-            )
-
-            st.session_state.nombre = (
-                resultado["nombre"]
-            )
-
-            st.session_state.rol = (
-                resultado["rol"]
-            )
-
-            st.write(
-                "DEBUG session:",
-                st.session_state
-            )
-
+            st.session_state.usuario = resultado["usuario"]
+            st.session_state.nombre = resultado["nombre"]
+            st.session_state.rol = resultado["rol"]
             st.rerun()
 
     st.markdown(
@@ -373,28 +247,13 @@ def login_app():
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        '</div>',
-        unsafe_allow_html=True
-    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
-# =====================================
-# LOGOUT
-# =====================================
 def logout_app():
-
-    if st.sidebar.button(
-        "🚪 Cerrar sesión",
-        key="btn_logout_sigem_unico"
-    ):
-
+    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
         st.session_state.autenticado = False
-
         st.session_state.usuario = None
-
         st.session_state.nombre = None
-
         st.session_state.rol = None
-
         st.rerun()
