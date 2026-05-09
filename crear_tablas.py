@@ -441,3 +441,5 @@ def insertar_permisos_base():
 
     conn.commit()
     conn.close()
+crear_tabla_permisos_roles()
+insertar_permisos_base()
