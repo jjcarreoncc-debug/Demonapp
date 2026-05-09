@@ -27,6 +27,9 @@ def sidebar_dinamico():
         """,
         conn,
         params=(st.session_state.rol,)
+        st.sidebar.write("DEBUG rol:", st.session_state.rol)
+        st.sidebar.write("DEBUG registros query:", len(menu_df))
+
     )
 
     conn.close()
