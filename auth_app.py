@@ -3,6 +3,7 @@ import hashlib
 import base64
 from pathlib import Path
 from database import get_connection
+from mantenimiento_auditoria_app import registrar_auditoria
 
 
 def hash_password(password):
@@ -236,7 +237,15 @@ def login_app():
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
-            st.rerun()
+             # 👇 PEGA AQUÍ
+            registrar_auditoria(
+                resultado["usuario"],
+                "Login",
+                "ACCESO",
+                "Inicio de sesión exitoso"
+            )
+
+    st.rerun()
 
     st.markdown(
         '''
