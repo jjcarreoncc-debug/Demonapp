@@ -1,81 +1,34 @@
 import streamlit as st
-import pandas as pd
 import hashlib
 
 from database import get_connection
 
 
+# =====================================
+# HASH PASSWORD
+# =====================================
 def hash_password(password):
+
     return hashlib.sha256(
         password.encode()
     ).hexdigest()
 
 
-st.title("🧪 Test Base de Datos")
-
-conn = get_connection()
-
 # =====================================
-# TABLAS
+# UI
 # =====================================
-st.subheader("📋 Tablas existentes")
+st.title("🔐 Crear Usuario Temporal")
 
-tablas = pd.read_sql_query(
-    """
-    SELECT name
-    FROM sqlite_master
-    WHERE type='table'
-    ORDER BY name
-    """,
-    conn
-)
 
-st.dataframe(
-    tablas,
-    use_container_width=True
-)
+if st.button("Crear Admin Temporal"):
 
-# =====================================
-# USUARIOS
-# =====================================
-st.subheader("👥 Usuarios")
-
-try:
-
-    usuarios = pd.read_sql_query(
-        """
-        SELECT
-            id_usuario,
-            usuario,
-            nombre,
-            estado
-        FROM usuarios
-        """,
-        conn
-    )
-
-    st.dataframe(
-        usuarios,
-        use_container_width=True
-    )
-
-except Exception as e:
-
-    st.error(
-        "No se pudo leer usuarios"
-    )
-
-    st.exception(e)
-
-# =====================================
-# CREAR ADMIN
-# =====================================
-st.subheader("🔐 Crear Admin Temporal")
-
-if st.button("Crear usuario admin"):
+    conn = get_connection()
 
     cursor = conn.cursor()
 
+    # =====================================
+    # BUSCAR ROL ADMIN
+    # =====================================
     rol_admin = cursor.execute(
         """
         SELECT id_rol
@@ -84,17 +37,23 @@ if st.button("Crear usuario admin"):
         """
     ).fetchone()
 
+    # =====================================
+    # VALIDAR ROL
+    # =====================================
     if rol_admin is None:
 
         st.error(
-            "No existe rol Admin"
+            "❌ No existe el rol Admin"
         )
 
     else:
 
+        # =====================================
+        # INSERTAR USUARIO
+        # =====================================
         cursor.execute(
             """
-            INSERT OR REPLACE INTO usuarios (
+            INSERT INTO usuarios (
 
                 usuario,
                 nombre,
@@ -121,11 +80,15 @@ if st.button("Crear usuario admin"):
         conn.commit()
 
         st.success(
-            "✅ Usuario admin creado"
+            "✅ Usuario temporal creado"
         )
 
         st.info(
-            "Usuario: admin | Password: 1234"
+            "Usuario: admin"
         )
 
-conn.close()
+        st.info(
+            "Password: 1234"
+        )
+
+    conn.close()
