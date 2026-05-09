@@ -186,7 +186,7 @@ def mantenimiento_app():
         and submenu == "Historial acciones"
     ):
 
-    consultar_auditoria_app()
+       consultar_auditoria_app()
     # =====================================
     # ROLES
     # =====================================
