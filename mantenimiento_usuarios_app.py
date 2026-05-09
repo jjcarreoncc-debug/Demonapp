@@ -150,15 +150,21 @@ def alta_usuario_app():
                 conn.commit()
 
                 st.success("✅ Usuario guardado correctamente en la base de datos.")
-
+                registrar_auditoria(
+                    usuario=usuario,
+                    modulo="Usuarios",
+                    accion="Crear usuario",
+                    descripcion=f"Se creó el usuario {usuario}"
+                    ) 
             except Exception as e:
-
+         
                 st.error("❌ No se pudo guardar el usuario. Puede que ya exista.")
                 st.exception(e)
 
             finally:
 
                 conn.close()
+                
 def editar_usuario_app():
 
     st.markdown("## ✏️ Editar usuario")
