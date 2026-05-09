@@ -16,38 +16,23 @@ from mantenimiento_permisos_app import (
     permisos_por_modulo_app,
     permisos_por_rol_app
 )
-from mantenimiento_permisos_app import (
-    permisos_por_modulo_app,
-    permisos_por_rol_app
-)
-
 
 from mantenimiento_auditoria_app import (
     consultar_auditoria_app
 )
 
+from mantenimiento_modulos_app import (
+    administrar_modulos_app
+)
+
+
 def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
-    
-    # =========================
-    # VALIDACION
-    # =========================
-    # if st.session_state.rol != "Admin":
-    #
-    #     st.warning("⛔ No tienes permisos")
-    #     st.stop()
 
-    # =========================
-    # SESSION STATE
-    # =========================
     if "menu_mantenimiento" not in st.session_state:
-
         st.session_state.menu_mantenimiento = "👥 Usuarios"
 
-    # =========================
-    # SIDEBAR
-    # =========================
     with st.sidebar:
 
         st.markdown("## 🛠️ Mantenimiento")
@@ -65,9 +50,6 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
-        # =========================
-        # USUARIOS
-        # =========================
         if menu == "👥 Usuarios":
 
             submenu = st.radio(
@@ -81,9 +63,6 @@ def mantenimiento_app():
                 key="submenu_usuarios"
             )
 
-        # =========================
-        # ROLES
-        # =========================
         elif menu == "🧩 Roles":
 
             submenu = st.radio(
@@ -96,9 +75,6 @@ def mantenimiento_app():
                 key="submenu_roles"
             )
 
-        # =========================
-        # PERMISOS
-        # =========================
         elif menu == "🔐 Permisos":
 
             submenu = st.radio(
@@ -111,24 +87,16 @@ def mantenimiento_app():
                 key="submenu_permisos"
             )
 
-        # =========================
-        # MODULOS
-        # =========================
         elif menu == "🧱 Módulos":
 
             submenu = st.radio(
                 "Opciones",
                 [
-                    "Activar módulos",
-                    "Ocultar módulos",
-                    "Configuración visual"
+                    "Administrar módulos"
                 ],
                 key="submenu_modulos"
             )
 
-        # =========================
-        # AUDITORIA
-        # =========================
         elif menu == "📜 Auditoría":
 
             submenu = st.radio(
@@ -142,9 +110,6 @@ def mantenimiento_app():
                 key="submenu_auditoria"
             )
 
-        # =========================
-        # CONFIGURACION
-        # =========================
         elif menu == "⚙️ Configuración":
 
             submenu = st.radio(
@@ -158,17 +123,8 @@ def mantenimiento_app():
                 key="submenu_configuracion"
             )
 
-    # =========================
-    # TITULO
-    # =========================
     st.caption(f"{menu} / {submenu}")
-    st.write("DEBUG menu:", repr(menu))
-    st.write("DEBUG submenu:", repr(submenu))
 
-    
-    # =====================================
-    # USUARIOS
-    # =====================================
     if (
         menu == "👥 Usuarios"
         and submenu == "Crear usuario"
@@ -191,15 +147,6 @@ def mantenimiento_app():
         consultar_usuarios_app()
 
     elif (
-        menu == "📜 Auditoría"
-        and submenu == "Historial acciones"
-    ):
-
-       consultar_auditoria_app()
-    # =====================================
-    # ROLES
-    # =====================================
-    elif (
         menu == "🧩 Roles"
         and submenu == "Asignar usuarios"
     ):
@@ -213,25 +160,34 @@ def mantenimiento_app():
 
         crear_rol_app()
 
-    # =====================================
-    # PERMISOS
-    # =====================================
     elif (
         menu == "🔐 Permisos"
         and submenu == "Permisos por módulo"
     ):
 
         permisos_por_modulo_app()
+
     elif (
         menu == "🔐 Permisos"
         and submenu == "Permisos por rol"
     ):
-    
+
         permisos_por_rol_app()
 
-    # =====================================
-    # EN CONSTRUCCION
-    # =====================================
+    elif (
+        menu == "🧱 Módulos"
+        and submenu == "Administrar módulos"
+    ):
+
+        administrar_modulos_app()
+
+    elif (
+        menu == "📜 Auditoría"
+        and submenu == "Historial acciones"
+    ):
+
+        consultar_auditoria_app()
+
     else:
 
         st.info(
