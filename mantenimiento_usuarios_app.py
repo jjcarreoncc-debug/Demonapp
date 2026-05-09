@@ -159,43 +159,47 @@ def alta_usuario_app():
             finally:
 
                 conn.close()
-
-
 def editar_usuario_app():
-    st.success("✅ Entré a editar_usuario_app")
+
     st.markdown("## ✏️ Editar usuario")
     st.caption("Modifica datos básicos, rol, estado y módulo inicial del usuario.")
 
-    conn = get_connection()
+    try:
+        conn = get_connection()
 
-    query = """
-        SELECT
-            u.id_usuario,
-            u.usuario,
-            u.nombre,
-            u.email,
-            r.nombre_rol AS rol,
-            u.id_rol,
-            u.estado,
-            u.modulo_inicial
-        FROM usuarios u
-        LEFT JOIN roles r
-            ON u.id_rol = r.id_rol
-        ORDER BY u.usuario ASC
-    """
-
-    df = pd.read_sql_query(query, conn)
-
-    roles_df = pd.read_sql_query(
+        query = """
+            SELECT
+                u.id_usuario,
+                u.usuario,
+                u.nombre,
+                u.email,
+                r.nombre_rol AS rol,
+                u.id_rol,
+                u.estado,
+                u.modulo_inicial
+            FROM usuarios u
+            LEFT JOIN roles r
+                ON u.id_rol = r.id_rol
+            ORDER BY u.usuario ASC
         """
-        SELECT id_rol, nombre_rol
-        FROM roles
-        ORDER BY nombre_rol ASC
-        """,
-        conn
-    )
 
-    conn.close()
+        df = pd.read_sql_query(query, conn)
+
+        roles_df = pd.read_sql_query(
+            """
+            SELECT id_rol, nombre_rol
+            FROM roles
+            ORDER BY nombre_rol ASC
+            """,
+            conn
+        )
+
+        conn.close()
+
+    except Exception as e:
+        st.error("❌ No se pudo conectar o leer la base de datos.")
+        st.exception(e)
+        return
 
     if df.empty:
         st.info("No hay usuarios registrados para editar.")
@@ -317,36 +321,36 @@ def editar_usuario_app():
     if guardar:
 
         if not nuevo_usuario or not nuevo_nombre or not nuevo_email:
-
             st.warning("⚠️ Completa todos los campos obligatorios.")
             return
 
-        if cambiar_password and nuevo_password != confirmar_password:
+        if cambiar_password and not nuevo_password:
+            st.warning("⚠️ Debes escribir el nuevo password.")
+            return
 
+        if cambiar_password and nuevo_password != confirmar_password:
             st.error("❌ Las contraseñas no coinciden.")
             return
 
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        rol_row = cursor.execute(
-            """
-            SELECT id_rol
-            FROM roles
-            WHERE nombre_rol = ?
-            """,
-            (nuevo_rol,)
-        ).fetchone()
-
-        if rol_row is None:
-
-            st.error("❌ El rol seleccionado no existe.")
-            conn.close()
-            return
-
         try:
+            conn = get_connection()
+            cursor = conn.cursor()
 
-            if cambiar_password and nuevo_password:
+            rol_row = cursor.execute(
+                """
+                SELECT id_rol
+                FROM roles
+                WHERE nombre_rol = ?
+                """,
+                (nuevo_rol,)
+            ).fetchone()
+
+            if rol_row is None:
+                st.error("❌ El rol seleccionado no existe.")
+                conn.close()
+                return
+
+            if cambiar_password:
 
                 cursor.execute(
                     """
@@ -399,18 +403,14 @@ def editar_usuario_app():
                 )
 
             conn.commit()
-
-            st.success("✅ Usuario actualizado correctamente.")
-
-        except Exception as e:
-
-            st.error("❌ No se pudo actualizar el usuario.")
-            st.exception(e)
-
-        finally:
-
             conn.close()
 
+            st.success("✅ Usuario actualizado correctamente.")
+            st.rerun()
+
+        except Exception as e:
+            st.error("❌ No se pudo actualizar el usuario.")
+            st.exception(e)
 
 def consultar_usuarios_app():
 
