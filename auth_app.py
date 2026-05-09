@@ -221,35 +221,48 @@ def login_app():
         type="password",
         key="login_password"
     )
-
+    #
     if st.button("Ingresar", key="btn_login_sigem"):
-        resultado = validar_login(usuario.strip(), password.strip())
 
-        if resultado == "INACTIVO":
-            st.warning("⛔ Usuario inactivo")
+    st.write("DEBUG usuario:", usuario.strip())
+    st.write("DEBUG password:", password.strip())
 
-        elif resultado is None:
-            st.error("❌ Usuario o contraseña incorrectos")
-
-        else:
-            st.session_state.autenticado = True
-            st.session_state.usuario = resultado["usuario"]
-            st.session_state.nombre = resultado["nombre"]
-            st.session_state.rol = resultado["rol"]
-            st.rerun()
-
-    st.markdown(
-        '''
-        <div class="footer-login">
-            © 2026 SIGEM
-        </div>
-        ''',
-        unsafe_allow_html=True
+    resultado = validar_login(
+        usuario.strip(),
+        password.strip()
     )
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.write("DEBUG resultado:", resultado)
 
+    if resultado == "INACTIVO":
 
+        st.warning("⛔ Usuario inactivo")
+
+    elif resultado is None:
+
+        st.error("❌ Usuario o contraseña incorrectos")
+
+    else:
+
+        st.write("✅ LOGIN OK")
+
+        st.session_state.autenticado = True
+        st.session_state.usuario = resultado["usuario"]
+        st.session_state.nombre = resultado["nombre"]
+        st.session_state.rol = resultado["rol"]
+
+        st.rerun()
+
+st.markdown(
+    '''
+    <div class="footer-login">
+        © 2026 SIGEM
+    </div>
+    ''',
+    unsafe_allow_html=True
+)
+
+st.markdown('</div>', unsafe_allow_html=True)
 def logout_app():
     if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
         st.session_state.autenticado = False
