@@ -63,19 +63,13 @@ def consultar_auditoria_app():
     crear_tabla_auditoria()
 
     conn = get_connection()
-
+    ##
     query = """
-        SELECT
-            id_auditoria,
-            usuario,
-            modulo,
-            accion,
-            descripcion,
-            fecha_hora
+        SELECT *
         FROM auditoria
-        ORDER BY fecha_hora DESC
+        ORDER BY id_auditoria DESC
     """
-
+    ##
     df = pd.read_sql_query(query, conn)
 
     conn.close()
