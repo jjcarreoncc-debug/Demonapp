@@ -7,80 +7,40 @@ from database import get_connection
 def sidebar_dinamico():
 
     conn = get_connection()
-    #
-    
-    conn.close()
-    
-    menu_df = pd.read_sql_query(
-    """
-    SELECT DISTINCT
-        m.nombre_modulo,
-        m.icono,
-        m.ruta,
-        m.orden_menu
-    FROM permisos_roles pr
-    INNER JOIN roles r
-        ON pr.id_rol = r.id_rol
-    INNER JOIN modulos m
-        ON pr.id_modulo = m.id_modulo
-    WHERE r.nombre_rol = ?
-    AND pr.puede_ver = 1
-    AND m.activo = 1
-    ORDER BY m.orden_menu
-    """,
-    conn,
-    params=(st.session_state.rol,)
-)
-    st.sidebar.write("DEBUG rol:", st.session_state.rol)
-    st.sidebar.write("DEBUG registros query:", len(menu_df))
-    st.sidebar.dataframe(
-     menu_df,
-    use_container_width=True
-)
 
-st.stop()
     menu_df = pd.read_sql_query(
-    """
-    SELECT DISTINCT
-        m.nombre_modulo,
-        m.icono,
-        m.ruta,
-        m.orden_menu
-    FROM permisos_roles pr
-    INNER JOIN roles r
-        ON pr.id_rol = r.id_rol
-    INNER JOIN modulos m
-        ON pr.id_modulo = m.id_modulo
-    WHERE r.nombre_rol = ?
-    AND pr.puede_ver = 1
-    AND m.activo = 1
-    ORDER BY m.orden_menu
+        """
+        SELECT DISTINCT
+            m.nombre_modulo,
+            m.icono,
+            m.ruta,
+            m.orden_menu
+        FROM permisos_roles pr
+        INNER JOIN roles r
+            ON pr.id_rol = r.id_rol
+        INNER JOIN modulos m
+            ON pr.id_modulo = m.id_modulo
+        WHERE r.nombre_rol = ?
+        AND pr.puede_ver = 1
+        AND m.activo = 1
+        ORDER BY m.orden_menu
         """,
-    conn,
-    params=(st.session_state.rol,)
-        
-)
+        conn,
+        params=(st.session_state.rol,)
+    )
 
-    st.sidebar.write("DEBUG rol:", st.session_state.rol)
-    st.sidebar.write("DEBUG registros query:", len(menu_df))
+    conn.close()
 
-menu_df = (
-    menu_df
-    .sort_values("orden_menu")
-    .drop_duplicates(subset=["ruta"])
-)    
-menu_df = menu_df.drop_duplicates(
-    subset=["nombre_modulo"]
-)
+    menu_df["nombre_modulo"] = menu_df["nombre_modulo"].astype(str).str.strip()
+    menu_df["ruta"] = menu_df["ruta"].astype(str).str.strip()
 
-opciones = (
-    menu_df["nombre_modulo"]
-    .drop_duplicates()
-    .tolist()
-)
+    menu_df = (
+        menu_df
+        .sort_values("orden_menu")
+        .drop_duplicates(subset=["ruta"])
+    )
 
-    #if "Inicio" not in opciones:
-    #    opciones.insert(0, "Inicio")
+    opciones = menu_df["nombre_modulo"].tolist()
 
     if not opciones:
         opciones = ["Inicio"]
@@ -100,10 +60,11 @@ opciones = (
             opciones,
             index=opciones.index(st.session_state.menu)
         )
-    
-    st.sidebar.write("DEBUG rol:", st.session_state.rol)
-    st.sidebar.write("DEBUG registros query:", len(menu_df))
 
     st.session_state.menu = menu
 
-    return menu
+    ruta = menu_df[
+        menu_df["nombre_modulo"] == menu
+    ]["ruta"].iloc[0]
+
+    return ruta
