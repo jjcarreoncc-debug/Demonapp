@@ -8,11 +8,9 @@ from database import get_connection
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-#
+
 def validar_login(usuario, password):
-
     conn = get_connection()
-
     cursor = conn.cursor()
 
     row = cursor.execute(
@@ -36,30 +34,14 @@ def validar_login(usuario, password):
     if row is None:
         return None
 
-    estado = str(
-        row["estado"]
-    ).strip().upper()
-
-    if estado != "ACTIVO":
+    if row["estado"] != "Activo":
         return "INACTIVO"
 
-    password_bd = str(
-        row["password_hash"]
-    ).strip()
+    password_bd = str(row["password_hash"]).strip()
+    password_ingresado = str(password).strip()
+    password_hash = hash_password(password_ingresado)
 
-    password_ingresado = str(
-        password
-    ).strip()
-
-    password_hash = hash_password(
-        password_ingresado
-    )
-
-    if (
-        password_bd != password_ingresado
-        and
-        password_bd != password_hash
-    ):
+    if password_bd != password_ingresado and password_bd != password_hash:
         return None
 
     return row
@@ -232,8 +214,6 @@ def login_app():
         unsafe_allow_html=True
     )
 
-    st.error("DEBUG antes del botón")
-
     usuario = st.text_input("Usuario", key="login_usuario")
 
     password = st.text_input(
@@ -243,27 +223,19 @@ def login_app():
     )
 
     if st.button("Ingresar", key="btn_login_sigem"):
-
-        resultado = validar_login(
-            usuario.strip(),
-            password.strip()
-        )
+        resultado = validar_login(usuario.strip(), password.strip())
 
         if resultado == "INACTIVO":
-
             st.warning("⛔ Usuario inactivo")
 
         elif resultado is None:
-
             st.error("❌ Usuario o contraseña incorrectos")
 
         else:
-
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
-
             st.rerun()
 
     st.markdown(
