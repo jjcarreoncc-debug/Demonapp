@@ -5,33 +5,6 @@ from database import get_connection
 
 
 # =====================================
-# RECREAR TABLA AUDITORIA (TEMPORAL)
-# =====================================
-conn = get_connection()
-cursor = conn.cursor()
-
-cursor.execute(
-    "DROP TABLE IF EXISTS auditoria"
-)
-
-cursor.execute(
-    """
-    CREATE TABLE auditoria (
-        id_auditoria INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario TEXT,
-        modulo TEXT,
-        accion TEXT,
-        descripcion TEXT,
-        fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-    """
-)
-
-conn.commit()
-conn.close()
-
-
-# =====================================
 # CREAR TABLA AUDITORIA
 # =====================================
 def crear_tabla_auditoria():
@@ -66,32 +39,11 @@ def registrar_auditoria(
     descripcion
 ):
 
+    crear_tabla_auditoria()
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    # =====================================
-    # RECREAR TABLA AUDITORIA
-    # =====================================
-    cursor.execute(
-        "DROP TABLE IF EXISTS auditoria"
-    )
-
-    cursor.execute(
-        """
-        CREATE TABLE auditoria (
-            id_auditoria INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario TEXT,
-            modulo TEXT,
-            accion TEXT,
-            descripcion TEXT,
-            fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
-
-    # =====================================
-    # INSERTAR EVENTO
-    # =====================================
     cursor.execute(
         """
         INSERT INTO auditoria (
@@ -112,6 +64,8 @@ def registrar_auditoria(
 
     conn.commit()
     conn.close()
+
+
 # =====================================
 # CONSULTAR AUDITORIA
 # =====================================
