@@ -56,7 +56,11 @@ menu_df = menu_df.drop_duplicates(
     subset=["nombre_modulo"]
 )
 
-    opciones = menu_df["nombre_modulo"].tolist()
+opciones = (
+    menu_df["nombre_modulo"]
+    .drop_duplicates()
+    .tolist()
+)
 
     if "Inicio" not in opciones:
         opciones.insert(0, "Inicio")
