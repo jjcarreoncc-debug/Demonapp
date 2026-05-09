@@ -233,17 +233,19 @@ def login_app():
             st.error("❌ Usuario o contraseña incorrectos")
 
         else:
+            
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
              # 👇 PEGA AQUÍ
-            registrar_auditoria(
-                resultado["usuario"],
-                "Login",
-                "ACCESO",
-                "Inicio de sesión exitoso"
-            )
+             registrar_auditoria(
+                 resultado["usuario"],
+                 "Login",
+                 "ACCESO",
+                 "SEGURIDAD",
+                 "Inicio de sesión exitoso"
+            ) 
 
     st.rerun()
 
