@@ -31,11 +31,6 @@ def sidebar_dinamico():
     conn,
     params=(st.session_state.rol,)
 )
-menu_df = (
-    menu_df
-    .sort_values("orden_menu")
-    .drop_duplicates(subset=["ruta"])
-)    
 st.sidebar.write("DEBUG rol:", st.session_state.rol)
 st.sidebar.write("DEBUG registros query:", len(menu_df))
 st.sidebar.dataframe(
