@@ -1,4 +1,5 @@
 import streamlit as st
+from mantenimiento_auditoria_app import consultar_auditoria_app
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
@@ -12,7 +13,9 @@ from mantenimiento_roles_app import (
 )
 
 from mantenimiento_permisos_app import permisos_por_modulo_app
-
+from mantenimiento_auditoria_app import (
+    consultar_auditoria_app
+)
 
 def mantenimiento_app():
 
@@ -178,6 +181,12 @@ def mantenimiento_app():
 
         consultar_usuarios_app()
 
+    elif (
+        menu == "📜 Auditoría"
+        and submenu == "Historial acciones"
+    ):
+
+    consultar_auditoria_app()
     # =====================================
     # ROLES
     # =====================================
