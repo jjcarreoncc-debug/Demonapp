@@ -14,7 +14,7 @@ from compras_app import compras_app
 from logistica_app import logistica_app
 from wms_app import wms_app
 from mantenimiento_app import mantenimiento_app
-st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
+#st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 
 from seed_data import seed_data
 from auth_app import login_app, logout_app
