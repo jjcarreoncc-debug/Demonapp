@@ -87,3 +87,4 @@ def permisos_por_modulo_app():
             "rol": rol,
             "modulos_permitidos": modulos_permitidos
         })
+def permisos_por_rol_app():
