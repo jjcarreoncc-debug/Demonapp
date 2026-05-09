@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import crear_tablas
 
 from database import get_connection
 
