@@ -240,7 +240,7 @@ def login_app():
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
             st.rerun()
-
+#
     st.markdown(
         '''
         <div class="footer-login">
