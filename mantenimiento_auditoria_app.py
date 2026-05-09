@@ -4,9 +4,6 @@ import pandas as pd
 from database import get_connection
 
 
-# =====================================
-# CREAR TABLA AUDITORIA
-# =====================================
 def crear_tabla_auditoria():
 
     conn = get_connection()
@@ -29,9 +26,6 @@ def crear_tabla_auditoria():
     conn.close()
 
 
-# =====================================
-# REGISTRAR AUDITORIA
-# =====================================
 def registrar_auditoria(
     usuario,
     modulo,
@@ -66,9 +60,6 @@ def registrar_auditoria(
     conn.close()
 
 
-# =====================================
-# CONSULTAR AUDITORIA
-# =====================================
 def consultar_auditoria_app():
 
     st.markdown("## 📜 Auditoría")
@@ -181,27 +172,17 @@ def consultar_auditoria_app():
         ]
 
     st.divider()
-    st.metric(
-        "Total eventos",
-        len(df_filtrado)
-        )
-
-st.download_button(
-    "📥 Descargar Excel",
-    df_filtrado.to_csv(index=False).encode("utf-8"),
-    "auditoria.csv",
-    "text/csv"
-)
-
-st.dataframe(
-    df_filtrado,
-    use_container_width=True
-)
-    
 
     st.metric(
         "Total eventos",
         len(df_filtrado)
+    )
+
+    st.download_button(
+        "📥 Descargar CSV",
+        df_filtrado.to_csv(index=False).encode("utf-8"),
+        "auditoria.csv",
+        "text/csv"
     )
 
     st.dataframe(
