@@ -30,6 +30,7 @@ def validar_login(usuario, password):
         (usuario,)
     ).fetchone()
 
+    
     conn.close()
 
     if row is None:
@@ -37,7 +38,10 @@ def validar_login(usuario, password):
 
     if row["estado"] != "Activo":
         return "INACTIVO"
-
+    
+    if resultado == "INACTIVO":
+       st.warning("⛔ Usuario inactivo")
+    
     password_bd = str(row["password_hash"]).strip()
     password_ingresado = str(password).strip()
     password_hash = hash_password(password_ingresado)
