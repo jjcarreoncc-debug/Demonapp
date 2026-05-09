@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from mantenimiento_auditoria_app import registrar_auditoria
 
 from database import get_connection
 
@@ -201,7 +202,12 @@ def administrar_modulos_app():
                 )
 
                 conn.commit()
-
+                registrar_auditoria(
+                    st.session_state.usuario,
+                    "Módulos",
+                    "ACTUALIZAR",
+                    f"Actualizó módulo {row['nombre_modulo']}"
+                )
                 st.success(
                     "✅ Módulo actualizado"
                 )
