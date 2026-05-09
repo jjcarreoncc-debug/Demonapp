@@ -8,9 +8,11 @@ from database import get_connection
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-
+#
 def validar_login(usuario, password):
+
     conn = get_connection()
+
     cursor = conn.cursor()
 
     row = cursor.execute(
@@ -33,24 +35,34 @@ def validar_login(usuario, password):
 
     if row is None:
         return None
-    #
-    estado = str(row["estado"]).strip().upper()
+
+    estado = str(
+        row["estado"]
+    ).strip().upper()
 
     if estado != "ACTIVO":
         return "INACTIVO"
 
-#Eso hace la validación más robusta.
+    password_bd = str(
+        row["password_hash"]
+    ).strip()
 
-    password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
+    password_ingresado = str(
+        password
+    ).strip()
 
-    if password_bd != password_ingresado and password_bd != password_hash:
+    password_hash = hash_password(
+        password_ingresado
+    )
+
+    if (
+        password_bd != password_ingresado
+        and
+        password_bd != password_hash
+    ):
         return None
 
     return row
-
-
 def get_base64_image(image_path):
     file_path = Path(image_path)
 
