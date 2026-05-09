@@ -34,8 +34,8 @@ def validar_login(usuario, password):
     if row is None:
         return None
 
-    if str(row["estado"]).strip().upper() != "ACTIVO":
-        return "INACTIVO"
+ #   if str(row["estado"]).strip().upper() != "ACTIVO":
+ #       return "INACTIVO"
     
     #if row["estado"] != "Activo":
     #    return "INACTIVO"
