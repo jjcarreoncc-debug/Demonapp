@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+
 from database import get_connection
 
 
@@ -9,10 +10,11 @@ def sidebar_dinamico():
 
     menu_df = pd.read_sql_query(
         """
-        SELECT
+        SELECT DISTINCT
             m.nombre_modulo,
             m.icono,
-            m.ruta
+            m.ruta,
+            m.orden_menu
         FROM permisos_roles pr
         INNER JOIN roles r
             ON pr.id_rol = r.id_rol
