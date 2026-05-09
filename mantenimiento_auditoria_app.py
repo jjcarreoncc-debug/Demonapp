@@ -60,19 +60,25 @@ def consultar_auditoria_app():
     st.markdown("## 📜 Auditoría")
     st.caption("Historial de acciones realizadas en el sistema.")
 
-    crear_tabla_auditoria()
+    try:
+        crear_tabla_auditoria()
 
-    conn = get_connection()
-    ##
-    query = """
-        SELECT *
-        FROM auditoria
-        ORDER BY id_auditoria DESC
-    """
-    ##
-    df = pd.read_sql_query(query, conn)
+        conn = get_connection()
 
-    conn.close()
+        query = """
+            SELECT *
+            FROM auditoria
+            ORDER BY id_auditoria DESC
+        """
+
+        df = pd.read_sql_query(query, conn)
+
+        conn.close()
+
+    except Exception as e:
+        st.error("❌ No se pudo leer la auditoría desde la base de datos.")
+        st.exception(e)
+        return
 
     if df.empty:
         st.info("No hay registros de auditoría todavía.")
