@@ -297,9 +297,7 @@ if "ruta" not in st.session_state:
 # =========================
 
 ruta = sidebar_dinamico()
-
-diagnostico_tablas_app()
-st.stop()
+st.write("DEBUG ruta:", ruta)
 
 ######
 ### TEMPORALMENTE
