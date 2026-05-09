@@ -25,3 +25,11 @@ def get_connection():
     conn.row_factory = sqlite3.Row
 
     return conn
+# =====================================
+# INIT DATABASE
+# =====================================
+def init_database():
+
+    conn = get_connection()
+
+    conn.close()
