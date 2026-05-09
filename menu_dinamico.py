@@ -31,10 +31,10 @@ def sidebar_dinamico():
     conn,
     params=(st.session_state.rol,)
 )
-st.sidebar.write("DEBUG rol:", st.session_state.rol)
-st.sidebar.write("DEBUG registros query:", len(menu_df))
-st.sidebar.dataframe(
-    menu_df,
+    st.sidebar.write("DEBUG rol:", st.session_state.rol)
+    st.sidebar.write("DEBUG registros query:", len(menu_df))
+    st.sidebar.dataframe(
+     menu_df,
     use_container_width=True
 )
 
@@ -55,7 +55,7 @@ st.stop()
     AND pr.puede_ver = 1
     AND m.activo = 1
     ORDER BY m.orden_menu
-    """,
+        """,
     conn,
     params=(st.session_state.rol,)
         
