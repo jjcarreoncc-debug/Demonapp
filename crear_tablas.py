@@ -23,7 +23,7 @@ def crear_tabla_roles():
 
     conn = get_connection()
     cursor = conn.cursor()
-
+   print("✅ crear_tablas ejecutado")
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS roles (
