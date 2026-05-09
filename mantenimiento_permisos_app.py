@@ -1,5 +1,155 @@
 
 import streamlit as st
+from database import get_connection
+def permisos_por_rol_app():
+
+    st.markdown("## 🔐 Permisos por Rol")
+
+    st.caption(
+        "Administración dinámica de accesos por rol."
+    )
+
+    conn = get_connection()
+
+    # =====================================
+    # ROLES
+    # =====================================
+    roles_df = pd.read_sql_query(
+        """
+        SELECT *
+        FROM roles
+        ORDER BY nombre_rol
+        """,
+        conn
+    )
+
+    # =====================================
+    # MODULOS
+    # =====================================
+    modulos_df = pd.read_sql_query(
+        """
+        SELECT *
+        FROM modulos
+        WHERE activo = 1
+        ORDER BY orden_menu
+        """,
+        conn
+    )
+
+    if roles_df.empty:
+
+        st.warning("No existen roles.")
+        return
+
+    if modulos_df.empty:
+
+        st.warning("No existen módulos.")
+        return
+
+    # =====================================
+    # SELECCIONAR ROL
+    # =====================================
+    rol_sel = st.selectbox(
+        "Rol",
+        roles_df["nombre_rol"].tolist()
+    )
+
+    rol_row = roles_df[
+        roles_df["nombre_rol"] == rol_sel
+    ].iloc[0]
+
+    id_rol = int(rol_row["id_rol"])
+
+    st.divider()
+
+    st.markdown("### 📋 Permisos módulos")
+
+    for _, modulo in modulos_df.iterrows():
+
+        id_modulo = int(modulo["id_modulo"])
+
+        permiso_df = pd.read_sql_query(
+            f"""
+            SELECT *
+            FROM permisos_roles
+            WHERE id_rol = {id_rol}
+            AND id_modulo = {id_modulo}
+            """,
+            conn
+        )
+
+        tiene_permiso = not permiso_df.empty
+
+        col1, col2 = st.columns([4, 1])
+
+        with col1:
+
+            st.markdown(
+                f"""
+                ### {modulo['icono']} {modulo['nombre_modulo']}
+                """
+            )
+
+        with col2:
+
+            permiso = st.checkbox(
+                "Acceso",
+                value=tiene_permiso,
+                key=f"{id_rol}_{id_modulo}"
+            )
+
+        # =====================================
+        # INSERTAR PERMISO
+        # =====================================
+        if permiso and not tiene_permiso:
+
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                INSERT INTO permisos_roles (
+
+                    id_rol,
+                    id_modulo,
+                    puede_ver
+
+                )
+                VALUES (?, ?, 1)
+                """,
+                (
+                    id_rol,
+                    id_modulo
+                )
+            )
+
+            conn.commit()
+
+            st.rerun()
+
+        # =====================================
+        # ELIMINAR PERMISO
+        # =====================================
+        elif not permiso and tiene_permiso:
+
+            cursor = conn.cursor()
+
+            cursor.execute(
+                """
+                DELETE FROM permisos_roles
+                WHERE id_rol = ?
+                AND id_modulo = ?
+                """,
+                (
+                    id_rol,
+                    id_modulo
+                )
+            )
+
+            conn.commit()
+
+            st.rerun()
+
+    conn.close()
 
 from ui_admin import (
     admin_css,
