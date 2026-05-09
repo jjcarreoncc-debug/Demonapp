@@ -1,63 +1,57 @@
-# =====================================
-# MENU SEGUN ROL
-# =====================================
+from database import get_connection
 
+
+# =====================================
+# OBTENER MENU USUARIO
+# =====================================
 def obtener_menu_usuario(rol):
 
-    if rol == "Admin":
+    conn = get_connection()
+    cursor = conn.cursor()
 
-        return [
-            "Inicio",
-            "Dashboard",
-            "Inventarios",
-            "Compras",
-            "logistica",
-            "Almacen WMS",
-            "Mantenimiento"
-        ]
+    query = """
+        SELECT
+            m.nombre_modulo
+        FROM permisos_roles pr
 
-    elif rol == "Compras":
+        INNER JOIN roles r
+            ON pr.id_rol = r.id_rol
 
-        return [
-            "Inicio",
-            "Compras"
-        ]
+        INNER JOIN modulos m
+            ON pr.id_modulo = m.id_modulo
 
-    elif rol == "Logistica":
+        WHERE
+            r.nombre_rol = ?
+            AND pr.puede_ver = 1
+            AND m.activo = 1
 
-        return [
-            "Inicio",
-            "logistica"
-        ]
+        ORDER BY
+            m.orden_menu
+    """
 
-    elif rol == "WMS":
+    cursor.execute(
+        query,
+        (rol,)
+    )
 
-        return [
-            "Inicio",
-            "Almacen WMS"
-        ]
+    resultados = cursor.fetchall()
 
-    elif rol == "Gerencia":
+    conn.close()
 
-        return [
-            "Inicio",
-            "Dashboard",
-            "Inventarios",
-            "Compras",
-            "logistica"
-        ]
+    menu = ["Inicio"]
 
-    else:
+    for row in resultados:
 
-        return [
-            "Inicio"
-        ]
+        menu.append(
+            row["nombre_modulo"]
+        )
+
+    return menu
 
 
 # =====================================
 # VALIDAR ACCESO
 # =====================================
-
 def tiene_acceso(
     rol,
     modulo
