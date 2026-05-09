@@ -1,16 +1,85 @@
 import streamlit as st
+import hashlib
 import base64
+from pathlib import Path
+from database import get_connection
 
 
-def get_base64(imagen):
-    with open(imagen, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-#
+
+def validar_login(usuario, password):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    row = cursor.execute(
+        """
+        SELECT
+            u.usuario,
+            u.nombre,
+            u.password_hash,
+            u.estado,
+            r.nombre_rol AS rol
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        WHERE u.usuario = ?
+        """,
+        (usuario,)
+    ).fetchone()
+
+    conn.close()
+
+    if row is None:
+        return None
+
+    if str(row["estado"]).strip().upper() != "ACTIVO":
+        return "INACTIVO"
+    
+    #if row["estado"] != "Activo":
+    #    return "INACTIVO"
+
+    password_bd = str(row["password_hash"]).strip()
+    password_ingresado = str(password).strip()
+    password_hash = hash_password(password_ingresado)
+
+    if password_bd != password_ingresado and password_bd != password_hash:
+        return None
+
+    return row
+
+
+def get_base64_image(image_path):
+    file_path = Path(image_path)
+
+    if not file_path.exists():
+        return None
+
+    with open(file_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+
 def login_app():
+    bg_image = get_base64_image("logofondo.JPG")
+    sigem_logo = get_base64_image("logo1.png")
+    tids_logo = get_base64_image("LOOGO-TIDS-CONSULTING (2).jpg")
 
-    fondo = get_base64("logofondo.JPG")
-    sigem = get_base64("logo1.png")
+    if bg_image:
+        fondo_css = f'''
+        background-image:
+            linear-gradient(
+                rgba(0,0,0,0.45),
+                rgba(0,0,0,0.45)
+            ),
+            url("data:image/jpg;base64,{bg_image}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        '''
+    else:
+        fondo_css = "background-color: #0f172a;"
 
     st.markdown(f"""
     <style>
@@ -19,118 +88,173 @@ def login_app():
     }}
 
     .stApp {{
-        background-image: url("data:image/jpeg;base64,{fondo}");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
+        {fondo_css}
     }}
 
-    .stApp::before {{
-        content: "";
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        z-index: 0;
+    .block-container {{
+        padding-top: 2vh !important;
+        max-width: 100% !important;
     }}
 
-    .main .block-container {{
-        position: relative;
-        z-index: 1;
-        padding-top: 8vh;
-        max-width: 1000px;
-    }}
-
-    .logo-sigem {{
+    .top-logos {{
+        width: 94%;
+        margin: 0 auto 20px auto;
         display: flex;
-        justify-content: center;
-        margin-bottom: 15px;
+        justify-content: space-between;
+        align-items: center;
     }}
 
-    .titulo {{
+    .top-logos img {{
+        object-fit: contain;
+    }}
+
+    .login-card {{
+        background: rgba(15,23,42,0.68);
+        border-radius: 30px;
+        padding: 35px 50px 35px 50px;
+        width: 500px;
+        max-width: 90%;
+        margin: auto;
+        margin-top: 2vh;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.14);
+        backdrop-filter: blur(6px);
+    }}
+
+    .login-title {{
         text-align: center;
-        font-size: 50px;
+        font-size: 42px;
         font-weight: 800;
         color: white;
-        margin-bottom: 10px;
+        margin-top: 5px;
+        margin-bottom: 5px;
         text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
-    .subtitulo {{
+    .login-subtitle {{
         text-align: center;
-        font-size: 22px;
+        font-size: 18px;
         color: white;
-        margin-bottom: 45px;
+        margin-bottom: 30px;
         text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
-    .stTextInput input {{
-        height: 58px;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.25);
-        background: rgba(0,0,0,0.45);
-        color: white;
-        font-size: 18px;
+    .stTextInput {{
+        max-width: 420px;
+        margin: auto;
     }}
 
-    .stTextInput label {{
-        color: white !important;
-        font-size: 15px;
+    .stButton {{
+        max-width: 420px;
+        margin: auto;
+    }}
+
+    .stTextInput > div > div > input {{
+        border-radius: 14px;
+        height: 55px;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(0,0,0,0.38);
+        color: white;
+        font-size: 16px;
+        padding-left: 15px;
+    }}
+
+    .stTextInput > label {{
         font-weight: 600;
+        color: white !important;
     }}
 
-    .stButton button {{
+    div.stButton > button {{
         width: 100%;
-        height: 58px;
+        height: 56px;
         border-radius: 14px;
-        border: none;
-        background: linear-gradient(90deg,#0f3fae 0%,#2563eb 100%);
-        color: white;
-        font-size: 22px;
+        background: linear-gradient(90deg, #0f3fae 0%, #2563eb 100%);
+        color: white !important;
+        font-size: 20px;
         font-weight: 700;
+        border: none;
         margin-top: 15px;
+    }}
+
+    div.stButton > button:hover {{
+        background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
+        color: white !important;
+    }}
+
+    .footer-login {{
+        text-align: center;
+        margin-top: 25px;
+        color: rgba(255,255,255,0.78);
+        font-size: 14px;
     }}
     </style>
     """, unsafe_allow_html=True)
 
-    izq, centro, der = st.columns([1, 1, 1])
-
-    with centro:
-        st.markdown(f"""
-        <div class="logo-sigem">
-            <img src="data:image/png;base64,{sigem}" width="320">
+    st.markdown(f"""
+    <div class="top-logos">
+        <div>
+            {'<img src="data:image/jpg;base64,' + tids_logo + '" width="190">' if tids_logo else ''}
         </div>
-
-        <div class="titulo">
-            INICIO DE SESIÓN
+        <div>
+            {'<img src="data:image/png;base64,' + sigem_logo + '" width="190">' if sigem_logo else '<span style="color:white;font-size:28px;font-weight:800;">SIGEM</span>'}
         </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        <div class="subtitulo">
+    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="login-title">Inicio de sesión</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '''
+        <div class="login-subtitle">
             Sistema de Gestión Empresarial
         </div>
-        """, unsafe_allow_html=True)
+        ''',
+        unsafe_allow_html=True
+    )
 
-        usuario = st.text_input("Usuario")
+    usuario = st.text_input("Usuario", key="login_usuario")
 
-        password = st.text_input(
-            "Contraseña",
-            type="password"
-        )
+    password = st.text_input(
+        "Contraseña",
+        type="password",
+        key="login_password"
+    )
 
-        if st.button("INGRESAR"):
+    if st.button("Ingresar", key="btn_login_sigem"):
+        resultado = validar_login(usuario.strip(), password.strip())
 
-            if usuario == "admin" and password == "1234":
-                st.session_state.autenticado = True
-                st.session_state.usuario = usuario
-                st.session_state.nombre = "Administrador"
-                st.session_state.rol = "Admin"
-                st.rerun()
-            else:
-                st.error("Usuario o contraseña incorrectos")
+        if resultado == "INACTIVO":
+            st.warning("⛔ Usuario inactivo")
+
+        elif resultado is None:
+            st.error("❌ Usuario o contraseña incorrectos")
+
+        else:
+            st.session_state.autenticado = True
+            st.session_state.usuario = resultado["usuario"]
+            st.session_state.nombre = resultado["nombre"]
+            st.session_state.rol = resultado["rol"]
+            st.rerun()
+
+    st.markdown(
+        '''
+        <div class="footer-login">
+            © 2026 SIGEM
+        </div>
+        ''',    
+        unsafe_allow_html=True
+    )
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 def logout_app():
-    if st.sidebar.button("🚪 Cerrar sesión"):
+    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
         st.session_state.autenticado = False
         st.session_state.usuario = None
         st.session_state.nombre = None
