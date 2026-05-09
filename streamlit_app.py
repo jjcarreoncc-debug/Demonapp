@@ -421,22 +421,22 @@ if ruta == "Dashboard":
 if ruta == "inicio":
     pantalla_inicio()
 
-elif ruta == "dashboard":
+elif ruta == "dashboard_app":
     dashboard()
 
-elif ruta == "inventarios":
+elif ruta == "inventarios_app":
     inventarios_app()
 
-elif ruta == "compras":
+elif ruta == "compras_app":
     compras_app()
 
-elif ruta == "logistica":
+elif ruta == "logistica_app":
     logistica_app()
 
-elif ruta == "wms":
+elif ruta == "wms_app":
     wms_app()
 
-elif ruta == "mantenimiento":
+elif ruta == "mantenimiento_app":
     mantenimiento_app()    
 
                 
