@@ -30,6 +30,31 @@ def sidebar_dinamico():
     )
 
     conn.close()
+    
+    menu_df = pd.read_sql_query(
+    """
+    SELECT DISTINCT
+        m.nombre_modulo,
+        m.icono,
+        m.ruta,
+        m.orden_menu
+    FROM permisos_roles pr
+    INNER JOIN roles r
+        ON pr.id_rol = r.id_rol
+    INNER JOIN modulos m
+        ON pr.id_modulo = m.id_modulo
+    WHERE r.nombre_rol = ?
+    AND pr.puede_ver = 1
+    AND m.activo = 1
+    ORDER BY m.orden_menu
+    """,
+    conn,
+    params=(st.session_state.rol,)
+)
+
+menu_df = menu_df.drop_duplicates(
+    subset=["nombre_modulo"]
+)
 
     opciones = menu_df["nombre_modulo"].tolist()
 
