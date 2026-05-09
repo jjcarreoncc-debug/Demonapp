@@ -93,7 +93,6 @@ def permisos_por_rol_app():
         """
         SELECT *
         FROM modulos
-        WHERE activo = 1
         ORDER BY orden_menu
         """,
         conn
