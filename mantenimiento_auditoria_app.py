@@ -4,10 +4,13 @@ import pandas as pd
 from database import get_connection
 
 
+#
 def crear_tabla_auditoria():
 
     conn = get_connection()
     cursor = conn.cursor()
+
+    cursor.execute("DROP TABLE IF EXISTS auditoria")
 
     cursor.execute(
         """
@@ -24,8 +27,7 @@ def crear_tabla_auditoria():
 
     conn.commit()
     conn.close()
-
-
+    
 def registrar_auditoria(usuario, modulo, accion, descripcion):
 
     crear_tabla_auditoria()
