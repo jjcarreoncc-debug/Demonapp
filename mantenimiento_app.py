@@ -216,8 +216,6 @@ def mantenimiento_app():
     # =====================================
     # PERMISOS
     # =====================================
-    st.write("DEBUG menu:", repr(menu))
-    st.write("DEBUG submenu:", repr(submenu))
     elif (
         menu == "🔐 Permisos"
         and submenu == "Permisos por módulo"
