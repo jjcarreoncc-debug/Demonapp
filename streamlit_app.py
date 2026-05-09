@@ -60,6 +60,7 @@ if not st.session_state.autenticado:
 logout_app()
 
 transaccion = sidebar_sge()
+
 st.write("TRANSACCIÓN:", transaccion)
 
 if "ruta" not in st.session_state:
