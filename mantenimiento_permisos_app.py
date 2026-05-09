@@ -1,7 +1,18 @@
 
 import streamlit as st
 import pandas as pd
+
 from database import get_connection
+
+from ui_admin import (
+    admin_css,
+    admin_header
+)
+
+
+# =====================================
+# PERMISOS POR ROL
+# =====================================
 def permisos_por_rol_app():
 
     st.markdown("## 🔐 Permisos por Rol")
@@ -11,6 +22,57 @@ def permisos_por_rol_app():
     )
 
     conn = get_connection()
+
+    cursor = conn.cursor()
+
+    # =====================================
+    # CREAR TABLAS SI NO EXISTEN
+    # =====================================
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS modulos (
+
+            id_modulo INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            nombre_modulo TEXT UNIQUE,
+
+            tipo TEXT,
+
+            ruta TEXT,
+
+            icono TEXT,
+
+            orden_menu INTEGER,
+
+            activo INTEGER DEFAULT 1
+        )
+        """
+    )
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS permisos_roles (
+
+            id_permiso INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            id_rol INTEGER,
+
+            id_modulo INTEGER,
+
+            puede_ver INTEGER DEFAULT 1,
+
+            puede_crear INTEGER DEFAULT 0,
+
+            puede_editar INTEGER DEFAULT 0,
+
+            puede_eliminar INTEGER DEFAULT 0,
+
+            puede_exportar INTEGER DEFAULT 0
+        )
+        """
+    )
+
+    conn.commit()
 
     # =====================================
     # ROLES
@@ -40,11 +102,17 @@ def permisos_por_rol_app():
     if roles_df.empty:
 
         st.warning("No existen roles.")
+
+        conn.close()
+
         return
 
     if modulos_df.empty:
 
         st.warning("No existen módulos.")
+
+        conn.close()
+
         return
 
     # =====================================
@@ -59,15 +127,24 @@ def permisos_por_rol_app():
         roles_df["nombre_rol"] == rol_sel
     ].iloc[0]
 
-    id_rol = int(rol_row["id_rol"])
+    id_rol = int(
+        rol_row["id_rol"]
+    )
 
     st.divider()
 
-    st.markdown("### 📋 Permisos módulos")
+    st.markdown(
+        "### 📋 Permisos módulos"
+    )
 
+    # =====================================
+    # MODULOS
+    # =====================================
     for _, modulo in modulos_df.iterrows():
 
-        id_modulo = int(modulo["id_modulo"])
+        id_modulo = int(
+            modulo["id_modulo"]
+        )
 
         permiso_df = pd.read_sql_query(
             f"""
@@ -100,11 +177,9 @@ def permisos_por_rol_app():
             )
 
         # =====================================
-        # INSERTAR PERMISO
+        # INSERTAR
         # =====================================
         if permiso and not tiene_permiso:
-
-            cursor = conn.cursor()
 
             cursor.execute(
                 """
@@ -128,11 +203,9 @@ def permisos_por_rol_app():
             st.rerun()
 
         # =====================================
-        # ELIMINAR PERMISO
+        # ELIMINAR
         # =====================================
         elif not permiso and tiene_permiso:
-
-            cursor = conn.cursor()
 
             cursor.execute(
                 """
@@ -152,12 +225,10 @@ def permisos_por_rol_app():
 
     conn.close()
 
-from ui_admin import (
-    admin_css,
-    admin_header
-)
 
-
+# =====================================
+# PERMISOS POR MODULO
+# =====================================
 def permisos_por_modulo_app():
 
     admin_css()
@@ -193,7 +264,9 @@ def permisos_por_modulo_app():
         roles
     )
 
-    st.markdown("### 🧱 Módulos permitidos")
+    st.markdown(
+        "### 🧱 Módulos permitidos"
+    )
 
     permisos = {}
 
@@ -214,19 +287,30 @@ def permisos_por_modulo_app():
     col1, col2, col3 = st.columns([1, 1, 3])
 
     with col1:
-        guardar = st.button("💾 Guardar permisos")
+
+        guardar = st.button(
+            "💾 Guardar permisos"
+        )
 
     with col2:
-        limpiar = st.button("🔄 Limpiar")
+
+        limpiar = st.button(
+            "🔄 Limpiar"
+        )
 
     if limpiar:
+
         st.rerun()
 
     if guardar:
 
         modulos_permitidos = [
+
             modulo
-            for modulo, permitido in permisos.items()
+
+            for modulo, permitido
+            in permisos.items()
+
             if permitido
         ]
 
@@ -235,7 +319,8 @@ def permisos_por_modulo_app():
         )
 
         st.json({
+
             "rol": rol,
+
             "modulos_permitidos": modulos_permitidos
         })
-
