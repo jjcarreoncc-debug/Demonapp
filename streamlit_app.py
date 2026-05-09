@@ -291,23 +291,6 @@ usuario_actual = {
 if "menu" not in st.session_state:
     st.session_state.menu = "Inicio"
 
-# ------------------------
-# MENU
-# ------------------------
-opciones = ["Inicio", "Dashboard", "Inventarios", "Compras",  "logistica", "Almacen WMS", "Mantenimiento"]
-# índice seguro
-try:
-    idx = opciones.index(st.session_state.menu)
-except ValueError:
-    idx = 0
-    st.session_state.menu = opciones[0]
-menu = st.sidebar.radio(
-    "Menú",
-    opciones,
-    index=opciones.index(st.session_state.menu)
-)
-st.session_state.menu = menu
-
 # =========================
 # SIDEBAR DINAMICO
 # =========================
