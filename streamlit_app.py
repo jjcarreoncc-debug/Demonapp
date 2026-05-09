@@ -17,6 +17,7 @@ from mantenimiento_app import mantenimiento_app
 #st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
 from mantenimiento_auditoria_app import registrar_auditoria
 from menu_dinamico import sidebar_dinamico
+from diagnostico_tablas_app import diagnostico_tablas_app
 
 from seed_data import seed_data
 from auth_app import login_app, logout_app
