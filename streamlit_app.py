@@ -297,6 +297,12 @@ if "ruta" not in st.session_state:
 
 ruta = sidebar_dinamico()
 
+diagnostico_tablas_app()
+st.stop()
+
+######
+### TEMPORALMENTE
+#####
 if "ultima_ruta_auditada" not in st.session_state:
     st.session_state.ultima_ruta_auditada = None
 
