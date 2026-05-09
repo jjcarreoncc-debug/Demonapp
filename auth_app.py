@@ -33,9 +33,13 @@ def validar_login(usuario, password):
 
     if row is None:
         return None
+    #
+    estado = str(row["estado"]).strip().upper()
 
-    if row["estado"] != "Activo":
+    if estado != "ACTIVO":
         return "INACTIVO"
+
+Eso hace la validación más robusta.
 
     password_bd = str(row["password_hash"]).strip()
     password_ingresado = str(password).strip()
