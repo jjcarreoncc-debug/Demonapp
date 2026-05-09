@@ -228,13 +228,13 @@ def login_app():
     if st.button("Ingresar", key="btn_login_sigem"):
         resultado = validar_login(usuario.strip(), password.strip())
 
-        if resultado == "INACTIVO":
-            st.warning("⛔ Usuario inactivo")
+       # if resultado == "INACTIVO":
+       #     st.warning("⛔ Usuario inactivo")
 
-        elif resultado is None:
-            st.error("❌ Usuario o contraseña incorrectos")
+       # elif resultado is None:
+       #     st.error("❌ Usuario o contraseña incorrectos")
 
-        else:
+       # else:
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
