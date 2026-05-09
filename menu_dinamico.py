@@ -71,8 +71,8 @@ opciones = (
     .tolist()
 )
 
-    if "Inicio" not in opciones:
-        opciones.insert(0, "Inicio")
+    #if "Inicio" not in opciones:
+    #    opciones.insert(0, "Inicio")
 
     if not opciones:
         opciones = ["Inicio"]
