@@ -241,12 +241,12 @@ def login_app():
              
             
             # 👇 PEGA AQUÍ
-              registrar_auditoria(
-                  resultado["usuario"],
-                  "Login",
-                  "ACCESO",
-                  "SEGURIDAD",
-                  "Inicio de sesión exitoso"
+               registrar_auditoria(
+                   resultado["usuario"],
+                   "Login",
+                   "ACCESO",
+                   "SEGURIDAD",
+                   "Inicio de sesión exitoso"
               )         
 
               st.rerun()
