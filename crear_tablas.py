@@ -27,10 +27,15 @@ def crear_tabla_roles():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS roles (
+
             id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
+
             nombre_rol TEXT UNIQUE,
+
             descripcion TEXT,
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+
+            fecha_creacion DATETIME
+            DEFAULT CURRENT_TIMESTAMP
         )
         """
     )
@@ -50,15 +55,26 @@ def crear_tabla_usuarios():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS usuarios (
+
             id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+
             usuario TEXT UNIQUE,
+
             nombre TEXT,
+
             email TEXT,
+
             password_hash TEXT,
+
             id_rol INTEGER,
+
             estado TEXT,
+
             modulo_inicial TEXT,
-            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+            fecha_creacion DATETIME
+            DEFAULT CURRENT_TIMESTAMP,
+
             ultimo_login DATETIME,
 
             FOREIGN KEY(id_rol)
@@ -79,25 +95,55 @@ def crear_tabla_auditoria():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # =====================================
-    # BORRAR TABLA VIEJA
-    # =====================================
-    cursor.execute(
-        "DROP TABLE IF EXISTS auditoria"
-    )
-
-    # =====================================
-    # CREAR TABLA NUEVA
-    # =====================================
     cursor.execute(
         """
-        CREATE TABLE auditoria (
+        CREATE TABLE IF NOT EXISTS auditoria (
+
             id_auditoria INTEGER PRIMARY KEY AUTOINCREMENT,
+
             usuario TEXT,
+
             modulo TEXT,
+
             accion TEXT,
+
             descripcion TEXT,
-            fecha_hora DATETIME DEFAULT CURRENT_TIMESTAMP
+
+            fecha_hora DATETIME
+            DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+
+# =========================================
+# TABLA MODULOS
+# =========================================
+def crear_tabla_modulos():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS modulos (
+
+            id_modulo INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            nombre_modulo TEXT UNIQUE,
+
+            tipo TEXT,
+
+            ruta TEXT,
+
+            icono TEXT,
+
+            orden_menu INTEGER,
+
+            activo INTEGER DEFAULT 1
         )
         """
     )
@@ -115,12 +161,41 @@ def insertar_roles_base():
     cursor = conn.cursor()
 
     roles = [
-        ("Admin", "Administrador general"),
-        ("Gerencia", "Gerencia"),
-        ("Compras", "Modulo compras"),
-        ("Logistica", "Modulo logistica"),
-        ("WMS", "Modulo almacen"),
-        ("Consulta", "Solo consulta")
+
+        (
+            "Admin",
+            "Administrador general"
+        ),
+
+        (
+            "Gerencia",
+            "Gerencia"
+        ),
+
+        (
+            "Compras",
+            "Modulo compras"
+        ),
+
+        (
+            "Inventarios",
+            "Modulo inventarios"
+        ),
+
+        (
+            "Logistica",
+            "Modulo logistica"
+        ),
+
+        (
+            "WMS",
+            "Modulo almacen"
+        ),
+
+        (
+            "Consulta",
+            "Solo consulta"
+        )
     ]
 
     for rol in roles:
@@ -130,8 +205,10 @@ def insertar_roles_base():
             cursor.execute(
                 """
                 INSERT INTO roles (
+
                     nombre_rol,
                     descripcion
+
                 )
                 VALUES (?, ?)
                 """,
@@ -147,33 +224,103 @@ def insertar_roles_base():
 
 
 # =========================================
+# INSERTAR MODULOS BASE
+# =========================================
+def insertar_modulos_base():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    modulos = [
+
+        (
+            "Dashboard",
+            "dashboard",
+            "dashboard_app",
+            "📊",
+            1
+        ),
+
+        (
+            "Inventarios",
+            "modulo",
+            "inventarios_app",
+            "📦",
+            2
+        ),
+
+        (
+            "Compras",
+            "modulo",
+            "compras_app",
+            "🛒",
+            3
+        ),
+
+        (
+            "logistica",
+            "modulo",
+            "logistica_app",
+            "🚚",
+            4
+        ),
+
+        (
+            "Almacen WMS",
+            "modulo",
+            "wms_app",
+            "🏭",
+            5
+        ),
+
+        (
+            "Mantenimiento",
+            "modulo",
+            "mantenimiento_app",
+            "🛠️",
+            6
+        )
+    ]
+
+    for modulo in modulos:
+
+        try:
+
+            cursor.execute(
+                """
+                INSERT INTO modulos (
+
+                    nombre_modulo,
+                    tipo,
+                    ruta,
+                    icono,
+                    orden_menu
+
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                modulo
+            )
+
+        except:
+
+            pass
+
+    conn.commit()
+    conn.close()
+
+
+# =========================================
 # EJECUTAR
 # =========================================
 crear_tabla_roles()
-crear_tabla_usuarios()
-
-# =========================================
-# EJECUTAR
-# =========================================
-crear_tabla_auditoria()
-insertar_roles_base()
-print("===================================")
-print("INICIANDO CREACION DE TABLAS")
-print("===================================")
-
-crear_tabla_roles()
-print("✅ Tabla roles verificada")
 
 crear_tabla_usuarios()
-print("✅ Tabla usuarios verificada")
 
 crear_tabla_auditoria()
-print("✅ Tabla auditoria recreada")
+
+crear_tabla_modulos()
 
 insertar_roles_base()
-print("✅ Seed data de roles insertado")
 
-print("===================================")
-print("PROCESO TERMINADO CORRECTAMENTE")
-print("===================================")
-raise Exception("PAUSA TEMPORAL")
+insertar_modulos_base()
