@@ -181,6 +181,23 @@ def consultar_auditoria_app():
         ]
 
     st.divider()
+    st.metric(
+        "Total eventos",
+        len(df_filtrado)
+        )
+
+st.download_button(
+    "📥 Descargar Excel",
+    df_filtrado.to_csv(index=False).encode("utf-8"),
+    "auditoria.csv",
+    "text/csv"
+)
+
+st.dataframe(
+    df_filtrado,
+    use_container_width=True
+)
+    
 
     st.metric(
         "Total eventos",
