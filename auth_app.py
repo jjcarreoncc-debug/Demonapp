@@ -230,15 +230,15 @@ def login_app():
     if st.button("Ingresar", key="btn_login_sigem"):
 
         resultado = validar_login(
-        usuario.strip(),
-        password.strip()
+            usuario.strip(),
+            password.strip()
     )
 
     if resultado is None:
 
         st.error(
             "❌ Usuario o contraseña incorrectos"
-        )
+    )
 
     else:
 
@@ -247,9 +247,9 @@ def login_app():
         st.session_state.nombre = resultado["nombre"]
         st.session_state.rol = resultado["rol"]
 
-        st.rerun()    
+        st.rerun()
     st.markdown(
-        '''
+            '''
         <div class="footer-login">
             © 2026 SIGEM
         </div>
