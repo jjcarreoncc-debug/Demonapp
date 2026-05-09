@@ -1,4 +1,5 @@
 import sqlite3
+import crear_tablas
 
 
 # =========================================
@@ -144,7 +145,7 @@ def insertar_roles_base():
 # =========================================
 # MAIN
 # =========================================
-if __name__ == "__main__":
+def inicializar_bd():
 
     print("===================================")
     print("CREANDO TABLAS ERP")
@@ -165,3 +166,4 @@ if __name__ == "__main__":
     print("===================================")
     print("PROCESO FINALIZADO")
     print("===================================")
+inicializar_bd()
