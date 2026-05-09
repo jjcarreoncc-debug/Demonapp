@@ -61,8 +61,8 @@ st.stop()
         
 )
 
-st.sidebar.write("DEBUG rol:", st.session_state.rol)
-st.sidebar.write("DEBUG registros query:", len(menu_df))
+    st.sidebar.write("DEBUG rol:", st.session_state.rol)
+    st.sidebar.write("DEBUG registros query:", len(menu_df))
 
 menu_df = (
     menu_df
