@@ -6,7 +6,7 @@ def get_base64(imagen):
     with open(imagen, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-
+#
 def login_app():
 
     fondo = get_base64("logofondo.JPG")
