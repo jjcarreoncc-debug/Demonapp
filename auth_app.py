@@ -213,7 +213,7 @@ def login_app():
         ''',
         unsafe_allow_html=True
     )
-
+    st.error("DEBUG antes del botón")
     usuario = st.text_input("Usuario", key="login_usuario")
 
     password = st.text_input(
