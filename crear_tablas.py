@@ -155,6 +155,8 @@ crear_tabla_usuarios()
 # =========================================
 # EJECUTAR
 # =========================================
+crear_tabla_auditoria()
+insertar_roles_base()
 print("===================================")
 print("INICIANDO CREACION DE TABLAS")
 print("===================================")
@@ -174,5 +176,4 @@ print("✅ Seed data de roles insertado")
 print("===================================")
 print("PROCESO TERMINADO CORRECTAMENTE")
 print("===================================")
-crear_tabla_auditoria()
-insertar_roles_base()
+st.stop()
