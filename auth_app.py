@@ -238,16 +238,18 @@ def login_app():
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
-             # 👇 PEGA AQUÍ
+             
+            
+            # 👇 PEGA AQUÍ
              registrar_auditoria(
                  resultado["usuario"],
                  "Login",
                  "ACCESO",
                  "SEGURIDAD",
                  "Inicio de sesión exitoso"
-            ) 
+            )         
 
-    st.rerun()
+       st.rerun()
 
     st.markdown(
         '''
