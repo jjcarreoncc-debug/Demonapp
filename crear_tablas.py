@@ -151,5 +151,28 @@ def insertar_roles_base():
 # =========================================
 crear_tabla_roles()
 crear_tabla_usuarios()
+
+# =========================================
+# EJECUTAR
+# =========================================
+print("===================================")
+print("INICIANDO CREACION DE TABLAS")
+print("===================================")
+
+crear_tabla_roles()
+print("✅ Tabla roles verificada")
+
+crear_tabla_usuarios()
+print("✅ Tabla usuarios verificada")
+
+crear_tabla_auditoria()
+print("✅ Tabla auditoria recreada")
+
+insertar_roles_base()
+print("✅ Seed data de roles insertado")
+
+print("===================================")
+print("PROCESO TERMINADO CORRECTAMENTE")
+print("===================================")
 crear_tabla_auditoria()
 insertar_roles_base()
