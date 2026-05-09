@@ -59,8 +59,13 @@ st.stop()
     """,
     conn,
     params=(st.session_state.rol,)
+        
 )
-
+menu_df = (
+    menu_df
+    .sort_values("orden_menu")
+    .drop_duplicates(subset=["ruta"])
+)    
 menu_df = menu_df.drop_duplicates(
     subset=["nombre_modulo"]
 )
