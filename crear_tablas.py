@@ -320,7 +320,124 @@ crear_tabla_usuarios()
 crear_tabla_auditoria()
 
 crear_tabla_modulos()
+# =========================================
+# TABLA PERMISOS ROLES
+# =========================================
+def crear_tabla_permisos_roles():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS permisos_roles (
+
+            id_permiso INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            id_rol INTEGER,
+
+            id_modulo INTEGER,
+
+            puede_ver INTEGER DEFAULT 1,
+
+            puede_crear INTEGER DEFAULT 0,
+
+            puede_editar INTEGER DEFAULT 0,
+
+            puede_eliminar INTEGER DEFAULT 0,
+
+            puede_exportar INTEGER DEFAULT 0,
+
+            FOREIGN KEY(id_rol)
+            REFERENCES roles(id_rol),
+
+            FOREIGN KEY(id_modulo)
+            REFERENCES modulos(id_modulo)
+        )
+        """
+    )
+
+    conn.commit()
+    conn.close()
 
 insertar_roles_base()
 
 insertar_modulos_base()
+# =========================================
+# INSERTAR PERMISOS BASE
+# =========================================
+def insertar_permisos_base():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    permisos = [
+
+        # =====================================
+        # ADMIN
+        # =====================================
+        (1, 1, 1, 1, 1, 1, 1),
+        (1, 2, 1, 1, 1, 1, 1),
+        (1, 3, 1, 1, 1, 1, 1),
+        (1, 4, 1, 1, 1, 1, 1),
+        (1, 5, 1, 1, 1, 1, 1),
+        (1, 6, 1, 1, 1, 1, 1),
+
+        # =====================================
+        # GERENCIA
+        # =====================================
+        (2, 1, 1, 0, 0, 0, 1),
+        (2, 2, 1, 0, 0, 0, 1),
+        (2, 3, 1, 0, 0, 0, 1),
+        (2, 4, 1, 0, 0, 0, 1),
+
+        # =====================================
+        # COMPRAS
+        # =====================================
+        (3, 3, 1, 1, 1, 0, 1),
+
+        # =====================================
+        # INVENTARIOS
+        # =====================================
+        (4, 2, 1, 1, 1, 0, 1),
+
+        # =====================================
+        # LOGISTICA
+        # =====================================
+        (5, 4, 1, 1, 1, 0, 1),
+
+        # =====================================
+        # WMS
+        # =====================================
+        (6, 5, 1, 1, 1, 0, 1)
+    ]
+
+    for permiso in permisos:
+
+        try:
+
+            cursor.execute(
+                """
+                INSERT INTO permisos_roles (
+
+                    id_rol,
+                    id_modulo,
+
+                    puede_ver,
+                    puede_crear,
+                    puede_editar,
+                    puede_eliminar,
+                    puede_exportar
+
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                permiso
+            )
+
+        except:
+
+            pass
+
+    conn.commit()
+    conn.close()
