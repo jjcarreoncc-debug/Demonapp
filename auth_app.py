@@ -31,8 +31,8 @@ def validar_login(usuario, password):
 
     conn.close()
 
-    if row is None:
-        return None
+#    if row is None:
+#        return None
 
  #   if str(row["estado"]).strip().upper() != "ACTIVO":
  #       return "INACTIVO"
@@ -40,14 +40,14 @@ def validar_login(usuario, password):
     #if row["estado"] != "Activo":
     #    return "INACTIVO"
 
-    password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
+  #  password_bd = str(row["password_hash"]).strip()
+  #  password_ingresado = str(password).strip()
+  #  password_hash = hash_password(password_ingresado)
 
-    if password_bd != password_ingresado and password_bd != password_hash:
-        return None
+ #   if password_bd != password_ingresado and password_bd != password_hash:
+ #       return None
 
-    return row
+ #   return row
 
 
 def get_base64_image(image_path):
