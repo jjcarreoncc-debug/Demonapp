@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 
 from database import get_connection
+from mantenimiento_auditoria_app import registrar_auditoria
 
 
 def alta_usuario_app():
