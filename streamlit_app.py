@@ -18,6 +18,7 @@ from mantenimiento_app import mantenimiento_app
 from mantenimiento_auditoria_app import registrar_auditoria
 from menu_dinamico import sidebar_dinamico
 from diagnostico_tablas_app import diagnostico_tablas_app
+from sidebar_sge import sidebar_sge
 
 from seed_data import seed_data
 from auth_app import login_app, logout_app
@@ -57,7 +58,10 @@ if not st.session_state.autenticado:
     login_app()
     st.stop()
 logout_app()
-    
+
+transaccion = sidebar_sge()
+st.write("TRANSACCIÓN:", transaccion)
+
 if "ruta" not in st.session_state:
     st.session_state.ruta = "Inicio"
 if "rol" not in st.session_state:
