@@ -408,30 +408,26 @@ if menu == "Dashboard":
 # =========================
 # CONTROL DE PANTALLAS
 # =========================
-if menu == "Inicio":
+if ruta == "inicio":
     pantalla_inicio()
-    st.title("🏠 Inicio")
 
-elif menu == "Dashboard":
-    dashboard() 
-    st.title("📊 Dashboard")
+elif ruta == "dashboard":
+    dashboard()
 
-elif menu == "Inventarios":
-   inventarios_app()
-    
-elif menu == "Compras":
-   compras_app() 
+elif ruta == "inventarios":
+    inventarios_app()
 
-elif menu == "logistica":
-   logistica_app()
-    
-elif menu == "Almacen WMS":
-   wms_app() 
-elif menu == "Mantenimiento":
-   mantenimiento_app()
-    
+elif ruta == "compras":
+    compras_app()
 
-    
+elif ruta == "logistica":
+    logistica_app()
+
+elif ruta == "wms":
+    wms_app()
+
+elif ruta == "mantenimiento":
+    mantenimiento_app()    
 
                 
 # =========================
