@@ -8,7 +8,7 @@ from database import get_connection
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-
+#
 def validar_login(usuario, password):
     conn = get_connection()
     cursor = conn.cursor()
@@ -24,7 +24,7 @@ def validar_login(usuario, password):
         FROM usuarios u
         LEFT JOIN roles r
             ON u.id_rol = r.id_rol
-        WHERE u.usuario = ?
+        WHERE UPPER(u.usuario) = UPPER(?)
         """,
         (usuario,)
     ).fetchone()
@@ -34,7 +34,7 @@ def validar_login(usuario, password):
     if row is None:
         return None
 
-    if row["estado"] != "Activo":
+    if str(row["estado"]).strip().upper() != "ACTIVO":
         return "INACTIVO"
 
     password_bd = str(row["password_hash"]).strip()
@@ -46,7 +46,7 @@ def validar_login(usuario, password):
 
     return row
 
-
+#
 def get_base64_image(image_path):
     file_path = Path(image_path)
 
