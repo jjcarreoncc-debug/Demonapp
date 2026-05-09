@@ -57,7 +57,7 @@ if not st.session_state.autenticado:
     st.stop()
 logout_app()
     
-if ruta not in st.session_state:
+if "ruta" not in st.session_state:
     st.session_state.ruta = "Inicio"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
