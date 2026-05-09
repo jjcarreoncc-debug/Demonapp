@@ -442,5 +442,24 @@ def insertar_permisos_base():
 
     conn.commit()
     conn.close()
+    
+# =========================================
+# EJECUTAR
+# =========================================
+crear_tabla_roles()
+
+crear_tabla_usuarios()
+
+crear_tabla_auditoria()
+
+crear_tabla_modulos()
+
 crear_tabla_permisos_roles()
+
+insertar_roles_base()
+
+insertar_modulos_base()
+
 insertar_permisos_base()
+
+print("✅ tablas creadas")
