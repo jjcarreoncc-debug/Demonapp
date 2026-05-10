@@ -72,7 +72,7 @@ logout_app()
 ruta = sidebar_dinamico()
 
 if ruta == "inicio":
-    pantalla_inicio()
+    pass
 
 elif ruta == "inventarios":
     st.title("📦 Inventarios")
@@ -127,7 +127,7 @@ if flujo == "Nuevo SIGEM":
     ruta = sidebar_dinamico()
 
     if ruta == "inicio":
-        pantalla_inicio()
+        pass
 
     elif ruta == "datos_maestros":
         st.title("📘 Datos Maestros")
