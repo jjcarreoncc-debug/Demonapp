@@ -7,7 +7,7 @@ from streamlit_authenticator import Hasher
 import hashlib
 import streamlit as st
 from datetime import datetime
-from PIL import Imagelo
+from PIL import Image
 from inventarios_app import inventarios_app
 from carga_app import carga_app
 from compras_app import compras_app
