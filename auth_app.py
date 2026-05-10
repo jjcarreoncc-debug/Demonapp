@@ -93,7 +93,11 @@ def validar_login(usuario, password):
     password_ingresado = str(password).strip()
 
     password_hash = hash_password(password_ingresado)
-
+    
+    st.write(password_bd)
+    st.write(password_ingresado)
+    st.write(password_hash)
+    
     if (
         password_bd != password_ingresado
         and password_bd != password_hash
