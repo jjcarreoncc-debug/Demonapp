@@ -3,13 +3,17 @@ import pandas as pd
 from database import get_connection
 
 
-st.title("🔎 TEST BASE DE DATOS")
+st.title("🔎 TEST TABLAS BASE DE DATOS")
 
 conn = get_connection()
 
+# ==========================================
+# LISTAR TABLAS
+# ==========================================
+
 tablas_df = pd.read_sql_query(
     """
-    SELECT name
+    SELECT name AS tabla
     FROM sqlite_master
     WHERE type='table'
     ORDER BY name
@@ -17,29 +21,76 @@ tablas_df = pd.read_sql_query(
     conn
 )
 
-st.write("TABLAS ENCONTRADAS:")
-st.dataframe(tablas_df)
+st.subheader("📋 Tablas encontradas")
+
+st.dataframe(
+    tablas_df,
+    use_container_width=True
+)
+
+# ==========================================
+# SELECCIONAR TABLA
+# ==========================================
 
 if not tablas_df.empty:
 
-    tabla = tablas_df.iloc[0]["name"]
+    tabla_sel = st.selectbox(
+        "Selecciona tabla",
+        tablas_df["tabla"].tolist()
+    )
 
-    st.write("PRIMERA TABLA:", tabla)
+    # ==========================================
+    # ESTRUCTURA
+    # ==========================================
+
+    st.subheader("📘 Estructura tabla")
 
     estructura_df = pd.read_sql_query(
-        f"PRAGMA table_info({tabla})",
+        f"PRAGMA table_info({tabla_sel})",
         conn
     )
 
-    st.write("ESTRUCTURA:")
-    st.dataframe(estructura_df)
+    st.dataframe(
+        estructura_df,
+        use_container_width=True
+    )
 
-    datos_df = pd.read_sql_query(
-        f"SELECT * FROM {tabla} LIMIT 20",
+    # ==========================================
+    # TOTAL REGISTROS
+    # ==========================================
+
+    total_df = pd.read_sql_query(
+        f"SELECT COUNT(*) AS total FROM {tabla_sel}",
         conn
     )
 
-    st.write("DATOS:")
-    st.dataframe(datos_df)
+    total = int(total_df["total"].iloc[0])
+
+    st.metric(
+        "Total registros",
+        total
+    )
+
+    # ==========================================
+    # DATOS
+    # ==========================================
+
+    if total > 0:
+
+        st.subheader("📊 Datos")
+
+        datos_df = pd.read_sql_query(
+            f"SELECT * FROM {tabla_sel} LIMIT 100",
+            conn
+        )
+
+        st.dataframe(
+            datos_df,
+            use_container_width=True
+        )
+
+    else:
+
+        st.warning("⚠️ Tabla vacía")
 
 conn.close()
