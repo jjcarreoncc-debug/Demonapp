@@ -236,22 +236,12 @@ def login_app():
         else:
 
             st.session_state.autenticado = True
-
-            st.session_state.usuario = (
-                resultado["usuario"]
-            )
-
-            st.session_state.nombre = (
-                resultado["nombre"]
-            )
-
-            st.session_state.rol = (
-                resultado["rol"]
-            )
+            st.session_state.usuario = resultado["usuario"]
+            st.session_state.nombre = resultado["nombre"]
+            st.session_state.rol = resultado["rol"]
 
             st.success("✅ Login correcto")
-
-            st.rerun()        
+            st.rerun()
         ###############################33
     st.markdown(
         '''
