@@ -62,13 +62,13 @@ def insertar_material(data):
     cursor = conn.cursor()
 
     columnas = ", ".join(data.keys())
-    placeholders = ", ".join(["?"] * len(data))
+    signos = ", ".join(["?"] * len(data))
     valores = list(data.values())
 
     cursor.execute(
         f"""
         INSERT OR IGNORE INTO materiales ({columnas})
-        VALUES ({placeholders})
+        VALUES ({signos})
         """,
         valores
     )
@@ -140,15 +140,28 @@ def cargar_materiales_demo():
         insertar_material(data)
 
 
-def app():
-    st.title("🧪 Crear y cargar tabla materiales")
+def tabla_existe():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
-    if st.button("Crear tabla e insertar materiales demo"):
-        crear_tabla_materiales()
-        cargar_materiales_demo()
-        st.success("✅ Tabla creada y materiales insertados")
+    cursor.execute("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        AND name='materiales'
+    """)
 
-    st.markdown("---")
+    existe = cursor.fetchone() is not None
+
+    conn.close()
+
+    return existe
+
+
+def mostrar_materiales():
+    if not tabla_existe():
+        st.warning("La tabla materiales todavía no existe.")
+        return
 
     conn = sqlite3.connect(DB_NAME)
 
@@ -159,6 +172,19 @@ def app():
     st.subheader("📋 Registros actuales")
     st.success(f"Total registros: {len(df)}")
     st.dataframe(df, use_container_width=True)
+
+
+def app():
+    st.title("🧪 Crear y cargar tabla materiales")
+
+    if st.button("Crear tabla e insertar materiales demo"):
+        crear_tabla_materiales()
+        cargar_materiales_demo()
+        st.success("✅ Tabla creada y materiales insertados")
+
+    st.markdown("---")
+
+    mostrar_materiales()
 
 
 if __name__ == "__main__":
