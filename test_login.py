@@ -1,136 +1,52 @@
 import streamlit as st
-import hashlib
+import pandas as pd
 
 from database import get_connection
 
 
-st.title("CREAR ADMIN")
+st.title("🔎 CONSULTA TABLAS CON DATOS")
 
 conn = get_connection()
-cursor = conn.cursor()
 
-# ==========================================
-# PASSWORD
-# ==========================================
+tablas = [
+    "usuarios",
+    "roles",
+    "modulos",
+    "permisos_roles"
+]
 
-password = "admin123"
+for tabla in tablas:
 
-password_hash = hashlib.sha256(
-    password.encode()
-).hexdigest()
+    st.markdown("---")
+    st.subheader(f"📋 {tabla}")
 
-# ==========================================
-# CREAR ROL ALL
-# ==========================================
+    try:
 
-cursor.execute(
-    """
-    INSERT OR IGNORE INTO roles (
-        nombre_rol,
-        descripcion
-    )
-    VALUES (?, ?)
-    """,
-    (
-        "ALL",
-        "Acceso total sistema"
-    )
-)
-
-conn.commit()
-
-# ==========================================
-# OBTENER ID ROL
-# ==========================================
-
-cursor.execute(
-    """
-    SELECT id_rol
-    FROM roles
-    WHERE nombre_rol = ?
-    """,
-    ("ALL",)
-)
-
-row_rol = cursor.fetchone()
-
-id_rol = row_rol[0]
-
-# ==========================================
-# VALIDAR USUARIO
-# ==========================================
-
-cursor.execute(
-    """
-    SELECT id_usuario
-    FROM usuarios
-    WHERE usuario = ?
-    """,
-    ("admin",)
-)
-
-row_user = cursor.fetchone()
-
-# ==========================================
-# INSERT / UPDATE
-# ==========================================
-
-if row_user is None:
-
-    cursor.execute(
-        """
-        INSERT INTO usuarios (
-            usuario,
-            nombre,
-            email,
-            password_hash,
-            id_rol,
-            estado,
-            modulo_inicial
+        total_df = pd.read_sql_query(
+            f"SELECT COUNT(*) AS total FROM {tabla}",
+            conn
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            "admin",
-            "Administrador General",
-            "admin@sigem.com",
-            password_hash,
-            id_rol,
-            "Activo",
-            "dashboard_app"
+
+        total = int(total_df["total"].iloc[0])
+
+        st.metric(
+            "Total registros",
+            total
         )
-    )
 
-else:
-
-    cursor.execute(
-        """
-        UPDATE usuarios
-        SET
-            nombre = ?,
-            email = ?,
-            password_hash = ?,
-            id_rol = ?,
-            estado = ?,
-            modulo_inicial = ?
-        WHERE usuario = ?
-        """,
-        (
-            "Administrador General",
-            "admin@sigem.com",
-            password_hash,
-            id_rol,
-            "Activo",
-            "dashboard_app",
-            "admin"
+        datos_df = pd.read_sql_query(
+            f"SELECT * FROM {tabla}",
+            conn
         )
-    )
 
-conn.commit()
+        st.dataframe(
+            datos_df,
+            use_container_width=True
+        )
 
-st.success("✅ ADMIN creado")
+    except Exception as e:
 
-st.write("Usuario: admin")
-st.write("Password: admin123")
+        st.error(f"Error leyendo {tabla}")
+        st.exception(e)
 
 conn.close()
