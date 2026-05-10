@@ -55,26 +55,51 @@ def main():
         )
     """)
 
+    conn.commit()
+
     # =========================
     # CREAR MODULO MANTENIMIENTO
     # =========================
 
+    try:
+
+        cur.execute("""
+            INSERT OR IGNORE INTO modulos (
+                nombre_modulo,
+                icono,
+                ruta,
+                orden_menu,
+                activo
+            )
+            VALUES (
+                'Mantenimiento',
+                '🛠️',
+                'mantenimiento',
+                1,
+                1
+            )
+        """)
+
+        conn.commit()
+
+    except Exception as e:
+
+        print("\n❌ ERROR INSERTANDO MODULO:")
+        print(e)
+
+    # =========================
+    # VALIDAR MODULO
+    # =========================
+
     cur.execute("""
-        INSERT OR IGNORE INTO modulos (
-            nombre_modulo,
-            icono,
-            ruta,
-            orden_menu,
-            activo
-        )
-        VALUES (
-            'Mantenimiento',
-            '🛠️',
-            'mantenimiento',
-            1,
-            1
-        )
+        SELECT *
+        FROM modulos
     """)
+
+    print("\n===== MODULOS DESPUES INSERT =====")
+
+    for fila in cur.fetchall():
+        print(dict(fila))
 
     # =========================
     # OBTENER ID ROL
@@ -86,7 +111,17 @@ def main():
         WHERE nombre_rol = 'Administrador'
     """)
 
-    id_rol = cur.fetchone()[0]
+    fila_rol = cur.fetchone()
+
+    if fila_rol is None:
+
+        print("❌ No existe el rol Administrador")
+
+        conn.close()
+
+        return
+
+    id_rol = fila_rol[0]
 
     # =========================
     # OBTENER ID MODULO
@@ -98,7 +133,18 @@ def main():
         WHERE ruta = 'mantenimiento'
     """)
 
-    id_modulo = cur.fetchone()[0]
+    fila_modulo = cur.fetchone()
+
+    if fila_modulo is None:
+
+        print("❌ No se encontró el módulo mantenimiento")
+        print("⚠️ Revisa columnas obligatorias en modulos")
+
+        conn.close()
+
+        return
+
+    id_modulo = fila_modulo[0]
 
     # =========================
     # DAR PERMISOS
