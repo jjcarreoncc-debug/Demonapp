@@ -1,96 +1,74 @@
-import streamlit as st
-import pandas as pd
-from database import get_connection
-
-
-st.title("🔎 TEST TABLAS BASE DE DATOS")
-
-conn = get_connection()
+import sqlite3
 
 # ==========================================
-# LISTAR TABLAS
+# CONEXIÓN
 # ==========================================
 
-tablas_df = pd.read_sql_query(
+conn = sqlite3.connect("sigem.db")
+
+cursor = conn.cursor()
+
+# ==========================================
+# CREAR USUARIO ADMIN
+# ==========================================
+
+cursor.execute(
     """
-    SELECT name AS tabla
-    FROM sqlite_master
-    WHERE type='table'
-    ORDER BY name
+    INSERT INTO usuarios (
+        usuario,
+        password,
+        nombre_completo,
+        rol,
+        activo
+    )
+    VALUES (?, ?, ?, ?, ?)
     """,
-    conn
+    (
+        "admin",
+        "admin123",
+        "Administrador General",
+        "ALL",
+        1
+    )
 )
 
-st.subheader("📋 Tablas encontradas")
+conn.commit()
 
-st.dataframe(
-    tablas_df,
-    use_container_width=True
+# ==========================================
+# ASIGNAR TODOS LOS MÓDULOS
+# ==========================================
+
+cursor.execute(
+    """
+    SELECT id_modulo
+    FROM modulos
+    """
 )
 
-# ==========================================
-# SELECCIONAR TABLA
-# ==========================================
+modulos = cursor.fetchall()
 
-if not tablas_df.empty:
+for modulo in modulos:
 
-    tabla_sel = st.selectbox(
-        "Selecciona tabla",
-        tablas_df["tabla"].tolist()
-    )
+    id_modulo = modulo[0]
 
-    # ==========================================
-    # ESTRUCTURA
-    # ==========================================
-
-    st.subheader("📘 Estructura tabla")
-
-    estructura_df = pd.read_sql_query(
-        f"PRAGMA table_info({tabla_sel})",
-        conn
-    )
-
-    st.dataframe(
-        estructura_df,
-        use_container_width=True
-    )
-
-    # ==========================================
-    # TOTAL REGISTROS
-    # ==========================================
-
-    total_df = pd.read_sql_query(
-        f"SELECT COUNT(*) AS total FROM {tabla_sel}",
-        conn
-    )
-
-    total = int(total_df["total"].iloc[0])
-
-    st.metric(
-        "Total registros",
-        total
-    )
-
-    # ==========================================
-    # DATOS
-    # ==========================================
-
-    if total > 0:
-
-        st.subheader("📊 Datos")
-
-        datos_df = pd.read_sql_query(
-            f"SELECT * FROM {tabla_sel} LIMIT 100",
-            conn
+    cursor.execute(
+        """
+        INSERT INTO permisos_roles (
+            id_rol,
+            id_modulo,
+            puede_ver
         )
-
-        st.dataframe(
-            datos_df,
-            use_container_width=True
+        VALUES (?, ?, ?)
+        """,
+        (
+            1,
+            id_modulo,
+            1
         )
+    )
 
-    else:
-
-        st.warning("⚠️ Tabla vacía")
+conn.commit()
 
 conn.close()
+
+print("ADMIN CREADO CORRECTAMENTE")
