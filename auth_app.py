@@ -1,14 +1,38 @@
 import streamlit as st
 import hashlib
 import base64
+from datetime import datetime
+from PIL import Image
+from inventarios_app import inventarios_app
+from carga_app import carga_app
+from compras_app import compras_app
+from logistica_app import logistica_app
+from wms_app import wms_app
+from mantenimiento_app import mantenimiento_app
+#st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
+from mantenimiento_auditoria_app import registrar_auditoria
+from menu_dinamico import sidebar_dinamico
+from diagnostico_tablas_app import diagnostico_tablas_app
+from sidebar_sge import sidebar_sge
 from pathlib import Path
-
+from login_app import login_app, logout_app
 from database import get_connection
 
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if "rol" not in st.session_state:
+    st.session_state.rol = None
+
+if not st.session_state.autenticado:
+    login_app()
+    st.stop()
+
+logout_app()
 
 def get_base64_image(image_path):
     file_path = Path(image_path)
