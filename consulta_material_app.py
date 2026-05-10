@@ -150,7 +150,7 @@ def consulta_material_app():
 
   
     
-   # 
+   # #
    
    #
     with st.expander("📦 Datos logísticos", expanded=True):
