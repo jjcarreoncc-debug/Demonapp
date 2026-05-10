@@ -1,94 +1,56 @@
 import streamlit as st
 import hashlib
 import base64
-from datetime import datetime
-from PIL import Image
+import sqlite3
+from pathlib import Path
+
 from inventarios_app import inventarios_app
 from carga_app import carga_app
 from compras_app import compras_app
 from logistica_app import logistica_app
 from wms_app import wms_app
 from mantenimiento_app import mantenimiento_app
-#st.set_page_config(page_title="Dashbo ard Ejecutivo", layout="wide")
-from mantenimiento_auditoria_app import registrar_auditoria
 from menu_dinamico import sidebar_dinamico
-from diagnostico_tablas_app import diagnostico_tablas_app
-from sidebar_sge import sidebar_sge
-from pathlib import Path
-#from auth_app import login_app, logout_app
-import sqlite3 
-import streamlit_authenticator as stauth
-from streamlit_authenticator import Hasher
-from database import get_connection
+
+
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "erp.db"
 
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-def login_app():
-    st.title("Login")
-
-def logout_app():
-    st.sidebar.button("Salir") 
-    
-    
-    
 
 def get_base64_image(image_path):
-    file_path = Path(image_path)
+    file_path = BASE_DIR / image_path
 
     if not file_path.exists():
         return None
 
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
-        
+
+
 def validar_login(usuario, password):
-
-    import sqlite3
-    from pathlib import Path
-
-    DB_PATH = Path(__file__).resolve().parent / "erp.db"
-
-    st.write("BD usada:")
-    st.code(str(DB_PATH))
-
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    try:
-        tablas = cursor.execute("""
-            SELECT name
-            FROM sqlite_master
-            WHERE type='table'
-            ORDER BY name
-        """).fetchall()
-
-        st.write("Tablas:")
-        st.write([t["name"] for t in tablas])
-
-        row = cursor.execute(
-            """
-            SELECT
-                u.usuario,
-                u.nombre,
-                u.password_hash,
-                u.estado,
-                r.nombre_rol AS rol
-            FROM usuarios u
-            LEFT JOIN roles r
-                ON u.id_rol = r.id_rol
-            WHERE UPPER(u.usuario) = UPPER(?)
-            """,
-            (usuario.strip(),)
-        ).fetchone()
-
-    except Exception as e:
-        conn.close()
-        st.error("❌ Error exacto en SELECT login")
-        st.exception(e)
-        return None
+    row = cursor.execute(
+        """
+        SELECT
+            u.usuario,
+            u.nombre,
+            u.password_hash,
+            u.estado,
+            r.nombre_rol AS rol
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        WHERE UPPER(u.usuario) = UPPER(?)
+        """,
+        (usuario.strip(),)
+    ).fetchone()
 
     conn.close()
 
@@ -104,14 +66,14 @@ def validar_login(usuario, password):
 
     return row
 
-    
+
 def login_app():
     bg_image = get_base64_image("logofondo.JPG")
     sigem_logo = get_base64_image("logo1.png")
     tids_logo = get_base64_image("LOOGO-TIDS-CONSULTING (2).jpg")
 
     if bg_image:
-        fondo_css = f'''
+        fondo_css = f"""
         background-image:
             linear-gradient(
                 rgba(0,0,0,0.45),
@@ -122,7 +84,7 @@ def login_app():
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
-        '''
+        """
     else:
         fondo_css = "background-color: #0f172a;"
 
@@ -156,7 +118,7 @@ def login_app():
     .login-card {{
         background: rgba(15,23,42,0.68);
         border-radius: 30px;
-        padding: 35px 50px 35px 50px;
+        padding: 35px 50px;
         width: 500px;
         max-width: 90%;
         margin: auto;
@@ -173,7 +135,6 @@ def login_app():
         color: white;
         margin-top: 5px;
         margin-bottom: 5px;
-        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .login-subtitle {{
@@ -181,7 +142,6 @@ def login_app():
         font-size: 18px;
         color: white;
         margin-bottom: 30px;
-        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .stTextInput {{
@@ -197,11 +157,9 @@ def login_app():
     .stTextInput > div > div > input {{
         border-radius: 14px;
         height: 55px;
-        border: 1px solid rgba(255,255,255,0.18);
         background: rgba(0,0,0,0.38);
         color: white;
         font-size: 16px;
-        padding-left: 15px;
     }}
 
     .stTextInput > label {{
@@ -219,11 +177,6 @@ def login_app():
         font-weight: 700;
         border: none;
         margin-top: 15px;
-    }}
-
-    div.stButton > button:hover {{
-        background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
-        color: white !important;
     }}
 
     .footer-login {{
@@ -254,11 +207,7 @@ def login_app():
     )
 
     st.markdown(
-        '''
-        <div class="login-subtitle">
-            Sistema de Gestión Empresarial
-        </div>
-        ''',
+        '<div class="login-subtitle">Sistema de Gestión Empresarial</div>',
         unsafe_allow_html=True
     )
 
@@ -271,10 +220,7 @@ def login_app():
     )
 
     if st.button("Ingresar", key="btn_login_sigem"):
-        resultado = validar_login(
-            usuario.strip(),
-            password.strip()
-        )
+        resultado = validar_login(usuario, password)
 
         if resultado is None:
             st.error("❌ Usuario o contraseña incorrectos")
@@ -288,15 +234,21 @@ def login_app():
             st.rerun()
 
     st.markdown(
-        '''
-        <div class="footer-login">
-            © 2026 SIGEM
-        </div>
-        ''',
+        '<div class="footer-login">© 2026 SIGEM</div>',
         unsafe_allow_html=True
     )
 
     st.markdown('</div>', unsafe_allow_html=True)
+
+
+def logout_app():
+    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
+        st.session_state.autenticado = False
+        st.session_state.usuario = None
+        st.session_state.nombre = None
+        st.session_state.rol = None
+        st.rerun()
+
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
@@ -310,10 +262,30 @@ if not st.session_state.autenticado:
 
 logout_app()
 
-def logout_app():
-    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
-        st.session_state.autenticado = False
-        st.session_state.usuario = None
-        st.session_state.nombre = None
-        st.session_state.rol = None
-        st.rerun()
+ruta = sidebar_dinamico()
+
+if ruta == "inicio":
+    st.empty()
+
+elif ruta == "inventarios":
+    st.title("📦 Inventarios")
+    inventarios_app()
+
+elif ruta == "compras":
+    st.title("🛒 Compras")
+    compras_app()
+
+elif ruta == "logistica":
+    st.title("🚚 Logística")
+    logistica_app()
+
+elif ruta == "wms":
+    st.title("🏬 WMS")
+    wms_app()
+
+elif ruta == "mantenimiento":
+    st.title("🛠️ Mantenimiento")
+    mantenimiento_app()
+
+else:
+    st.warning(f"Ruta no configurada: {ruta}")
