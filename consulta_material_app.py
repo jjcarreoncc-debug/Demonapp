@@ -49,7 +49,7 @@ def consulta_material_app():
         return
 
     # =====================================================
-    # VALIDAR DATOS
+    # VALIDAR
     # =====================================================
 
     if df.empty:
@@ -62,30 +62,83 @@ def consulta_material_app():
     # RENOMBRAR COLUMNAS
     # =====================================================
 
-    df = df.rename(columns={
+    columnas = {
 
         "codigo_material": "Código",
         "descripcion": "Descripción",
+        "descripcion_larga": "Descripción larga",
+
         "categoria": "Categoría",
         "familia": "Familia",
-        "unidad_base": "Unidad",
+        "marca": "Marca",
+
+        "tipo_material": "Tipo material",
         "estatus": "Estatus",
 
-    })
+        "unidad_base": "Unidad",
+
+        "controla_lote": "Control lote",
+        "controla_serie": "Control serie",
+
+        "peso": "Peso",
+        "volumen": "Volumen",
+
+        "largo": "Largo",
+        "ancho": "Ancho",
+        "alto": "Alto",
+
+        "tipo_almacenamiento": "Tipo almacenamiento",
+
+        "almacen_default": "Almacén",
+        "ubicacion_default": "Ubicación",
+
+        "rotacion_abc": "ABC",
+
+        "costo_estandar": "Costo estándar",
+        "precio_compra": "Precio compra",
+        "precio_venta": "Precio venta",
+
+        "moneda": "Moneda",
+        "impuesto": "Impuesto",
+
+        "margen_objetivo": "Margen objetivo",
+
+        "stock_minimo": "Stock mínimo",
+        "stock_maximo": "Stock máximo",
+
+        "punto_reorden": "Punto reorden",
+
+        "lead_time": "Lead time",
+
+        "permite_negativo": "Permite negativo",
+        "requiere_inspeccion": "Requiere inspección",
+
+        "codigo_barras": "Código barras",
+        "sku_base": "SKU",
+
+        "codigo_sap": "Código SAP",
+
+        "proveedor_principal": "Proveedor",
+
+        "usuario_creacion": "Usuario creación"
+
+    }
+
+    df = df.rename(columns=columnas)
 
     # =====================================================
     # FILTROS
     # =====================================================
 
     st.markdown("---")
-    st.subheader("🎯 Filtros de búsqueda")
+    st.subheader("🎯 Filtros")
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
 
         filtro_codigo = st.text_input(
-            "Código material"
+            "Código"
         )
 
         categorias = (
@@ -218,25 +271,14 @@ def consulta_material_app():
     if df_filtrado.empty:
 
         st.warning(
-            "No se encontraron materiales con esos filtros"
+            "No se encontraron materiales"
         )
 
         return
 
-    columnas = [
-
-        "Código",
-        "Descripción",
-        "Categoría",
-        "Familia",
-        "Unidad",
-        "Estatus"
-
-    ]
-
     st.dataframe(
 
-        df_filtrado[columnas],
+        df_filtrado,
 
         use_container_width=True,
         hide_index=True
@@ -265,42 +307,247 @@ def consulta_material_app():
         .astype(str) == material
     ].iloc[0]
 
-    c1, c2, c3 = st.columns(3)
+    # =====================================================
+    # INFORMACIÓN GENERAL
+    # =====================================================
 
-    with c1:
+    with st.expander(
+        "📦 Información general",
+        expanded=True
+    ):
 
-        st.metric(
-            "Código",
-            fila.get("Código", "")
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+
+            st.metric(
+                "Código",
+                fila.get("Código", "")
+            )
+
+            st.metric(
+                "Categoría",
+                fila.get("Categoría", "")
+            )
+
+            st.metric(
+                "Familia",
+                fila.get("Familia", "")
+            )
+
+        with c2:
+
+            st.metric(
+                "Unidad",
+                fila.get("Unidad", "")
+            )
+
+            st.metric(
+                "Marca",
+                fila.get("Marca", "")
+            )
+
+            st.metric(
+                "ABC",
+                fila.get("ABC", "")
+            )
+
+        with c3:
+
+            st.metric(
+                "Tipo material",
+                fila.get("Tipo material", "")
+            )
+
+            st.metric(
+                "Estatus",
+                fila.get("Estatus", "")
+            )
+
+            st.metric(
+                "Lead time",
+                fila.get("Lead time", 0)
+            )
+
+        st.info(
+            f"Descripción: {fila.get('Descripción', '')}"
         )
 
-        st.metric(
-            "Categoría",
-            fila.get("Categoría", "")
-        )
+    # =====================================================
+    # LOGÍSTICA
+    # =====================================================
 
-    with c2:
+    with st.expander("📦 Datos logísticos"):
 
-        st.metric(
-            "Unidad",
-            fila.get("Unidad", "")
-        )
+        c1, c2, c3 = st.columns(3)
 
-        st.metric(
-            "Estatus",
-            fila.get("Estatus", "")
-        )
+        with c1:
 
-    with c3:
+            st.metric(
+                "Peso",
+                fila.get("Peso", 0)
+            )
 
-        st.metric(
-            "Familia",
-            fila.get("Familia", "")
-        )
+            st.metric(
+                "Volumen",
+                fila.get("Volumen", 0)
+            )
 
-    st.info(
-        f"Descripción: {fila.get('Descripción', '')}"
-    )
+        with c2:
+
+            st.metric(
+                "Largo",
+                fila.get("Largo", 0)
+            )
+
+            st.metric(
+                "Ancho",
+                fila.get("Ancho", 0)
+            )
+
+        with c3:
+
+            st.metric(
+                "Alto",
+                fila.get("Alto", 0)
+            )
+
+            st.metric(
+                "Tipo almacenamiento",
+                fila.get("Tipo almacenamiento", "")
+            )
+
+    # =====================================================
+    # INVENTARIO
+    # =====================================================
+
+    with st.expander("📊 Inventario"):
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+
+            st.metric(
+                "Stock mínimo",
+                fila.get("Stock mínimo", 0)
+            )
+
+            st.metric(
+                "Stock máximo",
+                fila.get("Stock máximo", 0)
+            )
+
+        with c2:
+
+            st.metric(
+                "Punto reorden",
+                fila.get("Punto reorden", 0)
+            )
+
+            st.metric(
+                "Permite negativo",
+                fila.get("Permite negativo", "")
+            )
+
+        with c3:
+
+            st.metric(
+                "Control lote",
+                fila.get("Control lote", "")
+            )
+
+            st.metric(
+                "Control serie",
+                fila.get("Control serie", "")
+            )
+
+    # =====================================================
+    # COMERCIAL
+    # =====================================================
+
+    with st.expander("💲 Datos comerciales"):
+
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+
+            st.metric(
+                "Costo estándar",
+                fila.get("Costo estándar", 0)
+            )
+
+            st.metric(
+                "Precio compra",
+                fila.get("Precio compra", 0)
+            )
+
+        with c2:
+
+            st.metric(
+                "Precio venta",
+                fila.get("Precio venta", 0)
+            )
+
+            st.metric(
+                "Margen objetivo",
+                fila.get("Margen objetivo", 0)
+            )
+
+        with c3:
+
+            st.metric(
+                "Moneda",
+                fila.get("Moneda", "")
+            )
+
+            st.metric(
+                "Impuesto",
+                fila.get("Impuesto", "")
+            )
+
+    # =====================================================
+    # INTEGRACIONES
+    # =====================================================
+
+    with st.expander("🔗 Integraciones"):
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+
+            st.text_input(
+                "Código barras",
+                value=str(
+                    fila.get("Código barras", "")
+                ),
+                disabled=True
+            )
+
+            st.text_input(
+                "SKU",
+                value=str(
+                    fila.get("SKU", "")
+                ),
+                disabled=True
+            )
+
+        with c2:
+
+            st.text_input(
+                "Código SAP",
+                value=str(
+                    fila.get("Código SAP", "")
+                ),
+                disabled=True
+            )
+
+            st.text_input(
+                "Proveedor",
+                value=str(
+                    fila.get("Proveedor", "")
+                ),
+                disabled=True
+            )
 
     # =====================================================
     # BOTONES
