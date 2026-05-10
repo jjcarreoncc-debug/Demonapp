@@ -72,7 +72,7 @@ logout_app()
 ruta = sidebar_dinamico()
 
 if ruta == "inicio":
-    pass
+    st.empty()
 
 elif ruta == "inventarios":
     st.title("📦 Inventarios")
