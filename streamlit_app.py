@@ -302,7 +302,11 @@ if "ruta" not in st.session_state:
 # =========================
 
 ruta = sidebar_dinamico()
-st.write("DEBUG ruta:", ruta)
+
+if not ruta:
+    st.stop()
+
+st.write("Ruta:", ruta)
 
 ######
 ### TEMPORALMENTE
