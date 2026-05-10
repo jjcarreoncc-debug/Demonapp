@@ -47,6 +47,13 @@ def validar_login(usuario, password):
 
     conn = get_connection()
     st.write("BD usada:", conn.execute("PRAGMA database_list").fetchall()) 
+    
+    info_bd = conn.execute("PRAGMA database_list").fetchall()
+
+    for bd in info_bd:
+        st.write(dict(bd))
+
+    
     cursor = conn.cursor()
 
     try:
