@@ -137,8 +137,18 @@ if flujo == "Nuevo SIGEM":
         st.title("📘 Datos Maestros")
 
     elif ruta == "inventarios":
-        st.title("📦 Inventarios")
+        
 
+        from sidebar_inventarios import sidebar_inventarios
+        
+        opcion_inv = sidebar_inventarios()
+        
+        st.title("📦 Inventarios")
+        
+        st.write("Opción seleccionada:", opcion_inv)
+        
+        st.stop()
+        
     elif ruta == "compras":
         st.title("🛒 Compras")
 
