@@ -1,6 +1,5 @@
 from datetime import datetime
 from database import get_connection
-from materiales_db import insertar_material
 
 
 def crear_tabla_materiales():
