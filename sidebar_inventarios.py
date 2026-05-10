@@ -1,7 +1,25 @@
-elif ruta == "Minventarios":
+import streamlit as st
 
-    from sidebar_inventarios import sidebar_inventarios
 
-    transaccion_inv = sidebar_inventarios()
+def sidebar_inventarios():
 
-    st.write(transaccion_inv)
+    with st.sidebar:
+
+        st.markdown("---")
+        st.subheader("📦 Inventarios")
+
+        opcion = st.radio(
+            "Opciones Inventarios",
+            [
+                "Productos",
+                "Entradas",
+                "Salidas",
+                "Transferencias",
+                "Kardex",
+                "Conteos cíclicos",
+                "Lotes / Series"
+            ],
+            key="sidebar_inventarios"
+        )
+
+    return opcion
