@@ -217,21 +217,52 @@ def login_app():
         key="login_password"
     )
 
+    #if st.button("Ingresar", key="btn_login_sigem"):
+    
+    #    resultado = validar_login(
+    #        usuario.strip(),
+    #        password.strip()
+    #    )
+    #
+    #    if resultado is None:
+    #
+    #        st.error(
+    #            "❌ Usuario o contraseña incorrectos"
+    #        )
+    #
+    #    else:
     if st.button("Ingresar", key="btn_login_sigem"):
 
-        resultado = validar_login(
-            usuario.strip(),
-            password.strip()
+    resultado = validar_login(
+        usuario.strip(),
+        password.strip()
+    )
+    ####################
+    # LOGIN TEMPORAL FIJO
+    ######
+    if usuario.strip() == "admin" and password.strip() == "1234":
+
+        st.session_state.autenticado = True
+        st.session_state.usuario = "admin"
+        st.session_state.rol = "Administrador"
+
+        st.success("✅ Bienvenido admin")
+        st.rerun()
+
+    elif resultado is None:
+
+        st.error(
+            "❌ Usuario o contraseña incorrectos"
         )
 
-        if resultado is None:
+    else:
 
-            st.error(
-                "❌ Usuario o contraseña incorrectos"
-            )
+        st.session_state.autenticado = True
+        st.session_state.usuario = resultado["usuario"]
+        st.session_state.rol = resultado["rol"]
 
-        else:
-
+        st.success("✅ Login correcto")
+        st.rerun()
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
