@@ -62,9 +62,12 @@ def sidebar_dinamico():
         )
 
     st.session_state.menu = menu
+    #
+    fila = menu_df[menu_df["nombre_modulo"] == menu]
 
-    ruta = menu_df[
-        menu_df["nombre_modulo"] == menu
-    ]["ruta"].iloc[0]
-
+    if fila.empty:
+        st.error(f"No encontré ruta para el módulo: {menu}")
+        return None
+    
+    ruta = fila["ruta"].iloc[0]
     return ruta
