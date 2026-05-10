@@ -226,8 +226,8 @@ def login_app():
             usuario.strip(),
             password.strip()
         )
-        st.write("DEBUG resultado:", resultado)
-        st.stop()
+        
+        
         if resultado is None:
             st.error("❌ Usuario o contraseña incorrectos")
 
