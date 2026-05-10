@@ -71,3 +71,5 @@ def sidebar_dinamico():
     
     ruta = fila["ruta"].iloc[0]
     return ruta
+    ruta = fila["ruta"].iloc[0]
+    return ruta
