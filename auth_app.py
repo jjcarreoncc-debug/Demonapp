@@ -263,6 +263,7 @@ def login_app():
 
         st.success("✅ Login correcto")
         st.rerun()
+        
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
