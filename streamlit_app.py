@@ -59,7 +59,12 @@ if "rol" not in st.session_state:
 # LOGIN
 # =========================
 
-if not st.session_state.autenticado:
+# LOGIN TEMPORAL DESACTIVADO
+
+st.session_state.autenticado = True
+st.session_state.usuario = "admin"
+st.session_state.rol = "Administrador"
+#if not st.session_state.autenticado:
  #   login_app()
  #   st.stop()
 #logout_app()
