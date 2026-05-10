@@ -1,42 +1,86 @@
-import streamlit as st
-import pandas as pd
-from database import get_connection
+import sqlite3
+import hashlib
 
-st.title("🔎 TEST estructura BD")
+conn = sqlite3.connect("sigem.db")
+cursor = conn.cursor()
 
-conn = get_connection()
+# ==========================================
+# PASSWORD
+# ==========================================
 
-tablas = [
-    "usuarios",
-    "roles",
-    "modulos",
-    "permisos_roles"
-]
+password = "admin123"
 
-for tabla in tablas:
+password_hash = hashlib.sha256(
+    password.encode()
+).hexdigest()
 
-    st.subheader(f"📋 {tabla}")
+# ==========================================
+# CREAR ROL ALL
+# ==========================================
 
-    estructura = pd.read_sql_query(
-        f"PRAGMA table_info({tabla})",
-        conn
+cursor.execute(
+    """
+    INSERT OR IGNORE INTO roles (
+        nombre_rol,
+        descripcion
     )
-
-    st.write("Estructura")
-    st.dataframe(
-        estructura,
-        use_container_width=True
+    VALUES (?, ?)
+    """,
+    (
+        "ALL",
+        "Acceso total sistema"
     )
+)
 
-    datos = pd.read_sql_query(
-        f"SELECT * FROM {tabla} LIMIT 50",
-        conn
-    )
+conn.commit()
 
-    st.write("Datos")
-    st.dataframe(
-        datos,
-        use_container_width=True
+# ==========================================
+# OBTENER ID ROL
+# ==========================================
+
+cursor.execute(
+    """
+    SELECT id_rol
+    FROM roles
+    WHERE nombre_rol = ?
+    """,
+    ("ALL",)
+)
+
+id_rol = cursor.fetchone()[0]
+
+# ==========================================
+# CREAR USUARIO ADMIN
+# ==========================================
+
+cursor.execute(
+    """
+    INSERT OR REPLACE INTO usuarios (
+        usuario,
+        nombre,
+        email,
+        password_hash,
+        id_rol,
+        estado,
+        modulo_inicial
     )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    """,
+    (
+        "admin",
+        "Administrador General",
+        "admin@sigem.com",
+        password_hash,
+        id_rol,
+        "Activo",
+        "dashboard_app"
+    )
+)
+
+conn.commit()
 
 conn.close()
+
+print("✅ ADMIN CREADO")
+print("usuario: admin")
+print("password: admin123")
