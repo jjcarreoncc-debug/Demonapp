@@ -1,69 +1,133 @@
-import streamlit as st
-import pandas as pd
-import hashlib
-
 from database import get_connection
 
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+def mostrar_tabla(conn, tabla):
+
+    print(f"\n===== {tabla} =====")
+
+    try:
+
+        cur = conn.cursor()
+
+        cur.execute(f"SELECT * FROM {tabla}")
+
+        filas = cur.fetchall()
+
+        for fila in filas:
+            print(fila)
+
+        if not filas:
+            print("(vacía)")
+
+    except Exception as e:
+
+        print(f"Error leyendo {tabla}: {e}")
 
 
-st.title("🔐 Reset / Validar Admin")
+def main():
 
-conn = get_connection()
-cursor = conn.cursor()
+    conn = get_connection()
 
-st.subheader("👥 Usuarios actuales")
+    cur = conn.cursor()
 
-usuarios = pd.read_sql_query(
-    """
-    SELECT
-        u.id_usuario,
-        u.usuario,
-        u.nombre,
-        u.estado,
-        u.password_hash,
-        r.nombre_rol AS rol
-    FROM usuarios u
-    LEFT JOIN roles r
-        ON u.id_rol = r.id_rol
-    """,
-    conn
-)
+    print("\n==============================")
+    print("ESTADO ACTUAL DE LA BASE")
+    print("==============================")
 
-st.dataframe(usuarios, use_container_width=True)
+    mostrar_tabla(conn, "roles")
+    mostrar_tabla(conn, "modulos")
+    mostrar_tabla(conn, "permisos_roles")
 
-if st.button("Reset admin a 1234"):
+    print("\n==============================")
+    print("CREANDO ADMINISTRADOR")
+    print("==============================")
 
-    password_nuevo = hash_password("1234")
+    # =========================
+    # CREAR ROL ADMINISTRADOR
+    # =========================
 
-    cursor.execute(
-        """
-        UPDATE usuarios
-        SET
-            password_hash = ?,
-            estado = 'Activo'
-        WHERE usuario = 'admin'
-        """,
-        (password_nuevo,)
-    )
+    cur.execute("""
+        INSERT OR IGNORE INTO roles (
+            nombre_rol
+        )
+        VALUES (
+            'Administrador'
+        )
+    """)
+
+    # =========================
+    # CREAR MODULO MANTENIMIENTO
+    # =========================
+
+    cur.execute("""
+        INSERT OR IGNORE INTO modulos (
+            nombre_modulo,
+            icono,
+            ruta,
+            orden_menu,
+            activo
+        )
+        VALUES (
+            'Mantenimiento',
+            '🛠️',
+            'mantenimiento',
+            1,
+            1
+        )
+    """)
+
+    # =========================
+    # OBTENER ID ROL
+    # =========================
+
+    cur.execute("""
+        SELECT id_rol
+        FROM roles
+        WHERE nombre_rol = 'Administrador'
+    """)
+
+    id_rol = cur.fetchone()[0]
+
+    # =========================
+    # OBTENER ID MODULO
+    # =========================
+
+    cur.execute("""
+        SELECT id_modulo
+        FROM modulos
+        WHERE ruta = 'mantenimiento'
+    """)
+
+    id_modulo = cur.fetchone()[0]
+
+    # =========================
+    # DAR PERMISOS
+    # =========================
+
+    cur.execute("""
+        INSERT OR IGNORE INTO permisos_roles (
+            id_rol,
+            id_modulo,
+            puede_ver
+        )
+        VALUES (?, ?, 1)
+    """, (id_rol, id_modulo))
 
     conn.commit()
 
-    st.success("✅ Reset ejecutado")
-    st.info("Usuario: admin")
-    st.info("Password: 1234")
+    print("\n==============================")
+    print("ESTADO FINAL")
+    print("==============================")
 
-    actualizado = pd.read_sql_query(
-        """
-        SELECT usuario, estado, password_hash
-        FROM usuarios
-        WHERE usuario = 'admin'
-        """,
-        conn
-    )
+    mostrar_tabla(conn, "roles")
+    mostrar_tabla(conn, "modulos")
+    mostrar_tabla(conn, "permisos_roles")
 
-    st.dataframe(actualizado, use_container_width=True)
+    conn.close()
 
-conn.close()
+    print("\n✅ Setup terminado correctamente")
+
+
+if __name__ == "__main__":
+
+    main()
