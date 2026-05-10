@@ -297,6 +297,14 @@ usuario_actual = {
 if "ruta" not in st.session_state:
     st.session_state.ruta = "Inicio"
 
+
+# =========================
+# INICIO
+# =========================
+def pantalla_inicio():
+    st.title("🏠 Inicio")
+
+
 # =========================
 # SIDEBAR DINAMICO PARA HACER FUNCION CON NUEVO BLOQUE 
 # =========================
