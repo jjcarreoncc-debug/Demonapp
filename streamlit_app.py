@@ -913,19 +913,6 @@ with st.sidebar:
                     st.session_state[k] = "Todos"
             st.rerun()
 
- #       # =========================
- #       # 💾 GUARDAR FINAL
- #       # =========================
- #       st.session_state["df_filtrado"] = df_temp
- #
- #   else:
- #       st.info("📂 Carga un archivo en Inicio")
-# ------------------------
-# VALIDAR QUE EXISTE df
-# ------------------------
-#if 'df' not in locals() or df is None:
-#    st.warning("⚠️ No hay archivo cargado o df no existe")
-#    st.stop()
 # =========================
 # 1. CARGAR ARCHIVO
 # =========================
