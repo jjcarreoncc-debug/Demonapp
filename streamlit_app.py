@@ -350,31 +350,14 @@ if st.session_state.ultima_ruta_auditada != ruta:
 # =========================
 # INICIO
 # =========================
+
 def pantalla_inicio():
+
     st.title("🏠 Inicio")
 
-    archivo = st.file_uploader("📂 Sube tu archivo Excel", type=["xlsx"])
-
-    if archivo:
-        st.session_state.archivo = archivo
-
-        st.success("✅ Archivo cargado correctamente")
-
-        if st.button("🔙 Ir al menú principal"):
-            st.session_state.ruta = "Dashboard"
-            st.rerun()
-
-    elif "archivo" in st.session_state:
-
-        st.success("✅ Archivo ya cargado")
-
-        if st.button("🔙 Ir al menú principal"):
-            st.session_state.ruta = "Dashboard"
-            st.rerun()
-
-    else:
-        st.info("📂 Carga un archivo para comenzar")
-
+    st.info(
+        "Selecciona un módulo del menú lateral para comenzar."
+    )
 # =========================
 # FUNCION DE APP DE INVENTARIOS
 # =========================
