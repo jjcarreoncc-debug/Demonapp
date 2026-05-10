@@ -233,10 +233,10 @@ def login_app():
     #    else:
     if st.button("Ingresar", key="btn_login_sigem"):
 
-    resultado = validar_login(
-        usuario.strip(),
-        password.strip()
-    )
+        resultado = validar_login(
+            usuario.strip(),
+            password.strip()
+        )
     ####################
     # LOGIN TEMPORAL FIJO
     ######
