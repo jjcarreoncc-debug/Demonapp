@@ -2,41 +2,68 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 from pathlib import Path
+import hashlib
 
 
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "erp.db"
+DB_PATH = Path(__file__).resolve().parent / "erp.db"
 
 
-st.title("🧪 Diagnóstico ERP DB")
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
-st.write("Ruta usada:")
-st.code(str(DB_PATH))
 
-conn = sqlite3.connect(DB_PATH)
-conn.row_factory = sqlite3.Row
+st.title("🧪 Test SELECT Login")
 
-st.subheader("📋 Tablas")
+usuario = st.text_input("Usuario de prueba", value="JCERVANTES")
+password = st.text_input("Password de prueba", value="Roberto1", type="password")
 
-tablas = conn.execute("""
-    SELECT name
-    FROM sqlite_master
-    WHERE type='table'
-    ORDER BY name
-""").fetchall()
+if st.button("Probar login"):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
-for t in tablas:
-    st.write(dict(t))
+    st.write("BD usada:")
+    st.code(str(DB_PATH))
 
-st.markdown("---")
+    row = cursor.execute(
+        """
+        SELECT
+            u.usuario,
+            u.nombre,
+            u.password_hash,
+            u.estado,
+            r.nombre_rol AS rol
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        WHERE UPPER(u.usuario) = UPPER(?)
+        """,
+        (usuario.strip(),)
+    ).fetchone()
 
-for tabla in [t["name"] for t in tablas]:
-    st.subheader(f"Tabla: {tabla}")
+    conn.close()
 
-    try:
-        df = pd.read_sql_query(f"SELECT * FROM {tabla} LIMIT 10", conn)
-        st.dataframe(df, use_container_width=True)
-    except Exception as e:
-        st.exception(e)
+    if row is None:
+        st.error("❌ No encontró usuario")
+    else:
+        data = dict(row)
 
-conn.close()
+        st.success("✅ Usuario encontrado")
+        st.write(data)
+
+        password_bd = str(data["password_hash"]).strip()
+        password_ingresado = str(password).strip()
+        password_hash = hash_password(password_ingresado)
+
+        st.write("Password BD:", password_bd)
+        st.write("Password ingresado:", password_ingresado)
+        st.write("Hash ingresado:", password_hash)
+
+        if password_bd == password_ingresado:
+            st.success("✅ Coincide password plano")
+
+        elif password_bd == password_hash:
+            st.success("✅ Coincide password hash")
+
+        else:
+            st.error("❌ No coincide password")
