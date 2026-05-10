@@ -26,7 +26,7 @@ st.session_state.rol = "Administrador"
 # NUEVO SIGEM PRINCIPAL
 # =========================
 
-ruta = "inventarios"
+ruta = "Minventarios"
 
 if ruta == "Minventarios":
 
