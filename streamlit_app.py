@@ -54,7 +54,7 @@ if "rol" not in st.session_state:
     st.session_state.rol = None
 
 
-if not st.session_state.autenticado:
+#if not st.session_state.autenticado:
  #   login_app()
  #   st.stop()
 #logout_app()
