@@ -1,156 +1,92 @@
 import streamlit as st
 
-from menu_dinamico import sidebar_dinamico
-from compras_app import compras_app
-from logistica_app import logistica_app
-from wms_app import wms_app
-from mantenimiento_app import mantenimiento_app
 
+def sidebar_inventarios():
 
-st.set_page_config(
-    page_title="SIGEM",
-    layout="wide"
-)
+    with st.sidebar:
 
-# =========================
-# LOGIN TEMPORAL DESACTIVADO
-# =========================
+        st.markdown("""
+        <style>
 
-st.session_state.autenticado = True
-st.session_state.usuario = "admin"
-st.session_state.nombre = "Administrador"
-st.session_state.rol = "Administrador"
+        section[data-testid="stSidebar"] {
+            background-color: #f3f4f6;
+        }
 
+        div.stButton > button {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            padding: 14px;
+            text-align: left;
+            font-size: 18px;
+            background-color: white;
+            margin-bottom: 10px;
+        }
 
-# =========================
-# NUEVO SIGEM PRINCIPAL
-# =========================
+        div.stButton > button:hover {
+            border: 1px solid #2563eb;
+            background-color: #eff6ff;
+        }
 
-ruta = "Minventarios"
+        </style>
+        """, unsafe_allow_html=True)
 
-if ruta == "Minventarios":
+        st.markdown("## 🏢 SIGEM")
+        st.markdown("### 📦 Inventarios")
 
-    st.title("📦 Módulo de Inventarios")
+        st.markdown("---")
 
-    from sidebar_inventarios import sidebar_inventarios
+        if "subopcion_inv" not in st.session_state:
+            st.session_state.subopcion_inv = "Productos"
 
-    opcion_inv = sidebar_inventarios()
-    # =========================
-# SUBMENUS INVENTARIOS
-# =========================
+        # =========================
+        # MAESTROS
+        # =========================
+        st.markdown("### 🔹 Maestros")
 
-if opcion_inv == "Productos":
+        if st.button("📦 Productos", use_container_width=True):
+            st.session_state.subopcion_inv = "Productos"
 
-    st.subheader("📦 Productos")
+        if st.button("🏷️ Lotes / Series", use_container_width=True):
+            st.session_state.subopcion_inv = "Lotes / Series"
 
-    c1, c2, c3 = st.columns(3)
+        if st.button("📍 Ubicaciones", use_container_width=True):
+            st.session_state.subopcion_inv = "Ubicaciones"
 
-    with c1:
-        st.info("📋 Catálogo de productos")
+        # =========================
+        # OPERACIONES
+        # =========================
+        st.markdown("### 🔄 Operaciones")
 
-    with c2:
-        st.success("🏷️ Clasificaciones")
+        if st.button("📥 Entradas", use_container_width=True):
+            st.session_state.subopcion_inv = "Entradas"
 
-    with c3:
-        st.warning("📍 Ubicaciones")
+        if st.button("📤 Salidas", use_container_width=True):
+            st.session_state.subopcion_inv = "Salidas"
 
-elif opcion_inv == "Entradas":
+        if st.button("🔁 Transferencias", use_container_width=True):
+            st.session_state.subopcion_inv = "Transferencias"
 
-    st.subheader("📥 Entradas")
+        # =========================
+        # CONSULTAS
+        # =========================
+        st.markdown("### 📊 Consultas")
 
-    st.text_input("Documento")
-    st.date_input("Fecha")
-    st.selectbox("Tipo entrada", [
-        "Compra",
-        "Producción",
-        "Transferencia"
-    ])
+        if st.button("📋 Kardex", use_container_width=True):
+            st.session_state.subopcion_inv = "Kardex"
 
-    st.button("💾 Guardar entrada")
+        if st.button("🔍 Existencias", use_container_width=True):
+            st.session_state.subopcion_inv = "Existencias"
 
-elif opcion_inv == "Salidas":
+        # =========================
+        # INVENTARIO FISICO
+        # =========================
+        st.markdown("### 🧾 Inventario físico")
 
-    st.subheader("📤 Salidas")
+        if st.button("📌 Conteos cíclicos", use_container_width=True):
+            st.session_state.subopcion_inv = "Conteos cíclicos"
 
-    st.text_input("Documento salida")
-    st.selectbox("Motivo", [
-        "Venta",
-        "Consumo",
-        "Merma"
-    ])
+        if st.button("✅ Ajustes", use_container_width=True):
+            st.session_state.subopcion_inv = "Ajustes"
 
-    st.button("💾 Guardar salida")
-
-elif opcion_inv == "Transferencias":
-
-    st.subheader("🔁 Transferencias")
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.selectbox("Origen", [
-            "CEDI",
-            "Almacén Norte"
-        ])
-
-    with c2:
-        st.selectbox("Destino", [
-            "Sucursal",
-            "Producción"
-        ])
-
-    st.button("🚚 Transferir")
-
-elif opcion_inv == "Kardex":
-
-    st.subheader("📋 Kardex")
-
-    st.dataframe({
-        "Producto": ["A", "B"],
-        "Entrada": [100, 50],
-        "Salida": [20, 10],
-        "Saldo": [80, 40]
-    })
-
-elif opcion_inv == "Existencias":
-
-    st.subheader("🔍 Existencias")
-
-    st.metric("Total SKUs", 1250)
-    st.metric("Inventario valorizado", "$2,450,000")
-
-elif opcion_inv == "Conteos cíclicos":
-
-    st.subheader("📌 Conteos cíclicos")
-
-    st.checkbox("Iniciar conteo")
-    st.button("✅ Confirmar")
-
-elif opcion_inv == "Ajustes":
-
-    st.subheader("✅ Ajustes de inventario")
-
-    st.text_area("Motivo ajuste")
-    st.button("💾 Aplicar ajuste")
-
-    st.write("Opción seleccionada:", opcion_inv)
-
-          
-elif ruta == "compras":
-    st.title("🛒 Compras")
-    compras_app()
-
-elif ruta == "logistica":
-    st.title("🚚 Logística")
-    logistica_app()
-
-elif ruta == "wms":
-    st.title("🏬 WMS")
-    wms_app()
-
-elif ruta == "mantenimiento":
-    st.title("🛠️ Mantenimiento")
-    mantenimiento_app()
-
-else:
-    st.warning(f"Ruta no configurada: {ruta}")
+    return st.session_state.subopcion_inv
