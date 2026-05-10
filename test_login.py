@@ -1,69 +1,75 @@
-import streamlit as st
-import sqlite3
-import pandas as pd
-from pathlib import Path
-import hashlib
+BASE_DIR = Path(__file__).resolve().parent
 
 
-DB_PATH = Path(__file__).resolve().parent / "erp.db"
+def buscar_db_con_usuarios():
+    for db_file in BASE_DIR.glob("*.db"):
+        try:
+            conn = sqlite3.connect(db_file)
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                SELECT name
+                FROM sqlite_master
+                WHERE type='table'
+                AND name='usuarios'
+            """)
+
+            existe = cursor.fetchone() is not None
+            conn.close()
+
+            if existe:
+                return str(db_file)
+
+        except Exception:
+            pass
+
+    return str(BASE_DIR / "erp.db")
 
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+DB_PATH = buscar_db_con_usuarios()
 
 
-st.title("🧪 Test SELECT Login")
-
-usuario = st.text_input("Usuario de prueba", value="JCERVANTES")
-password = st.text_input("Password de prueba", value="Roberto1", type="password")
-
-if st.button("Probar login"):
+def validar_login(usuario, password):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    st.write("BD usada:")
-    st.code(str(DB_PATH))
+    usuario_normalizado = str(usuario).strip().upper()
+    password_normalizado = str(password).strip()
 
-    row = cursor.execute(
-        """
-        SELECT
-            u.usuario,
-            u.nombre,
-            u.password_hash,
-            u.estado,
-            r.nombre_rol AS rol
-        FROM usuarios u
-        LEFT JOIN roles r
-            ON u.id_rol = r.id_rol
-        WHERE UPPER(u.usuario) = UPPER(?)
-        """,
-        (usuario.strip(),)
-    ).fetchone()
+    try:
+        row = cursor.execute(
+            """
+            SELECT
+                u.usuario,
+                u.nombre,
+                u.password_hash,
+                u.estado,
+                r.nombre_rol AS rol
+            FROM usuarios u
+            LEFT JOIN roles r
+                ON u.id_rol = r.id_rol
+            WHERE TRIM(UPPER(u.usuario)) = ?
+            """,
+            (usuario_normalizado,)
+        ).fetchone()
+
+    except Exception as e:
+        conn.close()
+        st.error("❌ Error consultando usuario")
+        st.write("BD usada:", DB_PATH)
+        st.exception(e)
+        return None
 
     conn.close()
 
     if row is None:
-        st.error("❌ No encontró usuario")
-    else:
-        data = dict(row)
+        return None
 
-        st.success("✅ Usuario encontrado")
-        st.write(data)
+    password_bd = str(row["password_hash"]).strip()
+    password_hash = hash_password(password_normalizado)
 
-        password_bd = str(data["password_hash"]).strip()
-        password_ingresado = str(password).strip()
-        password_hash = hash_password(password_ingresado)
+    if password_bd != password_normalizado and password_bd != password_hash:
+        return None
 
-        st.write("Password BD:", password_bd)
-        st.write("Password ingresado:", password_ingresado)
-        st.write("Hash ingresado:", password_hash)
-
-        if password_bd == password_ingresado:
-            st.success("✅ Coincide password plano")
-
-        elif password_bd == password_hash:
-            st.success("✅ Coincide password hash")
-
-        else:
-            st.error("❌ No coincide password")
+    return row
