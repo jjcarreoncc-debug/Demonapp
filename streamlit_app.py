@@ -913,27 +913,27 @@ with st.sidebar:
                     st.session_state[k] = "Todos"
             st.rerun()
 
-        # =========================
-        # 💾 GUARDAR FINAL
-        # =========================
-        st.session_state["df_filtrado"] = df_temp
-
-    else:
-        st.info("📂 Carga un archivo en Inicio")
+ #       # =========================
+ #       # 💾 GUARDAR FINAL
+ #       # =========================
+ #       st.session_state["df_filtrado"] = df_temp
+ #
+ #   else:
+ #       st.info("📂 Carga un archivo en Inicio")
 # ------------------------
 # VALIDAR QUE EXISTE df
 # ------------------------
-if 'df' not in locals() or df is None:
-    st.warning("⚠️ No hay archivo cargado o df no existe")
-    st.stop()
+#if 'df' not in locals() or df is None:
+#    st.warning("⚠️ No hay archivo cargado o df no existe")
+#    st.stop()
 # =========================
 # 1. CARGAR ARCHIVO
 # =========================
-if "archivo" in st.session_state:
-    df = pd.read_excel(st.session_state.archivo)
-else:
-    st.warning("⚠️ Carga un archivo")
-    st.stop()
+#if "archivo" in st.session_state:
+#    df = pd.read_excel(st.session_state.archivo)
+#else:
+#    st.warning("⚠️ Carga un archivo")
+#    st.stop()
 
 # =========================
 # 2. NORMALIZAR COLUMNAS
