@@ -15,7 +15,7 @@ from menu_dinamico import sidebar_dinamico
 from diagnostico_tablas_app import diagnostico_tablas_app
 from sidebar_sge import sidebar_sge
 from pathlib import Path
-from login_app import login_app, logout_app
+from auth_app import login_app, logout_app
 from database import get_connection
 
 
