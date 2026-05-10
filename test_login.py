@@ -3,7 +3,7 @@ from database import get_connection
 
 def mostrar_estructura(cur, tabla):
 
-    print(f"\n==============================")
+    print("\n==============================")
     print(f"ESTRUCTURA TABLA: {tabla}")
     print("==============================")
 
@@ -26,7 +26,7 @@ def mostrar_estructura(cur, tabla):
 
 def mostrar_datos(cur, tabla):
 
-    print(f"\n==============================")
+    print("\n==============================")
     print(f"DATOS TABLA: {tabla}")
     print("==============================")
 
