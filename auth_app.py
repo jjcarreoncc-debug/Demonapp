@@ -25,6 +25,14 @@ from database import get_connection
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+def login_app():
+    st.title("Login")
+
+def logout_app():
+    st.sidebar.button("Salir") 
+    
+ logout_app()
+
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
