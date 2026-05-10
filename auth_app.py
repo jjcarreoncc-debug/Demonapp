@@ -37,10 +37,11 @@ def validar_login(usuario, password):
         """,
         (usuario,)
     ).fetchone()
-
+    st.write(row) 
     conn.close()
 
     if row is None:
+        
         st.write("DEBUG: usuario no encontrado")
         return None
 
