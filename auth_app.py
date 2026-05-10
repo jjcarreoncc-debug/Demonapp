@@ -219,7 +219,8 @@ def login_app():
     )
 
     if st.button("Ingresar", key="btn_login_sigem"):
-
+       st.error("DEBUG: sí entró al botón")
+        st.stop()
         resultado = validar_login(
             usuario.strip(),
             password.strip()
