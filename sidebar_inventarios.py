@@ -24,17 +24,19 @@ def sidebar_inventarios():
         with st.expander("📘 Maestros", expanded=True):
 
             with st.expander("📦 Productos", expanded=True):
-
+                #
                 with st.expander("📋 Maestro de materiales", expanded=True):
-                    if st.button("Alta de material"):
+
+                    if st.button("➕ Alta de material"):
                         set_opcion("Maestros", "Productos", "Alta de material")
-                    if st.button("Modificación de material"):
-                        set_opcion("Maestros", "Productos", "Modificación de material")
-                    if st.button("Baja de material"):
+                
+                    if st.button("❌ Baja de material"):
                         set_opcion("Maestros", "Productos", "Baja de material")
-                    if st.button("Consulta de material"):
+                
+                    if st.button("🔍 Consulta de material"):
                         set_opcion("Maestros", "Productos", "Consulta de material")
 
+        
                 with st.expander("🏷️ Clasificaciones"):
                     if st.button("Categorías"):
                         set_opcion("Maestros", "Productos", "Categorías")
