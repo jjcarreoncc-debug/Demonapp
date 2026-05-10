@@ -7,7 +7,7 @@ from streamlit_authenticator import Hasher
 import hashlib
 import streamlit as st
 from datetime import datetime
-from PIL import Image
+from PIL import Imagelo
 from inventarios_app import inventarios_app
 from carga_app import carga_app
 from compras_app import compras_app
@@ -55,9 +55,9 @@ if "rol" not in st.session_state:
 
 
 if not st.session_state.autenticado:
-    login_app()
-    st.stop()
-logout_app()
+ #   login_app()
+ #   st.stop()
+#logout_app()
 
 transaccion = sidebar_sge()
 
