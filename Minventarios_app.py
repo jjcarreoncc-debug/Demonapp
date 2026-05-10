@@ -43,4 +43,4 @@ elif opcion_inv == "Consulta de SKU":
     consulta_sku_app()
 
 else:
-    pantalla_placeholder(opcion_inv)
+    st.title(opcion_inv)
