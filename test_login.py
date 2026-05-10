@@ -1,76 +1,47 @@
 import streamlit as st
+import hashlib
 import pandas as pd
 
 from database import get_connection
 
 
-st.title("🔎 DATOS TABLA USUARIOS")
+st.title("🔎 Test login admin")
+
+usuario = "admin"
+password = "admin123"
+password_hash = hashlib.sha256(password.encode()).hexdigest()
 
 conn = get_connection()
 
-# ==========================================
-# USUARIOS
-# ==========================================
-
-usuarios_df = pd.read_sql_query(
-    """
-    SELECT *
-    FROM usuarios
-    """,
-    conn
-)
-
-st.subheader("📊 TABLA USUARIOS")
-
-st.dataframe(
-    usuarios_df,
-    use_container_width=True
-)
-
-# ==========================================
-# ROLES
-# ==========================================
-
-roles_df = pd.read_sql_query(
-    """
-    SELECT *
-    FROM roles
-    """,
-    conn
-)
-
-st.subheader("📊 TABLA ROLES")
-
-st.dataframe(
-    roles_df,
-    use_container_width=True
-)
-
-# ==========================================
-# JOIN
-# ==========================================
-
-join_df = pd.read_sql_query(
+df = pd.read_sql_query(
     """
     SELECT
         u.id_usuario,
         u.usuario,
         u.nombre,
-        u.email,
+        u.password_hash,
         u.estado,
+        u.id_rol,
         r.nombre_rol
     FROM usuarios u
     LEFT JOIN roles r
         ON u.id_rol = r.id_rol
+    WHERE UPPER(u.usuario) = UPPER(?)
     """,
-    conn
+    conn,
+    params=(usuario,)
 )
 
-st.subheader("🔗 USUARIOS + ROLES")
+st.dataframe(df, use_container_width=True)
 
-st.dataframe(
-    join_df,
-    use_container_width=True
-)
+st.write("Password escrito:", password)
+st.write("Hash calculado:", password_hash)
+
+if not df.empty:
+    st.write("Hash en BD:", df["password_hash"].iloc[0])
+    st.write(
+        "¿Coincide?",
+        df["password_hash"].iloc[0] == password_hash
+    )
 
 conn.close()
