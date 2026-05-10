@@ -302,7 +302,6 @@ if "ruta" not in st.session_state:
 # =========================
 
 ruta = sidebar_dinamico()
-ruta = sidebar_dinamico()
 
 if not ruta:
     st.stop()
@@ -347,17 +346,6 @@ if st.session_state.ultima_ruta_auditada != ruta:
     )
 
 
-# =========================
-# INICIO
-# =========================
-
-def pantalla_inicio():
-
-    st.title("🏠 Inicio")
-
-    st.info(
-        "Selecciona un módulo del menú lateral para comenzar."
-    )
 # =========================
 # FUNCION DE APP DE INVENTARIOS
 # =========================
