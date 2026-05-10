@@ -16,6 +16,9 @@ from diagnostico_tablas_app import diagnostico_tablas_app
 from sidebar_sge import sidebar_sge
 from pathlib import Path
 from auth_app import login_app, logout_app
+mport sqlite3# from auth_app import login_app, logout_ap
+import streamlit_authenticator as stauth
+from streamlit_authenticator import Hasher
 from database import get_connection
 
 
