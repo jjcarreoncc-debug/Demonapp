@@ -156,49 +156,26 @@ def insertar_material(data):
     conn.commit()
     conn.close()
 
-
 def consultar_materiales():
+    import sqlite3
 
-    crear_tabla_materiales()
+    conn = sqlite3.connect("materiales.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
+    cursor.execute("""
         SELECT *
         FROM materiales
-        ORDER BY id_material DESC
+        ORDER BY codigo_material
     """)
 
-    rows = cur.fetchall()
+    registros = [dict(row) for row in cursor.fetchall()]
+
     conn.close()
 
-    return [dict(row) for row in rows]
+    return registros
 
 
-def dar_baja_material(codigo_material, motivo_baja, comentarios_baja):
 
-    crear_tabla_materiales()
 
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        UPDATE materiales
-        SET estatus = 'Descontinuado',
-            fecha_baja = ?,
-            motivo_baja = ?,
-            comentarios_baja = ?
-        WHERE codigo_material = ?
-    """, (
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        motivo_baja,
-        comentarios_baja,
-        codigo_material
-    ))
-
-    conn.commit()
-    afectados = cur.rowcount
-    conn.close()
-
-    return afectados
+d
