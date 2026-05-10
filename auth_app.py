@@ -14,7 +14,7 @@ from menu_dinamico import sidebar_dinamico
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "erp.db"
+DB_PATH = str(BASE_DIR / "erp.db")
 
 
 def hash_password(password):
@@ -30,10 +30,14 @@ def get_base64_image(image_path):
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
+
 def validar_login(usuario, password):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
+
+    usuario_normalizado = str(usuario).strip().upper()
+    password_normalizado = str(password).strip()
 
     try:
         row = cursor.execute(
@@ -47,14 +51,14 @@ def validar_login(usuario, password):
             FROM usuarios u
             LEFT JOIN roles r
                 ON u.id_rol = r.id_rol
-            WHERE UPPER(u.usuario) = UPPER(?)
+            WHERE TRIM(UPPER(u.usuario)) = ?
             """,
-            (usuario.strip(),)
+            (usuario_normalizado,)
         ).fetchone()
 
     except Exception as e:
         conn.close()
-        st.error("❌ Error en SELECT de login")
+        st.error("❌ Error consultando usuario")
         st.exception(e)
         return None
 
@@ -64,19 +68,9 @@ def validar_login(usuario, password):
         return None
 
     password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
+    password_hash = hash_password(password_normalizado)
 
-    if password_bd != password_ingresado and password_bd != password_hash:
-        return None
-
-    return row
-    #
-    password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
-
-    if password_bd != password_ingresado and password_bd != password_hash:
+    if password_bd != password_normalizado and password_bd != password_hash:
         return None
 
     return row
@@ -150,6 +144,7 @@ def login_app():
         color: white;
         margin-top: 5px;
         margin-bottom: 5px;
+        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .login-subtitle {{
@@ -157,6 +152,7 @@ def login_app():
         font-size: 18px;
         color: white;
         margin-bottom: 30px;
+        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .stTextInput {{
@@ -172,9 +168,11 @@ def login_app():
     .stTextInput > div > div > input {{
         border-radius: 14px;
         height: 55px;
+        border: 1px solid rgba(255,255,255,0.18);
         background: rgba(0,0,0,0.38);
         color: white;
         font-size: 16px;
+        padding-left: 15px;
     }}
 
     .stTextInput > label {{
@@ -192,6 +190,11 @@ def login_app():
         font-weight: 700;
         border: none;
         margin-top: 15px;
+    }}
+
+    div.stButton > button:hover {{
+        background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
+        color: white !important;
     }}
 
     .footer-login {{
