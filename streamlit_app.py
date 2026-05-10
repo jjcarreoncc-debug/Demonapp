@@ -86,6 +86,7 @@ if "ruta" not in st.session_state:
     st.session_state.ruta = "Inicio"
 if "rol" not in st.session_state:
     st.session_state.rol = "Usuario"    
+
 # =========================
 # ESTILOS (LIMPIO + IMAGEN)
 # =========================
@@ -111,6 +112,8 @@ if flujo == "Nuevo SIGEM":
     elif ruta == "logistica":
         st.title("🚚 Logística")
         
+    st.stop() 
+    
 st.markdown("""
 <style>
 
