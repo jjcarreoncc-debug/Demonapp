@@ -75,4 +75,5 @@ def sidebar_dinamico():
         st.error(f"El módulo '{menu}' no tiene ruta configurada.")
         return "inicio"
 
+    #
     return ruta
