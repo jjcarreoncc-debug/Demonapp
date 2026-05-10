@@ -55,9 +55,9 @@ if "rol" not in st.session_state:
 
 
 #if not st.session_state.autenticado:
- #   login_app()
- #   st.stop()
-#logout_app()
+    login_app()
+    st.stop()
+logout_app()
 
 transaccion = sidebar_sge()
 
