@@ -33,7 +33,7 @@ def sidebar_dinamico():
 
     if menu_df.empty:
         st.sidebar.warning("No hay módulos asignados")
-        return "dashboard_app"
+        return "inventarios"
 
     menu_df["nombre_modulo"] = (
         menu_df["nombre_modulo"]
