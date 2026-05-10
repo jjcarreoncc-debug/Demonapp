@@ -1,49 +1,53 @@
-from database import get_connection
+import streamlit as st
+import pandas as pd
+import sqlite3
 
 
-conn = get_connection()
-cur = conn.cursor()
+def prueba_tabla_materiales():
 
-print("\n===== TABLAS =====")
+    st.title("🧪 Prueba tabla materiales")
 
-cur.execute("""
-    SELECT name
-    FROM sqlite_master
-    WHERE type='table'
-""")
+    try:
 
-for row in cur.fetchall():
-    print(row)
+        # CAMBIA EL NOMBRE SI TU BD SE LLAMA DIFERENTE
+        conn = sqlite3.connect("materiales.db")
+
+        cursor = conn.cursor()
+
+        # VER TABLAS EXISTENTES
+        cursor.execute("""
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
+        """)
+
+        tablas = cursor.fetchall()
+
+        st.subheader("📂 Tablas encontradas")
+        st.write(tablas)
+
+        # CONSULTAR REGISTROS
+        query = "SELECT * FROM materiales"
+
+        df = pd.read_sql_query(query, conn)
+
+        st.subheader("📊 Total registros")
+        st.success(f"Registros encontrados: {len(df)}")
+
+        st.subheader("📋 Datos")
+
+        st.dataframe(
+            df,
+            use_container_width=True
+        )
+
+        conn.close()
+
+    except Exception as e:
+
+        st.error("❌ Error al consultar la base")
+        st.exception(e)
 
 
-print("\n===== TOTAL MATERIALES =====")
-
-cur.execute("""
-    SELECT COUNT(*)
-    FROM materiales
-""")
-
-print(cur.fetchone())
-
-
-print("\n===== MATERIALES =====")
-
-cur.execute("""
-    SELECT
-        codigo_material,
-        descripcion,
-        categoria,
-        estatus
-    FROM materiales
-    LIMIT 20
-""")
-
-rows = cur.fetchall()
-
-for row in rows:
-    print(dict(row))
-
-
-conn.close()
-
-print("\n===== FIN TEST =====")
+if __name__ == "__main__":
+    prueba_tabla_materiales()
