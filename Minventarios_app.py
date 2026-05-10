@@ -26,25 +26,19 @@ st.session_state.rol = "Administrador"
 # NUEVO SIGEM PRINCIPAL
 # =========================
 
-#ruta = sidebar_dinamico()
-
 ruta = "inventarios"
 
-if ruta == "inicio":
-    st.empty()
+if ruta == "Minventarios":
 
-elif ruta == "inventarios":
-    st.title("📦 Inventarios")
-    
-    if ruta == "inventarios":
-
-    st.title("📦  Modulo de Inventarios")
+    st.title("📦 Módulo de Inventarios")
 
     from sidebar_inventarios import sidebar_inventarios
 
     opcion_inv = sidebar_inventarios()
 
     st.write("Opción seleccionada:", opcion_inv)
+
+          
 elif ruta == "compras":
     st.title("🛒 Compras")
     compras_app()
