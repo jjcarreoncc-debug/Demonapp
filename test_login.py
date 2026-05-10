@@ -1,133 +1,74 @@
+import streamlit as st
+import pandas as pd
 from database import get_connection
 
 
-def mostrar_tabla(conn, tabla):
+def diagnostico_bd_app():
 
-    print(f"\n===== {tabla} =====")
-
-    try:
-
-        cur = conn.cursor()
-
-        cur.execute(f"SELECT * FROM {tabla}")
-
-        filas = cur.fetchall()
-
-        for fila in filas:
-            print(fila)
-
-        if not filas:
-            print("(vacía)")
-
-    except Exception as e:
-
-        print(f"Error leyendo {tabla}: {e}")
-
-
-def main():
+    st.title("🔎 Diagnóstico Base de Datos")
 
     conn = get_connection()
 
-    cur = conn.cursor()
+    tablas_df = pd.read_sql_query(
+        """
+        SELECT name AS tabla
+        FROM sqlite_master
+        WHERE type = 'table'
+        ORDER BY name
+        """,
+        conn
+    )
 
-    print("\n==============================")
-    print("ESTADO ACTUAL DE LA BASE")
-    print("==============================")
+    if tablas_df.empty:
+        st.warning("No hay tablas en la base de datos.")
+        conn.close()
+        return
 
-    mostrar_tabla(conn, "roles")
-    mostrar_tabla(conn, "modulos")
-    mostrar_tabla(conn, "permisos_roles")
+    tabla_sel = st.selectbox(
+        "Selecciona tabla",
+        tablas_df["tabla"].tolist()
+    )
 
-    print("\n==============================")
-    print("CREANDO ADMINISTRADOR")
-    print("==============================")
+    st.markdown("### 📋 Estructura de la tabla")
 
-    # =========================
-    # CREAR ROL ADMINISTRADOR
-    # =========================
+    estructura_df = pd.read_sql_query(
+        f"PRAGMA table_info({tabla_sel})",
+        conn
+    )
 
-    cur.execute("""
-        INSERT OR IGNORE INTO roles (
-            nombre_rol
-        )
-        VALUES (
-            'Administrador'
-        )
-    """)
+    st.dataframe(
+        estructura_df,
+        use_container_width=True
+    )
 
-    # =========================
-    # CREAR MODULO MANTENIMIENTO
-    # =========================
+    st.markdown("### 📊 Registros")
 
-    cur.execute("""
-        INSERT OR IGNORE INTO modulos (
-            nombre_modulo,
-            icono,
-            ruta,
-            orden_menu,
-            activo
-        )
-        VALUES (
-            'Mantenimiento',
-            '🛠️',
-            'mantenimiento',
-            1,
-            1
-        )
-    """)
+    total_df = pd.read_sql_query(
+        f"SELECT COUNT(*) AS total FROM {tabla_sel}",
+        conn
+    )
 
-    # =========================
-    # OBTENER ID ROL
-    # =========================
+    st.metric(
+        "Total registros",
+        int(total_df["total"].iloc[0])
+    )
 
-    cur.execute("""
-        SELECT id_rol
-        FROM roles
-        WHERE nombre_rol = 'Administrador'
-    """)
+    limite = st.number_input(
+        "Registros a mostrar",
+        min_value=10,
+        max_value=1000,
+        value=100,
+        step=10
+    )
 
-    id_rol = cur.fetchone()[0]
+    datos_df = pd.read_sql_query(
+        f"SELECT * FROM {tabla_sel} LIMIT {limite}",
+        conn
+    )
 
-    # =========================
-    # OBTENER ID MODULO
-    # =========================
-
-    cur.execute("""
-        SELECT id_modulo
-        FROM modulos
-        WHERE ruta = 'mantenimiento'
-    """)
-
-    id_modulo = cur.fetchone()[0]
-
-    # =========================
-    # DAR PERMISOS
-    # =========================
-
-    cur.execute("""
-        INSERT OR IGNORE INTO permisos_roles (
-            id_rol,
-            id_modulo,
-            puede_ver
-        )
-        VALUES (?, ?, 1)
-    """, (id_rol, id_modulo))
-
-    conn.commit()
-
-    print("\n==============================")
-    print("ESTADO FINAL")
-    print("==============================")
-
-    mostrar_tabla(conn, "roles")
-    mostrar_tabla(conn, "modulos")
-    mostrar_tabla(conn, "permisos_roles")
+    st.dataframe(
+        datos_df,
+        use_container_width=True
+    )
 
     conn.close()
-
-    print("\n✅ Setup terminado correctamente")
-
-
-if __name__ == "__main__":
-
-    main()
