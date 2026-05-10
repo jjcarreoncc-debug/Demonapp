@@ -31,19 +31,8 @@ def login_app():
 def logout_app():
     st.sidebar.button("Salir") 
     
-logout_app()
-
-if "autenticado" not in st.session_state:
-    st.session_state.autenticado = False
-
-if "rol" not in st.session_state:
-    st.session_state.rol = None
-
-if not st.session_state.autenticado:
-    login_app()
-    st.stop()
-
-logout_app()
+    
+    
 
 def get_base64_image(image_path):
     file_path = Path(image_path)
@@ -283,6 +272,17 @@ def login_app():
 
     st.markdown('</div>', unsafe_allow_html=True)
 
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if "rol" not in st.session_state:
+    st.session_state.rol = None
+
+if not st.session_state.autenticado:
+    login_app()
+    st.stop()
+
+logout_app()
 
 def logout_app():
     if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
