@@ -76,19 +76,23 @@ if ruta == "inicio":
 
 elif ruta == "inventarios":
     st.title("📦 Inventarios")
-  inventarios_app()
+    inventarios_app()
+
 elif ruta == "compras":
     st.title("🛒 Compras")
-  compras_app()
+    compras_app()
+    
 elif ruta == "logistica":
     st.title("🚚 Logística")
-  logistica_app()
+    logistica_app()
 elif ruta == "wms":
     st.title("🏬 WMS")
-  wms_app()
+    
+    wms_app()
 elif ruta == "mantenimiento":
     st.title("🛠️ Mantenimiento")
-  mantenimiento_app()   
+    mantenimiento_app()   
+
 else:
     st.warning(f"Ruta no configurada: {ruta}")
 
