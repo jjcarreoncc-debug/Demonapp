@@ -30,42 +30,51 @@ def get_base64_image(image_path):
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-
 def validar_login(usuario, password):
-    conn = sqlite3.connect(DB_PATH)
+    DB_PATH_LOGIN = Path(__file__).resolve().parent / "erp.db"
+
+    st.write("BD usada login:")
+    st.code(str(DB_PATH_LOGIN))
+
+    conn = sqlite3.connect(DB_PATH_LOGIN)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
-    usuario_normalizado = str(usuario).strip().upper()
-    password_normalizado = str(password).strip()
-
-    try:
-        row = cursor.execute(
-            """
-            SELECT
-                u.usuario,
-                u.nombre,
-                u.password_hash,
-                u.estado,
-                r.nombre_rol AS rol
-            FROM usuarios u
-            LEFT JOIN roles r
-                ON u.id_rol = r.id_rol
-            WHERE TRIM(UPPER(u.usuario)) = ?
-            """,
-            (usuario_normalizado,)
-        ).fetchone()
-
-    except Exception as e:
-        conn.close()
-        st.error("❌ Error consultando usuario")
-        st.exception(e)
-        return None
+    row = cursor.execute(
+        """
+        SELECT
+            u.usuario,
+            u.nombre,
+            u.password_hash,
+            u.estado,
+            r.nombre_rol AS rol
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        WHERE TRIM(UPPER(u.usuario)) = TRIM(UPPER(?))
+        """,
+        (usuario,)
+    ).fetchone()
 
     conn.close()
 
     if row is None:
+        st.error("❌ Usuario no encontrado")
         return None
+
+    password_bd = str(row["password_hash"]).strip()
+    password_ingresado = str(password).strip()
+    password_hash = hash_password(password_ingresado)
+
+    st.write("Usuario encontrado:", row["usuario"])
+    st.write("Password BD:", password_bd)
+    st.write("Password ingresado:", password_ingresado)
+
+    if password_bd != password_ingresado and password_bd != password_hash:
+        st.error("❌ Password no coincide")
+        return None
+
+    return row
 
     password_bd = str(row["password_hash"]).strip()
     password_hash = hash_password(password_normalizado)
