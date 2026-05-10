@@ -136,7 +136,7 @@ if flujo == "Nuevo SIGEM":
     elif ruta == "datos_maestros":
         st.title("📘 Datos Maestros")
 
-    elif ruta == "inventarios":
+    elif ruta == "Minventarios":
         
 
         from sidebar_inventarios import sidebar_inventarios
