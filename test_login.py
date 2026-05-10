@@ -6,7 +6,9 @@ from pathlib import Path
 
 st.title("🧪 Buscar base con usuarios")
 
+
 BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = str(BASE_DIR / "erp.db")
 
 st.write("Carpeta:")
 st.code(str(BASE_DIR))
@@ -23,7 +25,7 @@ for db in dbs:
     st.subheader(f"📂 {db.name}")
 
     try:
-        conn = sqlite3.connect(db)
+        conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
