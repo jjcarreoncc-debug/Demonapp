@@ -3,72 +3,43 @@ import pandas as pd
 from database import get_connection
 
 
-def diagnostico_bd_app():
+st.title("🔎 TEST BASE DE DATOS")
 
-    st.title("🔎 Diagnóstico Base de Datos")
+conn = get_connection()
 
-    conn = get_connection()
+tablas_df = pd.read_sql_query(
+    """
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+    ORDER BY name
+    """,
+    conn
+)
 
-    tablas_df = pd.read_sql_query(
-        """
-        SELECT name AS tabla
-        FROM sqlite_master
-        WHERE type = 'table'
-        ORDER BY name
-        """,
-        conn
-    )
+st.write("TABLAS ENCONTRADAS:")
+st.dataframe(tablas_df)
 
-    if tablas_df.empty:
-        st.warning("No hay tablas en la base de datos.")
-        conn.close()
-        return
+if not tablas_df.empty:
 
-    tabla_sel = st.selectbox(
-        "Selecciona tabla",
-        tablas_df["tabla"].tolist()
-    )
+    tabla = tablas_df.iloc[0]["name"]
 
-    st.markdown("### 📋 Estructura de la tabla")
+    st.write("PRIMERA TABLA:", tabla)
 
     estructura_df = pd.read_sql_query(
-        f"PRAGMA table_info({tabla_sel})",
+        f"PRAGMA table_info({tabla})",
         conn
     )
 
-    st.dataframe(
-        estructura_df,
-        use_container_width=True
-    )
-
-    st.markdown("### 📊 Registros")
-
-    total_df = pd.read_sql_query(
-        f"SELECT COUNT(*) AS total FROM {tabla_sel}",
-        conn
-    )
-
-    st.metric(
-        "Total registros",
-        int(total_df["total"].iloc[0])
-    )
-
-    limite = st.number_input(
-        "Registros a mostrar",
-        min_value=10,
-        max_value=1000,
-        value=100,
-        step=10
-    )
+    st.write("ESTRUCTURA:")
+    st.dataframe(estructura_df)
 
     datos_df = pd.read_sql_query(
-        f"SELECT * FROM {tabla_sel} LIMIT {limite}",
+        f"SELECT * FROM {tabla} LIMIT 20",
         conn
     )
 
-    st.dataframe(
-        datos_df,
-        use_container_width=True
-    )
+    st.write("DATOS:")
+    st.dataframe(datos_df)
 
-    conn.close()
+conn.close()
