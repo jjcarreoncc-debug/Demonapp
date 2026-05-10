@@ -1,47 +1,46 @@
 import streamlit as st
-import pandas as pd
-import sqlite3
+import os
 
 
-def prueba_base_completa():
+def buscar_bases():
 
-    st.title("🧪 Prueba completa de base de datos")
+    st.title("🔎 Buscar bases de datos")
+
+    st.subheader("📂 Archivos encontrados en el proyecto")
 
     try:
-        conn = sqlite3.connect("materiales.db")
-        cursor = conn.cursor()
 
-        cursor.execute("""
-            SELECT name
-            FROM sqlite_master
-            WHERE type='table'
-            ORDER BY name
-        """)
+        archivos = os.listdir(".")
 
-        tablas = [t[0] for t in cursor.fetchall()]
+        st.write(archivos)
 
-        st.subheader("📂 Tablas encontradas")
-        st.write(tablas)
+        st.markdown("---")
 
-        if not tablas:
-            st.warning("No hay tablas en esta base de datos.")
-            return
+        st.subheader("🗄️ Bases de datos encontradas")
 
-        for tabla in tablas:
-            st.markdown("---")
-            st.subheader(f"📋 Tabla: {tabla}")
+        dbs = [
+            a for a in archivos
+            if a.endswith(".db")
+            or a.endswith(".sqlite")
+            or a.endswith(".sqlite3")
+        ]
 
-            df = pd.read_sql_query(f"SELECT * FROM {tabla}", conn)
+        if dbs:
 
-            st.success(f"Registros encontrados: {len(df)}")
-            st.dataframe(df, use_container_width=True)
+            st.success(f"Se encontraron {len(dbs)} bases")
 
-        conn.close()
+            for db in dbs:
+                st.write("✅", db)
+
+        else:
+
+            st.warning("❌ No encontré bases de datos")
 
     except Exception as e:
-        st.error("❌ Error al consultar la base")
+
+        st.error("❌ Error al buscar archivos")
         st.exception(e)
 
 
 if __name__ == "__main__":
-    prueba_base_completa()
+    buscar_bases()
