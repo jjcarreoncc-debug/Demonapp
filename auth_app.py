@@ -217,58 +217,41 @@ def login_app():
         key="login_password"
     )
 
-    #if st.button("Ingresar", key="btn_login_sigem"):
-    
-    #    resultado = validar_login(
-    #        usuario.strip(),
-    #        password.strip()
-    #    )
-    #
-    #    if resultado is None:
-    #
-    #        st.error(
-    #            "❌ Usuario o contraseña incorrectos"
-    #        )
-    #
-    #    else:
     if st.button("Ingresar", key="btn_login_sigem"):
 
         resultado = validar_login(
             usuario.strip(),
             password.strip()
         )
-    ####################
-    # LOGIN TEMPORAL FIJO
-    ######
-    if usuario.strip() == "admin" and password.strip() == "1234":
 
-        st.session_state.autenticado = True
-        st.session_state.usuario = "admin"
-        st.session_state.rol = "Administrador"
+        ####################
+        # LOGIN TEMPORAL FIJO
+        ####################
 
-        st.success("✅ Bienvenido admin")
-        st.rerun()
+        if usuario.strip() == "admin" and password.strip() == "1234":
 
-    elif resultado is None:
+            st.session_state.autenticado = True
+            st.session_state.usuario = "admin"
+            st.session_state.nombre = "Administrador"
+            st.session_state.rol = "Administrador"
 
-        st.error(
-            "❌ Usuario o contraseña incorrectos"
-        )
+            st.success("✅ Bienvenido admin")
+            st.rerun()
 
-    else:
+        elif resultado is None:
 
-        st.session_state.autenticado = True
-        st.session_state.usuario = resultado["usuario"]
-        st.session_state.rol = resultado["rol"]
+            st.error(
+                "❌ Usuario o contraseña incorrectos"
+            )
 
-        st.success("✅ Login correcto")
-        st.rerun()
-        
+        else:
+
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
             st.session_state.rol = resultado["rol"]
 
+            st.success("✅ Login correcto")
             st.rerun()
 
     st.markdown(
