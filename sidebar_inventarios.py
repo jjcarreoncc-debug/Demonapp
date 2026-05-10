@@ -1,4 +1,4 @@
-elif ruta == "inventarios":
+elif ruta == "Minventarios":
 
     from sidebar_inventarios import sidebar_inventarios
 
