@@ -6,6 +6,12 @@ def set_opcion(menu, submenu, opcion):
     st.session_state.submenu_inv = submenu
     st.session_state.opcion_inv = opcion
 
+def pantalla_placeholder(titulo):
+
+    st.title("📦 Módulo de Inventarios")
+    st.subheader(titulo)
+    st.info("Pantalla en construcción.")
+
 
 def sidebar_inventarios():
 
