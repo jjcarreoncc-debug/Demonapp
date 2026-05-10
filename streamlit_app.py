@@ -54,10 +54,6 @@ if "rol" not in st.session_state:
     st.session_state.rol = None
 
 
-#if not st.session_state.autenticado:
-    login_app()
-    st.stop()
-logout_app()
 
 # =========================
 # LOGIN
@@ -88,7 +84,7 @@ flujo = st.sidebar.radio(
 
 if flujo == "Nuevo SIGEM":
 
-    ruta = sidebar_dinamico()
+        ruta = sidebar_dinamico()
 
     if ruta == "inicio":
         pantalla_inicio()
