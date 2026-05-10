@@ -46,6 +46,7 @@ def get_base64_image(image_path):
 def validar_login(usuario, password):
 
     conn = get_connection()
+    st.write("BD usada:", conn.execute("PRAGMA database_list").fetchall()) 
     cursor = conn.cursor()
 
     try:
