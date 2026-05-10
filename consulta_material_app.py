@@ -1,172 +1,155 @@
 import streamlit as st
 import pandas as pd
 
+from materiales_db import consultar_materiales
+
 
 def consulta_material_app():
 
     st.title("🔍 Consulta de material")
+    st.caption("Maestros / Productos / Maestro de materiales / Consulta de material")
 
-    st.caption(
-        "Maestros / Productos / Maestro de materiales / Consulta de material"
-    )
+    data = consultar_materiales()
 
-    # =========================
-    # FILTROS
-    # =========================
+    if not data:
+        st.warning("No hay materiales registrados en la base de datos.")
+        return
+
+    df = pd.DataFrame(data)
+
+    df = df.rename(columns={
+        "codigo_material": "Código",
+        "descripcion": "Descripción",
+        "categoria": "Categoría",
+        "familia": "Familia",
+        "unidad_base": "Unidad",
+        "estatus": "Estatus",
+        "stock_minimo": "Stock mínimo",
+        "stock_maximo": "Stock máximo",
+        "rotacion_abc": "ABC"
+    })
+
     st.subheader("🎯 Filtros de búsqueda")
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        codigo_material = st.text_input("Código material")
-        categoria = st.selectbox(
+        filtro_codigo = st.text_input("Código material")
+        filtro_categoria = st.selectbox(
             "Categoría",
-            [
-                "Todas",
-                "Materia prima",
-                "Producto terminado",
-                "Empaque",
-                "Refacción",
-                "Servicio"
-            ]
+            ["Todas"] + sorted(df["Categoría"].dropna().astype(str).unique().tolist())
         )
 
     with c2:
-        descripcion = st.text_input("Descripción")
-        familia = st.text_input("Familia")
+        filtro_descripcion = st.text_input("Descripción")
+        filtro_familia = st.text_input("Familia")
 
     with c3:
-        estatus = st.selectbox(
+        filtro_estatus = st.selectbox(
             "Estatus",
-            [
-                "Todos",
-                "Activo",
-                "Bloqueado",
-                "Descontinuado"
-            ]
+            ["Todos"] + sorted(df["Estatus"].dropna().astype(str).unique().tolist())
         )
-        unidad_base = st.selectbox(
+        filtro_unidad = st.selectbox(
             "Unidad base",
-            [
-                "Todas",
-                "PZA",
-                "KG",
-                "LT",
-                "CJ",
-                "MT"
-            ]
+            ["Todas"] + sorted(df["Unidad"].dropna().astype(str).unique().tolist())
         )
 
-    buscar = st.button("🔎 Buscar material")
+    df_filtrado = df.copy()
+
+    if filtro_codigo:
+        df_filtrado = df_filtrado[
+            df_filtrado["Código"].astype(str).str.contains(
+                filtro_codigo,
+                case=False,
+                na=False
+            )
+        ]
+
+    if filtro_descripcion:
+        df_filtrado = df_filtrado[
+            df_filtrado["Descripción"].astype(str).str.contains(
+                filtro_descripcion,
+                case=False,
+                na=False
+            )
+        ]
+
+    if filtro_categoria != "Todas":
+        df_filtrado = df_filtrado[df_filtrado["Categoría"] == filtro_categoria]
+
+    if filtro_familia:
+        df_filtrado = df_filtrado[
+            df_filtrado["Familia"].astype(str).str.contains(
+                filtro_familia,
+                case=False,
+                na=False
+            )
+        ]
+
+    if filtro_estatus != "Todos":
+        df_filtrado = df_filtrado[df_filtrado["Estatus"] == filtro_estatus]
+
+    if filtro_unidad != "Todas":
+        df_filtrado = df_filtrado[df_filtrado["Unidad"] == filtro_unidad]
 
     st.markdown("---")
-
-    # =========================
-    # DATA DEMO TEMPORAL
-    # =========================
-    data = [
-        {
-            "Código": "MAT-001",
-            "Descripción": "Tornillo 1/4",
-            "Categoría": "Refacción",
-            "Familia": "Ferretería",
-            "Unidad": "PZA",
-            "Estatus": "Activo",
-            "Stock mínimo": 50,
-            "Stock máximo": 500,
-            "ABC": "B"
-        },
-        {
-            "Código": "MAT-002",
-            "Descripción": "Caja cartón chica",
-            "Categoría": "Empaque",
-            "Familia": "Cartón",
-            "Unidad": "PZA",
-            "Estatus": "Activo",
-            "Stock mínimo": 100,
-            "Stock máximo": 1000,
-            "ABC": "A"
-        },
-        {
-            "Código": "MAT-003",
-            "Descripción": "Aceite industrial",
-            "Categoría": "Materia prima",
-            "Familia": "Químicos",
-            "Unidad": "LT",
-            "Estatus": "Bloqueado",
-            "Stock mínimo": 20,
-            "Stock máximo": 200,
-            "ABC": "C"
-        }
-    ]
-
-    df = pd.DataFrame(data)
-
-    # =========================
-    # FILTRADO DEMO
-    # =========================
-    if codigo_material:
-        df = df[df["Código"].str.contains(codigo_material, case=False, na=False)]
-
-    if descripcion:
-        df = df[df["Descripción"].str.contains(descripcion, case=False, na=False)]
-
-    if categoria != "Todas":
-        df = df[df["Categoría"] == categoria]
-
-    if familia:
-        df = df[df["Familia"].str.contains(familia, case=False, na=False)]
-
-    if estatus != "Todos":
-        df = df[df["Estatus"] == estatus]
-
-    if unidad_base != "Todas":
-        df = df[df["Unidad"] == unidad_base]
-
-    # =========================
-    # RESULTADOS
-    # =========================
     st.subheader("📋 Resultados")
 
-    if df.empty:
+    columnas_mostrar = [
+        "Código",
+        "Descripción",
+        "Categoría",
+        "Familia",
+        "Unidad",
+        "Estatus",
+        "Stock mínimo",
+        "Stock máximo",
+        "ABC"
+    ]
+
+    columnas_existentes = [
+        c for c in columnas_mostrar
+        if c in df_filtrado.columns
+    ]
+
+    if df_filtrado.empty:
         st.warning("No se encontraron materiales con esos filtros.")
         return
 
     st.dataframe(
-        df,
+        df_filtrado[columnas_existentes],
         use_container_width=True,
         hide_index=True
     )
 
     st.markdown("---")
-
-    # =========================
-    # DETALLE MATERIAL
-    # =========================
     st.subheader("📄 Detalle del material")
 
     material = st.selectbox(
         "Selecciona material",
-        df["Código"].tolist()
+        df_filtrado["Código"].astype(str).tolist()
     )
 
-    fila = df[df["Código"] == material].iloc[0]
+    fila = df_filtrado[df_filtrado["Código"].astype(str) == material].iloc[0]
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.metric("Código", fila["Código"])
-        st.metric("Categoría", fila["Categoría"])
+        st.metric("Código", fila.get("Código", ""))
+        st.metric("Categoría", fila.get("Categoría", ""))
 
     with c2:
-        st.metric("Unidad", fila["Unidad"])
-        st.metric("Estatus", fila["Estatus"])
+        st.metric("Unidad", fila.get("Unidad", ""))
+        st.metric("Estatus", fila.get("Estatus", ""))
 
     with c3:
-        st.metric("ABC", fila["ABC"])
-        st.metric("Stock máx.", fila["Stock máximo"])
+        st.metric("ABC", fila.get("ABC", ""))
+        st.metric("Stock máx.", fila.get("Stock máximo", 0))
 
-    st.info(f"Descripción: {fila['Descripción']}")
+    st.info(f"Descripción: {fila.get('Descripción', '')}")
+
+    with st.expander("Ver datos completos"):
+        st.json(fila.to_dict())
 
     st.markdown("---")
 
