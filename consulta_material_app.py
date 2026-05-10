@@ -208,7 +208,7 @@ with st.expander("💲 Datos comerciales"):
             "Margen %",
             fila.get("margen_objetivo", 0)
         )
-
+#
 with st.expander("📊 Inventario"):
 
     c1, c2, c3 = st.columns(3)
