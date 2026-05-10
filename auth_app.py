@@ -25,6 +25,7 @@ def validar_login(usuario, password):
     row = cursor.execute(
         """
         SELECT
+        
             u.usuario,
             u.nombre,
             u.password_hash,
@@ -37,7 +38,7 @@ def validar_login(usuario, password):
         """,
         (usuario,)
     ).fetchone()
-    st.write(row) 
+     
     conn.close()
     
     
@@ -242,9 +243,12 @@ def login_app():
             st.write("DEBUG password_ingresado:", password_ingresado)
             st.write("DEBUG password_hash:", password_hash)
             st.session_state.autenticado = True
-            st.session_state.usuario = resultado["usuario"]
-            st.session_state.nombre = resultado["nombre"]
-            st.session_state.rol = resultado["rol"]
+            st.session_state.usuario = resultado[0]
+            st.session_state.nombre = resultado[1]
+            st.session_state.rol = resultado[4]
+           # st.session_state.usuario = resultado["usuario"]
+           # st.session_state.nombre = resultado["nombre"]
+           # st.session_state.rol = resultado["rol"]
 
             st.success("✅ Login correcto")
             st.rerun()
