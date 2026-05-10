@@ -298,15 +298,38 @@ if "ruta" not in st.session_state:
     st.session_state.ruta = "Inicio"
 
 # =========================
-# SIDEBAR DINAMICO
+# SIDEBAR DINAMICO PARA HACER FUNCION CON NUEVO BLOQUE 
 # =========================
 
+ruta = sidebar_dinamico()
 ruta = sidebar_dinamico()
 
 if not ruta:
     st.stop()
 
-st.write("Ruta:", ruta)
+if ruta == "inicio":
+    st.title("🏠 Inicio")
+    st.info("Selecciona un módulo del menú lateral para comenzar.")
+
+elif ruta == "datos_maestros":
+    st.title("📘 Datos Maestros")
+
+elif ruta == "inventarios":
+    st.title("📦 Inventarios")
+
+elif ruta == "compras":
+    st.title("🛒 Compras")
+
+elif ruta == "ventas":
+    st.title("💰 Ventas")
+
+elif ruta == "logistica":
+    st.title("🚚 Logística")
+
+else:
+    st.warning(f"Ruta no configurada: {ruta}") #
+i
+
 
 ######
 ### TEMPORALMENTE
