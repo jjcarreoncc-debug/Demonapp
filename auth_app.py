@@ -43,26 +43,37 @@ def get_base64_image(image_path):
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
 
-
 def validar_login(usuario, password):
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    row = cursor.execute(
-        """
-        SELECT
-            u.usuario,
-            u.nombre,
-            u.password_hash,
-            u.estado,
-            r.nombre_rol AS rol
-        FROM usuarios u
-        LEFT JOIN roles r
-            ON u.id_rol = r.id_rol
-        WHERE UPPER(u.usuario) = UPPER(?)
-        """,
-        (usuario,)
-    ).fetchone()
+    try:
+
+        row = cursor.execute(
+            """
+            SELECT
+                u.usuario,
+                u.nombre,
+                u.password_hash,
+                u.estado,
+                COALESCE(r.nombre_rol, 'SIN_ROL') AS rol
+            FROM usuarios u
+            LEFT JOIN roles r
+                ON u.id_rol = r.id_rol
+            WHERE UPPER(u.usuario) = UPPER(?)
+            """,
+            (usuario,)
+        ).fetchone()
+
+    except Exception as e:
+
+        conn.close()
+
+        st.error("❌ Error consultando usuario")
+        st.exception(e)
+
+        return None
 
     conn.close()
 
@@ -70,14 +81,18 @@ def validar_login(usuario, password):
         return None
 
     password_bd = str(row["password_hash"]).strip()
+
     password_ingresado = str(password).strip()
+
     password_hash = hash_password(password_ingresado)
 
-    if password_bd != password_ingresado and password_bd != password_hash:
+    if (
+        password_bd != password_ingresado
+        and password_bd != password_hash
+    ):
         return None
 
     return row
-
 
 def login_app():
     bg_image = get_base64_image("logofondo.JPG")
