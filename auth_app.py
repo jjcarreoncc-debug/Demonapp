@@ -2,8 +2,8 @@ import streamlit as st
 import hashlib
 import base64
 from pathlib import Path
+
 from database import get_connection
-from mantenimiento_auditoria_app import registrar_auditoria
 
 
 def hash_password(password):
@@ -18,6 +18,8 @@ def get_base64_image(image_path):
 
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
+
+
 def validar_login(usuario, password):
     conn = get_connection()
     cursor = conn.cursor()
@@ -25,7 +27,6 @@ def validar_login(usuario, password):
     row = cursor.execute(
         """
         SELECT
-        
             u.usuario,
             u.nombre,
             u.password_hash,
@@ -38,23 +39,21 @@ def validar_login(usuario, password):
         """,
         (usuario,)
     ).fetchone()
-     
+
     conn.close()
-    
-    
+
     if row is None:
-        
-        st.write("DEBUG: usuario no encontrado")
         return None
 
-    password_bd = str(row["password_hash"]).strip()
+    password_bd = str(row[2]).strip()
     password_ingresado = str(password).strip()
     password_hash = hash_password(password_ingresado)
 
     if password_bd != password_ingresado and password_bd != password_hash:
         return None
 
-    return row    
+    return row
+
 
 def login_app():
     bg_image = get_base64_image("logofondo.JPG")
@@ -222,37 +221,23 @@ def login_app():
     )
 
     if st.button("Ingresar", key="btn_login_sigem"):
-       st.error("DEBUG: sí entró al botón")
-        st.stop()
         resultado = validar_login(
             usuario.strip(),
             password.strip()
         )
 
-        ####################
-        # LOGIN TEMPORAL FIJO
-        ####################
         if resultado is None:
-
-            st.error(
-                "❌ Usuario o contraseña incorrectos"
-            )
+            st.error("❌ Usuario o contraseña incorrectos")
 
         else:
-            st.write("DEBUG password_bd:", password_bd)
-            st.write("DEBUG password_ingresado:", password_ingresado)
-            st.write("DEBUG password_hash:", password_hash)
             st.session_state.autenticado = True
             st.session_state.usuario = resultado[0]
             st.session_state.nombre = resultado[1]
             st.session_state.rol = resultado[4]
-           # st.session_state.usuario = resultado["usuario"]
-           # st.session_state.nombre = resultado["nombre"]
-           # st.session_state.rol = resultado["rol"]
 
             st.success("✅ Login correcto")
             st.rerun()
-        ###############################33
+
     st.markdown(
         '''
         <div class="footer-login">
