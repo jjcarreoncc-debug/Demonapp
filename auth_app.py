@@ -99,7 +99,7 @@ def validar_login(usuario, password):
     st.write(password_hash)
     
     if (
-        password_bd != password_ingresado
+        password_bd != password_ingresado        
         and password_bd != password_hash
     ):
         return None
