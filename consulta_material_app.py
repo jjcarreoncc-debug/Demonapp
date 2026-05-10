@@ -35,9 +35,12 @@ def consulta_material_app():
 
     with c1:
         filtro_codigo = st.text_input("Código material")
+
         filtro_categoria = st.selectbox(
             "Categoría",
-            ["Todas"] + sorted(df["Categoría"].dropna().astype(str).unique().tolist())
+            ["Todas"] + sorted(
+                df["Categoría"].dropna().astype(str).unique().tolist()
+            )
         )
 
     with c2:
@@ -47,11 +50,16 @@ def consulta_material_app():
     with c3:
         filtro_estatus = st.selectbox(
             "Estatus",
-            ["Todos"] + sorted(df["Estatus"].dropna().astype(str).unique().tolist())
+            ["Todos"] + sorted(
+                df["Estatus"].dropna().astype(str).unique().tolist()
+            )
         )
+
         filtro_unidad = st.selectbox(
             "Unidad base",
-            ["Todas"] + sorted(df["Unidad"].dropna().astype(str).unique().tolist())
+            ["Todas"] + sorted(
+                df["Unidad"].dropna().astype(str).unique().tolist()
+            )
         )
 
     df_filtrado = df.copy()
@@ -75,7 +83,9 @@ def consulta_material_app():
         ]
 
     if filtro_categoria != "Todas":
-        df_filtrado = df_filtrado[df_filtrado["Categoría"] == filtro_categoria]
+        df_filtrado = df_filtrado[
+            df_filtrado["Categoría"] == filtro_categoria
+        ]
 
     if filtro_familia:
         df_filtrado = df_filtrado[
@@ -87,10 +97,14 @@ def consulta_material_app():
         ]
 
     if filtro_estatus != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["Estatus"] == filtro_estatus]
+        df_filtrado = df_filtrado[
+            df_filtrado["Estatus"] == filtro_estatus
+        ]
 
     if filtro_unidad != "Todas":
-        df_filtrado = df_filtrado[df_filtrado["Unidad"] == filtro_unidad]
+        df_filtrado = df_filtrado[
+            df_filtrado["Unidad"] == filtro_unidad
+        ]
 
     st.markdown("---")
     st.subheader("📋 Resultados")
@@ -130,7 +144,9 @@ def consulta_material_app():
         df_filtrado["Código"].astype(str).tolist()
     )
 
-    fila = df_filtrado[df_filtrado["Código"].astype(str) == material].iloc[0]
+    fila = df_filtrado[
+        df_filtrado["Código"].astype(str) == material
+    ].iloc[0]
 
     c1, c2, c3 = st.columns(3)
 
@@ -148,134 +164,148 @@ def consulta_material_app():
 
     st.info(f"Descripción: {fila.get('Descripción', '')}")
 
-  
-    
-   # 
-   
-   #
+    # =========================================================
+    # DATOS LOGÍSTICOS
+    # =========================================================
+
     with st.expander("📦 Datos logísticos", expanded=True):
 
-    c1, c2, c3 = st.columns(3)
+        c1, c2, c3 = st.columns(3)
 
-    with c1:
-        st.metric("Peso", fila.get("peso", 0))
-        st.metric("Volumen", fila.get("volumen", 0))
+        with c1:
+            st.metric("Peso", fila.get("peso", 0))
+            st.metric("Volumen", fila.get("volumen", 0))
 
-    with c2:
-        st.metric("Largo", fila.get("largo", 0))
-        st.metric("Ancho", fila.get("ancho", 0))
+        with c2:
+            st.metric("Largo", fila.get("largo", 0))
+            st.metric("Ancho", fila.get("ancho", 0))
 
-    with c3:
-        st.metric("Alto", fila.get("alto", 0))
-        st.metric(
-            "Tipo almacenamiento",
-            fila.get("tipo_almacenamiento", "")
-        )
+        with c3:
+            st.metric("Alto", fila.get("alto", 0))
 
-with st.expander("💲 Datos comerciales"):
+            st.metric(
+                "Tipo almacenamiento",
+                fila.get("tipo_almacenamiento", "")
+            )
 
-    c1, c2, c3 = st.columns(3)
+    # =========================================================
+    # DATOS COMERCIALES
+    # =========================================================
 
-    with c1:
-        st.metric(
-            "Costo estándar",
-            fila.get("costo_estandar", 0)
-        )
+    with st.expander("💲 Datos comerciales"):
 
-        st.metric(
-            "Precio compra",
-            fila.get("precio_compra", 0)
-        )
+        c1, c2, c3 = st.columns(3)
 
-    with c2:
-        st.metric(
-            "Precio venta",
-            fila.get("precio_venta", 0)
-        )
+        with c1:
+            st.metric(
+                "Costo estándar",
+                fila.get("costo_estandar", 0)
+            )
 
-        st.metric(
-            "Moneda",
-            fila.get("moneda", "")
-        )
+            st.metric(
+                "Precio compra",
+                fila.get("precio_compra", 0)
+            )
 
-    with c3:
-        st.metric(
-            "Impuesto",
-            fila.get("impuesto", "")
-        )
+        with c2:
+            st.metric(
+                "Precio venta",
+                fila.get("precio_venta", 0)
+            )
 
-        st.metric(
-            "Margen %",
-            fila.get("margen_objetivo", 0)
-        )
-#
-with st.expander("📊 Inventario"):
+            st.metric(
+                "Moneda",
+                fila.get("moneda", "")
+            )
 
-    c1, c2, c3 = st.columns(3)
+        with c3:
+            st.metric(
+                "Impuesto",
+                fila.get("impuesto", "")
+            )
 
-    with c1:
-        st.metric(
-            "Stock mínimo",
-            fila.get("stock_minimo", 0)
-        )
+            st.metric(
+                "Margen %",
+                fila.get("margen_objetivo", 0)
+            )
 
-        st.metric(
-            "Stock máximo",
-            fila.get("stock_maximo", 0)
-        )
+    # =========================================================
+    # INVENTARIO
+    # =========================================================
 
-    with c2:
-        st.metric(
-            "Punto reorden",
-            fila.get("punto_reorden", 0)
-        )
+    with st.expander("📊 Inventario"):
 
-        st.metric(
-            "Lead time",
-            fila.get("lead_time", 0)
-        )
+        c1, c2, c3 = st.columns(3)
 
-    with c3:
-        st.metric(
-            "ABC",
-            fila.get("rotacion_abc", "")
-        )
+        with c1:
+            st.metric(
+                "Stock mínimo",
+                fila.get("stock_minimo", 0)
+            )
 
-        st.metric(
-            "Unidad base",
-            fila.get("unidad_base", "")
-        )
+            st.metric(
+                "Stock máximo",
+                fila.get("stock_maximo", 0)
+            )
 
-with st.expander("🔗 Integraciones"):
+        with c2:
+            st.metric(
+                "Punto reorden",
+                fila.get("punto_reorden", 0)
+            )
 
-    c1, c2 = st.columns(2)
+            st.metric(
+                "Lead time",
+                fila.get("lead_time", 0)
+            )
 
-    with c1:
-        st.text_input(
-            "Código barras",
-            value=fila.get("codigo_barras", ""),
-            disabled=True
-        )
+        with c3:
+            st.metric(
+                "ABC",
+                fila.get("rotacion_abc", "")
+            )
 
-        st.text_input(
-            "SKU base",
-            value=fila.get("sku_base", ""),
-            disabled=True
-        )
+            st.metric(
+                "Unidad base",
+                fila.get("unidad_base", "")
+            )
 
-    with c2:
-        st.text_input(
-            "Código SAP",
-            value=fila.get("codigo_sap", ""),
-            disabled=True
-        )
+    # =========================================================
+    # INTEGRACIONES
+    # =========================================================
 
-        st.text_input(
-            "Proveedor principal",
-            value=fila.get("proveedor_principal", ""),
-            disabled=True
-        ) 
-    
+    with st.expander("🔗 Integraciones"):
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+
+            st.text_input(
+                "Código barras",
+                value=fila.get("codigo_barras", ""),
+                disabled=True
+            )
+
+            st.text_input(
+                "SKU base",
+                value=fila.get("sku_base", ""),
+                disabled=True
+            )
+
+        with c2:
+
+            st.text_input(
+                "Código SAP",
+                value=fila.get("codigo_sap", ""),
+                disabled=True
+            )
+
+            st.text_input(
+                "Proveedor principal",
+                value=fila.get("proveedor_principal", ""),
+                disabled=True
+            )
+
     st.markdown("---")
 
     c1, c2, c3 = st.columns(3)
