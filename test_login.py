@@ -1,52 +1,97 @@
-import streamlit as st
+}import streamlit as st
 import pandas as pd
 
 from database import get_connection
 
 
-st.title("🔎 CONSULTA TABLAS CON DATOS")
+st.title("🔎 CONSULTA TOTAL TABLA USUARIOS")
 
 conn = get_connection()
 
-tablas = [
-    "usuarios",
-    "roles",
-    "modulos",
-    "permisos_roles"
-]
+# ==========================================
+# ESTRUCTURA
+# ==========================================
 
-for tabla in tablas:
+st.subheader("📘 Estructura tabla usuarios")
 
-    st.markdown("---")
-    st.subheader(f"📋 {tabla}")
+estructura_df = pd.read_sql_query(
+    """
+    PRAGMA table_info(usuarios)
+    """,
+    conn
+)
 
-    try:
+st.dataframe(
+    estructura_df,
+    use_container_width=True
+)
 
-        total_df = pd.read_sql_query(
-            f"SELECT COUNT(*) AS total FROM {tabla}",
-            conn
-        )
+# ==========================================
+# TODOS LOS DATOS
+# ==========================================
 
-        total = int(total_df["total"].iloc[0])
+st.subheader("📊 Datos completos usuarios")
 
-        st.metric(
-            "Total registros",
-            total
-        )
+usuarios_df = pd.read_sql_query(
+    """
+    SELECT *
+    FROM usuarios
+    """,
+    conn
+)
 
-        datos_df = pd.read_sql_query(
-            f"SELECT * FROM {tabla}",
-            conn
-        )
+st.dataframe(
+    usuarios_df,
+    use_container_width=True
+)
 
-        st.dataframe(
-            datos_df,
-            use_container_width=True
-        )
+# ==========================================
+# ROLES
+# ==========================================
 
-    except Exception as e:
+st.subheader("📊 Datos completos roles")
 
-        st.error(f"Error leyendo {tabla}")
-        st.exception(e)
+roles_df = pd.read_sql_query(
+    """
+    SELECT *
+    FROM roles
+    """,
+    conn
+)
+
+st.dataframe(
+    roles_df,
+    use_container_width=True
+)
+
+# ==========================================
+# JOIN USUARIO + ROL
+# ==========================================
+
+st.subheader("🔗 Usuarios + Roles")
+
+join_df = pd.read_sql_query(
+    """
+    SELECT
+        u.id_usuario,
+        u.usuario,
+        u.nombre,
+        u.email,
+        u.estado,
+        u.modulo_inicial,
+        r.id_rol,
+        r.nombre_rol,
+        r.descripcion
+    FROM usuarios u
+    LEFT JOIN roles r
+        ON u.id_rol = r.id_rol
+    """,
+    conn
+)
+
+st.dataframe(
+    join_df,
+    use_container_width=True
+)
 
 conn.close()
