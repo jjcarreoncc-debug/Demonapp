@@ -1,4 +1,5 @@
 import streamlit as st
+from mantenimiento_auditoria_app import consultar_auditoria_app
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
@@ -35,11 +36,9 @@ def mantenimiento_app():
     with st.sidebar:
 
         st.markdown("## 🛠️ Mantenimiento")
-        st.caption("Administración del sistema")
-        st.markdown("---")
 
         menu = st.radio(
-            "Menú principal",
+            "Módulo",
             [
                 "👥 Usuarios",
                 "🧩 Roles",
@@ -51,9 +50,8 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
-        st.markdown("---")
-
         if menu == "👥 Usuarios":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -66,6 +64,7 @@ def mantenimiento_app():
             )
 
         elif menu == "🧩 Roles":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -77,6 +76,7 @@ def mantenimiento_app():
             )
 
         elif menu == "🔐 Permisos":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -88,6 +88,7 @@ def mantenimiento_app():
             )
 
         elif menu == "🧱 Módulos":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -97,6 +98,7 @@ def mantenimiento_app():
             )
 
         elif menu == "📜 Auditoría":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -109,6 +111,7 @@ def mantenimiento_app():
             )
 
         elif menu == "⚙️ Configuración":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -120,41 +123,73 @@ def mantenimiento_app():
                 key="submenu_configuracion"
             )
 
-        st.markdown("---")
-        st.caption("SIGEM ERP")
+    st.caption(f"{menu} / {submenu}")
 
-    st.caption(f"Mantenimiento / {menu} / {submenu}")
+    if (
+        menu == "👥 Usuarios"
+        and submenu == "Crear usuario"
+    ):
 
-    if menu == "👥 Usuarios" and submenu == "Crear usuario":
         alta_usuario_app()
 
-    elif menu == "👥 Usuarios" and submenu == "Editar usuario":
+    elif (
+        menu == "👥 Usuarios"
+        and submenu == "Editar usuario"
+    ):
+
         editar_usuario_app()
 
-    elif menu == "👥 Usuarios" and submenu == "Consultar usuarios":
+    elif (
+        menu == "👥 Usuarios"
+        and submenu == "Consultar usuarios"
+    ):
+
         consultar_usuarios_app()
 
-    elif menu == "🧩 Roles" and submenu == "Asignar usuarios":
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Asignar usuarios"
+    ):
+
         asignar_roles_app()
 
-    elif menu == "🧩 Roles" and submenu == "Crear rol":
+    elif (
+        menu == "🧩 Roles"
+        and submenu == "Crear rol"
+    ):
+
         crear_rol_app()
 
-    elif menu == "🔐 Permisos" and submenu == "Permisos por módulo":
+    elif (
+        menu == "🔐 Permisos"
+        and submenu == "Permisos por módulo"
+    ):
+
         permisos_por_modulo_app()
 
-    elif menu == "🔐 Permisos" and submenu == "Permisos por rol":
+    elif (
+        menu == "🔐 Permisos"
+        and submenu == "Permisos por rol"
+    ):
+
         permisos_por_rol_app()
 
-    elif menu == "🧱 Módulos" and submenu == "Administrar módulos":
+    elif (
+        menu == "🧱 Módulos"
+        and submenu == "Administrar módulos"
+    ):
+
         administrar_modulos_app()
 
-    elif menu == "📜 Auditoría" and submenu == "Historial acciones":
+    elif (
+        menu == "📜 Auditoría"
+        and submenu == "Historial acciones"
+    ):
+
         consultar_auditoria_app()
 
     else:
-        st.info(f"Pantalla en construcción: {submenu}")
 
-
-if __name__ == "__main__":
-    mantenimiento_app()
+        st.info(
+            f"Pantalla en construcción: {submenu}"
+        )
