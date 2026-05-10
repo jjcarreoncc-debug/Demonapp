@@ -41,6 +41,7 @@ def validar_login(usuario, password):
     conn.close()
 
     if row is None:
+        st.write("DEBUG: usuario no encontrado")
         return None
 
     password_bd = str(row["password_hash"]).strip()
@@ -234,7 +235,9 @@ def login_app():
             )
 
         else:
-
+            st.write("DEBUG password_bd:", password_bd)
+            st.write("DEBUG password_ingresado:", password_ingresado)
+            st.write("DEBUG password_hash:", password_hash)
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
