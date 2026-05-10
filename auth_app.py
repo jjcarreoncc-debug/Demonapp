@@ -31,7 +31,7 @@ def login_app():
 def logout_app():
     st.sidebar.button("Salir") 
     
- logout_app()
+logout_app()
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
