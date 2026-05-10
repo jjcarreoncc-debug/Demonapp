@@ -148,9 +148,134 @@ def consulta_material_app():
 
     st.info(f"Descripción: {fila.get('Descripción', '')}")
 
-    with st.expander("Ver datos completos"):
-        st.json(fila.to_dict())
+  
+    
+   # 
+   
+   #
+    with st.expander("📦 Datos logísticos", expanded=True):
 
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric("Peso", fila.get("peso", 0))
+        st.metric("Volumen", fila.get("volumen", 0))
+
+    with c2:
+        st.metric("Largo", fila.get("largo", 0))
+        st.metric("Ancho", fila.get("ancho", 0))
+
+    with c3:
+        st.metric("Alto", fila.get("alto", 0))
+        st.metric(
+            "Tipo almacenamiento",
+            fila.get("tipo_almacenamiento", "")
+        )
+
+with st.expander("💲 Datos comerciales"):
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric(
+            "Costo estándar",
+            fila.get("costo_estandar", 0)
+        )
+
+        st.metric(
+            "Precio compra",
+            fila.get("precio_compra", 0)
+        )
+
+    with c2:
+        st.metric(
+            "Precio venta",
+            fila.get("precio_venta", 0)
+        )
+
+        st.metric(
+            "Moneda",
+            fila.get("moneda", "")
+        )
+
+    with c3:
+        st.metric(
+            "Impuesto",
+            fila.get("impuesto", "")
+        )
+
+        st.metric(
+            "Margen %",
+            fila.get("margen_objetivo", 0)
+        )
+
+with st.expander("📊 Inventario"):
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric(
+            "Stock mínimo",
+            fila.get("stock_minimo", 0)
+        )
+
+        st.metric(
+            "Stock máximo",
+            fila.get("stock_maximo", 0)
+        )
+
+    with c2:
+        st.metric(
+            "Punto reorden",
+            fila.get("punto_reorden", 0)
+        )
+
+        st.metric(
+            "Lead time",
+            fila.get("lead_time", 0)
+        )
+
+    with c3:
+        st.metric(
+            "ABC",
+            fila.get("rotacion_abc", "")
+        )
+
+        st.metric(
+            "Unidad base",
+            fila.get("unidad_base", "")
+        )
+
+with st.expander("🔗 Integraciones"):
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.text_input(
+            "Código barras",
+            value=fila.get("codigo_barras", ""),
+            disabled=True
+        )
+
+        st.text_input(
+            "SKU base",
+            value=fila.get("sku_base", ""),
+            disabled=True
+        )
+
+    with c2:
+        st.text_input(
+            "Código SAP",
+            value=fila.get("codigo_sap", ""),
+            disabled=True
+        )
+
+        st.text_input(
+            "Proveedor principal",
+            value=fila.get("proveedor_principal", ""),
+            disabled=True
+        ) 
+    
     st.markdown("---")
 
     c1, c2, c3 = st.columns(3)
