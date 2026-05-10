@@ -27,7 +27,7 @@ st.session_state.rol = "Administrador"
 # NUEVO SIGEM PRINCIPAL
 # =========================
 
-ruta = sidebar_dinamico()
+#ruta = sidebar_dinamico()
 
 ruta = "inventarios"
 
