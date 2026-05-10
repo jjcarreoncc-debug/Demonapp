@@ -3,78 +3,57 @@ import streamlit as st
 import sqlite3
 from pathlib import Path
 
+
+st.title("🧪 Buscar base con usuarios")
+
 BASE_DIR = Path(__file__).resolve().parent
 
+st.write("Carpeta:")
+st.code(str(BASE_DIR))
 
-def buscar_db_con_usuarios():
-    for db_file in BASE_DIR.glob("*.db"):
-        try:
-            conn = sqlite3.connect(db_file)
-            cursor = conn.cursor()
+dbs = list(BASE_DIR.glob("*.db"))
 
-            cursor.execute("""
-                SELECT name
-                FROM sqlite_master
-                WHERE type='table'
-                AND name='usuarios'
-            """)
+st.write("Bases encontradas:")
+for db in dbs:
+    st.write(db.name)
 
-            existe = cursor.fetchone() is not None
-            conn.close()
+st.markdown("---")
 
-            if existe:
-                return str(db_file)
-
-        except Exception:
-            pass
-
-    return str(BASE_DIR / "erp.db")
-
-
-DB_PATH = buscar_db_con_usuarios()
-
-
-def validar_login(usuario, password):
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-
-    usuario_normalizado = str(usuario).strip().upper()
-    password_normalizado = str(password).strip()
+for db in dbs:
+    st.subheader(f"📂 {db.name}")
 
     try:
-        row = cursor.execute(
-            """
-            SELECT
-                u.usuario,
-                u.nombre,
-                u.password_hash,
-                u.estado,
-                r.nombre_rol AS rol
-            FROM usuarios u
-            LEFT JOIN roles r
-                ON u.id_rol = r.id_rol
-            WHERE TRIM(UPPER(u.usuario)) = ?
-            """,
-            (usuario_normalizado,)
-        ).fetchone()
+        conn = sqlite3.connect(db)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        tablas = cursor.execute("""
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
+            ORDER BY name
+        """).fetchall()
+
+        nombres_tablas = [t["name"] for t in tablas]
+
+        st.write("Tablas:")
+        st.write(nombres_tablas)
+
+        if "usuarios" in nombres_tablas:
+            st.success("✅ Esta base tiene usuarios")
+
+            usuarios = cursor.execute("""
+                SELECT usuario, nombre, password_hash, estado, id_rol
+                FROM usuarios
+            """).fetchall()
+
+            for u in usuarios:
+                st.write(dict(u))
+        else:
+            st.warning("No tiene tabla usuarios")
+
+        conn.close()
 
     except Exception as e:
-        conn.close()
-        st.error("❌ Error consultando usuario")
-        st.write("BD usada:", DB_PATH)
+        st.error("Error leyendo base")
         st.exception(e)
-        return None
-
-    conn.close()
-
-    if row is None:
-        return None
-
-    password_bd = str(row["password_hash"]).strip()
-    password_hash = hash_password(password_normalizado)
-
-    if password_bd != password_normalizado and password_bd != password_hash:
-        return None
-
-    return row
