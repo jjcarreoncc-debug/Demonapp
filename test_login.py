@@ -4,22 +4,72 @@ import pandas as pd
 from database import get_connection
 
 
-st.title("🔎 VER TABLAS DISPONIBLES")
+st.title("🔎 DATOS TABLA USUARIOS")
 
 conn = get_connection()
 
-tablas_df = pd.read_sql_query(
+# ==========================================
+# USUARIOS
+# ==========================================
+
+usuarios_df = pd.read_sql_query(
     """
-    SELECT name AS tabla
-    FROM sqlite_master
-    WHERE type='table'
-    ORDER BY name
+    SELECT *
+    FROM usuarios
     """,
     conn
 )
 
+st.subheader("📊 TABLA USUARIOS")
+
 st.dataframe(
-    tablas_df,
+    usuarios_df,
+    use_container_width=True
+)
+
+# ==========================================
+# ROLES
+# ==========================================
+
+roles_df = pd.read_sql_query(
+    """
+    SELECT *
+    FROM roles
+    """,
+    conn
+)
+
+st.subheader("📊 TABLA ROLES")
+
+st.dataframe(
+    roles_df,
+    use_container_width=True
+)
+
+# ==========================================
+# JOIN
+# ==========================================
+
+join_df = pd.read_sql_query(
+    """
+    SELECT
+        u.id_usuario,
+        u.usuario,
+        u.nombre,
+        u.email,
+        u.estado,
+        r.nombre_rol
+    FROM usuarios u
+    LEFT JOIN roles r
+        ON u.id_rol = r.id_rol
+    """,
+    conn
+)
+
+st.subheader("🔗 USUARIOS + ROLES")
+
+st.dataframe(
+    join_df,
     use_container_width=True
 )
 
