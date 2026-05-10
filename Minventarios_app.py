@@ -1,7 +1,6 @@
 import streamlit as st
 
 from menu_dinamico import sidebar_dinamico
-from inventarios_app import inventarios_app
 from compras_app import compras_app
 from logistica_app import logistica_app
 from wms_app import wms_app
@@ -36,8 +35,16 @@ if ruta == "inicio":
 
 elif ruta == "inventarios":
     st.title("📦 Inventarios")
-    inventarios_app()
+    
+    if ruta == "inventarios":
 
+    st.title("📦  Modulo de Inventarios")
+
+    from sidebar_inventarios import sidebar_inventarios
+
+    opcion_inv = sidebar_inventarios()
+
+    st.write("Opción seleccionada:", opcion_inv)
 elif ruta == "compras":
     st.title("🛒 Compras")
     compras_app()
