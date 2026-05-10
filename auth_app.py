@@ -45,7 +45,8 @@ def validar_login(usuario, password):
     if row is None:
         return None
 
-    password_bd = str(row[2]).strip()
+    #password_bd = str(row[2]).strip()
+    password_bd = str(row["password_hash"]).strip()
     password_ingresado = str(password).strip()
     password_hash = hash_password(password_ingresado)
 
@@ -231,9 +232,9 @@ def login_app():
 
         else:
             st.session_state.autenticado = True
-            st.session_state.usuario = resultado[0]
-            st.session_state.nombre = resultado[1]
-            st.session_state.rol = resultado[4]
+            st.session_state.usuario = resultado["usuario"]
+            st.session_state.nombre = resultado["nombre"]
+            st.session_state.rol = resultado["rol"]
 
             st.success("✅ Login correcto")
             st.rerun()
