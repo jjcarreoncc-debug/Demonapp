@@ -60,9 +60,9 @@ if "rol" not in st.session_state:
 # =========================
 
 if not st.session_state.autenticado:
-    login_app()
+ #   login_app()
  #   st.stop()
-logout_app()
+#logout_app()
 
 # =========================
 # NUEVO SIGEM PRINCIPAL
