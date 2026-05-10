@@ -3,21 +3,32 @@ import pandas as pd
 import sqlite3
 
 
+DB_NAME = "materiales.db"
+
+
 def consulta_material_app():
 
     st.title("🔍 Consulta de materiales")
 
-    conn = sqlite3.connect("materiales.db")
+    try:
 
-    query = """
-        SELECT *
-        FROM materiales
-        ORDER BY codigo_material
-    """
+        conn = sqlite3.connect(DB_NAME)
 
-    df = pd.read_sql_query(query, conn)
+        query = """
+            SELECT *
+            FROM materiales
+            ORDER BY codigo_material
+        """
 
-    conn.close()
+        df = pd.read_sql_query(query, conn)
+
+        conn.close()
+
+    except Exception as e:
+
+        st.error("❌ Error consultando materiales")
+        st.exception(e)
+        return
 
     if df.empty:
         st.warning("No hay materiales registrados")
@@ -36,6 +47,8 @@ def consulta_material_app():
         "stock_maximo": "Stock máximo",
         "rotacion_abc": "ABC"
     })
+
+    st.subheader("📋 Materiales")
 
     st.dataframe(
         df,
@@ -71,3 +84,7 @@ def consulta_material_app():
         st.metric("Stock máximo", fila.get("Stock máximo", 0))
 
     st.info(f"Descripción: {fila.get('Descripción', '')}")
+
+
+if __name__ == "__main__":
+    consulta_material_app()
