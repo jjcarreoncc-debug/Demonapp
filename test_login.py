@@ -1,82 +1,49 @@
 from database import get_connection
 
 
-def mostrar_estructura(cur, tabla):
+conn = get_connection()
+cur = conn.cursor()
 
-    print("\n==============================")
-    print(f"ESTRUCTURA TABLA: {tabla}")
-    print("==============================")
+print("\n===== TABLAS =====")
 
-    try:
+cur.execute("""
+    SELECT name
+    FROM sqlite_master
+    WHERE type='table'
+""")
 
-        cur.execute(f"PRAGMA table_info({tabla})")
-
-        columnas = cur.fetchall()
-
-        for col in columnas:
-            print(col)
-
-        if not columnas:
-            print("(sin columnas)")
-
-    except Exception as e:
-
-        print(f"ERROR: {e}")
+for row in cur.fetchall():
+    print(row)
 
 
-def mostrar_datos(cur, tabla):
+print("\n===== TOTAL MATERIALES =====")
 
-    print("\n==============================")
-    print(f"DATOS TABLA: {tabla}")
-    print("==============================")
+cur.execute("""
+    SELECT COUNT(*)
+    FROM materiales
+""")
 
-    try:
-
-        cur.execute(f"SELECT * FROM {tabla}")
-
-        filas = cur.fetchall()
-
-        for fila in filas:
-            print(fila)
-
-        if not filas:
-            print("(vacía)")
-
-    except Exception as e:
-
-        print(f"ERROR: {e}")
+print(cur.fetchone())
 
 
-def main():
+print("\n===== MATERIALES =====")
 
-    print("\n===================================")
-    print("DIAGNOSTICO BASE DE DATOS SIGEM")
-    print("===================================")
+cur.execute("""
+    SELECT
+        codigo_material,
+        descripcion,
+        categoria,
+        estatus
+    FROM materiales
+    LIMIT 20
+""")
 
-    conn = get_connection()
+rows = cur.fetchall()
 
-    cur = conn.cursor()
-
-    tablas = [
-        "roles",
-        "modulos",
-        "permisos_roles",
-        "usuarios"
-    ]
-
-    for tabla in tablas:
-
-        mostrar_estructura(cur, tabla)
-
-        mostrar_datos(cur, tabla)
-
-    conn.close()
-
-    print("\n===================================")
-    print("DIAGNOSTICO TERMINADO")
-    print("===================================")
+for row in rows:
+    print(dict(row))
 
 
-if __name__ == "__main__":
+conn.close()
 
-    main()
+print("\n===== FIN TEST =====")
