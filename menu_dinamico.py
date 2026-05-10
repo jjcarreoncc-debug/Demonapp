@@ -31,19 +31,20 @@ def sidebar_dinamico():
 
     conn.close()
 
+    if menu_df.empty:
+        st.sidebar.warning("No hay módulos asignados a este rol.")
+        return "inicio"
+
     menu_df["nombre_modulo"] = menu_df["nombre_modulo"].astype(str).str.strip()
     menu_df["ruta"] = menu_df["ruta"].astype(str).str.strip()
 
     menu_df = (
         menu_df
         .sort_values("orden_menu")
-        .drop_duplicates(subset=["ruta"])
+        .drop_duplicates(subset=["nombre_modulo"])
     )
 
     opciones = menu_df["nombre_modulo"].tolist()
-
-    if not opciones:
-        opciones = ["Inicio"]
 
     if "menu" not in st.session_state:
         st.session_state.menu = opciones[0]
@@ -52,7 +53,6 @@ def sidebar_dinamico():
         st.session_state.menu = opciones[0]
 
     with st.sidebar:
-
         st.title("📌 Navegación")
 
         menu = st.radio(
@@ -62,14 +62,17 @@ def sidebar_dinamico():
         )
 
     st.session_state.menu = menu
-    #
+
     fila = menu_df[menu_df["nombre_modulo"] == menu]
 
     if fila.empty:
         st.error(f"No encontré ruta para el módulo: {menu}")
-        return None
-    
+        return "inicio"
+
     ruta = fila["ruta"].iloc[0]
-    return ruta
-    ruta = fila["ruta"].iloc[0]
+
+    if ruta in ["", "None", "nan"]:
+        st.error(f"El módulo '{menu}' no tiene ruta configurada.")
+        return "inicio"
+
     return ruta
