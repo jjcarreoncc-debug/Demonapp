@@ -1,30 +1,42 @@
-import sqlite3
+import streamlit as st
 import pandas as pd
+from database import get_connection
 
-conn = sqlite3.connect("sigem.db")
+st.title("🔎 TEST estructura BD")
 
-print("ROLES")
-print(
-    pd.read_sql_query(
-        "PRAGMA table_info(roles)",
+conn = get_connection()
+
+tablas = [
+    "usuarios",
+    "roles",
+    "modulos",
+    "permisos_roles"
+]
+
+for tabla in tablas:
+
+    st.subheader(f"📋 {tabla}")
+
+    estructura = pd.read_sql_query(
+        f"PRAGMA table_info({tabla})",
         conn
     )
-)
 
-print("PERMISOS_ROLES")
-print(
-    pd.read_sql_query(
-        "PRAGMA table_info(permisos_roles)",
+    st.write("Estructura")
+    st.dataframe(
+        estructura,
+        use_container_width=True
+    )
+
+    datos = pd.read_sql_query(
+        f"SELECT * FROM {tabla} LIMIT 50",
         conn
     )
-)
 
-print("MODULOS")
-print(
-    pd.read_sql_query(
-        "PRAGMA table_info(modulos)",
-        conn
+    st.write("Datos")
+    st.dataframe(
+        datos,
+        use_container_width=True
     )
-)
 
 conn.close()
