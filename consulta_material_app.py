@@ -145,9 +145,27 @@ def consulta_material_app():
     with c3:
         st.metric("ABC", fila.get("ABC", ""))
         st.metric("Stock máx.", fila.get("Stock máximo", 0))
-
+     
     st.info(f"Descripción: {fila.get('Descripción', '')}")
+ 
+    with st.expander("📦 Datos logísticos", expanded=True):
 
+        c1, c2, c3 = st.columns(3)
+
+        with c1:
+            st.metric("Peso", fila.get("peso", 0))
+            st.metric("Volumen", fila.get("volumen", 0))
+
+        with c2:
+            st.metric("Largo", fila.get("largo", 0))
+            st.metric("Ancho", fila.get("ancho", 0))
+
+        with c3:
+            st.metric("Alto", fila.get("alto", 0))
+            st.metric(
+                "Tipo almacenamiento",
+                fila.get("tipo_almacenamiento", "")
+            )
   
     
    # #
