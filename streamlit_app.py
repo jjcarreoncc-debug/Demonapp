@@ -82,9 +82,16 @@ flujo = st.sidebar.radio(
 # NUEVO SIGEM
 # =========================
 
+if "ruta" not in st.session_state:
+    st.session_state.ruta = "Inicio"
+if "rol" not in st.session_state:
+    st.session_state.rol = "Usuario"    
+# =========================
+# ESTILOS (LIMPIO + IMAGEN)
+# =========================
 if flujo == "Nuevo SIGEM":
 
-        ruta = sidebar_dinamico()
+    ruta = sidebar_dinamico()
 
     if ruta == "inicio":
         pantalla_inicio()
@@ -103,15 +110,7 @@ if flujo == "Nuevo SIGEM":
 
     elif ruta == "logistica":
         st.title("🚚 Logística")
-
-if "ruta" not in st.session_state:
-    st.session_state.ruta = "Inicio"
-if "rol" not in st.session_state:
-    st.session_state.rol = "Usuario"    
-# =========================
-# ESTILOS (LIMPIO + IMAGEN)
-# =========================
-
+        
 st.markdown("""
 <style>
 
