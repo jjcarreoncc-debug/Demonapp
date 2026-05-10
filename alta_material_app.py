@@ -1,5 +1,6 @@
 
 import streamlit as st
+from materiales_db import insertar_material
 
 
 def alta_material_app():
@@ -284,15 +285,49 @@ def alta_material_app():
         )
 
         if guardar:
-
-            st.success(
-                "✅ Material listo para guardar."
-            )
-
-            st.write({
+            data = {
                 "codigo_material": codigo_material,
                 "descripcion": descripcion,
+                "descripcion_larga": descripcion_larga,
                 "categoria": categoria,
+                "familia": familia,
+                "marca": marca,
+                "tipo_material": tipo_material,
+                "estatus": estatus,
                 "unidad_base": unidad_base,
-                "estatus": estatus
-            })
+                "controla_lote": controla_lote,
+                "controla_serie": controla_serie,
+                "peso": peso,
+                "volumen": volumen,
+                "largo": largo,
+                "ancho": ancho,
+                "alto": alto,
+                "tipo_almacenamiento": tipo_almacenamiento,
+                "almacen_default": almacen_default,
+                "ubicacion_default": ubicacion_default,
+                "rotacion_abc": rotacion_abc,
+                "costo_estandar": costo_estandar,
+                "precio_compra": precio_compra,
+                "precio_venta": precio_venta,
+                "moneda": moneda,
+                "impuesto": impuesto,
+                "margen_objetivo": margen_objetivo,
+                "stock_minimo": stock_minimo,
+                "stock_maximo": stock_maximo,
+                "punto_reorden": punto_reorden,
+                "lead_time": lead_time,
+                "permite_negativo": permite_negativo,
+                "requiere_inspeccion": requiere_inspeccion,
+                "codigo_barras": codigo_barras,
+                "sku_base": sku_base,
+                "codigo_sap": codigo_sap,
+                "proveedor_principal": proveedor_principal,
+                "usuario_creacion": st.session_state.get("usuario", "admin")
+            }
+
+            try:
+                insertar_material(data)
+                st.success("✅ Material guardado correctamente en base de datos.")
+            except Exception as e:
+                st.error(f"❌ Error al guardar material: {e}") 
+           
