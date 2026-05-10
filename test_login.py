@@ -3,19 +3,32 @@ from database import get_connection
 
 def mostrar_estructura(cur, tabla):
 
-    print(f"\n===== ESTRUCTURA {tabla} =====")
+    print(f"\n==============================")
+    print(f"ESTRUCTURA TABLA: {tabla}")
+    print("==============================")
 
-    cur.execute(f"PRAGMA table_info({tabla})")
+    try:
 
-    columnas = cur.fetchall()
+        cur.execute(f"PRAGMA table_info({tabla})")
 
-    for col in columnas:
-        print(col)
+        columnas = cur.fetchall()
+
+        for col in columnas:
+            print(col)
+
+        if not columnas:
+            print("(sin columnas)")
+
+    except Exception as e:
+
+        print(f"ERROR: {e}")
 
 
 def mostrar_datos(cur, tabla):
 
-    print(f"\n===== DATOS {tabla} =====")
+    print(f"\n==============================")
+    print(f"DATOS TABLA: {tabla}")
+    print("==============================")
 
     try:
 
@@ -31,10 +44,14 @@ def mostrar_datos(cur, tabla):
 
     except Exception as e:
 
-        print(e)
+        print(f"ERROR: {e}")
 
 
 def main():
+
+    print("\n===================================")
+    print("DIAGNOSTICO BASE DE DATOS SIGEM")
+    print("===================================")
 
     conn = get_connection()
 
@@ -55,7 +72,9 @@ def main():
 
     conn.close()
 
-    print("\n✅ Diagnóstico terminado")
+    print("\n===================================")
+    print("DIAGNOSTICO TERMINADO")
+    print("===================================")
 
 
 if __name__ == "__main__":
