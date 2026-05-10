@@ -42,46 +42,33 @@ def get_base64_image(image_path):
 
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
-
 def validar_login(usuario, password):
 
-    conn = get_connection()
-    st.write("BD usada:", conn.execute("PRAGMA database_list").fetchall()) 
-    
-    info_bd = conn.execute("PRAGMA database_list").fetchall()
+    import sqlite3
+    from pathlib import Path
 
-    for bd in info_bd:
-        st.write(dict(bd))
+    DB_PATH = Path(__file__).resolve().parent / "erp.db"
 
-    
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+
     cursor = conn.cursor()
 
-    try:
-
-        row = cursor.execute(
-            """
-            SELECT
-                u.usuario,
-                u.nombre,
-                u.password_hash,
-                u.estado,
-                COALESCE(r.nombre_rol, 'SIN_ROL') AS rol
-            FROM usuarios u
-            LEFT JOIN roles r
-                ON u.id_rol = r.id_rol
-            WHERE UPPER(u.usuario) = UPPER(?)
-            """,
-            (usuario,)
-        ).fetchone()
-
-    except Exception as e:
-
-        conn.close()
-
-        st.error("❌ Error consultando usuario")
-        st.exception(e)
-
-        return None
+    row = cursor.execute(
+        """
+        SELECT
+            u.usuario,
+            u.nombre,
+            u.password_hash,
+            u.estado,
+            r.nombre_rol AS rol
+        FROM usuarios u
+        LEFT JOIN roles r
+            ON u.id_rol = r.id_rol
+        WHERE UPPER(u.usuario) = UPPER(?)
+        """,
+        (usuario.strip(),)
+    ).fetchone()
 
     conn.close()
 
@@ -93,19 +80,14 @@ def validar_login(usuario, password):
     password_ingresado = str(password).strip()
 
     password_hash = hash_password(password_ingresado)
-    
-    st.write(password_bd)
-    st.write(password_ingresado)
-    st.write(password_hash)
-    
+
     if (
-        password_bd != password_ingresado        
+        password_bd != password_ingresado
         and password_bd != password_hash
     ):
         return None
 
     return row
-
 def login_app():
     bg_image = get_base64_image("logofondo.JPG")
     sigem_logo = get_base64_image("logo1.png")
