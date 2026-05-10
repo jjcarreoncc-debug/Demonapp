@@ -3,51 +3,45 @@ import pandas as pd
 import sqlite3
 
 
-def prueba_tabla_materiales():
+def prueba_base_completa():
 
-    st.title("🧪 Prueba tabla materiales")
+    st.title("🧪 Prueba completa de base de datos")
 
     try:
-
-        # CAMBIA EL NOMBRE SI TU BD SE LLAMA DIFERENTE
         conn = sqlite3.connect("materiales.db")
-
         cursor = conn.cursor()
 
-        # VER TABLAS EXISTENTES
         cursor.execute("""
             SELECT name
             FROM sqlite_master
             WHERE type='table'
+            ORDER BY name
         """)
 
-        tablas = cursor.fetchall()
+        tablas = [t[0] for t in cursor.fetchall()]
 
         st.subheader("📂 Tablas encontradas")
         st.write(tablas)
 
-        # CONSULTAR REGISTROS
-        query = "SELECT * FROM materiales"
+        if not tablas:
+            st.warning("No hay tablas en esta base de datos.")
+            return
 
-        df = pd.read_sql_query(query, conn)
+        for tabla in tablas:
+            st.markdown("---")
+            st.subheader(f"📋 Tabla: {tabla}")
 
-        st.subheader("📊 Total registros")
-        st.success(f"Registros encontrados: {len(df)}")
+            df = pd.read_sql_query(f"SELECT * FROM {tabla}", conn)
 
-        st.subheader("📋 Datos")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+            st.success(f"Registros encontrados: {len(df)}")
+            st.dataframe(df, use_container_width=True)
 
         conn.close()
 
     except Exception as e:
-
         st.error("❌ Error al consultar la base")
         st.exception(e)
 
 
 if __name__ == "__main__":
-    prueba_tabla_materiales()
+    prueba_base_completa()
