@@ -31,9 +31,27 @@ def sidebar_dinamico():
 
     conn.close()
 
+    #if menu_df.empty:
+    #    st.sidebar.warning("No hay módulos asignados a este rol.")
+    #   return "inicio"
     if menu_df.empty:
-        st.sidebar.warning("No hay módulos asignados a este rol.")
-        return "inicio"
+    opciones = ["Inventarios", "Compras", "Logística", "WMS", "Mantenimiento"]
+
+    menu = st.sidebar.radio(
+        "Menú SIGEM",
+        opciones,
+        key="menu_sigem_fijo"
+    )
+
+    rutas = {
+        "Inventarios": "inventarios",
+        "Compras": "compras",
+        "Logística": "logistica",
+        "WMS": "wms",
+        "Mantenimiento": "mantenimiento"
+    }
+
+    return rutas[menu]
 
     menu_df["nombre_modulo"] = menu_df["nombre_modulo"].astype(str).str.strip()
     menu_df["ruta"] = menu_df["ruta"].astype(str).str.strip()
