@@ -401,6 +401,14 @@ elif ruta == "datos_maestros":
     st.title("📘 Datos Maestros")
 
 elif ruta == "inventarios":
+
+    from sidebar_inventarios import sidebar_inventarios
+
+    opcion_inv = sidebar_inventarios()
+
+    
+    st.write("Opción seleccionada:", opcion_inv)
+    
     st.title("📦 Inventarios")
 
 elif ruta == "compras":
