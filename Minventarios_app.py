@@ -29,6 +29,8 @@ st.session_state.rol = "Administrador"
 
 ruta = sidebar_dinamico()
 
+ruta = "inventarios"
+
 if ruta == "inicio":
     st.empty()
 
