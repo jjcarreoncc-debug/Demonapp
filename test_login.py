@@ -1,14 +1,13 @@
+import streamlit as st
 import sqlite3
 import pandas as pd
-import streamlit as st
 
 conn = sqlite3.connect("erp.db")
 
-df = pd.read_sql_query(
-    "SELECT name FROM sqlite_master WHERE type='table'",
-    conn
-)
+st.subheader("Columnas usuarios")
+st.dataframe(pd.read_sql_query("PRAGMA table_info(usuarios)", conn))
 
-st.write(df)
+st.subheader("Columnas roles")
+st.dataframe(pd.read_sql_query("PRAGMA table_info(roles)", conn))
 
 conn.close()
