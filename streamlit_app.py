@@ -59,9 +59,54 @@ if "rol" not in st.session_state:
     st.stop()
 logout_app()
 
-transaccion = sidebar_sge()
+# =========================
+# LOGIN
+# =========================
 
-st.write("TRANSACCIÓN:", transaccion)
+if not st.session_state.autenticado:
+    login_app()
+    st.stop()
+
+logout_app()
+
+
+# =========================
+# SELECTOR DE FLUJO
+# =========================
+
+st.sidebar.markdown("---")
+
+flujo = st.sidebar.radio(
+    "Modo de trabajo",
+    ["Flujo actual", "Nuevo SIGEM"],
+    key="flujo_sistema"
+)
+
+# =========================
+# NUEVO SIGEM
+# =========================
+
+if flujo == "Nuevo SIGEM":
+
+    ruta = sidebar_dinamico()
+
+    if ruta == "inicio":
+        pantalla_inicio()
+
+    elif ruta == "datos_maestros":
+        st.title("📘 Datos Maestros")
+
+    elif ruta == "inventarios":
+        st.title("📦 Inventarios")
+
+    elif ruta == "compras":
+        st.title("🛒 Compras")
+
+    elif ruta == "ventas":
+        st.title("💰 Ventas")
+
+    elif ruta == "logistica":
+        st.title("🚚 Logística")
 
 if "ruta" not in st.session_state:
     st.session_state.ruta = "Inicio"
