@@ -336,7 +336,7 @@ elif ruta == "logistica":
 else:
     st.warning(f"Ruta no configurada: {ruta}") #
 
-
+st.stop()
 
 ######
 ### TEMPORALMENTE
