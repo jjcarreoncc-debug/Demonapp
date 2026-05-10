@@ -27,21 +27,20 @@ from mantenimiento_modulos_app import (
 
 def mantenimiento_app():
 
-    # =====================================================
-    # SIDEBAR CORPORATIVO
-    # =====================================================
+    st.title("🛠️ Mantenimiento")
+
+    if "menu_mantenimiento" not in st.session_state:
+        st.session_state.menu_mantenimiento = "👥 Usuarios"
 
     with st.sidebar:
 
         st.markdown("## 🛠️ Mantenimiento")
         st.caption("Administración del sistema")
-
         st.markdown("---")
 
         menu = st.radio(
             "Menú principal",
             [
-                "🏠 Inicio",
                 "👥 Usuarios",
                 "🧩 Roles",
                 "🔐 Permisos",
@@ -54,12 +53,9 @@ def mantenimiento_app():
 
         st.markdown("---")
 
-        submenu = None
-
         if menu == "👥 Usuarios":
-
             submenu = st.radio(
-                "Usuarios",
+                "Opciones",
                 [
                     "Crear usuario",
                     "Editar usuario",
@@ -70,9 +66,8 @@ def mantenimiento_app():
             )
 
         elif menu == "🧩 Roles":
-
             submenu = st.radio(
-                "Roles",
+                "Opciones",
                 [
                     "Crear rol",
                     "Editar rol",
@@ -82,9 +77,8 @@ def mantenimiento_app():
             )
 
         elif menu == "🔐 Permisos":
-
             submenu = st.radio(
-                "Permisos",
+                "Opciones",
                 [
                     "Permisos por módulo",
                     "Permisos por rol",
@@ -94,9 +88,8 @@ def mantenimiento_app():
             )
 
         elif menu == "🧱 Módulos":
-
             submenu = st.radio(
-                "Módulos",
+                "Opciones",
                 [
                     "Administrar módulos"
                 ],
@@ -104,9 +97,8 @@ def mantenimiento_app():
             )
 
         elif menu == "📜 Auditoría":
-
             submenu = st.radio(
-                "Auditoría",
+                "Opciones",
                 [
                     "Inicios sesión",
                     "Cambios usuarios",
@@ -117,9 +109,8 @@ def mantenimiento_app():
             )
 
         elif menu == "⚙️ Configuración":
-
             submenu = st.radio(
-                "Configuración",
+                "Opciones",
                 [
                     "Variables sistema",
                     "Parámetros",
@@ -132,124 +123,37 @@ def mantenimiento_app():
         st.markdown("---")
         st.caption("SIGEM ERP")
 
-    # =====================================================
-    # HOME
-    # =====================================================
+    st.caption(f"Mantenimiento / {menu} / {submenu}")
 
-    if menu == "🏠 Inicio":
-
-        st.title("🛠️ Mantenimiento")
-
-        st.info(
-            "Seleccione una opción del menú lateral."
-        )
-
-        return
-
-    # =====================================================
-    # HEADER
-    # =====================================================
-
-    st.title("🛠️ Mantenimiento")
-
-    st.caption(
-        f"Mantenimiento / {menu} / {submenu}"
-    )
-
-    st.markdown("---")
-
-    # =====================================================
-    # USUARIOS
-    # =====================================================
-
-    if (
-        menu == "👥 Usuarios"
-        and submenu == "Crear usuario"
-    ):
-
+    if menu == "👥 Usuarios" and submenu == "Crear usuario":
         alta_usuario_app()
 
-    elif (
-        menu == "👥 Usuarios"
-        and submenu == "Editar usuario"
-    ):
-
+    elif menu == "👥 Usuarios" and submenu == "Editar usuario":
         editar_usuario_app()
 
-    elif (
-        menu == "👥 Usuarios"
-        and submenu == "Consultar usuarios"
-    ):
-
+    elif menu == "👥 Usuarios" and submenu == "Consultar usuarios":
         consultar_usuarios_app()
 
-    # =====================================================
-    # ROLES
-    # =====================================================
-
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Crear rol"
-    ):
-
-        crear_rol_app()
-
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Asignar usuarios"
-    ):
-
+    elif menu == "🧩 Roles" and submenu == "Asignar usuarios":
         asignar_roles_app()
 
-    # =====================================================
-    # PERMISOS
-    # =====================================================
+    elif menu == "🧩 Roles" and submenu == "Crear rol":
+        crear_rol_app()
 
-    elif (
-        menu == "🔐 Permisos"
-        and submenu == "Permisos por módulo"
-    ):
-
+    elif menu == "🔐 Permisos" and submenu == "Permisos por módulo":
         permisos_por_modulo_app()
 
-    elif (
-        menu == "🔐 Permisos"
-        and submenu == "Permisos por rol"
-    ):
-
+    elif menu == "🔐 Permisos" and submenu == "Permisos por rol":
         permisos_por_rol_app()
 
-    # =====================================================
-    # MODULOS
-    # =====================================================
-
-    elif (
-        menu == "🧱 Módulos"
-        and submenu == "Administrar módulos"
-    ):
-
+    elif menu == "🧱 Módulos" and submenu == "Administrar módulos":
         administrar_modulos_app()
 
-    # =====================================================
-    # AUDITORIA
-    # =====================================================
-
-    elif (
-        menu == "📜 Auditoría"
-        and submenu == "Historial acciones"
-    ):
-
+    elif menu == "📜 Auditoría" and submenu == "Historial acciones":
         consultar_auditoria_app()
 
-    # =====================================================
-    # DEFAULT
-    # =====================================================
-
     else:
-
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
+        st.info(f"Pantalla en construcción: {submenu}")
 
 
 if __name__ == "__main__":
