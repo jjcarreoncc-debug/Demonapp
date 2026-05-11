@@ -17,10 +17,6 @@ from mantenimiento_permisos_app import (
     permisos_por_rol_app
 )
 
-from mantenimiento_auditoria_app import (
-    consultar_auditoria_app
-)
-
 from mantenimiento_modulos_app import (
     administrar_modulos_app
 )
@@ -50,6 +46,9 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
+        # =========================
+        # USUARIOS
+        # =========================
         if menu == "👥 Usuarios":
 
             submenu = st.radio(
@@ -63,6 +62,9 @@ def mantenimiento_app():
                 key="submenu_usuarios"
             )
 
+        # =========================
+        # ROLES
+        # =========================
         elif menu == "🧩 Roles":
 
             submenu = st.radio(
@@ -75,6 +77,9 @@ def mantenimiento_app():
                 key="submenu_roles"
             )
 
+        # =========================
+        # PERMISOS
+        # =========================
         elif menu == "🔐 Permisos":
 
             submenu = st.radio(
@@ -87,6 +92,9 @@ def mantenimiento_app():
                 key="submenu_permisos"
             )
 
+        # =========================
+        # MODULOS
+        # =========================
         elif menu == "🧱 Módulos":
 
             submenu = st.radio(
@@ -97,6 +105,9 @@ def mantenimiento_app():
                 key="submenu_modulos"
             )
 
+        # =========================
+        # AUDITORIA
+        # =========================
         elif menu == "📜 Auditoría":
 
             submenu = st.radio(
@@ -110,21 +121,28 @@ def mantenimiento_app():
                 key="submenu_auditoria"
             )
 
+        # =========================
+        # CONFIGURACION
+        # =========================
         elif menu == "⚙️ Configuración":
 
-             submenu = st.radio(
-                 "Opciones",
-                 [
-                     "Variables sistema",
-                     "Parámetros",
-                     "Colores",
-                     "Branding",
-                     "Actualización de tablas"
-                 ],
-                 key="submenu_configuracion"
+            submenu = st.radio(
+                "Opciones",
+                [
+                    "Variables sistema",
+                    "Parámetros",
+                    "Colores",
+                    "Branding",
+                    "Actualización de tablas"
+                ],
+                key="submenu_configuracion"
             )
+
     st.caption(f"{menu} / {submenu}")
 
+    # =========================
+    # USUARIOS
+    # =========================
     if (
         menu == "👥 Usuarios"
         and submenu == "Crear usuario"
@@ -146,6 +164,9 @@ def mantenimiento_app():
 
         consultar_usuarios_app()
 
+    # =========================
+    # ROLES
+    # =========================
     elif (
         menu == "🧩 Roles"
         and submenu == "Asignar usuarios"
@@ -160,6 +181,9 @@ def mantenimiento_app():
 
         crear_rol_app()
 
+    # =========================
+    # PERMISOS
+    # =========================
     elif (
         menu == "🔐 Permisos"
         and submenu == "Permisos por módulo"
@@ -174,6 +198,9 @@ def mantenimiento_app():
 
         permisos_por_rol_app()
 
+    # =========================
+    # MODULOS
+    # =========================
     elif (
         menu == "🧱 Módulos"
         and submenu == "Administrar módulos"
@@ -181,6 +208,9 @@ def mantenimiento_app():
 
         administrar_modulos_app()
 
+    # =========================
+    # AUDITORIA
+    # =========================
     elif (
         menu == "📜 Auditoría"
         and submenu == "Historial acciones"
@@ -188,11 +218,9 @@ def mantenimiento_app():
 
         consultar_auditoria_app()
 
-    else:
-
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
+    # =========================
+    # CONFIGURACION
+    # =========================
     elif (
         menu == "⚙️ Configuración"
         and submenu == "Actualización de tablas"
@@ -202,4 +230,13 @@ def mantenimiento_app():
 
         st.info(
             "Aquí se configurarán las rutas y bases de datos por módulo."
-    )
+        )
+
+    # =========================
+    # DEFAULT
+    # =========================
+    else:
+
+        st.info(
+            f"Pantalla en construcción: {submenu}"
+        )
