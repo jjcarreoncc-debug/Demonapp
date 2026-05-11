@@ -1,6 +1,7 @@
 import streamlit as st
 from mantenimiento_auditoria_app import consultar_auditoria_app
 from crear_tablas_app import crear_tablas_app
+streamlit run sigem_central_app.py
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
@@ -126,6 +127,7 @@ def mantenimiento_app():
                     "Branding",
                     "Actualización de tablas",
                     "Carga tablas inicial"
+                    "Crea  tablas inicial"
                 ],
                 key="submenu_configuracion"
             )
@@ -165,5 +167,13 @@ def mantenimiento_app():
     elif menu == "⚙️ Configuración" and submenu == "Carga tablas inicial":
         carga_tablas_inicial_app()
 
+    elif (
+        menu == "⚙️ Configuración"
+        and submenu == "🗄️ Crear tablas"
+    ):
+
+    crear_tablas_app()
+
+    
     else:
         st.info(f"Pantalla en construcción: {submenu}")
