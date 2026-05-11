@@ -62,6 +62,26 @@ with st.sidebar:
 # =====================================
 if modulo == "🛒 Compras":
 
+    with st.sidebar:
+
+        st.markdown("---")
+
+        st.markdown("### 🛒 Compras")
+
+        st.session_state.menu_compras = st.radio(
+            "Menú compras",
+            [
+                "📊 Dashboard",
+                "📦 Productos",
+                "🏢 Proveedores",
+                "📈 Analítica",
+                "🏬 Bodegas",
+                "💰 Costos",
+                "📋 Detalle"
+            ],
+            key="sidebar_compras"
+        )
+
     compras_app()
 
 elif modulo == "🚚 Logística":
