@@ -1,69 +1,45 @@
 import streamlit as st
-import pandas as pd
 import sqlite3
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
 
+st.title("🧪 Diagnóstico bases de datos")
 
-def buscar_db_usuarios():
-    for db_path in BASE_DIR.glob("*.db"):
-        try:
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
+st.write("Carpeta actual:")
+st.code(str(BASE_DIR))
 
-            cursor.execute("""
-                SELECT name
-                FROM sqlite_master
-                WHERE type='table'
-                AND name='usuarios'
-            """)
+st.subheader("Archivos .db encontrados")
 
-            existe = cursor.fetchone() is not None
-            conn.close()
+dbs = list(BASE_DIR.glob("*.db"))
 
-            if existe:
-                return db_path
+if not dbs:
+    st.error("No encontré archivos .db en esta carpeta.")
 
-        except Exception:
-            pass
+for db in dbs:
+    st.markdown("---")
+    st.write(f"📂 {db.name}")
+    st.write(f"Ruta: {db}")
+    st.write(f"Tamaño: {db.stat().st_size} bytes")
 
-    return None
+    try:
+        conn = sqlite3.connect(db)
+        cursor = conn.cursor()
 
+        cursor.execute("""
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
+            ORDER BY name
+        """)
 
-def leer_tabla(conn, tabla):
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT * FROM {tabla}")
-    filas = cursor.fetchall()
-    columnas = [desc[0] for desc in cursor.description]
-    return pd.DataFrame(filas, columns=columnas)
+        tablas = [t[0] for t in cursor.fetchall()]
+        conn.close()
 
+        st.write("Tablas:")
+        st.write(tablas)
 
-def reporte_usuarios_app():
-
-    st.title("👥 Reporte de usuarios")
-
-    db_path = buscar_db_usuarios()
-
-    if db_path is None:
-        st.error("❌ No encontré ninguna base con tabla usuarios.")
-        return
-
-    st.success(f"✅ Base encontrada: {db_path}")
-
-    conn = sqlite3.connect(db_path)
-
-    st.subheader("📋 Usuarios")
-    df_usuarios = leer_tabla(conn, "usuarios")
-    st.dataframe(df_usuarios, use_container_width=True, hide_index=True)
-
-    st.subheader("🧩 Roles")
-    df_roles = leer_tabla(conn, "roles")
-    st.dataframe(df_roles, use_container_width=True, hide_index=True)
-
-    conn.close()
-
-
-if __name__ == "__main__":
-    reporte_usuarios_app()
+    except Exception as e:
+        st.error("Error leyendo base")
+        st.exception(e)
