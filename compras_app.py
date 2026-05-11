@@ -105,7 +105,7 @@ def compras_app():
         bodegas is not None,
         segmentacion is not None
     ])
-
+#
     if carga_automatica_ok:
         st.success("✅ Datos de compras cargados automáticamente desde GitHub.")
 
