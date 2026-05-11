@@ -33,6 +33,9 @@ def validar_login(usuario, password):
 
     st.write("👤 Usuario limpio:")
     st.code(usuario_limpio)
+    st.write("👤 pass  limpio:")
+    st.code(password_limpio)
+
 
     try:
         st.write("📋 Leyendo tablas existentes...")
