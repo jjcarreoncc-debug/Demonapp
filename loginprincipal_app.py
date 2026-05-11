@@ -1,18 +1,19 @@
-
 import streamlit as st
-import hashlib
 import base64
 import sqlite3
 from pathlib import Path
 
+from inventarios_app import inventarios_app
+from carga_app import carga_app
+from compras_app import compras_app
+from logistica_app import logistica_app
+from wms_app import wms_app
+from mantenimiento_app import mantenimiento_app
+from menu_dinamico import sidebar_dinamico
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = str(BASE_DIR / "erp.db")
-
-
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+DB_PATH = BASE_DIR / "erp.db"
 
 
 def get_base64_image(image_path):
@@ -23,16 +24,15 @@ def get_base64_image(image_path):
 
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
-#
+
+
 def validar_login(usuario, password):
-    DB_PATH_LOGIN = Path(__file__).resolve().parent / "erp.db"
-
-    st.write("BD usada login:")
-    st.code(str(DB_PATH_LOGIN))
-
-    conn = sqlite3.connect(DB_PATH_LOGIN)
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
+
+    usuario_limpio = str(usuario).strip().upper()
+    password_limpio = str(password).strip()
 
     try:
         row = cursor.execute(
@@ -44,14 +44,14 @@ def validar_login(usuario, password):
                 estado,
                 id_rol
             FROM usuarios
-            WHERE TRIM(UPPER(usuario)) = TRIM(UPPER(?))
+            WHERE TRIM(UPPER(usuario)) = ?
             """,
-            (usuario,)
+            (usuario_limpio,)
         ).fetchone()
 
     except Exception as e:
         conn.close()
-        st.error("❌ Error SQL login")
+        st.error("❌ Error consultando usuario")
         st.exception(e)
         return None
 
@@ -62,36 +62,13 @@ def validar_login(usuario, password):
         return None
 
     password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
 
-    if password_bd != password_ingresado and password_bd != password_hash:
-        st.error("❌ Password no coincide")
+    if password_bd != password_limpio:
+        st.error("❌ Contraseña incorrecta")
         return None
 
-    return {
-        "usuario": row["usuario"],
-        "nombre": row["nombre"],
-        "rol": str(row["id_rol"])
-    }    
-    password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
-
-    st.write("Usuario encontrado:", row["usuario"])
-    st.write("Password BD:", password_bd)
-    st.write("Password ingresado:", password_ingresado)
-
-    if password_bd != password_ingresado and password_bd != password_hash:
-        st.error("❌ Password no coincide")
-        return None
-
-    return row
-
-    password_bd = str(row["password_hash"]).strip()
-    password_hash = hash_password(password_normalizado)
-
-    if password_bd != password_normalizado and password_bd != password_hash:
+    if str(row["estado"]).strip().upper() != "ACTIVO":
+        st.error("❌ Usuario inactivo")
         return None
 
     return row
@@ -165,7 +142,6 @@ def login_app():
         color: white;
         margin-top: 5px;
         margin-bottom: 5px;
-        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .login-subtitle {{
@@ -173,7 +149,6 @@ def login_app():
         font-size: 18px;
         color: white;
         margin-bottom: 30px;
-        text-shadow: 0 5px 20px rgba(0,0,0,0.40);
     }}
 
     .stTextInput {{
@@ -189,7 +164,6 @@ def login_app():
     .stTextInput > div > div > input {{
         border-radius: 14px;
         height: 55px;
-        border: 1px solid rgba(255,255,255,0.18);
         background: rgba(0,0,0,0.38);
         color: white;
         font-size: 16px;
@@ -211,11 +185,6 @@ def login_app():
         font-weight: 700;
         border: none;
         margin-top: 15px;
-    }}
-
-    div.stButton > button:hover {{
-        background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
-        color: white !important;
     }}
 
     .footer-login {{
@@ -261,13 +230,11 @@ def login_app():
     if st.button("Ingresar", key="btn_login_sigem"):
         resultado = validar_login(usuario, password)
 
-        if resultado is None:
-            st.error("❌ Usuario o contraseña incorrectos")
-        else:
+        if resultado is not None:
             st.session_state.autenticado = True
             st.session_state.usuario = resultado["usuario"]
             st.session_state.nombre = resultado["nombre"]
-            st.session_state.rol = resultado["rol"]
+            st.session_state.rol = resultado["id_rol"]
 
             st.success("✅ Login correcto")
             st.rerun()
@@ -300,14 +267,6 @@ if not st.session_state.autenticado:
     st.stop()
 
 logout_app()
-
-from inventarios_app import inventarios_app
-from carga_app import carga_app
-from compras_app import compras_app
-from logistica_app import logistica_app
-from wms_app import wms_app
-from mantenimiento_app import mantenimiento_app
-from menu_dinamico import sidebar_dinamico
 
 ruta = sidebar_dinamico()
 
