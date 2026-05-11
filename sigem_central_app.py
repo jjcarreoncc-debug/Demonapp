@@ -23,11 +23,22 @@ if "modulo_central" not in st.session_state:
 
 with st.sidebar:
 
+    # =========================
+    # LOGO SIGEM
+    # =========================
+    st.image(
+        "https://cdn-icons-png.flaticon.com/512/1055/1055687.png",
+        width=70
+    )
+
     st.markdown("## 🏢 SIGEM")
-    st.caption("Menú central")
+    st.caption("ERP Corporativo")
 
     st.markdown("---")
 
+    # =========================
+    # MENU CENTRAL
+    # =========================
     st.session_state.modulo_central = st.radio(
         "Módulos",
         [
@@ -39,10 +50,14 @@ with st.sidebar:
     )
 
     st.markdown("---")
+
     st.caption(f"👤 {st.session_state.nombre}")
     st.caption("SIGEM ERP")
 
 
+# =========================
+# ROUTER CENTRAL
+# =========================
 if st.session_state.modulo_central == "📦 Minventarios":
 
     inventarios_app()
