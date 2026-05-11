@@ -1,5 +1,6 @@
 from datetime import datetime
-from database import get_connection
+
+from sigem_db import get_materiales_connection
 
 
 def crear_tabla_materiales():
