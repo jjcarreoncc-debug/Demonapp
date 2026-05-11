@@ -70,7 +70,7 @@ with st.sidebar:
             st.session_state.modulo_analitico = "logistica"
             st.session_state.menu_logistica = "📊 Dashboard Ejecutivo"
 
-        if st.button("📦 Operación", use_container_width=True, key="btn_logistica_operacion">
+        if st.button("📦 Operación", use_container_width=True, key="btn_logistica_operacion">)
             st.session_state.modulo_analitico = "logistica"
             st.session_state.menu_logistica = "📦 Operación"
 
