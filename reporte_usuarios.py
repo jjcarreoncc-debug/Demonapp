@@ -13,35 +13,31 @@ def reporte_usuarios_app():
 
     conn = sqlite3.connect(DB_PATH)
 
-    query = """
-        SELECT
-            u.id_usuario,
-            u.usuario,
-            u.nombre,
-            u.email,
-            u.estado,
-            u.id_rol,
-            r.nombre_rol,
-            u.modulo_inicial,
-            u.fecha_creacion,
-            u.ultimo_login
-        FROM usuarios u
-        LEFT JOIN roles r
-            ON u.id_rol = r.id_rol
-        ORDER BY u.id_usuario
-    """
+    st.caption(f"BD usada: {DB_PATH}")
 
-    df = pd.read_sql_query(query, conn)
+    try:
+        df_usuarios = pd.read_sql_query("SELECT * FROM usuarios", conn)
+        df_roles = pd.read_sql_query("SELECT * FROM roles", conn)
 
-    conn.close()
+        st.success(f"Usuarios encontrados: {len(df_usuarios)}")
 
-    st.success(f"Usuarios encontrados: {len(df)}")
+        if "id_rol" in df_usuarios.columns and "id_rol" in df_roles.columns:
+            df = df_usuarios.merge(
+                df_roles[["id_rol", "nombre_rol"]],
+                on="id_rol",
+                how="left"
+            )
+        else:
+            df = df_usuarios
 
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True
-    )
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+    except Exception as e:
+        st.error("❌ Error generando reporte")
+        st.exception(e)
+
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
