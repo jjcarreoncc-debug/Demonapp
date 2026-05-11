@@ -1,3 +1,4 @@
+import streamlit as st
 from materiales_db import insertar_material
 
 
@@ -103,11 +104,12 @@ for material in materiales_demo:
 
         insertar_material(material)
 
-        print(f"OK -> {material['codigo_material']}")
-
+        
+        st.success(f"OK -> {material['codigo_material']}")
     except Exception as e:
 
         print(f"ERROR -> {material['codigo_material']} -> {e}")
 
+st.success("Carga finalizada")
 
-print("Carga finalizada")
+
