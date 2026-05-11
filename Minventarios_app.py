@@ -7,6 +7,7 @@ from sidebar_inventarios import sidebar_inventarios
 from alta_material_app import alta_material_app
 from baja_material_app import baja_material_app
 from consulta_material_app import consulta_material_app
+from entrada_compras_app import entrada_compras_app
 
 # from alta_sku_app import alta_sku_app
 # from baja_sku_app import baja_sku_app
@@ -39,6 +40,9 @@ def inventarios_app():
 
     elif opcion_inv == "Consulta de SKU":
         st.info("Pantalla Consulta de SKU en construcción")
+        
+    elif opcion_inv == "Registrar entrada compra":
+        entrada_compras_app()    
 
     else:
         st.title(opcion_inv)
