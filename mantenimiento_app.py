@@ -25,6 +25,11 @@ from mantenimiento_actualizacion_tablas_app import (
     actualizacion_tablas_app
 )
 
+from carga_tablas_inicial_app import (
+    carga_tablas_inicial_app
+)
+
+
 def mantenimiento_app():
 
     st.title("🛠️ Mantenimiento")
@@ -49,9 +54,6 @@ def mantenimiento_app():
             key="menu_mantenimiento"
         )
 
-        # =========================
-        # USUARIOS
-        # =========================
         if menu == "👥 Usuarios":
 
             submenu = st.radio(
@@ -65,9 +67,6 @@ def mantenimiento_app():
                 key="submenu_usuarios"
             )
 
-        # =========================
-        # ROLES
-        # =========================
         elif menu == "🧩 Roles":
 
             submenu = st.radio(
@@ -80,9 +79,6 @@ def mantenimiento_app():
                 key="submenu_roles"
             )
 
-        # =========================
-        # PERMISOS
-        # =========================
         elif menu == "🔐 Permisos":
 
             submenu = st.radio(
@@ -95,9 +91,6 @@ def mantenimiento_app():
                 key="submenu_permisos"
             )
 
-        # =========================
-        # MODULOS
-        # =========================
         elif menu == "🧱 Módulos":
 
             submenu = st.radio(
@@ -108,9 +101,6 @@ def mantenimiento_app():
                 key="submenu_modulos"
             )
 
-        # =========================
-        # AUDITORIA
-        # =========================
         elif menu == "📜 Auditoría":
 
             submenu = st.radio(
@@ -124,9 +114,6 @@ def mantenimiento_app():
                 key="submenu_auditoria"
             )
 
-        # =========================
-        # CONFIGURACION
-        # =========================
         elif menu == "⚙️ Configuración":
 
             submenu = st.radio(
@@ -136,111 +123,46 @@ def mantenimiento_app():
                     "Parámetros",
                     "Colores",
                     "Branding",
-                    "Actualización de tablas"
+                    "Actualización de tablas",
+                    "Carga tablas inicial"
                 ],
                 key="submenu_configuracion"
             )
 
     st.caption(f"{menu} / {submenu}")
 
-    # =========================
-    # USUARIOS
-    # =========================
-    if (
-        menu == "👥 Usuarios"
-        and submenu == "Crear usuario"
-    ):
-
+    if menu == "👥 Usuarios" and submenu == "Crear usuario":
         alta_usuario_app()
 
-    elif (
-        menu == "👥 Usuarios"
-        and submenu == "Editar usuario"
-    ):
-
+    elif menu == "👥 Usuarios" and submenu == "Editar usuario":
         editar_usuario_app()
 
-    elif (
-        menu == "👥 Usuarios"
-        and submenu == "Consultar usuarios"
-    ):
-
+    elif menu == "👥 Usuarios" and submenu == "Consultar usuarios":
         consultar_usuarios_app()
 
-    # =========================
-    # ROLES
-    # =========================
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Asignar usuarios"
-    ):
-
+    elif menu == "🧩 Roles" and submenu == "Asignar usuarios":
         asignar_roles_app()
 
-    elif (
-        menu == "🧩 Roles"
-        and submenu == "Crear rol"
-    ):
-
+    elif menu == "🧩 Roles" and submenu == "Crear rol":
         crear_rol_app()
 
-    # =========================
-    # PERMISOS
-    # =========================
-    elif (
-        menu == "🔐 Permisos"
-        and submenu == "Permisos por módulo"
-    ):
-
+    elif menu == "🔐 Permisos" and submenu == "Permisos por módulo":
         permisos_por_modulo_app()
 
-    elif (
-        menu == "🔐 Permisos"
-        and submenu == "Permisos por rol"
-    ):
-
+    elif menu == "🔐 Permisos" and submenu == "Permisos por rol":
         permisos_por_rol_app()
 
-    # =========================
-    # MODULOS
-    # =========================
-    elif (
-        menu == "🧱 Módulos"
-        and submenu == "Administrar módulos"
-    ):
-
+    elif menu == "🧱 Módulos" and submenu == "Administrar módulos":
         administrar_modulos_app()
 
-    # =========================
-    # AUDITORIA
-    # =========================
-    elif (
-        menu == "📜 Auditoría"
-        and submenu == "Historial acciones"
-    ):
-
+    elif menu == "📜 Auditoría" and submenu == "Historial acciones":
         consultar_auditoria_app()
 
-    # =========================
-    # CONFIGURACION
-    # =========================
-    elif (
-        menu == "⚙️ Configuración"
-        and submenu == "Actualización de tablas"
-    ):
-
-        st.subheader("🗄️ Actualización de tablas")
+    elif menu == "⚙️ Configuración" and submenu == "Actualización de tablas":
         actualizacion_tablas_app()
 
-        st.info(
-            "Aquí se configurarán las rutas y bases de datos por módulo."
-        )
+    elif menu == "⚙️ Configuración" and submenu == "Carga tablas inicial":
+        carga_tablas_inicial_app()
 
-    # =========================
-    # DEFAULT
-    # =========================
     else:
-
-        st.info(
-            f"Pantalla en construcción: {submenu}"
-        )
+        st.info(f"Pantalla en construcción: {submenu}")
