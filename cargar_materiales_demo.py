@@ -6,7 +6,7 @@ materiales_demo = [
     {
         "codigo_material": "MAT-001",
         "descripcion": "Laptop Dell Latitude",
-        "descripcion_larga": "Laptop corporativa Dell Latitude 14 pulgadas",
+        "descripcion_larga": "Laptop corporativa Dell Latitude",
         "categoria": "Tecnología",
         "familia": "Computo",
         "marca": "Dell",
@@ -79,53 +79,12 @@ materiales_demo = [
         "sku_base": "SKU-002",
         "codigo_sap": "SAP-002",
         "proveedor_principal": "Logitech"
-    },
-
-    {
-        "codigo_material": "MAT-003",
-        "descripcion": "Teclado HP",
-        "descripcion_larga": "Teclado USB HP",
-        "categoria": "Tecnología",
-        "familia": "Accesorios",
-        "marca": "HP",
-        "tipo_material": "Producto",
-        "estatus": "Activo",
-        "unidad_base": "PZA",
-        "controla_lote": False,
-        "controla_serie": False,
-        "peso": 0.6,
-        "volumen": 0.01,
-        "largo": 45,
-        "ancho": 15,
-        "alto": 4,
-        "tipo_almacenamiento": "Rack",
-        "almacen_default": "ALM-TEC",
-        "ubicacion_default": "A3",
-        "rotacion_abc": "B",
-        "costo_estandar": 400,
-        "precio_compra": 350,
-        "precio_venta": 550,
-        "moneda": "MXN",
-        "impuesto": "IVA",
-        "margen_objetivo": 25,
-        "stock_minimo": 15,
-        "stock_maximo": 100,
-        "punto_reorden": 25,
-        "lead_time": 5,
-        "permite_negativo": False,
-        "requiere_inspeccion": False,
-        "codigo_barras": "750000000003",
-        "sku_base": "SKU-003",
-        "codigo_sap": "SAP-003",
-        "proveedor_principal": "HP"
     }
+
 ]
 
 
-# =========================
-# DUPLICAR HASTA 10
-# =========================
-for i in range(4, 11):
+for i in range(3, 11):
 
     nuevo = materiales_demo[1].copy()
 
@@ -138,14 +97,12 @@ for i in range(4, 11):
     materiales_demo.append(nuevo)
 
 
-# =========================
-# INSERTAR
-# =========================
 for material in materiales_demo:
 
     try:
 
         insertar_material(material)
+
         print(f"OK -> {material['codigo_material']}")
 
     except Exception as e:
@@ -154,16 +111,3 @@ for material in materiales_demo:
 
 
 print("Carga finalizada")
-```
-
-Guárdalo como:
-
-```text
-cargar_materiales_demo.py
-```
-
-Y ejecútalo con:
-
-```bash
-python cargar_materiales_demo.py
-```
