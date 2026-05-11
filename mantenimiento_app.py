@@ -193,3 +193,13 @@ def mantenimiento_app():
         st.info(
             f"Pantalla en construcción: {submenu}"
         )
+    elif (
+        menu == "⚙️ Configuración"
+        and submenu == "Actualización de tablas"
+    ):
+
+        st.subheader("🗄️ Actualización de tablas")
+
+        st.info(
+            "Aquí se configurarán las rutas y bases de datos por módulo."
+    )
