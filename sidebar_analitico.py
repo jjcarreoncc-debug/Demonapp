@@ -27,7 +27,9 @@ if "menu_compras" not in st.session_state:
 if "menu_logistica" not in st.session_state:
     st.session_state.menu_logistica = "📊 Dashboard Ejecutivo"
 
-
+if "menu_wms" not in st.session_state:
+    st.session_state.menu_wms = "📊 Dashboard Ejecutivo"
+    
 with st.sidebar:
 
     st.markdown("## 🏢 SIGEM")
