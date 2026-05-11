@@ -68,27 +68,10 @@ def compras_app():
 
     st.title("🛒 Compras")
 
-    with st.sidebar:
-        st.markdown("## 🛒 Compras")
-        st.caption("Gestión de compras")
-        st.markdown("---")
-
-        vista = st.radio(
-            "Menú compras",
-            [
-                "📊 Dashboard",
-                "📦 Productos",
-                "🏢 Proveedores",
-                "📈 Analítica",
-                "🏬 Bodegas",
-                "💰 Costos",
-                "📋 Detalle"
-            ],
-            key="menu_compras"
-        )
-
-        st.markdown("---")
-        st.caption("SIGEM ERP")
+    vista = st.session_state.get(
+        "menu_compras",
+        "📊 Dashboard"
+    )
 
     (
         compras,
@@ -105,7 +88,7 @@ def compras_app():
         bodegas is not None,
         segmentacion is not None
     ])
-#
+
     if carga_automatica_ok:
         st.success("✅ Datos de compras cargados automáticamente desde GitHub.")
 
@@ -180,31 +163,15 @@ def compras_app():
 
     if "NUMERO_PRODUCTO" in df.columns and "NUMERO_PRODUCTO" in productos.columns:
         df = df.merge(productos, on="NUMERO_PRODUCTO", how="left")
-    else:
-        st.warning("No se pudo cruzar Productos porque falta NUMERO_PRODUCTO.")
-        st.write("Columnas compras:", list(df.columns))
-        st.write("Columnas productos:", list(productos.columns))
 
     if "ID_PROVEEDOR" in df.columns and "ID_PROVEEDOR" in proveedores.columns:
         df = df.merge(proveedores, on="ID_PROVEEDOR", how="left")
-    else:
-        st.warning("No se pudo cruzar Proveedores porque falta ID_PROVEEDOR.")
-        st.write("Columnas df:", list(df.columns))
-        st.write("Columnas proveedores:", list(proveedores.columns))
 
     if "ID_BODEGA" in df.columns and "ID_BODEGA" in bodegas.columns:
         df = df.merge(bodegas, on="ID_BODEGA", how="left")
-    else:
-        st.warning("No se pudo cruzar Bodegas porque falta ID_BODEGA.")
-        st.write("Columnas df:", list(df.columns))
-        st.write("Columnas bodegas:", list(bodegas.columns))
 
     if "NUMERO_PRODUCTO" in df.columns and "NUMERO_PRODUCTO" in segmentacion.columns:
         df = df.merge(segmentacion, on="NUMERO_PRODUCTO", how="left")
-    else:
-        st.warning("No se pudo cruzar Segmentación porque falta NUMERO_PRODUCTO.")
-        st.write("Columnas df:", list(df.columns))
-        st.write("Columnas segmentacion:", list(segmentacion.columns))
 
     st.markdown("---")
     st.caption(f"Ruta: Compras / {vista}")
@@ -233,8 +200,10 @@ def compras_app():
         st.dataframe(df, use_container_width=True)
 
     elif vista == "📈 Analítica":
+
         try:
             from compras_analitica_app import compras_analitica_app
+
             compras_analitica_app(df)
 
         except Exception as e:
