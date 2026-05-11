@@ -1,20 +1,5 @@
 import streamlit as st
 
-def simular_login():
-
-    st.session_state.autenticado = True
-
-    st.session_state.usuario = "JCERVANTES"
-
-    st.session_state.nombre = "JOSE JUANCERVANTES"
-
-    st.session_state.rol = 1
-
-    st.session_state.perfil = "ALL"
-
-import streamlit as st
-
-
 from inventarios_app import inventarios_app
 from compras_app import compras_app
 from logistica_app import logistica_app
@@ -28,26 +13,35 @@ def simular_login():
     st.session_state.nombre = "JOSE JUANCERVANTES"
     st.session_state.rol = 1
     st.session_state.perfil = "ALL"
+    st.session_state.menu_mantenimiento = "🏠 Inicio"
 
 
 simular_login()
 
-ruta = sidebar_dinamico()
+st.sidebar.title("📦 MENÚ TEMPORAL")
 
-if ruta == "inventarios":
+opcion = st.sidebar.radio(
+    "Selecciona módulo",
+    [
+        "Inventarios",
+        "Compras",
+        "Logística",
+        "WMS",
+        "Mantenimiento"
+    ]
+)
+
+if opcion == "Inventarios":
     inventarios_app()
 
-elif ruta == "compras":
+elif opcion == "Compras":
     compras_app()
 
-elif ruta == "logistica":
+elif opcion == "Logística":
     logistica_app()
 
-elif ruta == "wms":
+elif opcion == "WMS":
     wms_app()
 
-elif ruta == "mantenimiento":
+elif opcion == "Mantenimiento":
     mantenimiento_app()
-
-else:
-    st.info("Selecciona una opción del menú.")
