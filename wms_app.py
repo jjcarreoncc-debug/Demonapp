@@ -9,20 +9,22 @@ from wms_graficas_app import wms_graficas_app
 from wms_carga_datos import cargar_datos_wms
 
 
-# =========================
-# CSS
-# =========================
 def aplicar_css_wms():
 
     st.markdown("""
     <style>
+    section[data-testid="stFileUploader"] {
+        background-color: #f5f7fa;
+        padding: 16px;
+        border-radius: 14px;
+        border-left: 6px solid #16a085;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 18px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 
-# =========================
-# APP WMS
-# =========================
 def wms_app():
 
     aplicar_css_wms()
@@ -55,29 +57,5 @@ def wms_app():
     ])
 
     if not carga_ok:
-
-        st.warning(
-            "⚠️ Error cargando archivos WMS."
-        )
-
+        st.warning("⚠️ Error cargando archivos WMS.")
         return
-
-    st.success(
-        "✅ Datos WMS cargados correctamente."
-    )
-
-    st.markdown("---")
-    st.caption(f"Ruta: WMS / {vista}")
-
-    # =========================
-    # DASHBOARD
-    # =========================
-    if vista == "📊 Dashboard Ejecutivo":
-
-        tab1, tab2, tab3 = st.tabs([
-            "📊 Dashboard",
-            "📌 Indicadores",
-            "📈 Gráficas"
-        ])
-
-        with tab1:
