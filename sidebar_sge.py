@@ -25,6 +25,46 @@ def sidebar_sge():
         ):
 
             # =====================================
+            # ENTRADAS
+            # =====================================
+
+            with st.expander(
+                "📥 Entradas",
+                expanded=True
+            ):
+
+                with st.expander(
+                    "🛒 Compra",
+                    expanded=False
+                ):
+
+                    if st.button(
+                        "SGE-CO-EN-RE-001 Registrar entrada compra"
+                    ):
+                        st.session_state.transaccion_sge = (
+                            "SGE-CO-EN-RE-001"
+                        )
+
+                    if st.button(
+                        "SGE-CO-EN-CO-002 Consultar entradas compra"
+                    ):
+                        st.session_state.transaccion_sge = (
+                            "SGE-CO-EN-CO-002"
+                        )
+
+                with st.expander(
+                    "⚖️ Ajuste",
+                    expanded=False
+                ):
+
+                    if st.button(
+                        "SGE-IN-AJ-RE-001 Registrar ajuste inventario"
+                    ):
+                        st.session_state.transaccion_sge = (
+                            "SGE-IN-AJ-RE-001"
+                        )
+
+            # =====================================
             # INVENTARIOS
             # =====================================
 
