@@ -27,7 +27,7 @@ with st.sidebar:
     # LOGO SIGEM
     # =========================
     st.image(
-        logo1.png",
+        "logo1.png",
         width=100
     )
 
