@@ -14,7 +14,7 @@ def simular_login():
 
 import streamlit as st
 
-from loginprincipal_app import sidebar_dinamico
+
 from inventarios_app import inventarios_app
 from compras_app import compras_app
 from logistica_app import logistica_app
