@@ -1,45 +1,47 @@
 import streamlit as st
 import sqlite3
+import pandas as pd
 from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "erp.db"
 
-st.title("🧪 Diagnóstico bases de datos")
 
-st.write("Carpeta actual:")
-st.code(str(BASE_DIR))
+st.title("📊 Reporte de base ERP")
 
-st.subheader("Archivos .db encontrados")
+st.write("Ruta:")
+st.code(str(DB_PATH))
 
-dbs = list(BASE_DIR.glob("*.db"))
+st.write("Existe:")
+st.write(DB_PATH.exists())
 
-if not dbs:
-    st.error("No encontré archivos .db en esta carpeta.")
+if DB_PATH.exists():
+    st.write("Tamaño bytes:")
+    st.write(DB_PATH.stat().st_size)
 
-for db in dbs:
-    st.markdown("---")
-    st.write(f"📂 {db.name}")
-    st.write(f"Ruta: {db}")
-    st.write(f"Tamaño: {db.stat().st_size} bytes")
+    conn = sqlite3.connect(DB_PATH)
 
-    try:
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
+    tablas = pd.read_sql_query("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        ORDER BY name
+    """, conn)
 
-        cursor.execute("""
-            SELECT name
-            FROM sqlite_master
-            WHERE type='table'
-            ORDER BY name
-        """)
+    st.subheader("📋 Tablas")
+    st.dataframe(tablas, use_container_width=True)
 
-        tablas = [t[0] for t in cursor.fetchall()]
-        conn.close()
+    for tabla in tablas["name"].tolist():
+        st.markdown("---")
+        st.subheader(f"📂 {tabla}")
 
-        st.write("Tablas:")
-        st.write(tablas)
+        try:
+            df = pd.read_sql_query(f"SELECT * FROM {tabla}", conn)
+            st.success(f"Registros: {len(df)}")
+            st.dataframe(df, use_container_width=True)
+        except Exception as e:
+            st.error(f"Error leyendo {tabla}")
+            st.exception(e)
 
-    except Exception as e:
-        st.error("Error leyendo base")
-        st.exception(e)
+    conn.close()
