@@ -24,12 +24,14 @@ if "modulo_analitico" not in st.session_state:
 if "menu_compras" not in st.session_state:
     st.session_state.menu_compras = "📊 Dashboard"
 
+if "menu_logistica" not in st.session_state:
+    st.session_state.menu_logistica = "📊 Dashboard Ejecutivo"
+
 
 with st.sidebar:
 
     st.markdown("## 🏢 SIGEM")
     st.markdown("### 📊 Analítico")
-
     st.markdown("---")
 
     with st.expander("🛒 Compras", expanded=True):
@@ -62,15 +64,28 @@ with st.sidebar:
             st.session_state.modulo_analitico = "compras"
             st.session_state.menu_compras = "📋 Detalle"
 
+    with st.expander("🚚 Logística", expanded=False):
+
+        if st.button("📊 Dashboard Ejecutivo", use_container_width=True):
+            st.session_state.modulo_analitico = "logistica"
+            st.session_state.menu_logistica = "📊 Dashboard Ejecutivo"
+
+        if st.button("📦 Operación", use_container_width=True):
+            st.session_state.modulo_analitico = "logistica"
+            st.session_state.menu_logistica = "📦 Operación"
+
+        if st.button("⚠️ Riesgos", use_container_width=True):
+            st.session_state.modulo_analitico = "logistica"
+            st.session_state.menu_logistica = "⚠️ Riesgos"
+
+        if st.button("📈 Analítica", use_container_width=True):
+            st.session_state.modulo_analitico = "logistica"
+            st.session_state.menu_logistica = "📈 Analítica"
+
     with st.expander("📦 Inventarios", expanded=False):
 
         if st.button("📦 Abrir Inventarios", use_container_width=True):
             st.session_state.modulo_analitico = "inventarios"
-
-    with st.expander("🚚 Logística", expanded=False):
-
-        if st.button("🚚 Abrir Logística", use_container_width=True):
-            st.session_state.modulo_analitico = "logistica"
 
     with st.expander("🏬 WMS", expanded=False):
 
@@ -85,11 +100,11 @@ with st.sidebar:
 if st.session_state.modulo_analitico == "compras":
     compras_app()
 
-elif st.session_state.modulo_analitico == "inventarios":
-    inventarios_app()
-
 elif st.session_state.modulo_analitico == "logistica":
     logistica_app()
+
+elif st.session_state.modulo_analitico == "inventarios":
+    inventarios_app()
 
 elif st.session_state.modulo_analitico == "wms":
     wms_app()
