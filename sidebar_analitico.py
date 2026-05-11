@@ -2,96 +2,94 @@
 import streamlit as st
 
 from compras_app import compras_app
-from logistica_app import logistica_app
 from inventarios_app import inventarios_app
+from logistica_app import logistica_app
 from wms_app import wms_app
 
 
-# =====================================
-# LOGIN TEMPORAL
-# =====================================
 def simular_login():
-
     st.session_state.autenticado = True
-
     st.session_state.usuario = "JCERVANTES"
-
     st.session_state.nombre = "JOSE JUANCERVANTES"
-
     st.session_state.rol = 1
-
     st.session_state.perfil = "ALL"
 
 
 simular_login()
 
 
-# =====================================
-# SIDEBAR ANALÍTICO
-# =====================================
+if "modulo_analitico" not in st.session_state:
+    st.session_state.modulo_analitico = "compras"
+
+if "menu_compras" not in st.session_state:
+    st.session_state.menu_compras = "📊 Dashboard"
+
+
 with st.sidebar:
 
-    st.markdown("# 🏢 SIGEM")
-
-    st.caption("Módulo Analítico")
-
-    st.markdown("---")
-
-    modulo = st.radio(
-        "Área Operativa",
-        [
-            "🛒 Compras",
-            "🚚 Logística",
-            "🏬 WMS",
-            "📦 Inventarios"
-        ],
-        key="sidebar_analitico_modulo"
-    )
+    st.markdown("## 🏢 SIGEM")
+    st.markdown("### 📊 Analítico")
 
     st.markdown("---")
 
-    st.caption(
-        f"👤 {st.session_state.nombre}"
-    )
+    with st.expander("🛒 Compras", expanded=True):
 
+        if st.button("📊 Dashboard", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "📊 Dashboard"
+
+        if st.button("📦 Productos", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "📦 Productos"
+
+        if st.button("🏢 Proveedores", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "🏢 Proveedores"
+
+        if st.button("📈 Analítica", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "📈 Analítica"
+
+        if st.button("🏬 Bodegas", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "🏬 Bodegas"
+
+        if st.button("💰 Costos", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "💰 Costos"
+
+        if st.button("📋 Detalle", use_container_width=True):
+            st.session_state.modulo_analitico = "compras"
+            st.session_state.menu_compras = "📋 Detalle"
+
+    with st.expander("📦 Inventarios", expanded=False):
+
+        if st.button("📦 Abrir Inventarios", use_container_width=True):
+            st.session_state.modulo_analitico = "inventarios"
+
+    with st.expander("🚚 Logística", expanded=False):
+
+        if st.button("🚚 Abrir Logística", use_container_width=True):
+            st.session_state.modulo_analitico = "logistica"
+
+    with st.expander("🏬 WMS", expanded=False):
+
+        if st.button("🏬 Abrir WMS", use_container_width=True):
+            st.session_state.modulo_analitico = "wms"
+
+    st.markdown("---")
+    st.caption(f"👤 {st.session_state.nombre}")
     st.caption("SIGEM ERP")
 
 
-# =====================================
-# NAVEGACIÓN MÓDULOS
-# =====================================
-if modulo == "🛒 Compras":
-
-    with st.sidebar:
-
-        st.markdown("---")
-
-        st.markdown("### 🛒 Compras")
-
-        st.session_state.menu_compras = st.radio(
-            "Menú compras",
-            [
-                "📊 Dashboard",
-                "📦 Productos",
-                "🏢 Proveedores",
-                "📈 Analítica",
-                "🏬 Bodegas",
-                "💰 Costos",
-                "📋 Detalle"
-            ],
-            key="sidebar_compras"
-        )
-
+if st.session_state.modulo_analitico == "compras":
     compras_app()
 
-elif modulo == "🚚 Logística":
+elif st.session_state.modulo_analitico == "inventarios":
+    inventarios_app()
 
+elif st.session_state.modulo_analitico == "logistica":
     logistica_app()
 
-elif modulo == "🏬 WMS":
-
+elif st.session_state.modulo_analitico == "wms":
     wms_app()
-
-elif modulo == "📦 Inventarios":
-
-    inventarios_app()
