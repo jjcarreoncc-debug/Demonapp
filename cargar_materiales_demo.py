@@ -1,4 +1,3 @@
-```python
 from materiales_db import insertar_material
 
 
