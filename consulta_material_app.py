@@ -1,25 +1,18 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
-import os
+
+from materiales_db import consultar_materiales
+from sigem_db import get_db_path
 
 
-DB_NAME = "materiales.db"
+DB_NAME = "materiales"
 
 
 def obtener_materiales():
 
-    conn = sqlite3.connect(DB_NAME)
+    data = consultar_materiales()
 
-    query = """
-        SELECT *
-        FROM materiales
-        ORDER BY codigo_material
-    """
-
-    df = pd.read_sql_query(query, conn)
-
-    conn.close()
+    df = pd.DataFrame(data)
 
     return df
 
@@ -32,7 +25,9 @@ def consulta_material_app():
         "Maestros / Productos / Maestro de materiales / Consulta"
     )
 
-    st.write(f"📂 Base usada: {os.path.abspath(DB_NAME)}")
+    st.write(
+        f"📂 Base usada: {get_db_path(DB_NAME)}"
+    )
 
     # =====================================================
     # CARGAR DATOS
@@ -307,10 +302,6 @@ def consulta_material_app():
         .astype(str) == material
     ].iloc[0]
 
-    # =====================================================
-    # INFORMACIÓN GENERAL
-    # =====================================================
-
     with st.expander(
         "📦 Información general",
         expanded=True
@@ -372,186 +363,6 @@ def consulta_material_app():
         st.info(
             f"Descripción: {fila.get('Descripción', '')}"
         )
-
-    # =====================================================
-    # LOGÍSTICA
-    # =====================================================
-
-    with st.expander("📦 Datos logísticos"):
-
-        c1, c2, c3 = st.columns(3)
-
-        with c1:
-
-            st.metric(
-                "Peso",
-                fila.get("Peso", 0)
-            )
-
-            st.metric(
-                "Volumen",
-                fila.get("Volumen", 0)
-            )
-
-        with c2:
-
-            st.metric(
-                "Largo",
-                fila.get("Largo", 0)
-            )
-
-            st.metric(
-                "Ancho",
-                fila.get("Ancho", 0)
-            )
-
-        with c3:
-
-            st.metric(
-                "Alto",
-                fila.get("Alto", 0)
-            )
-
-            st.metric(
-                "Tipo almacenamiento",
-                fila.get("Tipo almacenamiento", "")
-            )
-
-    # =====================================================
-    # INVENTARIO
-    # =====================================================
-
-    with st.expander("📊 Inventario"):
-
-        c1, c2, c3 = st.columns(3)
-
-        with c1:
-
-            st.metric(
-                "Stock mínimo",
-                fila.get("Stock mínimo", 0)
-            )
-
-            st.metric(
-                "Stock máximo",
-                fila.get("Stock máximo", 0)
-            )
-
-        with c2:
-
-            st.metric(
-                "Punto reorden",
-                fila.get("Punto reorden", 0)
-            )
-
-            st.metric(
-                "Permite negativo",
-                fila.get("Permite negativo", "")
-            )
-
-        with c3:
-
-            st.metric(
-                "Control lote",
-                fila.get("Control lote", "")
-            )
-
-            st.metric(
-                "Control serie",
-                fila.get("Control serie", "")
-            )
-
-    # =====================================================
-    # COMERCIAL
-    # =====================================================
-
-    with st.expander("💲 Datos comerciales"):
-
-        c1, c2, c3 = st.columns(3)
-
-        with c1:
-
-            st.metric(
-                "Costo estándar",
-                fila.get("Costo estándar", 0)
-            )
-
-            st.metric(
-                "Precio compra",
-                fila.get("Precio compra", 0)
-            )
-
-        with c2:
-
-            st.metric(
-                "Precio venta",
-                fila.get("Precio venta", 0)
-            )
-
-            st.metric(
-                "Margen objetivo",
-                fila.get("Margen objetivo", 0)
-            )
-
-        with c3:
-
-            st.metric(
-                "Moneda",
-                fila.get("Moneda", "")
-            )
-
-            st.metric(
-                "Impuesto",
-                fila.get("Impuesto", "")
-            )
-
-    # =====================================================
-    # INTEGRACIONES
-    # =====================================================
-
-    with st.expander("🔗 Integraciones"):
-
-        c1, c2 = st.columns(2)
-
-        with c1:
-
-            st.text_input(
-                "Código barras",
-                value=str(
-                    fila.get("Código barras", "")
-                ),
-                disabled=True
-            )
-
-            st.text_input(
-                "SKU",
-                value=str(
-                    fila.get("SKU", "")
-                ),
-                disabled=True
-            )
-
-        with c2:
-
-            st.text_input(
-                "Código SAP",
-                value=str(
-                    fila.get("Código SAP", "")
-                ),
-                disabled=True
-            )
-
-            st.text_input(
-                "Proveedor",
-                value=str(
-                    fila.get("Proveedor", "")
-                ),
-                disabled=True
-            )
-
-    # =====================================================
-    # BOTONES
-    # =====================================================
 
     st.markdown("---")
 
