@@ -4,13 +4,6 @@ import base64
 import sqlite3
 from pathlib import Path
 
-from inventarios_app import inventarios_app
-from carga_app import carga_app
-from compras_app import compras_app
-from logistica_app import logistica_app
-from wms_app import wms_app
-from mantenimiento_app import mantenimiento_app
-from menu_dinamico import sidebar_dinamico
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -306,6 +299,14 @@ if not st.session_state.autenticado:
     st.stop()
 
 logout_app()
+
+from inventarios_app import inventarios_app
+from carga_app import carga_app
+from compras_app import compras_app
+from logistica_app import logistica_app
+from wms_app import wms_app
+from mantenimiento_app import mantenimiento_app
+from menu_dinamico import sidebar_dinamico
 
 ruta = sidebar_dinamico()
 
