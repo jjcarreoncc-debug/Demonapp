@@ -1,0 +1,56 @@
+import streamlit as st
+
+from Minventarios_app import inventarios_app
+from sidebar_analitico import analitico_app
+from mantenimiento_app import mantenimiento_app
+
+
+def simular_login():
+
+    st.session_state.autenticado = True
+    st.session_state.usuario = "JCERVANTES"
+    st.session_state.nombre = "JOSE JUANCERVANTES"
+    st.session_state.rol = 1
+    st.session_state.perfil = "ALL"
+
+
+simular_login()
+
+
+if "modulo_central" not in st.session_state:
+    st.session_state.modulo_central = "📦 Minventarios"
+
+
+with st.sidebar:
+
+    st.markdown("## 🏢 SIGEM")
+    st.caption("Menú central")
+
+    st.markdown("---")
+
+    st.session_state.modulo_central = st.radio(
+        "Módulos",
+        [
+            "📦 Minventarios",
+            "📊 Analíticos",
+            "🛠️ Mantenimiento"
+        ],
+        key="menu_central_sigem"
+    )
+
+    st.markdown("---")
+    st.caption(f"👤 {st.session_state.nombre}")
+    st.caption("SIGEM ERP")
+
+
+if st.session_state.modulo_central == "📦 Minventarios":
+
+    inventarios_app()
+
+elif st.session_state.modulo_central == "📊 Analíticos":
+
+    analitico_app()
+
+elif st.session_state.modulo_central == "🛠️ Mantenimiento":
+
+    mantenimiento_app()
