@@ -1,15 +1,39 @@
 
 import streamlit as st
-from ui_components import card_kpi
 import plotly.express as px
+
+from ui_components import card_kpi
+
+
+# =========================
+# VALIDAR COLUMNAS
+# =========================
+def validar_columnas(df):
+    columnas_requeridas = [
+        "NUMERO_PRODUCTO",
+        "NOMBRE_PRODUCTO",
+        "STOCK",
+        "STOCK_MIN",
+        "SALIDA"
+    ]
+
+    faltantes = [
+        col for col in columnas_requeridas
+        if col not in df.columns
+    ]
+
+    if faltantes:
+        st.error(f"❌ Faltan columnas: {faltantes}")
+        return False
+
+    return True
+
+
 # =========================
 # KPI CRÍTICOS
 # =========================
 def kpi_criticos(df):
-
-    criticos = df[
-        df["STOCK"] < df["STOCK_MIN"]
-    ]
+    criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
     card_kpi(
         "🚨 Productos Críticos",
@@ -21,7 +45,6 @@ def kpi_criticos(df):
 # GRÁFICA CRÍTICOS
 # =========================
 def grafica_criticos(df):
-
     criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
     if criticos.empty:
@@ -62,27 +85,32 @@ def grafica_criticos(df):
         fig,
         use_container_width=True
     )
+
+
 # =========================
 # TABLA CRÍTICOS
 # =========================
 def tabla_criticos(df):
-
-    criticos = df[
-        df["STOCK"] < df["STOCK_MIN"]
-    ]
+    criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
     st.subheader("📋 Detalle Productos Críticos")
 
+    if criticos.empty:
+        st.info("No hay registros para mostrar.")
+        return
+
+    columnas = [
+        "NUMERO_PRODUCTO",
+        "NOMBRE_PRODUCTO",
+        "STOCK",
+        "STOCK_MIN",
+        "SALIDA"
+    ]
+
     st.dataframe(
-        criticos[
-            [
-                "NUMERO_PRODUCTO",
-                "NOMBRE_PRODUCTO",
-                "STOCK",
-                "STOCK_MIN",
-                "SALIDA"
-            ]
-        ]
+        criticos[columnas],
+        use_container_width=True,
+        hide_index=True
     )
 
 
@@ -90,21 +118,38 @@ def tabla_criticos(df):
 # DASHBOARD CRÍTICOS
 # =========================
 def dashboard_criticos(df):
-
     st.title("🚨 Dashboard Críticos")
+
+    if not validar_columnas(df):
+        return
 
     kpi_criticos(df)
 
+    st.markdown("---")
+
     grafica_criticos(df)
 
-    tabla_criticos(df)
-def sin_stock_app(df):
+    st.markdown("---")
 
+    tabla_criticos(df)
+
+
+# =========================
+# PRODUCTOS SIN STOCK
+# =========================
+def sin_stock_app(df):
     st.subheader("❌ Productos Sin Stock")
+
+    if not validar_columnas(df):
+        return
 
     sin_stock = df[df["STOCK"] <= 0]
 
-    card_kpi("❌ Total Sin Stock", len(sin_stock), "#c0392b")
+    card_kpi(
+        "❌ Total Sin Stock",
+        len(sin_stock),
+        "#c0392b"
+    )
 
     if sin_stock.empty:
         st.success("✅ No hay productos sin stock")
@@ -120,21 +165,38 @@ def sin_stock_app(df):
         title="Top productos sin stock"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
     st.markdown("### 📋 Detalle sin stock")
-    st.dataframe(sin_stock, use_container_width=True)
+
+    st.dataframe(
+        sin_stock,
+        use_container_width=True,
+        hide_index=True
+    )
 
 
+# =========================
+# RIESGO ALTO
+# =========================
 def riesgo_alto_app(df):
-
     st.subheader("🔥 Productos en Riesgo Alto")
+
+    if not validar_columnas(df):
+        return
 
     riesgo_alto = df[
         df["STOCK"] <= (df["STOCK_MIN"] * 0.5)
     ]
 
-    card_kpi("🔥 Total Riesgo Alto", len(riesgo_alto), "#e67e22")
+    card_kpi(
+        "🔥 Total Riesgo Alto",
+        len(riesgo_alto),
+        "#e67e22"
+    )
 
     if riesgo_alto.empty:
         st.success("✅ No hay productos en riesgo alto")
@@ -153,22 +215,40 @@ def riesgo_alto_app(df):
         title="Productos con stock más bajo vs mínimo"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
     st.markdown("### 📋 Detalle riesgo alto")
-    st.dataframe(riesgo_alto, use_container_width=True)
+
+    st.dataframe(
+        riesgo_alto,
+        use_container_width=True,
+        hide_index=True
+    )
 
 
+# =========================
+# PRÓXIMOS A AGOTARSE
+# =========================
 def proximos_agotarse_app(df):
-
     st.subheader("⚠️ Productos Próximos a Agotarse")
 
+    if not validar_columnas(df):
+        return
+
     proximos = df[
-        (df["STOCK"] > df["STOCK_MIN"]) &
+        (df["STOCK"] > df["STOCK_MIN"])
+        &
         (df["STOCK"] <= (df["STOCK_MIN"] * 1.2))
     ]
 
-    card_kpi("⚠️ Total Próximos", len(proximos), "#f1c40f")
+    card_kpi(
+        "⚠️ Total Próximos",
+        len(proximos),
+        "#f1c40f"
+    )
 
     if proximos.empty:
         st.success("✅ No hay productos próximos a agotarse")
@@ -187,19 +267,36 @@ def proximos_agotarse_app(df):
         title="Productos cerca del mínimo"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
     st.markdown("### 📋 Detalle próximos a agotarse")
-    st.dataframe(proximos, use_container_width=True)
+
+    st.dataframe(
+        proximos,
+        use_container_width=True,
+        hide_index=True
+    )
 
 
+# =========================
+# DETALLE GENERAL CRÍTICOS
+# =========================
 def detalle_criticos_app(df):
-
     st.subheader("📋 Detalle General Críticos")
+
+    if not validar_columnas(df):
+        return
 
     criticos = df[df["STOCK"] < df["STOCK_MIN"]]
 
-    card_kpi("🚨 Total Críticos", len(criticos), "#e74c3c")
+    card_kpi(
+        "🚨 Total Críticos",
+        len(criticos),
+        "#e74c3c"
+    )
 
     if criticos.empty:
         st.success("✅ No hay productos críticos")
@@ -217,7 +314,15 @@ def detalle_criticos_app(df):
         title="Stock actual vs stock mínimo"
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
 
     st.markdown("### 📋 Tabla completa críticos")
-    st.dataframe(criticos, use_container_width=True)
+
+    st.dataframe(
+        criticos,
+        use_container_width=True,
+        hide_index=True
+    )
