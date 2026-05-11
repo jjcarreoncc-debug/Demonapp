@@ -1,3 +1,4 @@
+import streamlit as st
 
 def simular_login():
 
@@ -10,3 +11,9 @@ def simular_login():
     st.session_state.rol = 1
 
     st.session_state.perfil = "ALL"
+
+from mantenimiento_app import mantenimiento_app
+
+simular_login()
+
+mantenimiento_app()
