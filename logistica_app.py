@@ -15,22 +15,6 @@ def aplicar_css_logistica():
     st.markdown("""
     <style>
 
-    div.stButton > button {
-        width: 100%;
-        height: 70px;
-        font-size: 16px;
-        font-weight: bold;
-        border-radius: 12px;
-        border: none;
-        background-color: #1f77b4;
-        color: white;
-    }
-
-    div.stButton > button:hover {
-        background-color: #145a86;
-        color: white;
-    }
-
     section[data-testid="stFileUploader"] {
         background-color: #f5f7fa;
         padding: 16px;
@@ -79,16 +63,11 @@ def logistica_app():
 
     estructura_archivos_logistica()
 
-    if "logistica_vista" not in st.session_state:
-        st.session_state.logistica_vista = "menu"
+    vista = st.session_state.get(
+        "menu_logistica",
+        "📊 Dashboard Ejecutivo"
+    )
 
-    if st.button("🏠 Ir al menú principal"):
-        st.session_state.logistica_vista = "menu"
-        st.rerun()
-
-    # =========================
-    # CARGA AUTOMÁTICA
-    # =========================
     (
         transito,
         bodegas,
@@ -107,12 +86,11 @@ def logistica_app():
         despachos is not None
     ])
 
-    # =========================
-    # MENSAJE
-    # =========================
     if carga_automatica_ok:
 
-        st.success("✅ Datos de logística cargados automáticamente desde GitHub.")
+        st.success(
+            "✅ Datos de logística cargados automáticamente desde GitHub."
+        )
 
     else:
 
@@ -174,9 +152,6 @@ def logistica_app():
         if archivo_despachos:
             despachos = pd.read_excel(archivo_despachos)
 
-    # =========================
-    # VALIDACIÓN
-    # =========================
     if (
         transito is None
         or bodegas is None
@@ -188,18 +163,12 @@ def logistica_app():
         st.warning("⚠️ Carga todos los archivos Excel de Logística")
         return
 
-    # =========================
-    # FILTROS
-    # =========================
     filtros = filtros_logistica(
         transito,
         recepcion,
         despachos
     )
 
-    # =========================
-    # APLICAR FILTROS
-    # =========================
     (
         transito_filtrado,
         recepcion_filtrado,
@@ -211,44 +180,13 @@ def logistica_app():
         filtros
     )
 
-    # =========================
-    # MENÚ PRINCIPAL
-    # =========================
-    if st.session_state.logistica_vista == "menu":
-
-        st.subheader("Menú principal")
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        if c1.button("📊 Dashboard Ejecutivo"):
-            st.session_state.logistica_vista = "dashboard_ejecutivo"
-            st.rerun()
-
-        if c2.button("📦 Operación"):
-            st.session_state.logistica_vista = "operacion"
-            st.rerun()
-
-        if c3.button("⚠️ Riesgos"):
-            st.session_state.logistica_vista = "riesgos"
-            st.rerun()
-
-        if c4.button("📈 Analítica"):
-            st.session_state.logistica_vista = "analitica"
-            st.rerun()
-
-    # =========================
-    # VOLVER
-    # =========================
-    if st.session_state.logistica_vista != "menu":
-
-        if st.button("🔙 Volver"):
-            st.session_state.logistica_vista = "menu"
-            st.rerun()
+    st.markdown("---")
+    st.caption(f"Ruta: Logística / {vista}")
 
     # =========================
     # DASHBOARD EJECUTIVO
     # =========================
-    if st.session_state.logistica_vista == "dashboard_ejecutivo":
+    if vista == "📊 Dashboard Ejecutivo":
 
         tab1, tab2, tab3 = st.tabs([
             "📊 Resumen",
@@ -285,7 +223,7 @@ def logistica_app():
     # =========================
     # OPERACIÓN
     # =========================
-    elif st.session_state.logistica_vista == "operacion":
+    elif vista == "📦 Operación":
 
         tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
             "🚛 Tránsito",
@@ -333,7 +271,7 @@ def logistica_app():
     # =========================
     # RIESGOS
     # =========================
-    elif st.session_state.logistica_vista == "riesgos":
+    elif vista == "⚠️ Riesgos":
 
         st.subheader("⚠️ Riesgos")
         st.warning("Módulo de riesgos en construcción.")
@@ -341,7 +279,7 @@ def logistica_app():
     # =========================
     # ANALÍTICA
     # =========================
-    elif st.session_state.logistica_vista == "analitica":
+    elif vista == "📈 Analítica":
 
         from logistica_analitica_app import logistica_analitica_app
 
