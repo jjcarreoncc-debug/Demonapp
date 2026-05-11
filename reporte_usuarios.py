@@ -4,59 +4,65 @@ import sqlite3
 from pathlib import Path
 
 
-DB_PATH = Path(__file__).resolve().parent / "erp.db"
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def buscar_db_usuarios():
+    for db_path in BASE_DIR.glob("*.db"):
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+
+            cursor.execute("""
+                SELECT name
+                FROM sqlite_master
+                WHERE type='table'
+                AND name='usuarios'
+            """)
+
+            existe = cursor.fetchone() is not None
+            conn.close()
+
+            if existe:
+                return db_path
+
+        except Exception:
+            pass
+
+    return None
 
 
 def leer_tabla(conn, tabla):
     cursor = conn.cursor()
-
     cursor.execute(f"SELECT * FROM {tabla}")
     filas = cursor.fetchall()
-
     columnas = [desc[0] for desc in cursor.description]
-
     return pd.DataFrame(filas, columns=columnas)
 
 
 def reporte_usuarios_app():
 
     st.title("👥 Reporte de usuarios")
-    st.caption(f"BD usada: {DB_PATH}")
 
-    try:
-        conn = sqlite3.connect(DB_PATH)
+    db_path = buscar_db_usuarios()
 
-        st.subheader("📋 Usuarios")
+    if db_path is None:
+        st.error("❌ No encontré ninguna base con tabla usuarios.")
+        return
 
-        df_usuarios = leer_tabla(conn, "usuarios")
+    st.success(f"✅ Base encontrada: {db_path}")
 
-        st.success(f"Usuarios encontrados: {len(df_usuarios)}")
+    conn = sqlite3.connect(db_path)
 
-        st.dataframe(
-            df_usuarios,
-            use_container_width=True,
-            hide_index=True
-        )
+    st.subheader("📋 Usuarios")
+    df_usuarios = leer_tabla(conn, "usuarios")
+    st.dataframe(df_usuarios, use_container_width=True, hide_index=True)
 
-        st.markdown("---")
+    st.subheader("🧩 Roles")
+    df_roles = leer_tabla(conn, "roles")
+    st.dataframe(df_roles, use_container_width=True, hide_index=True)
 
-        st.subheader("🧩 Roles")
-
-        df_roles = leer_tabla(conn, "roles")
-
-        st.success(f"Roles encontrados: {len(df_roles)}")
-
-        st.dataframe(
-            df_roles,
-            use_container_width=True,
-            hide_index=True
-        )
-
-        conn.close()
-
-    except Exception as e:
-        st.error("❌ Error generando reporte")
-        st.exception(e)
+    conn.close()
 
 
 if __name__ == "__main__":
