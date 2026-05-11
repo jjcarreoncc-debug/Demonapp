@@ -27,8 +27,8 @@ with st.sidebar:
     # LOGO SIGEM
     # =========================
     st.image(
-        "https://cdn-icons-png.flaticon.com/512/1055/1055687.png",
-        width=70
+        logo1.png",
+        width=100
     )
 
     st.markdown("## 🏢 SIGEM")
