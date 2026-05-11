@@ -1,25 +1,59 @@
 
 import streamlit as st
 import sqlite3
-import pandas as pd
-from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent / "erp.db"
 
-conn = sqlite3.connect(DB_PATH)
+st.title("🔍 Test materiales.db")
 
-st.title("🧪 Permisos por rol")
 
-st.subheader("Usuarios")
-st.dataframe(pd.read_sql_query("SELECT * FROM usuarios", conn))
+DB_PATH = "/mount/src/demonapp/materiales.db"
 
-st.subheader("Roles")
-st.dataframe(pd.read_sql_query("SELECT * FROM roles", conn))
 
-st.subheader("Módulos")
-st.dataframe(pd.read_sql_query("SELECT * FROM modulos", conn))
+st.write("📂 Ruta:")
+st.code(DB_PATH)
 
-st.subheader("Permisos roles")
-st.dataframe(pd.read_sql_query("SELECT * FROM permisos_roles", conn))
 
-conn.close()
+try:
+
+    conn = sqlite3.connect(DB_PATH)
+
+    cursor = conn.cursor()
+
+    # =========================
+    # VER TABLAS
+    # =========================
+    cursor.execute("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+    """)
+
+    tablas = cursor.fetchall()
+
+    st.subheader("📋 Tablas encontradas")
+
+    st.write(tablas)
+
+    # =========================
+    # VER MATERIALES
+    # =========================
+    cursor.execute("""
+        SELECT *
+        FROM materiales
+    """)
+
+    registros = cursor.fetchall()
+
+    st.subheader("📦 Registros materiales")
+
+    st.write(f"Total registros: {len(registros)}")
+
+    st.dataframe(registros)
+
+    conn.close()
+
+except Exception as e:
+
+    st.error("❌ Error leyendo materiales.db")
+
+    st.exception(e)
