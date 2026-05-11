@@ -5,7 +5,7 @@ from sigem_db import get_materiales_connection
 
 def crear_tabla_materiales():
 
-    conn = get_connection()
+    conn = get_materiales_connection()
     cur = conn.cursor()
 
     cur.execute("""
@@ -63,7 +63,7 @@ def insertar_material(data):
 
     crear_tabla_materiales()
 
-    conn = get_connection()
+    conn = get_materiales_connection()
     cur = conn.cursor()
 
     cur.execute("""
@@ -157,11 +157,12 @@ def insertar_material(data):
     conn.commit()
     conn.close()
 
-def consultar_materiales():
-    import sqlite3
 
-    conn = sqlite3.connect("materiales.db")
-    conn.row_factory = sqlite3.Row
+def consultar_materiales():
+
+    crear_tabla_materiales()
+
+    conn = get_materiales_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -170,13 +171,11 @@ def consultar_materiales():
         ORDER BY codigo_material
     """)
 
-    registros = [dict(row) for row in cursor.fetchall()]
+    registros = [
+        dict(row)
+        for row in cursor.fetchall()
+    ]
 
     conn.close()
 
     return registros
-
-
-
-
-
