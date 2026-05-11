@@ -1,5 +1,9 @@
 import streamlit as st
 from materiales_db import insertar_material
+from sigem_db import get_db_path
+
+st.write("📂 Base usada para cargar:")
+st.code(str(get_db_path("materiales")))
 
 
 materiales_demo = [
