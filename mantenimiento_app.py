@@ -112,17 +112,17 @@ def mantenimiento_app():
 
         elif menu == "⚙️ Configuración":
 
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Variables sistema",
-                    "Parámetros",
-                    "Colores",
-                    "Branding"
-                ],
-                key="submenu_configuracion"
+             submenu = st.radio(
+                 "Opciones",
+                 [
+                     "Variables sistema",
+                     "Parámetros",
+                     "Colores",
+                     "Branding",
+                     "Actualización de tablas"
+                 ],
+                 key="submenu_configuracion"
             )
-
     st.caption(f"{menu} / {submenu}")
 
     if (
