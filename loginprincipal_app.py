@@ -6,6 +6,43 @@ from pathlib import Path
 DB_PATH = Path(__file__).resolve().parent / "erp.db"
 
 
+def diagnostico_db():
+    st.markdown("---")
+    st.subheader("🧪 Diagnóstico DB")
+
+    st.write("📂 DB actual:")
+    st.code(str(DB_PATH))
+
+    st.write("📦 Existe:")
+    st.write(DB_PATH.exists())
+
+    if DB_PATH.exists():
+        st.write("📏 Tamaño bytes:")
+        st.write(DB_PATH.stat().st_size)
+
+        try:
+            conn_test = sqlite3.connect(DB_PATH)
+            cursor_test = conn_test.cursor()
+
+            tablas = cursor_test.execute("""
+                SELECT name
+                FROM sqlite_master
+                WHERE type='table'
+                ORDER BY name
+            """).fetchall()
+
+            st.write("📋 Tablas:")
+            st.write([t[0] for t in tablas])
+
+            conn_test.close()
+
+        except Exception as e:
+            st.error("❌ Error leyendo DB")
+            st.exception(e)
+
+    st.markdown("---")
+
+
 def validar_login(usuario, password):
 
     st.write("🔎 Entrando a validar_login()")
@@ -33,9 +70,9 @@ def validar_login(usuario, password):
 
     st.write("👤 Usuario limpio:")
     st.code(usuario_limpio)
-    st.write("👤 pass  limpio:")
-    
 
+    st.write("🔑 Password ingresado limpio:")
+    st.code(password_limpio)
 
     try:
         st.write("📋 Leyendo tablas existentes...")
@@ -93,7 +130,7 @@ def validar_login(usuario, password):
     st.code(password_bd)
 
     st.write("🔑 Password ingresado:")
-    st.code( password_hash)  
+    st.code(password_limpio)
 
     if password_bd != password_limpio:
         st.error("❌ Contraseña incorrecta")
@@ -117,6 +154,8 @@ def login_app():
 
     usuario = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
+
+    diagnostico_db()
 
     if st.button("Ingresar", key="btn_login_sigem"):
         st.write("🟦 Botón Ingresar presionado")
