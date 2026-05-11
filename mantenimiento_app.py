@@ -21,6 +21,9 @@ from mantenimiento_modulos_app import (
     administrar_modulos_app
 )
 
+from mantenimiento_actualizacion_tablas_app import (
+    actualizacion_tablas_app
+)
 
 def mantenimiento_app():
 
@@ -227,6 +230,7 @@ def mantenimiento_app():
     ):
 
         st.subheader("🗄️ Actualización de tablas")
+        actualizacion_tablas_app()
 
         st.info(
             "Aquí se configurarán las rutas y bases de datos por módulo."
