@@ -15,22 +15,6 @@ from compras_general_app import (
 def aplicar_css_compras():
     st.markdown("""
     <style>
-        div.stButton > button {
-            width: 100%;
-            height: 70px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 12px;
-            border: none;
-            background-color: #1f77b4;
-            color: white;
-        }
-
-        div.stButton > button:hover {
-            background-color: #145a86;
-            color: white;
-        }
-
         section[data-testid="stFileUploader"] {
             background-color: #f5f7fa;
             padding: 16px;
@@ -84,8 +68,27 @@ def compras_app():
 
     st.title("🛒 Compras")
 
-    if "compras_vista" not in st.session_state:
-        st.session_state.compras_vista = "menu"
+    with st.sidebar:
+        st.markdown("## 🛒 Compras")
+        st.caption("Gestión de compras")
+        st.markdown("---")
+
+        vista = st.radio(
+            "Menú compras",
+            [
+                "📊 Dashboard",
+                "📦 Productos",
+                "🏢 Proveedores",
+                "📈 Analítica",
+                "🏬 Bodegas",
+                "💰 Costos",
+                "📋 Detalle"
+            ],
+            key="menu_compras"
+        )
+
+        st.markdown("---")
+        st.caption("SIGEM ERP")
 
     (
         compras,
@@ -176,123 +179,62 @@ def compras_app():
     df = compras.copy()
 
     if "NUMERO_PRODUCTO" in df.columns and "NUMERO_PRODUCTO" in productos.columns:
-        df = df.merge(
-            productos,
-            on="NUMERO_PRODUCTO",
-            how="left"
-        )
+        df = df.merge(productos, on="NUMERO_PRODUCTO", how="left")
     else:
         st.warning("No se pudo cruzar Productos porque falta NUMERO_PRODUCTO.")
         st.write("Columnas compras:", list(df.columns))
         st.write("Columnas productos:", list(productos.columns))
 
     if "ID_PROVEEDOR" in df.columns and "ID_PROVEEDOR" in proveedores.columns:
-        df = df.merge(
-            proveedores,
-            on="ID_PROVEEDOR",
-            how="left"
-        )
+        df = df.merge(proveedores, on="ID_PROVEEDOR", how="left")
     else:
         st.warning("No se pudo cruzar Proveedores porque falta ID_PROVEEDOR.")
         st.write("Columnas df:", list(df.columns))
         st.write("Columnas proveedores:", list(proveedores.columns))
 
     if "ID_BODEGA" in df.columns and "ID_BODEGA" in bodegas.columns:
-        df = df.merge(
-            bodegas,
-            on="ID_BODEGA",
-            how="left"
-        )
+        df = df.merge(bodegas, on="ID_BODEGA", how="left")
     else:
         st.warning("No se pudo cruzar Bodegas porque falta ID_BODEGA.")
         st.write("Columnas df:", list(df.columns))
         st.write("Columnas bodegas:", list(bodegas.columns))
 
     if "NUMERO_PRODUCTO" in df.columns and "NUMERO_PRODUCTO" in segmentacion.columns:
-        df = df.merge(
-            segmentacion,
-            on="NUMERO_PRODUCTO",
-            how="left"
-        )
+        df = df.merge(segmentacion, on="NUMERO_PRODUCTO", how="left")
     else:
         st.warning("No se pudo cruzar Segmentación porque falta NUMERO_PRODUCTO.")
         st.write("Columnas df:", list(df.columns))
         st.write("Columnas segmentacion:", list(segmentacion.columns))
 
-    if st.session_state.compras_vista == "menu":
+    st.markdown("---")
+    st.caption(f"Ruta: Compras / {vista}")
 
-        c1, c2, c3, c4 = st.columns(4)
-
-        if c1.button("📊 Dashboard"):
-            st.session_state.compras_vista = "dashboard"
-            st.rerun()
-
-        if c2.button("📦 Productos"):
-            st.session_state.compras_vista = "productos"
-            st.rerun()
-
-        if c3.button("🏢 Proveedores"):
-            st.session_state.compras_vista = "proveedores"
-            st.rerun()
-
-        if c4.button("📈 Analítica"):
-            st.session_state.compras_vista = "analitica"
-            st.rerun()
-
-        c5, c6, c7 = st.columns(3)
-
-        if c5.button("🏬 Bodegas"):
-            st.session_state.compras_vista = "bodegas"
-            st.rerun()
-
-        if c6.button("💰 Costos"):
-            st.session_state.compras_vista = "costos"
-            st.rerun()
-
-        if c7.button("📋 Detalle"):
-            st.session_state.compras_vista = "detalle"
-            st.rerun()
-
-    if st.session_state.compras_vista != "menu":
-
-        if st.button("🔙 Volver"):
-            st.session_state.compras_vista = "menu"
-            st.rerun()
-
-    if st.session_state.compras_vista == "dashboard":
-
+    if vista == "📊 Dashboard":
         dashboard_compras(df)
 
-    elif st.session_state.compras_vista == "productos":
-
+    elif vista == "📦 Productos":
         st.subheader("📦 Productos Comprados")
         st.dataframe(df, use_container_width=True)
 
-    elif st.session_state.compras_vista == "proveedores":
-
+    elif vista == "🏢 Proveedores":
         st.subheader("🏢 Proveedores")
         st.dataframe(df, use_container_width=True)
 
-    elif st.session_state.compras_vista == "bodegas":
-
+    elif vista == "🏬 Bodegas":
         st.subheader("🏬 Bodegas")
         st.dataframe(df, use_container_width=True)
 
-    elif st.session_state.compras_vista == "costos":
-
+    elif vista == "💰 Costos":
         st.subheader("💰 Costos y Márgenes")
         st.dataframe(df, use_container_width=True)
 
-    elif st.session_state.compras_vista == "detalle":
-
+    elif vista == "📋 Detalle":
         st.subheader("📋 Detalle Compras")
         st.dataframe(df, use_container_width=True)
 
-    elif st.session_state.compras_vista == "analitica":
-
+    elif vista == "📈 Analítica":
         try:
             from compras_analitica_app import compras_analitica_app
-
             compras_analitica_app(df)
 
         except Exception as e:
