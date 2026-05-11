@@ -34,7 +34,7 @@ def validar_login(usuario, password):
     st.write("👤 Usuario limpio:")
     st.code(usuario_limpio)
     st.write("👤 pass  limpio:")
-    st.code([[)
+    
 
 
     try:
