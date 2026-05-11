@@ -34,7 +34,7 @@ def validar_login(usuario, password):
     st.write("👤 Usuario limpio:")
     st.code(usuario_limpio)
     st.write("👤 pass  limpio:")
-    st.code(password_limpio)
+    st.code([[)
 
 
     try:
@@ -93,7 +93,7 @@ def validar_login(usuario, password):
     st.code(password_bd)
 
     st.write("🔑 Password ingresado:")
-    st.code(password_limpio)
+    st.code( password_hash)  
 
     if password_bd != password_limpio:
         st.error("❌ Contraseña incorrecta")
