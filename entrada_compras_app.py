@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import re
 
 from pathlib import Path
 from datetime import datetime
@@ -51,11 +52,75 @@ def crear_tablas_entrada_compras():
     conn.close()
 
 
+def extraer_materiales_desde_pdf(texto_pdf):
+
+    materiales = []
+
+    lineas = texto_pdf.split("\n")
+
+    for linea in lineas:
+
+        linea = linea.strip()
+
+        if not linea:
+            continue
+
+        # Busca líneas que tengan números de cantidad y precio
+        numeros = re.findall(r"\d+(?:[.,]\d+)?", linea)
+
+        if len(numeros) >= 2:
+
+            try:
+                cantidad = float(numeros[-2].replace(",", "."))
+                costo_unitario = float(numeros[-1].replace(",", "."))
+
+                descripcion = linea
+
+                materiales.append({
+                    "codigo_material": "",
+                    "descripcion": descripcion,
+                    "cantidad": cantidad,
+                    "costo_unitario": costo_unitario,
+                    "impuesto": 0.0,
+                    "bodega": "",
+                    "ubicacion": ""
+                })
+
+            except:
+                pass
+
+    if not materiales:
+        materiales.append({
+            "codigo_material": "",
+            "descripcion": "",
+            "cantidad": 0.0,
+            "costo_unitario": 0.0,
+            "impuesto": 0.0,
+            "bodega": "",
+            "ubicacion": ""
+        })
+
+    return pd.DataFrame(materiales)
+
+
 def entrada_compras_app():
 
     st.title("📥 Entrada de Compras / Factura")
 
     crear_tablas_entrada_compras()
+
+    if "detalle_pdf" not in st.session_state:
+        st.session_state["detalle_pdf"] = pd.DataFrame([
+            {
+                "codigo_material": "",
+                "descripcion": "",
+                "cantidad": 0.0,
+                "costo_unitario": 0.0,
+                "impuesto": 0.0,
+                "bodega": "",
+                "ubicacion": ""
+            }
+        ])
 
     st.subheader("🧾 Encabezado factura")
 
@@ -106,16 +171,12 @@ def entrada_compras_app():
             f"Archivo adjuntado: {archivo.name}"
         )
 
-        # =====================================
-        # LECTURA PDF
-        # =====================================
-
         if archivo.name.lower().endswith(".pdf"):
 
             st.markdown("---")
             st.subheader("📄 Lectura del PDF")
 
-            if st.button("🔍 Leer PDF"):
+            if st.button("🔍 Leer PDF y cargar tabla"):
 
                 try:
 
@@ -143,6 +204,16 @@ def entrada_compras_app():
                             height=300
                         )
 
+                        detalle_extraido = extraer_materiales_desde_pdf(
+                            texto_pdf
+                        )
+
+                        st.session_state["detalle_pdf"] = detalle_extraido
+
+                        st.success(
+                            "✅ Información enviada a la tabla de materiales"
+                        )
+
                     else:
 
                         st.warning(
@@ -159,20 +230,8 @@ def entrada_compras_app():
 
     st.subheader("📦 Detalle materiales")
 
-    detalle_base = pd.DataFrame([
-        {
-            "codigo_material": "",
-            "descripcion": "",
-            "cantidad": 0.0,
-            "costo_unitario": 0.0,
-            "impuesto": 0.0,
-            "bodega": "",
-            "ubicacion": ""
-        }
-    ])
-
     detalle = st.data_editor(
-        detalle_base,
+        st.session_state["detalle_pdf"],
         num_rows="dynamic",
         use_container_width=True,
         key="detalle_entrada_compras"
@@ -206,7 +265,7 @@ def entrada_compras_app():
 
         detalle_valido = detalle[
             (
-                detalle["codigo_material"]
+                detalle["descripcion"]
                 .astype(str)
                 .str.strip() != ""
             )
@@ -285,14 +344,14 @@ def entrada_compras_app():
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 id_entrada,
-                row["codigo_material"],
+                row.get("codigo_material", ""),
                 row["descripcion"],
                 float(row["cantidad"]),
                 float(row["costo_unitario"]),
                 float(row["impuesto"]),
                 total,
-                row["bodega"],
-                row["ubicacion"]
+                row.get("bodega", ""),
+                row.get("ubicacion", "")
             ))
 
         conn.commit()
