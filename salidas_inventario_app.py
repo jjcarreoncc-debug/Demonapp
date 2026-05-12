@@ -118,7 +118,6 @@ def extraer_datos_pdf(texto_pdf):
 
     return datos
 
-
 def registrar_movimiento(
     folio_movimiento,
     tipo_movimiento,
@@ -134,8 +133,6 @@ def registrar_movimiento(
     comentarios
 ):
 
-    crear_tabla_movimientos_inventario()
-
     db_path = get_db_path("inventarios")
 
     conn = sqlite3.connect(db_path)
@@ -143,43 +140,42 @@ def registrar_movimiento(
 
     cur.execute("""
         INSERT INTO movimientos_inventario (
-
             folio_movimiento,
             fecha,
             tipo_movimiento,
-
             tipo_documento,
             numero_documento,
             archivo_documento,
-
             codigo_material,
             descripcion,
-
             cantidad,
-
             costo_unitario,
             total,
-
             bodega,
             ubicacion,
-
             referencia,
             comentarios,
-
             usuario
-
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-
         folio_movimiento,
-
-        datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        ),
-
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         tipo_movimiento,
-
         tipo_documento,
         numero_documento,
-        archivo_document
+        archivo_documento,
+        codigo_material,
+        descripcion,
+        cantidad,
+        0,
+        0,
+        bodega,
+        ubicacion,
+        referencia,
+        comentarios,
+        st.session_state.get("usuario", "admin")
+    ))
+
+    conn.commit()
+    conn.close()
