@@ -214,6 +214,11 @@ def salidas_inventario_app():
         codigo_material
     )
 
+    st.write("Código material:", codigo_material)
+
+    db_path = get_db_path("inventarios")
+    st.write("BD inventarios:", db_path)
+
     st.info(
         f"Existencia actual: {existencia}"
     )
