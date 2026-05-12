@@ -14,7 +14,6 @@ from inventario_db import (
 
 
 def mostrar_estructura_tabla(db_path, tabla):
-
     st.title("🗄️ Crear / modificar tablas")
 
     conn = sqlite3.connect(db_path)
@@ -32,8 +31,33 @@ def mostrar_estructura_tabla(db_path, tabla):
         st.dataframe(df, use_container_width=True)
 
 
-def alterar_movimientos_inventario():
+def crear_tabla_ajustes_inventario():
+    db_path = get_db_path("inventarios")
 
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ajustes_inventario (
+            id_ajuste INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_ajuste TEXT,
+            fecha TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            tipo_ajuste TEXT,
+            cantidad REAL,
+            stock_anterior REAL,
+            stock_nuevo REAL,
+            comentarios TEXT,
+            usuario TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def alterar_movimientos_inventario():
     db_path = get_db_path("inventarios")
 
     conn = sqlite3.connect(db_path)
@@ -55,7 +79,6 @@ def alterar_movimientos_inventario():
     st.subheader("🔧 Columnas a validar/agregar")
 
     for nombre_columna, tipo_columna in columnas_nuevas:
-
         try:
             cur.execute(
                 f"""
@@ -77,9 +100,8 @@ def alterar_movimientos_inventario():
 
 
 def crear_tablas_app():
-
     st.title("🗄️ Crear / modificar tablas")
-    st.error("ARCHIVO CREAR_TABLAS ACTUALIZADO - VERSION INVENTARIO FISICO")
+    st.error("ARCHIVO CREAR_TABLAS ACTUALIZADO - VERSION INVENTARIO FISICO + AJUSTES")
 
     tipo_proceso = st.selectbox(
         "Tipo proceso",
@@ -102,7 +124,6 @@ def crear_tablas_app():
     tablas_disponibles = []
 
     if modulo == "Compras":
-
         tablas_disponibles = [
             "Todas",
             "entradas_compras",
@@ -110,12 +131,12 @@ def crear_tablas_app():
         ]
 
     elif modulo == "Inventarios":
-
         tablas_disponibles = [
             "Todas",
             "materiales",
             "movimientos_inventario",
-            "inventario_fisico"
+            "inventario_fisico",
+            "ajustes_inventario"
         ]
 
     tabla = st.selectbox(
@@ -125,45 +146,39 @@ def crear_tablas_app():
     )
 
     if tipo_proceso == "Crear tabla":
-
         st.info(
             "Este proceso crea únicamente la tabla seleccionada si no existe."
         )
 
         if st.button("🚀 Crear tablas", key="btn_crear_tablas"):
-
             try:
-
                 if modulo == "Compras":
-
                     crear_tablas_compras()
 
                 elif modulo == "Inventarios":
-
                     if tabla == "Todas":
-
                         crear_tablas_inventario()
                         crear_tabla_movimientos_inventario()
                         crear_tabla_inventario_fisico()
+                        crear_tabla_ajustes_inventario()
 
                     elif tabla == "materiales":
-
                         crear_tablas_inventario()
 
                     elif tabla == "movimientos_inventario":
-
                         crear_tabla_movimientos_inventario()
 
                     elif tabla == "inventario_fisico":
-
                         crear_tabla_inventario_fisico()
+
+                    elif tabla == "ajustes_inventario":
+                        crear_tabla_ajustes_inventario()
 
                 st.success(
                     f"✅ Tabla(s) creadas correctamente para {modulo}"
                 )
 
             except Exception as e:
-
                 st.error(
                     f"❌ Error creando tablas del módulo {modulo}"
                 )
@@ -171,17 +186,13 @@ def crear_tablas_app():
                 st.exception(e)
 
     elif tipo_proceso == "Modificar estructura":
-
         st.warning(
             "Este proceso modifica la estructura de una tabla existente sin borrar datos."
         )
 
         if modulo == "Inventarios" and tabla == "movimientos_inventario":
-
             if st.button("🛠️ Modificar estructura", key="btn_alter_mov_inv"):
-
                 try:
-
                     alterar_movimientos_inventario()
 
                     st.success(
@@ -189,7 +200,6 @@ def crear_tablas_app():
                     )
 
                 except Exception as e:
-
                     st.error(
                         "❌ Error modificando movimientos_inventario"
                     )
@@ -197,7 +207,6 @@ def crear_tablas_app():
                     st.exception(e)
 
         else:
-
             st.info(
                 "Por ahora la modificación de estructura está habilitada solo para Inventarios / movimientos_inventario."
             )
