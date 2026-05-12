@@ -11,6 +11,7 @@ from entrada_compras_app import entrada_compras_app
 from consulta_entradas_compras_app import consulta_entradas_compras_app
 from salidas_inventario_app import salidas_inventario_app
 from kardex_inventario_app import kardex_inventario_app
+from inventario_fisico_app import inventario_fisico_app
 
 # =========================
 # APP INVENTARIOS
@@ -39,7 +40,7 @@ def inventarios_app():
         "registrar entrada de compras"
     ]:
         entrada_compras_app()
-        
+
     elif opcion_inv == "Consultar entradas compra":
         consulta_entradas_compras_app()
 
@@ -48,7 +49,10 @@ def inventarios_app():
 
     elif opcion_inv == "Kardex por material":
         kardex_inventario_app()
-    
+
+    elif opcion_inv == "Inventario físico":
+        inventario_fisico_app()
+
     elif opcion_inv == "Alta de SKU":
         st.info("Pantalla Alta de SKU en construcción")
 
