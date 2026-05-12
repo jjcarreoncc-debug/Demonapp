@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 
+from pathlib import Path
 from datetime import datetime
+
 from sigem_db import get_db_path
 
 
@@ -13,6 +15,7 @@ from sigem_db import get_db_path
 def obtener_materiales():
 
     db_path = get_db_path("materiales")
+
     conn = sqlite3.connect(db_path)
 
     try:
@@ -22,7 +25,6 @@ def obtener_materiales():
                 codigo_material,
                 descripcion
             FROM materiales
-            WHERE estatus = 'Activo'
             ORDER BY codigo_material
         """
 
@@ -30,10 +32,7 @@ def obtener_materiales():
 
     except Exception as e:
 
-        st.error(
-            "Error leyendo materiales.db"
-        )
-
+        st.error("Error leyendo materiales.db")
         st.exception(e)
 
         df = pd.DataFrame()
@@ -68,11 +67,26 @@ def obtener_existencia(codigo_material):
 
 
 # ==========================================
+# GENERAR FOLIO
+# ==========================================
+
+def generar_folio():
+
+    fecha = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    return f"SG201-{fecha}"
+
+
+# ==========================================
 # REGISTRAR MOVIMIENTO
 # ==========================================
 
 def registrar_movimiento(
+    folio_movimiento,
     tipo_movimiento,
+    tipo_documento,
+    numero_documento,
+    archivo_documento,
     codigo_material,
     descripcion,
     cantidad,
@@ -88,8 +102,15 @@ def registrar_movimiento(
     cur.execute("""
         INSERT INTO movimientos_inventario (
 
+            folio_movimiento,
+
             fecha,
+
             tipo_movimiento,
+
+            tipo_documento,
+            numero_documento,
+            archivo_documento,
 
             codigo_material,
             descripcion,
@@ -108,14 +129,20 @@ def registrar_movimiento(
             usuario
 
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
+
+        folio_movimiento,
 
         datetime.now().strftime(
             "%Y-%m-%d %H:%M:%S"
         ),
 
         tipo_movimiento,
+
+        tipo_documento,
+        numero_documento,
+        archivo_documento,
 
         codigo_material,
         descripcion,
@@ -154,31 +181,46 @@ def salidas_inventario_app():
     if materiales.empty:
 
         st.warning(
-            "No existen materiales activos registrados."
+            "No existen materiales registrados."
         )
 
         return
 
-    st.subheader("🧾 Encabezado")
+    st.subheader("🧾 Documento salida")
 
     c1, c2 = st.columns(2)
 
     with c1:
 
-        referencia = st.selectbox(
-            "Tipo salida",
+        tipo_documento = st.selectbox(
+            "Tipo documento",
             [
                 "VENTA",
-                "CONSUMO_INTERNO",
+                "REMISION",
+                "VALE_SALIDA",
+                "ORDEN_INTERNA",
                 "MERMA",
                 "TRANSFERENCIA",
-                "AJUSTE"
+                "AJUSTE_AUTORIZADO"
             ]
         )
 
     with c2:
 
-        st.date_input("Fecha")
+        numero_documento = st.text_input(
+            "Número documento"
+        )
+
+    archivo = st.file_uploader(
+        "Adjuntar PDF obligatorio",
+        type=["pdf"]
+    )
+
+    st.subheader("📝 Información salida")
+
+    referencia = st.text_input(
+        "Referencia"
+    )
 
     comentarios = st.text_area(
         "Comentarios"
@@ -214,11 +256,6 @@ def salidas_inventario_app():
         codigo_material
     )
 
-    st.write("Código material:", codigo_material)
-
-    db_path = get_db_path("inventarios")
-    st.write("BD inventarios:", db_path)
-
     st.info(
         f"Existencia actual: {existencia}"
     )
@@ -237,6 +274,22 @@ def salidas_inventario_app():
         "💾 Registrar salida"
     ):
 
+        if not numero_documento:
+
+            st.error(
+                "Debes capturar número documento."
+            )
+
+            return
+
+        if archivo is None:
+
+            st.error(
+                "Debes adjuntar PDF obligatorio."
+            )
+
+            return
+
         if cantidad <= 0:
 
             st.error(
@@ -253,9 +306,33 @@ def salidas_inventario_app():
 
             return
 
+        carpeta = (
+            Path(__file__).resolve().parent
+            / "documentos"
+            / "salidas"
+        )
+
+        carpeta.mkdir(
+            parents=True,
+            exist_ok=True
+        )
+
+        ruta_archivo = carpeta / archivo.name
+
+        with open(ruta_archivo, "wb") as f:
+            f.write(archivo.getbuffer())
+
+        folio_movimiento = generar_folio()
+
         registrar_movimiento(
 
+            folio_movimiento,
+
             "SALIDA",
+
+            tipo_documento,
+            numero_documento,
+            str(ruta_archivo),
 
             codigo_material,
             descripcion,
@@ -268,6 +345,44 @@ def salidas_inventario_app():
 
         st.success(
             "✅ Salida registrada correctamente"
+        )
+
+        st.subheader(
+            "📄 Confirmación movimiento"
+        )
+
+        st.success(
+            f"Folio movimiento: {folio_movimiento}"
+        )
+
+        st.write(
+            "Tipo documento:",
+            tipo_documento
+        )
+
+        st.write(
+            "Número documento:",
+            numero_documento
+        )
+
+        st.write(
+            "Material:",
+            codigo_material
+        )
+
+        st.write(
+            "Descripción:",
+            descripcion
+        )
+
+        st.write(
+            "Cantidad salida:",
+            cantidad
+        )
+
+        st.write(
+            "Archivo:",
+            archivo.name
         )
 
 
