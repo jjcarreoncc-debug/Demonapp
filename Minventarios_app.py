@@ -13,6 +13,7 @@ from salidas_inventario_app import salidas_inventario_app
 from kardex_inventario_app import kardex_inventario_app
 from inventario_fisico_app import inventario_fisico_app
 
+
 # =========================
 # APP INVENTARIOS
 # =========================
@@ -24,13 +25,13 @@ def inventarios_app():
 
     opcion_limpia = str(opcion_inv).strip().lower()
 
-    if opcion_inv == "Alta de material":
+    if opcion_limpia == "alta de material":
         alta_material_app()
 
-    elif opcion_inv == "Baja de material":
+    elif opcion_limpia == "baja de material":
         baja_material_app()
 
-    elif opcion_inv == "Consulta de material":
+    elif opcion_limpia == "consulta de material":
         consulta_material_app()
 
     elif opcion_limpia in [
@@ -41,25 +42,35 @@ def inventarios_app():
     ]:
         entrada_compras_app()
 
-    elif opcion_inv == "Consultar entradas compra":
+    elif opcion_limpia == "consultar entradas compra":
         consulta_entradas_compras_app()
 
-    elif opcion_inv == "Registrar salida venta":
+    elif opcion_limpia == "registrar salida venta":
         salidas_inventario_app()
 
-    elif opcion_inv == "Kardex por material":
+    elif opcion_limpia == "kardex por material":
         kardex_inventario_app()
 
-    elif opcion_inv == "Inventario físico":
+    elif opcion_limpia in [
+        "inventario físico",
+        "inventario fisico",
+        "crear conteo",
+        "capturar conteo",
+        "consultar conteos",
+        "aplicar ajuste",
+        "consultar ajustes",
+        "diferencias por conteo",
+        "diferencias valorizadas"
+    ]:
         inventario_fisico_app()
 
-    elif opcion_inv == "Alta de SKU":
+    elif opcion_limpia == "alta de sku":
         st.info("Pantalla Alta de SKU en construcción")
 
-    elif opcion_inv == "Baja de SKU":
+    elif opcion_limpia == "baja de sku":
         st.info("Pantalla Baja de SKU en construcción")
 
-    elif opcion_inv == "Consulta de SKU":
+    elif opcion_limpia == "consulta de sku":
         st.info("Pantalla Consulta de SKU en construcción")
 
     else:
