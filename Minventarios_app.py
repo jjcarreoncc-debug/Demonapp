@@ -25,6 +25,9 @@ def inventarios_app():
 
     opcion_limpia = str(opcion_inv).strip().lower()
 
+    # =========================
+    # MATERIALES
+    # =========================
     if opcion_limpia == "alta de material":
         alta_material_app()
 
@@ -34,6 +37,9 @@ def inventarios_app():
     elif opcion_limpia == "consulta de material":
         consulta_material_app()
 
+    # =========================
+    # ENTRADAS
+    # =========================
     elif opcion_limpia in [
         "registrar entrada compra",
         "registrar entrada de compra",
@@ -45,25 +51,45 @@ def inventarios_app():
     elif opcion_limpia == "consultar entradas compra":
         consulta_entradas_compras_app()
 
+    # =========================
+    # SALIDAS
+    # =========================
     elif opcion_limpia == "registrar salida venta":
         salidas_inventario_app()
 
+    # =========================
+    # KARDEX
+    # =========================
     elif opcion_limpia == "kardex por material":
         kardex_inventario_app()
 
-    elif opcion_limpia in [
-        "inventario físico",
-        "inventario fisico",
-        "crear conteo",
-        "capturar conteo",
-        "consultar conteos",
-        "aplicar ajuste",
-        "consultar ajustes",
-        "diferencias por conteo",
-        "diferencias valorizadas"
-    ]:
+    # =========================
+    # INVENTARIO FÍSICO
+    # =========================
+    elif opcion_limpia == "crear conteo":
         inventario_fisico_app()
 
+    elif opcion_limpia == "capturar conteo":
+        inventario_fisico_app()
+
+    elif opcion_limpia == "consultar conteos":
+        inventario_fisico_app()
+
+    elif opcion_limpia == "aplicar ajuste":
+        inventario_fisico_app()
+
+    elif opcion_limpia == "consultar ajustes":
+        inventario_fisico_app()
+
+    elif opcion_limpia == "diferencias por conteo":
+        inventario_fisico_app()
+
+    elif opcion_limpia == "diferencias valorizadas":
+        inventario_fisico_app()
+
+    # =========================
+    # SKU
+    # =========================
     elif opcion_limpia == "alta de sku":
         st.info("Pantalla Alta de SKU en construcción")
 
@@ -73,6 +99,9 @@ def inventarios_app():
     elif opcion_limpia == "consulta de sku":
         st.info("Pantalla Consulta de SKU en construcción")
 
+    # =========================
+    # DEFAULT
+    # =========================
     else:
         st.title(opcion_inv)
 
