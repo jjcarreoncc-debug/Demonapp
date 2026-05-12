@@ -70,6 +70,14 @@ def revisar_estructura_db_app():
 
         tablas = obtener_tablas(conn)
 
+        tablas = sorted(tablas)
+
+        if "inventario_fisico" not in tablas:
+            tablas.append("inventario_fisico")
+
+        if "ajustes_inventario" not in tablas:
+            tablas.append("ajustes_inventario")
+
         if not tablas:
 
             st.warning("Esta base no tiene tablas.")
