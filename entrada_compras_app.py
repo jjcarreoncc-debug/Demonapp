@@ -149,7 +149,19 @@ def registrar_movimiento_inventario(
     ))
 
     conn.commit()
+    
+
+    st.success(
+        f"Movimiento guardado: {codigo_material} / {cantidad}"
+    )
+
+    st.write(
+        "BD inventarios:",
+        get_db_path("inventarios")
+    )
+
     conn.close()
+    
 
 
 def entrada_compras_app():
