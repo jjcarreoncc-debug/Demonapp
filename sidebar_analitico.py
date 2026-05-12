@@ -142,13 +142,45 @@ def analitico_app():
         with st.expander("📦 Inventarios", expanded=False):
 
             if st.button(
-                "📦 Abrir Inventarios",
+                "📊 Dashboard General",
                 use_container_width=True,
-                key="btn_inventarios_abrir"
+                key="btn_inv_dashboard"
             ):
                 st.session_state.modulo_analitico = "inventarios"
-
-        # =========================
+                st.session_state.menu_inventarios = "📊 Dashboard General"
+        
+            if st.button(
+                "🚨 Críticos",
+                use_container_width=True,
+                key="btn_inv_criticos"
+            ):
+                st.session_state.modulo_analitico = "inventarios"
+                st.session_state.menu_inventarios = "🚨 Críticos"
+        
+            if st.button(
+                "⚠️ Sobrestock",
+                use_container_width=True,
+                key="btn_inv_sobrestock"
+            ):
+                st.session_state.modulo_analitico = "inventarios"
+                st.session_state.menu_inventarios = "⚠️ Sobrestock"
+        
+            if st.button(
+                "🔄 Rotación",
+                use_container_width=True,
+                key="btn_inv_rotacion"
+            ):
+                st.session_state.modulo_analitico = "inventarios"
+                st.session_state.menu_inventarios = "🔄 Rotación"
+        
+            if st.button(
+                "🤖 IA",
+                use_container_width=True,
+                key="btn_inv_ia"
+            ):
+                st.session_state.modulo_analitico = "inventarios"
+                st.session_state.menu_inventarios = "🤖 IA"
+                # =========================
         # WMS
         # =========================
         with st.expander("🏬 WMS", expanded=False):
