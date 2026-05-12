@@ -231,7 +231,7 @@ def analitico_app():
         logistica_app()
 
     elif st.session_state.modulo_analitico == "inventarios":
-        inventarios_app()
+        dashboard_stock_app()
 
     elif st.session_state.modulo_analitico == "wms":
         wms_app()
