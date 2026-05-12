@@ -67,25 +67,25 @@ def inventarios_app():
     # INVENTARIO FÍSICO
     # =========================
     elif opcion_limpia == "crear conteo":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     elif opcion_limpia == "capturar conteo":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     elif opcion_limpia == "consultar conteos":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     elif opcion_limpia == "aplicar ajuste":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     elif opcion_limpia == "consultar ajustes":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     elif opcion_limpia == "diferencias por conteo":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     elif opcion_limpia == "diferencias valorizadas":
-        inventario_fisico_app()
+        inventario_fisico_app(opcion_limpia)
 
     # =========================
     # SKU
