@@ -122,7 +122,7 @@ def mantenimiento_app():
                     "Actualización de tablas",
                     "Carga tablas inicial",
                     "🗄️ Crear tablas",
-                    "Revision Estructura Tablas"
+                    "🔍 Revisar estructura DB"
                 ],
                 key="submenu_configuracion"
             )
