@@ -82,5 +82,33 @@ def crear_tabla_movimientos_inventario():
         )
     """)
 
+    # ==========================================
+    # ACTUALIZAR TABLA EXISTENTE
+    # Si la tabla ya existía, agrega columnas faltantes
+    # sin borrar información anterior.
+    # ==========================================
+
+    columnas_nuevas = [
+        ("folio_movimiento", "TEXT"),
+        ("tipo_documento", "TEXT"),
+        ("numero_documento", "TEXT"),
+        ("archivo_documento", "TEXT"),
+    ]
+
+    for nombre_columna, tipo_columna in columnas_nuevas:
+
+        try:
+
+            cur.execute(
+                f"""
+                ALTER TABLE movimientos_inventario
+                ADD COLUMN {nombre_columna} {tipo_columna}
+                """
+            )
+
+        except sqlite3.OperationalError:
+
+            pass
+
     conn.commit()
     conn.close()
