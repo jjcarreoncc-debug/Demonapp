@@ -82,7 +82,7 @@ def inventarios_app():
         inventario_fisico_app
 
     elif opcion_limpia == "diferencias por conteo":
-        inventario_fisico_app)
+        inventario_fisico_app
 
     elif opcion_limpia == "diferencias valorizadas":
         inventario_fisico_app
