@@ -10,10 +10,31 @@ from pypdf import PdfReader
 from sigem_db import get_db_path
 
 
+def obtener_catalogo_materiales():
+
+    db_path = get_db_path("materiales")
+    conn = sqlite3.connect(db_path)
+
+    try:
+        df = pd.read_sql("""
+            SELECT
+                codigo_material,
+                descripcion
+            FROM materiales
+            WHERE estatus = 'Activo'
+            ORDER BY codigo_material
+        """, conn)
+
+    except Exception:
+        df = pd.DataFrame(columns=["codigo_material", "descripcion"])
+
+    conn.close()
+    return df
+
+
 def crear_tablas_entrada_compras():
 
     db_path = get_db_path("compras")
-
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
@@ -55,7 +76,6 @@ def crear_tablas_entrada_compras():
 def crear_tabla_movimientos_inventario():
 
     db_path = get_db_path("inventarios")
-
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
@@ -94,7 +114,6 @@ def registrar_movimiento_inventario(
 ):
 
     db_path = get_db_path("inventarios")
-
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
@@ -133,56 +152,6 @@ def registrar_movimiento_inventario(
     conn.close()
 
 
-def extraer_materiales_desde_pdf(texto_pdf):
-
-    materiales = []
-
-    lineas = texto_pdf.split("\n")
-
-    for linea in lineas:
-
-        linea = linea.strip()
-
-        if not linea:
-            continue
-
-        numeros = re.findall(r"\d+(?:[.,]\d+)?", linea)
-
-        if len(numeros) >= 2:
-
-            try:
-                cantidad = float(numeros[-2].replace(",", "."))
-                costo_unitario = float(numeros[-1].replace(",", "."))
-
-                descripcion = linea
-
-                materiales.append({
-                    "codigo_material": "",
-                    "descripcion": descripcion,
-                    "cantidad": cantidad,
-                    "costo_unitario": costo_unitario,
-                    "impuesto": 0.0,
-                    "bodega": "",
-                    "ubicacion": ""
-                })
-
-            except:
-                pass
-
-    if not materiales:
-        materiales.append({
-            "codigo_material": "",
-            "descripcion": "",
-            "cantidad": 0.0,
-            "costo_unitario": 0.0,
-            "impuesto": 0.0,
-            "bodega": "",
-            "ubicacion": ""
-        })
-
-    return pd.DataFrame(materiales)
-
-
 def entrada_compras_app():
 
     st.title("📥 Entrada de Compras / Factura")
@@ -190,18 +159,24 @@ def entrada_compras_app():
     crear_tablas_entrada_compras()
     crear_tabla_movimientos_inventario()
 
-    if "detalle_pdf" not in st.session_state:
-        st.session_state["detalle_pdf"] = pd.DataFrame([
-            {
-                "codigo_material": "",
-                "descripcion": "",
-                "cantidad": 0.0,
-                "costo_unitario": 0.0,
-                "impuesto": 0.0,
-                "bodega": "",
-                "ubicacion": ""
-            }
-        ])
+    catalogo = obtener_catalogo_materiales()
+
+    if catalogo.empty:
+        st.warning("No hay materiales activos registrados en el catálogo.")
+        return
+
+    opciones_materiales = [
+        f"{row.codigo_material} - {row.descripcion}"
+        for _, row in catalogo.iterrows()
+    ]
+
+    mapa_materiales = {
+        f"{row.codigo_material} - {row.descripcion}": {
+            "codigo_material": row.codigo_material,
+            "descripcion": row.descripcion
+        }
+        for _, row in catalogo.iterrows()
+    }
 
     st.subheader("🧾 Encabezado factura")
 
@@ -221,134 +196,92 @@ def entrada_compras_app():
 
     comentarios = st.text_area("Comentarios")
 
-    st.subheader("📎 Documento digitalizado")
+    st.subheader("📦 Captura de materiales")
 
-    archivo = st.file_uploader(
-        "Adjuntar factura PDF / imagen / Excel",
-        type=["pdf", "png", "jpg", "jpeg", "xlsx"]
-    )
+    if "detalle_compra_manual" not in st.session_state:
+        st.session_state["detalle_compra_manual"] = []
 
-    archivo_guardado = ""
+    c1, c2, c3, c4 = st.columns(4)
 
-    if archivo is not None:
-
-        carpeta = (
-            Path(__file__).resolve().parent
-            / "documentos"
-            / "compras"
+    with c1:
+        material_sel = st.selectbox(
+            "Material",
+            opciones_materiales
         )
 
-        carpeta.mkdir(
-            parents=True,
-            exist_ok=True
+    material_data = mapa_materiales[material_sel]
+
+    with c2:
+        st.text_input(
+            "Descripción",
+            value=material_data["descripcion"],
+            disabled=True
         )
 
-        archivo_guardado = carpeta / archivo.name
+    with c3:
+        cantidad = st.number_input(
+            "Cantidad / piezas",
+            min_value=0.0,
+            step=1.0
+        )
 
-        with open(archivo_guardado, "wb") as f:
-            f.write(archivo.getbuffer())
+    with c4:
+        costo_unitario = st.number_input(
+            "Costo unitario",
+            min_value=0.0,
+            step=1.0
+        )
 
-        st.success(f"Archivo adjuntado: {archivo.name}")
-
-        if archivo.name.lower().endswith(".pdf"):
-
-            st.markdown("---")
-            st.subheader("📄 Lectura del PDF")
-
-            if st.button("🔍 Leer PDF y cargar tabla"):
-
-                try:
-
-                    reader = PdfReader(str(archivo_guardado))
-
-                    texto_pdf = ""
-
-                    for page in reader.pages:
-                        texto_pdf += page.extract_text() or ""
-
-                    if texto_pdf.strip():
-
-                        st.success("✅ Texto detectado en el PDF")
-
-                        st.text_area(
-                            "Texto leído del PDF",
-                            texto_pdf,
-                            height=300
-                        )
-
-                        detalle_extraido = extraer_materiales_desde_pdf(
-                            texto_pdf
-                        )
-
-                        st.session_state["detalle_pdf"] = detalle_extraido
-
-                        st.success(
-                            "✅ Información enviada a la tabla de materiales"
-                        )
-
-                    else:
-
-                        st.warning(
-                            "⚠️ No se detectó texto. Probablemente es un PDF escaneado y necesitará OCR."
-                        )
-
-                except Exception as e:
-
-                    st.error("❌ Error leyendo PDF")
-                    st.exception(e)
-
-    st.subheader("📦 Detalle materiales")
-
-    detalle = st.data_editor(
-        st.session_state["detalle_pdf"],
-        num_rows="dynamic",
-        use_container_width=True,
-        key="detalle_entrada_compras"
+    impuesto = st.number_input(
+        "Impuesto",
+        min_value=0.0,
+        step=1.0
     )
+
+    bodega = st.text_input("Bodega")
+    ubicacion = st.text_input("Ubicación")
+
+    if st.button("➕ Agregar material"):
+
+        if cantidad <= 0:
+            st.error("La cantidad debe ser mayor a cero.")
+            return
+
+        total = (cantidad * costo_unitario) + impuesto
+
+        st.session_state["detalle_compra_manual"].append({
+            "codigo_material": material_data["codigo_material"],
+            "descripcion": material_data["descripcion"],
+            "cantidad": cantidad,
+            "costo_unitario": costo_unitario,
+            "impuesto": impuesto,
+            "total": total,
+            "bodega": bodega,
+            "ubicacion": ubicacion
+        })
+
+        st.success("Material agregado a la entrada.")
+
+    detalle = pd.DataFrame(st.session_state["detalle_compra_manual"])
+
+    st.subheader("📋 Detalle de entrada")
 
     if not detalle.empty:
-
-        detalle["total"] = (
-            detalle["cantidad"].fillna(0)
-            * detalle["costo_unitario"].fillna(0)
-        ) + detalle["impuesto"].fillna(0)
-
-        st.write("Vista previa total:")
-
-        st.dataframe(
-            detalle,
-            use_container_width=True
-        )
+        st.dataframe(detalle, use_container_width=True)
+    else:
+        st.info("Agrega materiales para registrar la entrada.")
 
     if st.button("💾 Registrar entrada de compras"):
 
         if not proveedor or not factura:
-
             st.error("Proveedor y factura son obligatorios.")
             return
 
-        detalle_valido = detalle[
-            (
-                detalle["descripcion"]
-                .astype(str)
-                .str.strip() != ""
-            )
-            &
-            (
-                detalle["cantidad"] > 0
-            )
-        ]
-
-        if detalle_valido.empty:
-
-            st.error(
-                "Debes capturar al menos un material con cantidad mayor a cero."
-            )
-
+        if detalle.empty:
+            st.error("Debes agregar al menos un material.")
             return
 
         db_path = get_db_path("compras")
-
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
@@ -374,25 +307,14 @@ def entrada_compras_app():
             moneda,
             tipo_cambio,
             comentarios,
-            str(archivo_guardado),
+            "",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             st.session_state.get("usuario", "admin")
         ))
 
         id_entrada = cur.lastrowid
 
-        for _, row in detalle_valido.iterrows():
-
-            cantidad = float(row["cantidad"])
-            costo_unitario = float(row["costo_unitario"])
-            impuesto = float(row["impuesto"])
-
-            total = (cantidad * costo_unitario) + impuesto
-
-            codigo_material = str(row.get("codigo_material", "")).strip()
-            descripcion = str(row["descripcion"]).strip()
-            bodega = str(row.get("bodega", "")).strip()
-            ubicacion = str(row.get("ubicacion", "")).strip()
+        for _, row in detalle.iterrows():
 
             cur.execute("""
                 INSERT INTO entradas_compras_detalle (
@@ -409,30 +331,32 @@ def entrada_compras_app():
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 id_entrada,
-                codigo_material,
-                descripcion,
-                cantidad,
-                costo_unitario,
-                impuesto,
-                total,
-                bodega,
-                ubicacion
+                row["codigo_material"],
+                row["descripcion"],
+                float(row["cantidad"]),
+                float(row["costo_unitario"]),
+                float(row["impuesto"]),
+                float(row["total"]),
+                row["bodega"],
+                row["ubicacion"]
             ))
 
             registrar_movimiento_inventario(
-                codigo_material=codigo_material,
-                descripcion=descripcion,
-                cantidad=cantidad,
-                costo_unitario=costo_unitario,
-                total=total,
-                bodega=bodega,
-                ubicacion=ubicacion,
+                codigo_material=row["codigo_material"],
+                descripcion=row["descripcion"],
+                cantidad=float(row["cantidad"]),
+                costo_unitario=float(row["costo_unitario"]),
+                total=float(row["total"]),
+                bodega=row["bodega"],
+                ubicacion=row["ubicacion"],
                 referencia=f"COMPRA-{factura}",
                 comentarios=comentarios
             )
 
         conn.commit()
         conn.close()
+
+        st.session_state["detalle_compra_manual"] = []
 
         st.success(
             f"✅ Entrada registrada correctamente. Folio interno: {id_entrada}"
