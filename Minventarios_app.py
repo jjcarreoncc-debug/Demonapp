@@ -42,7 +42,7 @@ def inventarios_app():
     elif opcion_inv == "Consultar entradas compra":
         consulta_entradas_compras_app()
 
-    elif opcion_inv == "📤 Salidas inventario":
+    elif opcion_inv == "Registrar salida venta":
         salidas_inventario_app()
                     
     elif opcion_inv == "Alta de SKU":
