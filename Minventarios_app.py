@@ -13,6 +13,7 @@ from salidas_inventario_app import salidas_inventario_app
 from kardex_inventario_app import kardex_inventario_app
 from inventario_fisico_app import inventario_fisico_app
 from ajuste_inventario_fisico_app import ajuste_inventario_fisico_app
+from consulta_ajustes_app import consulta_ajustes_app
 
 
 # =========================
@@ -80,7 +81,7 @@ def inventarios_app():
         ajuste_inventario_fisico_app()
 
     elif opcion_limpia == "consultar ajustes":
-        inventario_fisico_app
+        consulta_ajustes_app()
 
     elif opcion_limpia == "diferencias por conteo":
         inventario_fisico_app
