@@ -8,13 +8,12 @@ from compras_db import crear_tablas_compras
 
 from inventario_db import (
     crear_tablas_inventario,
-    crear_tabla_movimientos_inventario
+    crear_tabla_movimientos_inventario,
+    crear_tabla_inventario_fisico
 )
 
 
 def mostrar_estructura_tabla(db_path, tabla):
- 
-    st.error("VERSION NUEVA ACTIVA")
 
     st.title("🗄️ Crear / modificar tablas")
 
@@ -58,7 +57,6 @@ def alterar_movimientos_inventario():
     for nombre_columna, tipo_columna in columnas_nuevas:
 
         try:
-
             cur.execute(
                 f"""
                 ALTER TABLE movimientos_inventario
@@ -69,7 +67,6 @@ def alterar_movimientos_inventario():
             st.success(f"✅ Columna agregada: {nombre_columna}")
 
         except sqlite3.OperationalError:
-
             st.info(f"ℹ️ La columna ya existe: {nombre_columna}")
 
     conn.commit()
@@ -116,7 +113,8 @@ def crear_tablas_app():
         tablas_disponibles = [
             "Todas",
             "materiales",
-            "movimientos_inventario"
+            "movimientos_inventario",
+            "inventario_fisico"
         ]
 
     tabla = st.selectbox(
@@ -145,6 +143,7 @@ def crear_tablas_app():
 
                         crear_tablas_inventario()
                         crear_tabla_movimientos_inventario()
+                        crear_tabla_inventario_fisico()
 
                     elif tabla == "materiales":
 
@@ -153,6 +152,10 @@ def crear_tablas_app():
                     elif tabla == "movimientos_inventario":
 
                         crear_tabla_movimientos_inventario()
+
+                    elif tabla == "inventario_fisico":
+
+                        crear_tabla_inventario_fisico()
 
                 st.success(
                     f"✅ Tabla(s) creadas correctamente para {modulo}"
