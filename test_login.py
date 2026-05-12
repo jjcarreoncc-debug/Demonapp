@@ -5,153 +5,106 @@ import sqlite3
 from sigem_db import get_db_path
 
 
-def test_movimientos_inventario_app():
+def obtener_estructura(conn):
 
-    st.title("🧪 TEST - movimientos_inventario")
+    return pd.read_sql_query(
+        "PRAGMA table_info(movimientos_inventario)",
+        conn
+    )
+
+
+def actualizar_movimientos_inventario_app():
+
+    st.title("🛠️ Actualizar estructura movimientos_inventario")
 
     db_path = get_db_path("inventarios")
 
     st.subheader("📂 Base utilizada")
     st.code(str(db_path))
 
+    columnas_requeridas = [
+        ("folio_movimiento", "TEXT"),
+        ("tipo_documento", "TEXT"),
+        ("numero_documento", "TEXT"),
+        ("archivo_documento", "TEXT"),
+        ("referencia", "TEXT"),
+        ("comentarios", "TEXT"),
+        ("usuario", "TEXT"),
+    ]
+
     try:
 
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        # ==========================================
-        # VALIDAR EXISTENCIA TABLA
-        # ==========================================
+        st.subheader("📋 Estructura actual")
 
-        cur.execute("""
-            SELECT name
-            FROM sqlite_master
-            WHERE type='table'
-            AND name='movimientos_inventario'
-        """)
+        df_actual = obtener_estructura(conn)
 
-        tabla = cur.fetchone()
-
-        if tabla is None:
-
-            st.error(
-                "❌ La tabla movimientos_inventario NO existe"
-            )
-
+        if df_actual.empty:
+            st.error("❌ La tabla movimientos_inventario no existe.")
             conn.close()
             return
 
-        st.success(
-            "✅ Tabla movimientos_inventario encontrada"
-        )
+        st.dataframe(df_actual, use_container_width=True)
 
-        # ==========================================
-        # ESTRUCTURA TABLA
-        # ==========================================
+        columnas_actuales = df_actual["name"].tolist()
 
-        df = pd.read_sql(
-            "PRAGMA table_info(movimientos_inventario)",
-            conn
-        )
-
-        st.subheader("📋 Estructura tabla")
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
-
-        columnas = df["name"].tolist()
-
-        st.subheader("📌 Columnas detectadas")
-
-        for col in columnas:
-
-            st.write(f"✅ {col}")
-
-        # ==========================================
-        # VALIDAR COLUMNAS REQUERIDAS
-        # ==========================================
-
-        columnas_requeridas = [
-
-            "fecha",
-            "tipo_movimiento",
-            "codigo_material",
-            "descripcion",
-            "cantidad",
-            "costo_unitario",
-            "total",
-            "bodega",
-            "ubicacion",
-            "referencia",
-            "comentarios",
-            "usuario"
-        ]
-
-        st.subheader("🔎 Validación columnas")
+        st.subheader("🔎 Validación columnas requeridas")
 
         faltantes = []
 
-        for col in columnas_requeridas:
+        for columna, tipo in columnas_requeridas:
 
-            if col in columnas:
+            if columna in columnas_actuales:
+                st.success(f"✅ Existe: {columna}")
+            else:
+                st.error(f"❌ Falta: {columna}")
+                faltantes.append((columna, tipo))
 
-                st.success(f"OK -> {col}")
+        if not faltantes:
+            st.success("✅ La tabla ya tiene toda la estructura requerida.")
 
+        st.markdown("---")
+
+        if st.button("🚀 Actualizar estructura"):
+
+            if not faltantes:
+                st.info("No hay columnas faltantes para agregar.")
             else:
 
-                st.error(f"FALTA -> {col}")
-                faltantes.append(col)
+                for columna, tipo in faltantes:
 
-        # ==========================================
-        # TEST CONSULTA
-        # ==========================================
+                    try:
+                        cur.execute(
+                            f"""
+                            ALTER TABLE movimientos_inventario
+                            ADD COLUMN {columna} {tipo}
+                            """
+                        )
 
-        st.subheader("📦 Últimos movimientos")
+                        st.success(f"Columna agregada: {columna}")
 
-        try:
+                    except sqlite3.OperationalError as e:
+                        st.warning(f"No se pudo agregar {columna}: {e}")
 
-            query = """
-                SELECT *
-                FROM movimientos_inventario
-                ORDER BY id_movimiento DESC
-                LIMIT 20
-            """
+                conn.commit()
 
-            df_movs = pd.read_sql(
-                query,
-                conn
-            )
+                st.success("✅ Actualización terminada.")
 
-            st.dataframe(
-                df_movs,
-                use_container_width=True
-            )
+            st.subheader("📋 Estructura final")
 
-            st.success(
-                f"Movimientos encontrados: {len(df_movs)}"
-            )
+            df_final = obtener_estructura(conn)
 
-        except Exception as e:
-
-            st.error(
-                "Error consultando movimientos"
-            )
-
-            st.exception(e)
+            st.dataframe(df_final, use_container_width=True)
 
         conn.close()
 
     except Exception as e:
 
-        st.error(
-            "Error general validando movimientos_inventario"
-        )
-
+        st.error("Error actualizando movimientos_inventario")
         st.exception(e)
 
 
 if __name__ == "__main__":
-
-    test_movimientos_inventario_app()
+    actualizar_movimientos_inventario_app()
