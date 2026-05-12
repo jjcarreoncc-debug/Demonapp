@@ -8,7 +8,7 @@ from datetime import datetime
 from pypdf import PdfReader
 
 from sigem_db import get_db_path
-from inventario_db import crear_tabla_movimientos_inventario
+
 
 
 def obtener_materiales():
