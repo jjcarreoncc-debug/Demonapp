@@ -49,9 +49,17 @@ def obtener_diferencias_valorizadas():
 
             m.stock_minimo,
             m.stock_maximo,
-            m.rotacion_abc
+            m.rotacion_abc,
 
-            
+            CASE
+                WHEN f.diferencia > 0 THEN 'SOBRANTE'
+                WHEN f.diferencia < 0 THEN 'FALTANTE'
+                ELSE 'SIN DIFERENCIA'
+            END AS tipo_diferencia,
+
+            f.usuario AS usuario_conteo,
+            f.estatus
+
         FROM inventario_fisico f
 
         LEFT JOIN materiales_db.materiales m
