@@ -187,8 +187,12 @@ def salidas_inventario_app():
 
     archivo = st.file_uploader(
         "Adjuntar PDF obligatorio",
-        type=["pdf"]
+        type=["pdf"],
+        key="archivo_pdf_salida"
     )
+
+    st.markdown("---")
+    st.subheader("📄 Lectura del PDF")
 
     texto_pdf = ""
 
@@ -196,7 +200,12 @@ def salidas_inventario_app():
 
         st.success(f"PDF adjuntado: {archivo.name}")
 
-        if st.button("🔍 Leer PDF"):
+        leer_pdf_btn = st.button(
+            "🔍 Leer PDF",
+            key="btn_leer_pdf_salida"
+        )
+
+        if leer_pdf_btn:
 
             texto_pdf = leer_pdf(archivo)
 
@@ -221,6 +230,9 @@ def salidas_inventario_app():
                 st.warning(
                     "No se detectó texto. Puede ser un PDF escaneado y necesitar OCR."
                 )
+
+    else:
+        st.info("Adjunta un PDF para habilitar la lectura.")
 
     st.subheader("📝 Información salida")
 
