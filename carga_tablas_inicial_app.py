@@ -5,14 +5,53 @@ import sqlite3
 from sigem_db import get_db_path
 
 
-COLUMNAS_MINIMAS_MATERIALES = [
-    "codigo_material",
-    "descripcion",
-    "categoria",
-    "familia",
-    "unidad_base",
-    "estatus"
-]
+COLUMNAS_MINIMAS = {
+
+    "materiales": [
+        "codigo_material",
+        "descripcion",
+        "categoria",
+        "familia",
+        "unidad_base",
+        "estatus"
+    ],
+
+    "movimientos_inventario": [
+        "fecha",
+        "tipo_movimiento",
+        "codigo_material",
+        "descripcion",
+        "cantidad"
+    ],
+
+    "entradas_compras": [
+        "proveedor",
+        "factura",
+        "fecha_factura",
+        "fecha_recepcion",
+        "moneda"
+    ],
+
+    "entradas_compras_detalle": [
+        "id_entrada",
+        "codigo_material",
+        "descripcion",
+        "cantidad",
+        "costo_unitario"
+    ]
+}
+
+
+DB_POR_TABLA = {
+
+    "materiales": "materiales",
+
+    "movimientos_inventario": "inventarios",
+
+    "entradas_compras": "compras",
+
+    "entradas_compras_detalle": "compras"
+}
 
 
 def carga_tablas_inicial_app():
@@ -20,34 +59,50 @@ def carga_tablas_inicial_app():
     st.title("📥 Carga tablas inicial")
 
     st.caption(
-        "Configuración / Carga inicial / Materiales"
+        "Configuración / Carga inicial"
     )
 
     # =====================================
     # MODULO
     # =====================================
+
     modulo = st.selectbox(
         "Módulo",
         [
-            "Inventarios"
+            "Inventarios",
+            "Compras"
         ],
         key="carga_modulo"
     )
 
     # =====================================
-    # TABLA
+    # TABLAS
     # =====================================
+
+    if modulo == "Inventarios":
+
+        tablas_disponibles = [
+            "materiales",
+            "movimientos_inventario"
+        ]
+
+    else:
+
+        tablas_disponibles = [
+            "entradas_compras",
+            "entradas_compras_detalle"
+        ]
+
     tabla = st.selectbox(
         "Tabla destino",
-        [
-            "materiales"
-        ],
+        tablas_disponibles,
         key="carga_tabla"
     )
 
     # =====================================
     # ARCHIVO
     # =====================================
+
     archivo = st.file_uploader(
         "Selecciona archivo CSV o Excel",
         type=["csv", "xlsx"],
@@ -65,6 +120,7 @@ def carga_tablas_inicial_app():
     # =====================================
     # LEER ARCHIVO
     # =====================================
+
     try:
 
         if archivo.name.lower().endswith(".csv"):
@@ -85,6 +141,7 @@ def carga_tablas_inicial_app():
     # =====================================
     # LIMPIAR COLUMNAS
     # =====================================
+
     df.columns = (
         df.columns
         .astype(str)
@@ -98,6 +155,7 @@ def carga_tablas_inicial_app():
     # =====================================
     # PREVIEW
     # =====================================
+
     st.subheader("👀 Vista previa")
 
     st.dataframe(
@@ -108,13 +166,19 @@ def carga_tablas_inicial_app():
     # =====================================
     # VALIDAR COLUMNAS
     # =====================================
+
+    columnas_minimas = COLUMNAS_MINIMAS.get(
+        tabla,
+        []
+    )
+
     st.subheader("✅ Validación columnas mínimas")
 
     columnas_faltantes = [
 
         col
 
-        for col in COLUMNAS_MINIMAS_MATERIALES
+        for col in columnas_minimas
 
         if col not in df.columns
 
@@ -132,9 +196,7 @@ def carga_tablas_inicial_app():
             "Columnas mínimas requeridas:"
         )
 
-        st.write(
-            COLUMNAS_MINIMAS_MATERIALES
-        )
+        st.write(columnas_minimas)
 
         return
 
@@ -145,36 +207,45 @@ def carga_tablas_inicial_app():
     # =====================================
     # VALIDAR CODIGOS
     # =====================================
-    if df["codigo_material"].isna().any():
 
-        st.error(
-            "❌ Hay registros sin codigo_material"
-        )
+    if "codigo_material" in df.columns:
 
-        return
+        if df["codigo_material"].isna().any():
 
-    duplicados = df[
-        df["codigo_material"]
-        .duplicated(keep=False)
-    ]
+            st.error(
+                "❌ Hay registros sin codigo_material"
+            )
 
-    if not duplicados.empty:
+            return
 
-        st.warning(
-            "⚠️ Hay códigos duplicados en el archivo"
-        )
+        duplicados = df[
+            df["codigo_material"]
+            .duplicated(keep=False)
+        ]
 
-        st.dataframe(
-            duplicados,
-            use_container_width=True
-        )
+        if (
+            not duplicados.empty
+            and tabla == "materiales"
+        ):
 
-        return
+            st.warning(
+                "⚠️ Hay códigos duplicados en el archivo"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
 
     # =====================================
     # BASE DESTINO
     # =====================================
-    db_path = get_db_path("materiales")
+
+    db_nombre = DB_POR_TABLA[tabla]
+
+    db_path = get_db_path(db_nombre)
 
     st.markdown("---")
 
@@ -189,9 +260,10 @@ def carga_tablas_inicial_app():
     # =====================================
     # CONFIRMAR
     # =====================================
+
     confirmar = st.checkbox(
         "Confirmo que deseo agregar esta información",
-        key="confirmar_carga_materiales"
+        key="confirmar_carga_inicial"
     )
 
     if not confirmar:
@@ -205,9 +277,10 @@ def carga_tablas_inicial_app():
     # =====================================
     # INSERTAR
     # =====================================
+
     if st.button(
         "🚀 Ejecutar carga",
-        key="btn_ejecutar_carga_materiales"
+        key="btn_ejecutar_carga_inicial"
     ):
 
         try:
@@ -222,7 +295,10 @@ def carga_tablas_inicial_app():
             )
 
             total = pd.read_sql_query(
-                f"SELECT COUNT(*) AS total FROM {tabla}",
+                f"""
+                SELECT COUNT(*) AS total
+                FROM {tabla}
+                """,
                 conn
             )["total"].iloc[0]
 
@@ -251,3 +327,8 @@ def carga_tablas_inicial_app():
             )
 
             st.exception(e)
+
+
+if __name__ == "__main__":
+
+    carga_tablas_inicial_app()
