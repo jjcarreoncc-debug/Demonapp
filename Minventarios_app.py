@@ -9,10 +9,6 @@ from baja_material_app import baja_material_app
 from consulta_material_app import consulta_material_app
 from entrada_compras_app import entrada_compras_app
 
-# from alta_sku_app import alta_sku_app
-# from baja_sku_app import baja_sku_app
-# from consulta_sku_app import consulta_sku_app
-
 
 # =========================
 # APP INVENTARIOS
@@ -23,6 +19,8 @@ def inventarios_app():
 
     st.caption(f"{menu_inv} / {submenu_inv} / {opcion_inv}")
 
+    opcion_limpia = str(opcion_inv).strip().lower()
+
     if opcion_inv == "Alta de material":
         alta_material_app()
 
@@ -32,6 +30,14 @@ def inventarios_app():
     elif opcion_inv == "Consulta de material":
         consulta_material_app()
 
+    elif opcion_limpia in [
+        "registrar entrada compra",
+        "registrar entrada de compra",
+        "registrar entrada compras",
+        "registrar entrada de compras"
+    ]:
+        entrada_compras_app()
+
     elif opcion_inv == "Alta de SKU":
         st.info("Pantalla Alta de SKU en construcción")
 
@@ -40,9 +46,6 @@ def inventarios_app():
 
     elif opcion_inv == "Consulta de SKU":
         st.info("Pantalla Consulta de SKU en construcción")
-        
-    elif opcion_inv == "Registrar entrada compra":
-        entrada_compras_app()    
 
     else:
         st.title(opcion_inv)
