@@ -12,6 +12,7 @@ from consulta_entradas_compras_app import consulta_entradas_compras_app
 from salidas_inventario_app import salidas_inventario_app
 from kardex_inventario_app import kardex_inventario_app
 from inventario_fisico_app import inventario_fisico_app
+from ajuste_inventario_fisico_app import ajuste_inventario_fisico_app
 
 
 # =========================
@@ -76,7 +77,7 @@ def inventarios_app():
         inventario_fisico_app()
 
     elif opcion_limpia == "aplicar ajuste":
-        inventario_fisico_app
+        ajuste_inventario_fisico_app()
 
     elif opcion_limpia == "consultar ajustes":
         inventario_fisico_app
