@@ -13,6 +13,10 @@ from inventario_db import (
 
 
 def mostrar_estructura_tabla(db_path, tabla):
+ 
+    st.error("VERSION NUEVA ACTIVA")
+
+    st.title("🗄️ Crear / modificar tablas")
 
     conn = sqlite3.connect(db_path)
 
