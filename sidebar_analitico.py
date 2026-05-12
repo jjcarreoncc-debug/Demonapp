@@ -141,48 +141,55 @@ def analitico_app():
         # =========================
         # INVENTARIOS
         # =========================
-        with st.expander("📦 Inventarios", expanded=False):
+        # =========================
+# INVENTARIOS
+# =========================
+with st.expander("📦 Inventarios", expanded=False):
 
-            if st.button(
-                "📊 Dashboard General",
-                use_container_width=True,
-                key="btn_inv_dashboard"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "📊 Dashboard General"
-        
-            if st.button(
-                "🚨 Críticos",
-                use_container_width=True,
-                key="btn_inv_criticos"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "🚨 Críticos"
-        
-            if st.button(
-                "⚠️ Sobrestock",
-                use_container_width=True,
-                key="btn_inv_sobrestock"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "⚠️ Sobrestock"
-        
-            if st.button(
-                "🔄 Rotación",
-                use_container_width=True,
-                key="btn_inv_rotacion"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "🔄 Rotación"
-        
-            if st.button(
-                "🤖 IA",
-                use_container_width=True,
-                key="btn_inv_ia"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "🤖 IA"
-                # =========================
+    if st.button(
+        "📊 Dashboard General",
+        use_container_width=True,
+        key="btn_inv_dashboard"
+    ):
+        st.session_state.modulo_analitico = "inventarios"
+        st.session_state.menu_inventarios = "📊 Dashboard General"
+        st.rerun()
+
+    if st.button(
+        "🚨 Críticos",
+        use_container_width=True,
+        key="btn_inv_criticos"
+    ):
+        st.session_state.modulo_analitico = "inventarios"
+        st.session_state.menu_inventarios = "🚨 Críticos"
+        st.rerun()
+
+    if st.button(
+        "⚠️ Sobrestock",
+        use_container_width=True,
+        key="btn_inv_sobrestock"
+    ):
+        st.session_state.modulo_analitico = "inventarios"
+        st.session_state.menu_inventarios = "⚠️ Sobrestock"
+        st.rerun()
+
+    if st.button(
+        "🔄 Rotación",
+        use_container_width=True,
+        key="btn_inv_rotacion"
+    ):
+        st.session_state.modulo_analitico = "inventarios"
+        st.session_state.menu_inventarios = "🔄 Rotación"
+        st.rerun()
+
+    if st.button(
+        "🤖 IA",
+        use_container_width=True,
+        key="btn_inv_ia"
+    ):
+        st.session_state.modulo_analitico = "inventarios"
+        st.session_state.menu_inventarios = "🤖 IA"
+        st.rerun()
         # WMS
         # =========================
         with st.expander("🏬 WMS", expanded=False):
