@@ -307,8 +307,7 @@ def inventarios_app():
         with tab5:
             detalle_rotacion_app(df)
             
-    elif st.session_state.modulo_analitico == "inventarios":
-            dashboard_stock_app()
+   
 
     elif vista == "🤖 IA":
 
