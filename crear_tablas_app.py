@@ -79,6 +79,7 @@ def alterar_movimientos_inventario():
 def crear_tablas_app():
 
     st.title("🗄️ Crear / modificar tablas")
+     st.error("ARCHIVO CREAR_TABLAS ACTUALIZADO - VERSION INVENTARIO FISICO")
 
     tipo_proceso = st.selectbox(
         "Tipo proceso",
