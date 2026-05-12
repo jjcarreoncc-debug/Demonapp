@@ -3,6 +3,10 @@ import streamlit as st
 from compras_db import crear_tablas_compras
 from inventario_db import crear_tablas_inventario
 from inventario_db import crear_tabla_movimientos_inventario
+from inventario_db import (
+    crear_tablas_inventario,
+    crear_tabla_movimientos_inventario
+)
 
 
 def crear_tablas_app():
