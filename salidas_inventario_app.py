@@ -3,49 +3,69 @@ import pandas as pd
 import sqlite3
 
 from datetime import datetime
-
 from sigem_db import get_db_path
 
-
-# ==========================================
-# OBTENER MATERIALES
-# ==========================================
 
 def obtener_materiales():
 
     db_path = get_db_path("compras")
-
     conn = sqlite3.connect(db_path)
 
-    query = """
-        SELECT
-            codigo_material,
-            descripcion
-        FROM materiales
-        ORDER BY descripcion
-    """
+    try:
+        columnas = pd.read_sql("PRAGMA table_info(materiales)", conn)
 
-    df = pd.read_sql(query, conn)
+        if columnas.empty:
+            conn.close()
+            return pd.DataFrame()
+
+        cols = columnas["name"].tolist()
+
+        campo_codigo = None
+        campo_descripcion = None
+
+        for c in ["codigo_material", "codigo", "clave", "sku"]:
+            if c in cols:
+                campo_codigo = c
+                break
+
+        for c in ["descripcion", "nombre", "producto", "material"]:
+            if c in cols:
+                campo_descripcion = c
+                break
+
+        if campo_codigo is None or campo_descripcion is None:
+            st.error("La tabla materiales no tiene columnas compatibles.")
+            st.write("Columnas encontradas:", cols)
+            conn.close()
+            return pd.DataFrame()
+
+        query = f"""
+            SELECT
+                {campo_codigo} AS codigo_material,
+                {campo_descripcion} AS descripcion
+            FROM materiales
+            ORDER BY {campo_descripcion}
+        """
+
+        df = pd.read_sql(query, conn)
+
+    except Exception as e:
+        st.error("Error leyendo tabla materiales.")
+        st.exception(e)
+        df = pd.DataFrame()
 
     conn.close()
-
     return df
 
-
-# ==========================================
-# OBTENER EXISTENCIA
-# ==========================================
 
 def obtener_existencia(codigo_material):
 
     db_path = get_db_path("compras")
-
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT
-            COALESCE(SUM(cantidad), 0)
+        SELECT COALESCE(SUM(cantidad), 0)
         FROM movimientos_inventario
         WHERE codigo_material = ?
     """, (codigo_material,))
@@ -53,13 +73,8 @@ def obtener_existencia(codigo_material):
     existencia = cur.fetchone()[0]
 
     conn.close()
-
     return existencia
 
-
-# ==========================================
-# REGISTRAR MOVIMIENTO
-# ==========================================
 
 def registrar_movimiento(
     tipo_movimiento,
@@ -71,69 +86,43 @@ def registrar_movimiento(
 ):
 
     db_path = get_db_path("compras")
-
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
     cur.execute("""
         INSERT INTO movimientos_inventario (
-
             fecha,
             tipo_movimiento,
-
             codigo_material,
             descripcion,
-
             cantidad,
-
             costo_unitario,
             total,
-
             bodega,
             ubicacion,
-
             referencia,
             comentarios,
-
             usuario
-
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-
-        datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        ),
-
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         tipo_movimiento,
-
         codigo_material,
         descripcion,
-
         cantidad,
-
         0,
         0,
-
         "",
         "",
-
         referencia,
         comentarios,
-
-        st.session_state.get(
-            "usuario",
-            "admin"
-        )
+        st.session_state.get("usuario", "admin")
     ))
 
     conn.commit()
     conn.close()
 
-
-# ==========================================
-# APP PRINCIPAL
-# ==========================================
 
 def salidas_inventario_app():
 
@@ -142,11 +131,7 @@ def salidas_inventario_app():
     materiales = obtener_materiales()
 
     if materiales.empty:
-
-        st.warning(
-            "No existen materiales registrados."
-        )
-
+        st.warning("No existen materiales registrados o la tabla materiales no es compatible.")
         return
 
     st.subheader("🧾 Encabezado")
@@ -154,7 +139,6 @@ def salidas_inventario_app():
     c1, c2 = st.columns(2)
 
     with c1:
-
         referencia = st.selectbox(
             "Tipo salida",
             [
@@ -167,42 +151,33 @@ def salidas_inventario_app():
         )
 
     with c2:
+        st.date_input("Fecha")
 
-        fecha = st.date_input(
-            "Fecha"
-        )
-
-    comentarios = st.text_area(
-        "Comentarios"
-    )
+    comentarios = st.text_area("Comentarios")
 
     st.subheader("📦 Material")
 
+    materiales["display"] = (
+        materiales["codigo_material"].astype(str)
+        + " - "
+        + materiales["descripcion"].astype(str)
+    )
+
     material_seleccionado = st.selectbox(
         "Selecciona material",
-        materiales["descripcion"]
+        materiales["display"]
     )
 
     material_info = materiales[
-        materiales["descripcion"]
-        == material_seleccionado
+        materiales["display"] == material_seleccionado
     ].iloc[0]
 
-    codigo_material = material_info[
-        "codigo_material"
-    ]
+    codigo_material = material_info["codigo_material"]
+    descripcion = material_info["descripcion"]
 
-    descripcion = material_info[
-        "descripcion"
-    ]
+    existencia = obtener_existencia(codigo_material)
 
-    existencia = obtener_existencia(
-        codigo_material
-    )
-
-    st.info(
-        f"Existencia actual: {existencia}"
-    )
+    st.info(f"Existencia actual: {existencia}")
 
     cantidad = st.number_input(
         "Cantidad salida",
@@ -210,46 +185,26 @@ def salidas_inventario_app():
         step=1.0
     )
 
-    # ======================================
-    # REGISTRAR
-    # ======================================
-
-    if st.button(
-        "💾 Registrar salida"
-    ):
+    if st.button("💾 Registrar salida"):
 
         if cantidad <= 0:
-
-            st.error(
-                "Cantidad inválida."
-            )
-
+            st.error("Cantidad inválida.")
             return
 
         if cantidad > existencia:
-
-            st.error(
-                "No existe stock suficiente."
-            )
-
+            st.error("No existe stock suficiente.")
             return
 
         registrar_movimiento(
-
             "SALIDA",
-
             codigo_material,
             descripcion,
-
             cantidad * -1,
-
             referencia,
             comentarios
         )
 
-        st.success(
-            "✅ Salida registrada correctamente"
-        )
+        st.success("✅ Salida registrada correctamente")
 
 
 if __name__ == "__main__":
