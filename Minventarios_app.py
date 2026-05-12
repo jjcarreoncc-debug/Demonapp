@@ -88,7 +88,8 @@ def inventarios_app():
         diferencias_valorizadas_app()
 
     elif opcion_limpia == "diferencias valorizadas":
-        inventario_fisico_app
+               diferencias_valorizadas_app()
+
 
     # =========================
     # SKU
