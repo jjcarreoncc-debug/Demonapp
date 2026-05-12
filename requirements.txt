@@ -9,3 +9,4 @@ openpyxl
 streamlit-authenticator
 streamlit-authenticator==0.2.1
 Pillow
+pypdf
