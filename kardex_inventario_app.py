@@ -47,22 +47,89 @@ def kardex_inventario_app():
             st.warning("No existen movimientos de inventario.")
             return
 
-        materiales = ["Todos"] + sorted(df["codigo_material"].dropna().unique().tolist())
+        df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
+        df = df.dropna(subset=["fecha"])
 
-        material = st.selectbox(
-            "Filtrar material",
-            materiales
-        )
+        st.subheader("🔎 Filtros")
+
+        c1, c2 = st.columns(2)
+
+        with c1:
+            materiales = ["Todos"] + sorted(
+                df["codigo_material"].dropna().unique().tolist()
+            )
+
+            material = st.selectbox(
+                "Material",
+                materiales
+            )
+
+        with c2:
+            fecha_min = df["fecha"].min().date()
+            fecha_max = df["fecha"].max().date()
+
+            rango_fechas = st.date_input(
+                "Rango de fechas",
+                value=(fecha_min, fecha_max)
+            )
 
         if material != "Todos":
             df = df[df["codigo_material"] == material]
 
-        df["entrada"] = df["cantidad"].apply(lambda x: x if x > 0 else 0)
-        df["salida"] = df["cantidad"].apply(lambda x: abs(x) if x < 0 else 0)
+        if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
+            fecha_inicio, fecha_fin = rango_fechas
+
+            df = df[
+                (df["fecha"].dt.date >= fecha_inicio)
+                &
+                (df["fecha"].dt.date <= fecha_fin)
+            ]
+
+        if df.empty:
+            st.warning("No hay movimientos para los filtros seleccionados.")
+            return
+
+        df = df.sort_values(
+            by=["codigo_material", "fecha", "id_movimiento"]
+        )
+
+        df["entrada"] = df["cantidad"].apply(
+            lambda x: x if x > 0 else 0
+        )
+
+        df["salida"] = df["cantidad"].apply(
+            lambda x: abs(x) if x < 0 else 0
+        )
+
         df["saldo"] = df.groupby("codigo_material")["cantidad"].cumsum()
 
+        columnas = [
+            "id_movimiento",
+            "folio_movimiento",
+            "fecha",
+            "tipo_movimiento",
+            "tipo_documento",
+            "numero_documento",
+            "codigo_material",
+            "descripcion",
+            "entrada",
+            "salida",
+            "saldo",
+            "bodega",
+            "ubicacion",
+            "referencia",
+            "comentarios",
+            "usuario"
+        ]
+
+        columnas_existentes = [
+            col for col in columnas if col in df.columns
+        ]
+
+        st.subheader("📋 Detalle Kardex")
+
         st.dataframe(
-            df,
+            df[columnas_existentes],
             use_container_width=True
         )
 
