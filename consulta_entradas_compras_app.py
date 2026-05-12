@@ -3,6 +3,7 @@ import pandas as pd
 import sqlite3
 
 from sigem_db import get_db_path
+from compras_db import crear_tablas_compras
 
 
 def consulta_entradas_compras_app():
@@ -10,8 +11,12 @@ def consulta_entradas_compras_app():
     st.title("📋 Consulta entradas compra")
 
     try:
+        crear_tablas_compras()
 
         db_path = get_db_path("compras")
+
+        st.write("📂 Base usada:")
+        st.code(str(db_path))
 
         conn = sqlite3.connect(db_path)
 
@@ -31,24 +36,13 @@ def consulta_entradas_compras_app():
         """
 
         df = pd.read_sql_query(query, conn)
-
         conn.close()
 
-        st.success(
-            f"Registros encontrados: {len(df)}"
-        )
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
+        st.success(f"Registros encontrados: {len(df)}")
+        st.dataframe(df, use_container_width=True)
 
     except Exception as e:
-
-        st.error(
-            "Error consultando entradas compra"
-        )
-
+        st.error("Error consultando entradas compra")
         st.exception(e)
 
 
