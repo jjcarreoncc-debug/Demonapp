@@ -4,6 +4,7 @@ import streamlit as st
 from compras_app import compras_app
 from inventarios_app import inventarios_app
 from logistica_app import logistica_app
+from dashboard_stock_app import dashboard_stock_app
 from wms_app import wms_app
 
 
