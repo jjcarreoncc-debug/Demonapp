@@ -44,7 +44,7 @@ def crear_tablas_inventario():
 
 def crear_tabla_movimientos_inventario():
 
-    db_path = get_db_path("compras")
+    db_path = get_db_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
