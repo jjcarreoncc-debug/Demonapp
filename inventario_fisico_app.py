@@ -8,7 +8,7 @@ from sigem_db import get_db_path
 
 
 def obtener_materiales():
-    conn = sqlite3.connect(get_db_path("inventarios"))
+    conn = sqlite3.connect(get_db_path("materiales"))
 
     try:
         df = pd.read_sql_query("""
@@ -16,7 +16,7 @@ def obtener_materiales():
                 codigo_material,
                 descripcion
             FROM materiales
-            WHERE estatus = 'Activo'
+            WHERE activo = 1
             ORDER BY codigo_material
         """, conn)
     except Exception:
@@ -135,10 +135,9 @@ def inventario_fisico_app():
         materiales = obtener_materiales()
 
         if materiales.empty:
-            st.warning("No hay materiales activos registrados en inventarios.db.")
+            st.warning("No hay materiales activos registrados en materiales.db.")
             st.stop()
 
-        fecha_actual = datetime.now().strftime("%Y-%m-%d")
         hora_actual = datetime.now().strftime("%H%M%S")
         folio_default = f"IF-{datetime.now().strftime('%Y%m%d')}-{hora_actual}"
 
