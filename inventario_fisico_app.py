@@ -8,6 +8,7 @@ from sigem_db import get_db_path
 
 
 def obtener_materiales():
+
     conn = sqlite3.connect(get_db_path("materiales"))
 
     try:
@@ -19,14 +20,17 @@ def obtener_materiales():
             WHERE estatus = 'Activo'
             ORDER BY codigo_material
         """, conn)
+
     except Exception:
         df = pd.DataFrame(columns=["codigo_material", "descripcion"])
 
     conn.close()
+
     return df
 
 
 def obtener_existencia(codigo_material):
+
     conn = sqlite3.connect(get_db_path("inventarios"))
     cur = conn.cursor()
 
@@ -39,6 +43,7 @@ def obtener_existencia(codigo_material):
     existencia = cur.fetchone()[0]
 
     conn.close()
+
     return float(existencia or 0)
 
 
@@ -54,6 +59,7 @@ def guardar_conteo(
     diferencia,
     usuario
 ):
+
     conn = sqlite3.connect(get_db_path("inventarios"))
     cur = conn.cursor()
 
@@ -91,9 +97,11 @@ def guardar_conteo(
 
 
 def consultar_conteos():
+
     conn = sqlite3.connect(get_db_path("inventarios"))
 
     try:
+
         df = pd.read_sql_query("""
             SELECT
                 id_conteo,
@@ -111,52 +119,91 @@ def consultar_conteos():
             FROM inventario_fisico
             ORDER BY id_conteo DESC
         """, conn)
+
     except Exception:
+
         df = pd.DataFrame()
 
     conn.close()
+
     return df
 
 
 def inventario_fisico_app():
 
     st.title("📋 Inventario físico")
-    st.caption("Conteo físico de inventario vs existencia del sistema")
 
-    tab1, tab2 = st.tabs([
-        "➕ Capturar conteo",
+    st.caption(
+        "Proceso de creación y captura de conteos físicos"
+    )
+
+    tab1, tab2, tab3 = st.tabs([
+        "➕ Crear conteo",
+        "✍️ Capturar conteo",
         "📊 Consultar conteos"
     ])
 
+    # ==================================================
+    # CREAR CONTEO
+    # ==================================================
     with tab1:
 
-        st.subheader("➕ Captura de conteo físico")
+        st.subheader("➕ Crear conteo físico")
 
         materiales = obtener_materiales()
 
         if materiales.empty:
-            st.warning("No hay materiales con estatus Activo registrados en materiales.db.")
+            st.warning(
+                "No hay materiales activos registrados."
+            )
             st.stop()
 
         hora_actual = datetime.now().strftime("%H%M%S")
-        folio_default = f"IF-{datetime.now().strftime('%Y%m%d')}-{hora_actual}"
+
+        folio_default = (
+            f"IF-{datetime.now().strftime('%Y%m%d')}-{hora_actual}"
+        )
 
         col1, col2 = st.columns(2)
 
         with col1:
-            folio_conteo = st.text_input("Folio conteo", value=folio_default)
-            fecha_conteo = st.date_input("Fecha conteo")
+
+            folio_conteo = st.text_input(
+                "Folio conteo",
+                value=folio_default,
+                key="crear_folio"
+            )
+
+            fecha_conteo = st.date_input(
+                "Fecha conteo",
+                key="crear_fecha"
+            )
 
         with col2:
-            bodega = st.text_input("Bodega / Almacén", value="Principal")
-            ubicacion = st.text_input("Ubicación", value="General")
+
+            bodega = st.text_input(
+                "Bodega / Almacén",
+                value="Principal",
+                key="crear_bodega"
+            )
+
+            ubicacion = st.text_input(
+                "Ubicación",
+                value="General",
+                key="crear_ubicacion"
+            )
 
         lista_materiales = materiales.apply(
-            lambda row: f"{row['codigo_material']} - {row['descripcion']}",
+            lambda row:
+            f"{row['codigo_material']} - {row['descripcion']}",
             axis=1
         ).tolist()
 
-        material_sel = st.selectbox("Material", lista_materiales)
+        material_sel = st.selectbox(
+            "Material",
+            lista_materiales,
+            key="crear_material"
+        )
 
         codigo_material = material_sel.split(" - ")[0]
 
@@ -165,32 +212,29 @@ def inventario_fisico_app():
             "descripcion"
         ].iloc[0]
 
-        cantidad_sistema = obtener_existencia(codigo_material)
-
-        st.info(f"Existencia sistema: {cantidad_sistema}")
-
-        cantidad_fisica = st.number_input(
-            "Cantidad física contada",
-            min_value=0.0,
-            step=1.0
+        cantidad_sistema = obtener_existencia(
+            codigo_material
         )
 
-        diferencia = cantidad_fisica - cantidad_sistema
+        st.info(
+            f"Existencia sistema actual: {cantidad_sistema}"
+        )
 
-        col3, col4, col5 = st.columns(3)
+        usuario = st.text_input(
+            "Usuario",
+            value="admin",
+            key="crear_usuario"
+        )
 
-        with col3:
-            st.metric("Sistema", cantidad_sistema)
+        st.warning(
+            "En Crear conteo NO se captura cantidad física."
+        )
 
-        with col4:
-            st.metric("Físico", cantidad_fisica)
-
-        with col5:
-            st.metric("Diferencia", diferencia)
-
-        usuario = st.text_input("Usuario", value="admin")
-
-        if st.button("💾 Guardar conteo físico", use_container_width=True):
+        if st.button(
+            "💾 Crear conteo",
+            use_container_width=True,
+            key="btn_crear_conteo"
+        ):
 
             guardar_conteo(
                 folio_conteo=folio_conteo,
@@ -200,20 +244,59 @@ def inventario_fisico_app():
                 bodega=bodega,
                 ubicacion=ubicacion,
                 cantidad_sistema=cantidad_sistema,
-                cantidad_fisica=cantidad_fisica,
-                diferencia=diferencia,
+                cantidad_fisica=0,
+                diferencia=0,
                 usuario=usuario
             )
 
-            st.success("Conteo físico guardado correctamente.")
+            st.success(
+                "Conteo creado correctamente."
+            )
 
+    # ==================================================
+    # CAPTURAR CONTEO
+    # ==================================================
     with tab2:
+
+        st.subheader("✍️ Capturar conteo físico")
+
+        st.info(
+            "Aquí se capturan las cantidades físicas contadas."
+        )
+
+        df_conteos = consultar_conteos()
+
+        if df_conteos.empty:
+
+            st.warning(
+                "No existen conteos creados."
+            )
+
+        else:
+
+            st.dataframe(
+                df_conteos,
+                use_container_width=True
+            )
+
+    # ==================================================
+    # CONSULTAR CONTEOS
+    # ==================================================
+    with tab3:
 
         st.subheader("📊 Conteos físicos registrados")
 
         df_conteos = consultar_conteos()
 
         if df_conteos.empty:
-            st.info("Todavía no hay conteos físicos registrados.")
+
+            st.info(
+                "Todavía no hay conteos físicos registrados."
+            )
+
         else:
-            st.dataframe(df_conteos, use_container_width=True)
+
+            st.dataframe(
+                df_conteos,
+                use_container_width=True
+            )
