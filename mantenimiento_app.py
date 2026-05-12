@@ -121,7 +121,7 @@ def mantenimiento_app():
                     "Branding",
                     "Actualización de tablas",
                     "Carga tablas inicial",
-                    "🗄️ Crear tablas"
+                    "🗄️ Crear tablas",
                     "Revision Estructura Tablas"
                 ],
                 key="submenu_configuracion"
