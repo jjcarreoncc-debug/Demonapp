@@ -52,6 +52,87 @@ def crear_tablas_entrada_compras():
     conn.close()
 
 
+def crear_tabla_movimientos_inventario():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS movimientos_inventario (
+            id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT,
+            tipo_movimiento TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad REAL,
+            costo_unitario REAL,
+            total REAL,
+            bodega TEXT,
+            ubicacion TEXT,
+            referencia TEXT,
+            comentarios TEXT,
+            usuario TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def registrar_movimiento_inventario(
+    codigo_material,
+    descripcion,
+    cantidad,
+    costo_unitario,
+    total,
+    bodega,
+    ubicacion,
+    referencia,
+    comentarios
+):
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO movimientos_inventario (
+            fecha,
+            tipo_movimiento,
+            codigo_material,
+            descripcion,
+            cantidad,
+            costo_unitario,
+            total,
+            bodega,
+            ubicacion,
+            referencia,
+            comentarios,
+            usuario
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "ENTRADA",
+        codigo_material,
+        descripcion,
+        cantidad,
+        costo_unitario,
+        total,
+        bodega,
+        ubicacion,
+        referencia,
+        comentarios,
+        st.session_state.get("usuario", "admin")
+    ))
+
+    conn.commit()
+    conn.close()
+
+
 def extraer_materiales_desde_pdf(texto_pdf):
 
     materiales = []
@@ -65,7 +146,6 @@ def extraer_materiales_desde_pdf(texto_pdf):
         if not linea:
             continue
 
-        # Busca líneas que tengan números de cantidad y precio
         numeros = re.findall(r"\d+(?:[.,]\d+)?", linea)
 
         if len(numeros) >= 2:
@@ -108,6 +188,7 @@ def entrada_compras_app():
     st.title("📥 Entrada de Compras / Factura")
 
     crear_tablas_entrada_compras()
+    crear_tabla_movimientos_inventario()
 
     if "detalle_pdf" not in st.session_state:
         st.session_state["detalle_pdf"] = pd.DataFrame([
@@ -167,9 +248,7 @@ def entrada_compras_app():
         with open(archivo_guardado, "wb") as f:
             f.write(archivo.getbuffer())
 
-        st.success(
-            f"Archivo adjuntado: {archivo.name}"
-        )
+        st.success(f"Archivo adjuntado: {archivo.name}")
 
         if archivo.name.lower().endswith(".pdf"):
 
@@ -180,23 +259,16 @@ def entrada_compras_app():
 
                 try:
 
-                    reader = PdfReader(
-                        str(archivo_guardado)
-                    )
+                    reader = PdfReader(str(archivo_guardado))
 
                     texto_pdf = ""
 
                     for page in reader.pages:
-
-                        texto_pdf += (
-                            page.extract_text() or ""
-                        )
+                        texto_pdf += page.extract_text() or ""
 
                     if texto_pdf.strip():
 
-                        st.success(
-                            "✅ Texto detectado en el PDF"
-                        )
+                        st.success("✅ Texto detectado en el PDF")
 
                         st.text_area(
                             "Texto leído del PDF",
@@ -222,10 +294,7 @@ def entrada_compras_app():
 
                 except Exception as e:
 
-                    st.error(
-                        "❌ Error leyendo PDF"
-                    )
-
+                    st.error("❌ Error leyendo PDF")
                     st.exception(e)
 
     st.subheader("📦 Detalle materiales")
@@ -251,16 +320,11 @@ def entrada_compras_app():
             use_container_width=True
         )
 
-    if st.button(
-        "💾 Registrar entrada de compras"
-    ):
+    if st.button("💾 Registrar entrada de compras"):
 
         if not proveedor or not factura:
 
-            st.error(
-                "Proveedor y factura son obligatorios."
-            )
-
+            st.error("Proveedor y factura son obligatorios.")
             return
 
         detalle_valido = detalle[
@@ -311,23 +375,24 @@ def entrada_compras_app():
             tipo_cambio,
             comentarios,
             str(archivo_guardado),
-            datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S"
-            ),
-            st.session_state.get(
-                "usuario",
-                "admin"
-            )
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            st.session_state.get("usuario", "admin")
         ))
 
         id_entrada = cur.lastrowid
 
         for _, row in detalle_valido.iterrows():
 
-            total = (
-                float(row["cantidad"])
-                * float(row["costo_unitario"])
-            ) + float(row["impuesto"])
+            cantidad = float(row["cantidad"])
+            costo_unitario = float(row["costo_unitario"])
+            impuesto = float(row["impuesto"])
+
+            total = (cantidad * costo_unitario) + impuesto
+
+            codigo_material = str(row.get("codigo_material", "")).strip()
+            descripcion = str(row["descripcion"]).strip()
+            bodega = str(row.get("bodega", "")).strip()
+            ubicacion = str(row.get("ubicacion", "")).strip()
 
             cur.execute("""
                 INSERT INTO entradas_compras_detalle (
@@ -344,15 +409,27 @@ def entrada_compras_app():
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 id_entrada,
-                row.get("codigo_material", ""),
-                row["descripcion"],
-                float(row["cantidad"]),
-                float(row["costo_unitario"]),
-                float(row["impuesto"]),
+                codigo_material,
+                descripcion,
+                cantidad,
+                costo_unitario,
+                impuesto,
                 total,
-                row.get("bodega", ""),
-                row.get("ubicacion", "")
+                bodega,
+                ubicacion
             ))
+
+            registrar_movimiento_inventario(
+                codigo_material=codigo_material,
+                descripcion=descripcion,
+                cantidad=cantidad,
+                costo_unitario=costo_unitario,
+                total=total,
+                bodega=bodega,
+                ubicacion=ubicacion,
+                referencia=f"COMPRA-{factura}",
+                comentarios=comentarios
+            )
 
         conn.commit()
         conn.close()
