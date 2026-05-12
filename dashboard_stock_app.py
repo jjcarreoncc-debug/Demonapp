@@ -5,6 +5,7 @@ import base64
 import os
 
 from sigem_db import get_db_path
+from dashboard_stock_app import dashboard_stock_app
 
 from alertas_app import (
     dashboard_criticos,
@@ -346,6 +347,9 @@ def inventarios_app():
 
         with tab5:
             detalle_rotacion_app(df)
+            
+    elif st.session_state.modulo_analitico == "inventarios":
+            dashboard_stock_app()
 
     elif vista == "🤖 IA":
 
