@@ -1,278 +1,131 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
+import sqlite3
+from pathlib import Path
 
-from sigem_db import get_db_path
-
-from compras_db import crear_tablas_compras
-
-from inventario_db import (
-    crear_tablas_inventario,
-    crear_tabla_movimientos_inventario,
-    crear_tabla_inventario_fisico
-)
+from sigem_db import DB_CONFIG, get_db_path
 
 
-def mostrar_estructura_tabla(db_path, tabla):
+def obtener_tamano_kb(db_path):
 
-    st.title("🗄️ Crear / modificar tablas")
+    try:
+        path = Path(db_path)
 
-    conn = sqlite3.connect(db_path)
+        if path.exists():
+            return round(path.stat().st_size / 1024, 2)
 
-    df = pd.read_sql_query(
-        f"PRAGMA table_info({tabla})",
-        conn
+        return 0
+
+    except:
+        return 0
+
+
+def obtener_tablas(conn):
+
+    query = """
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        ORDER BY name
+    """
+
+    df = pd.read_sql_query(query, conn)
+
+    return df["name"].tolist()
+
+
+def revisar_estructura_db_app():
+
+    st.title("🔍 Revisar estructura DB")
+
+    st.caption("Configuración / Revisar estructura DB")
+
+    bases_disponibles = list(DB_CONFIG.keys())
+
+    base_seleccionada = st.selectbox(
+        "Selecciona base de datos",
+        bases_disponibles
     )
 
-    conn.close()
+    db_path = get_db_path(base_seleccionada)
 
-    if df.empty:
-        st.warning("No se encontró estructura para esta tabla.")
-    else:
-        st.dataframe(df, use_container_width=True)
+    st.subheader("📂 Información base")
 
+    c1, c2 = st.columns(2)
 
-def crear_tabla_ajustes_inventario():
+    with c1:
+        st.write("Base:")
+        st.code(base_seleccionada)
 
-    db_path = get_db_path("inventarios")
+    with c2:
+        st.write("Tamaño KB:")
+        st.code(str(obtener_tamano_kb(db_path)))
 
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
+    st.write("Ruta:")
+    st.code(str(db_path))
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS ajustes_inventario (
+    try:
 
-            id_ajuste INTEGER PRIMARY KEY AUTOINCREMENT,
+        conn = sqlite3.connect(db_path)
 
-            folio_ajuste TEXT,
-            fecha TEXT,
+        tablas = obtener_tablas(conn)
 
-            codigo_material TEXT,
-            descripcion TEXT,
+        if not tablas:
 
-            tipo_ajuste TEXT,
+            st.warning("Esta base no tiene tablas.")
+            conn.close()
+            return
 
-            cantidad REAL,
+        st.subheader("📋 Tablas disponibles")
 
-            stock_anterior REAL,
-            stock_nuevo REAL,
-
-            comentarios TEXT,
-
-            usuario TEXT
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-
-def alterar_movimientos_inventario():
-
-    db_path = get_db_path("inventarios")
-
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
-
-    st.subheader("📋 Estructura actual")
-
-    mostrar_estructura_tabla(
-        db_path,
-        "movimientos_inventario"
-    )
-
-    columnas_nuevas = [
-
-        ("folio_movimiento", "TEXT"),
-        ("tipo_documento", "TEXT"),
-        ("numero_documento", "TEXT"),
-        ("archivo_documento", "TEXT"),
-        ("referencia", "TEXT"),
-        ("comentarios", "TEXT"),
-        ("usuario", "TEXT"),
-    ]
-
-    st.subheader("🔧 Columnas a validar/agregar")
-
-    for nombre_columna, tipo_columna in columnas_nuevas:
-
-        try:
-
-            cur.execute(
-                f"""
-                ALTER TABLE movimientos_inventario
-                ADD COLUMN {nombre_columna} {tipo_columna}
-                """
-            )
-
-            st.success(
-                f"✅ Columna agregada: {nombre_columna}"
-            )
-
-        except sqlite3.OperationalError:
-
-            st.info(
-                f"ℹ️ La columna ya existe: {nombre_columna}"
-            )
-
-    conn.commit()
-    conn.close()
-
-    st.subheader("📋 Estructura final")
-
-    mostrar_estructura_tabla(
-        db_path,
-        "movimientos_inventario"
-    )
-
-
-def crear_tablas_app():
-
-    st.title("🗄️ Crear / modificar tablas")
-
-    st.error(
-        "ARCHIVO CREAR_TABLAS ACTUALIZADO - VERSION INVENTARIO FISICO + AJUSTES"
-    )
-
-    tipo_proceso = st.selectbox(
-        "Tipo proceso",
-        [
-            "Crear tabla",
-            "Modificar estructura"
-        ],
-        key="tipo_proceso_tablas"
-    )
-
-    modulo = st.selectbox(
-        "Selecciona módulo",
-        [
-            "Compras",
-            "Inventarios"
-        ],
-        key="crear_tablas_modulo"
-    )
-
-    tablas_disponibles = []
-
-    if modulo == "Compras":
-
-        tablas_disponibles = [
-            "Todas",
-            "entradas_compras",
-            "entradas_compras_detalle"
-        ]
-
-    elif modulo == "Inventarios":
-
-        tablas_disponibles = [
-            "Todas",
-            "materiales",
-            "movimientos_inventario",
-            "inventario_fisico",
-            "ajustes_inventario"
-        ]
-
-    tabla = st.selectbox(
-        "Selecciona tabla",
-        tablas_disponibles,
-        key="crear_tablas_tabla"
-    )
-
-    if tipo_proceso == "Crear tabla":
-
-        st.info(
-            "Este proceso crea únicamente la tabla seleccionada si no existe."
+        tabla_seleccionada = st.selectbox(
+            "Selecciona tabla",
+            tablas
         )
 
-        if st.button(
-            "🚀 Crear tablas",
-            key="btn_crear_tablas"
-        ):
+        st.subheader("🧱 Estructura tabla")
 
-            try:
-
-                if modulo == "Compras":
-
-                    crear_tablas_compras()
-
-                elif modulo == "Inventarios":
-
-                    if tabla == "Todas":
-
-                        crear_tablas_inventario()
-
-                        crear_tabla_movimientos_inventario()
-
-                        crear_tabla_inventario_fisico()
-
-                        crear_tabla_ajustes_inventario()
-
-                    elif tabla == "materiales":
-
-                        crear_tablas_inventario()
-
-                    elif tabla == "movimientos_inventario":
-
-                        crear_tabla_movimientos_inventario()
-
-                    elif tabla == "inventario_fisico":
-
-                        crear_tabla_inventario_fisico()
-
-                    elif tabla == "ajustes_inventario":
-
-                        crear_tabla_ajustes_inventario()
-
-                st.success(
-                    f"✅ Tabla(s) creadas correctamente para {modulo}"
-                )
-
-            except Exception as e:
-
-                st.error(
-                    f"❌ Error creando tablas del módulo {modulo}"
-                )
-
-                st.exception(e)
-
-    elif tipo_proceso == "Modificar estructura":
-
-        st.warning(
-            "Este proceso modifica la estructura de una tabla existente sin borrar datos."
+        df_estructura = pd.read_sql_query(
+            f"PRAGMA table_info({tabla_seleccionada})",
+            conn
         )
 
-        if (
-            modulo == "Inventarios"
-            and tabla == "movimientos_inventario"
-        ):
+        st.dataframe(
+            df_estructura,
+            use_container_width=True
+        )
 
-            if st.button(
-                "🛠️ Modificar estructura",
-                key="btn_alter_mov_inv"
-            ):
+        st.subheader("📊 Resumen tabla")
 
-                try:
+        total_registros = pd.read_sql_query(
+            f"SELECT COUNT(*) AS total FROM {tabla_seleccionada}",
+            conn
+        )["total"].iloc[0]
 
-                    alterar_movimientos_inventario()
+        st.metric(
+            "Registros",
+            total_registros
+        )
 
-                    st.success(
-                        "✅ Estructura de movimientos_inventario actualizada"
-                    )
+        st.subheader("📦 Últimos registros")
 
-                except Exception as e:
+        df_datos = pd.read_sql_query(
+            f"SELECT * FROM {tabla_seleccionada} LIMIT 50",
+            conn
+        )
 
-                    st.error(
-                        "❌ Error modificando movimientos_inventario"
-                    )
+        st.dataframe(
+            df_datos,
+            use_container_width=True
+        )
 
-                    st.exception(e)
+        conn.close()
 
-        else:
+    except Exception as e:
 
-            st.info(
-                "Por ahora la modificación de estructura está habilitada solo para Inventarios / movimientos_inventario."
-            )
+        st.error("Error revisando estructura de la base.")
+        st.exception(e)
 
 
 if __name__ == "__main__":
-    crear_tablas_app()
+    revisar_estructura_db_app()
