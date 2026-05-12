@@ -8,7 +8,14 @@ from sigem_db import get_db_path
 
 
 def obtener_diferencias_valorizadas():
+
     conn = sqlite3.connect(get_db_path("inventarios"))
+
+    materiales_path = get_db_path("materiales")
+
+    conn.execute(f"""
+        ATTACH DATABASE '{materiales_path}' AS materiales_db
+    """)
 
     query = """
         SELECT
@@ -16,43 +23,57 @@ def obtener_diferencias_valorizadas():
             f.fecha_conteo,
             f.codigo_material,
             f.descripcion AS descripcion_corta,
+
             m.descripcion_larga,
             m.categoria,
             m.familia,
             m.marca,
             m.tipo_material,
+
             f.bodega,
             f.ubicacion,
             m.tipo_almacenamiento,
+
             f.cantidad_sistema,
             f.cantidad_fisica,
             f.diferencia,
+
             m.unidad_base,
+
             COALESCE(m.costo_estandar, 0) AS costo_estandar,
             COALESCE(m.precio_compra, 0) AS precio_compra,
             COALESCE(m.precio_venta, 0) AS precio_venta,
+
             (f.diferencia * COALESCE(m.costo_estandar, 0)) AS impacto_valorizado,
             ABS(f.diferencia * COALESCE(m.costo_estandar, 0)) AS valor_absoluto_impacto,
+
             m.stock_minimo,
             m.stock_maximo,
             m.rotacion_abc,
+
             CASE
                 WHEN f.diferencia > 0 THEN 'SOBRANTE'
                 WHEN f.diferencia < 0 THEN 'FALTANTE'
                 ELSE 'SIN DIFERENCIA'
             END AS tipo_diferencia,
+
             f.usuario AS usuario_conteo,
             f.estatus,
             f.observaciones AS comentarios
+
         FROM inventario_fisico f
-        LEFT JOIN materiales m
+
+        LEFT JOIN materiales_db.materiales m
             ON f.codigo_material = m.codigo_material
+
         WHERE f.diferencia <> 0
+
         ORDER BY valor_absoluto_impacto DESC
     """
 
     try:
         df = pd.read_sql_query(query, conn)
+
     except Exception as e:
         conn.close()
         st.error("❌ Error consultando diferencias valorizadas.")
@@ -64,6 +85,7 @@ def obtener_diferencias_valorizadas():
 
 
 def convertir_excel(df):
+
     output = BytesIO()
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -77,6 +99,7 @@ def convertir_excel(df):
 
 
 def diferencias_valorizadas_app():
+
     st.title("💰 Diferencias valorizadas")
     st.caption("Reporte valorizado de diferencias de inventario físico")
 
