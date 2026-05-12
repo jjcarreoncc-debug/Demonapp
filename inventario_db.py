@@ -1,10 +1,6 @@
 import sqlite3
 
 from sigem_db import get_db_path
-from inventario_db import (
-    crear_tablas_inventario,
-    crear_tabla_movimientos_inventario
-)
 
 
 # ==========================================
