@@ -9,7 +9,7 @@ from sigem_db import get_db_path
 
 def crear_tablas_inventario():
 
-    db_path = get_db_path("compras")
+    db_path = get_db_path("materiales")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -54,13 +54,21 @@ def crear_tabla_movimientos_inventario():
 
             id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
 
+            folio_movimiento TEXT,
+
             fecha TEXT,
+
             tipo_movimiento TEXT,
+
+            tipo_documento TEXT,
+            numero_documento TEXT,
+            archivo_documento TEXT,
 
             codigo_material TEXT,
             descripcion TEXT,
 
             cantidad REAL,
+
             costo_unitario REAL,
             total REAL,
 
