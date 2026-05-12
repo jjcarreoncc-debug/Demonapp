@@ -85,7 +85,9 @@ def extraer_valor_por_etiqueta(texto_pdf, etiqueta):
     ]
 
     for i, linea in enumerate(lineas):
+
         if linea.lower() == etiqueta.lower():
+
             if i + 1 < len(lineas):
                 return lineas[i + 1].strip()
 
@@ -104,7 +106,10 @@ def extraer_datos_pdf(texto_pdf):
     }
 
     try:
-        datos["cantidad"] = float(str(datos["cantidad"]).replace(",", "."))
+        datos["cantidad"] = float(
+            str(datos["cantidad"]).replace(",", ".")
+        )
+
     except:
         datos["cantidad"] = 0.0
 
@@ -127,46 +132,71 @@ def registrar_movimiento(
 ):
 
     db_path = get_db_path("inventarios")
+
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
     cur.execute("""
         INSERT INTO movimientos_inventario (
+
             folio_movimiento,
             fecha,
             tipo_movimiento,
+
             tipo_documento,
             numero_documento,
             archivo_documento,
+
             codigo_material,
             descripcion,
+
             cantidad,
+
             costo_unitario,
             total,
+
             bodega,
             ubicacion,
+
             referencia,
             comentarios,
+
             usuario
+
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
+
         folio_movimiento,
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+
+        datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
+
         tipo_movimiento,
+
         tipo_documento,
         numero_documento,
         archivo_documento,
+
         codigo_material,
         descripcion,
+
         cantidad,
+
         0,
         0,
+
         bodega,
         ubicacion,
+
         referencia,
         comentarios,
-        st.session_state.get("usuario", "admin")
+
+        st.session_state.get(
+            "usuario",
+            "admin"
+        )
     ))
 
     conn.commit()
@@ -180,7 +210,11 @@ def salidas_inventario_app():
     materiales = obtener_materiales()
 
     if materiales.empty:
-        st.warning("No existen materiales registrados.")
+
+        st.warning(
+            "No existen materiales registrados."
+        )
+
         return
 
     materiales["display"] = (
@@ -189,34 +223,16 @@ def salidas_inventario_app():
         + materiales["descripcion"].astype(str)
     )
 
-    opciones_materiales = materiales["display"].tolist()
-
-    if "numero_documento_salida" not in st.session_state:
-        st.session_state["numero_documento_salida"] = ""
-
-    if "referencia_salida" not in st.session_state:
-        st.session_state["referencia_salida"] = ""
-
-    if "comentarios_salida" not in st.session_state:
-        st.session_state["comentarios_salida"] = ""
-
-    if "cantidad_salida" not in st.session_state:
-        st.session_state["cantidad_salida"] = 0.0
-
-    if "bodega_salida" not in st.session_state:
-        st.session_state["bodega_salida"] = ""
-
-    if "ubicacion_salida" not in st.session_state:
-        st.session_state["ubicacion_salida"] = ""
-
-    if "material_idx_salida" not in st.session_state:
-        st.session_state["material_idx_salida"] = 0
+    opciones_materiales = materiales[
+        "display"
+    ].tolist()
 
     st.subheader("🧾 Documento salida")
 
     c1, c2 = st.columns(2)
 
     with c1:
+
         tipo_documento = st.selectbox(
             "Tipo documento",
             [
@@ -231,31 +247,35 @@ def salidas_inventario_app():
         )
 
     with c2:
+
         numero_documento = st.text_input(
-            "Número documento",
-            key="numero_documento_salida"
+            "Número documento"
         )
 
     archivo = st.file_uploader(
         "Adjuntar PDF obligatorio",
-        type=["pdf"],
-        key="archivo_pdf_salida"
+        type=["pdf"]
     )
 
     st.markdown("---")
+
     st.subheader("📄 Lectura del PDF")
 
     if archivo is not None:
 
-        st.success(f"PDF adjuntado: {archivo.name}")
+        st.success(
+            f"PDF adjuntado: {archivo.name}"
+        )
 
-        if st.button("🔍 Leer PDF", key="btn_leer_pdf_salida"):
+        if st.button("🔍 Leer PDF"):
 
             texto_pdf = leer_pdf(archivo)
 
             if texto_pdf.strip():
 
-                st.success("✅ Texto detectado en el PDF")
+                st.success(
+                    "✅ Texto detectado en el PDF"
+                )
 
                 st.text_area(
                     "Texto leído del PDF",
@@ -263,111 +283,142 @@ def salidas_inventario_app():
                     height=250
                 )
 
-                datos_pdf = extraer_datos_pdf(texto_pdf)
+                datos_pdf = extraer_datos_pdf(
+                    texto_pdf
+                )
 
                 if datos_pdf["numero_documento"]:
-                    st.session_state["numero_documento_salida"] = datos_pdf["numero_documento"]
 
-                if datos_pdf["comentarios"]:
-                    st.session_state["comentarios_salida"] = datos_pdf["comentarios"]
-
-                if datos_pdf["cantidad"] > 0:
-                    st.session_state["cantidad_salida"] = datos_pdf["cantidad"]
-
-                if datos_pdf["bodega"]:
-                    st.session_state["bodega_salida"] = datos_pdf["bodega"]
-
-                if datos_pdf["ubicacion"]:
-                    st.session_state["ubicacion_salida"] = datos_pdf["ubicacion"]
+                    st.success(
+                        f"✅ Documento detectado: {datos_pdf['numero_documento']}"
+                    )
 
                 if datos_pdf["codigo_material"]:
-                    codigo_detectado = datos_pdf["codigo_material"]
 
-                    for idx, opcion in enumerate(opciones_materiales):
-                        if opcion.startswith(codigo_detectado + " -"):
-                            st.session_state["material_idx_salida"] = idx
-                            break
+                    st.success(
+                        f"✅ Material detectado: {datos_pdf['codigo_material']}"
+                    )
 
-                st.success("✅ Datos del PDF cargados en pantalla")
-                st.rerun()
+                if datos_pdf["cantidad"] > 0:
+
+                    st.success(
+                        f"✅ Cantidad detectada: {datos_pdf['cantidad']}"
+                    )
+
+                if datos_pdf["bodega"]:
+
+                    st.success(
+                        f"✅ Bodega detectada: {datos_pdf['bodega']}"
+                    )
+
+                if datos_pdf["ubicacion"]:
+
+                    st.success(
+                        f"✅ Ubicación detectada: {datos_pdf['ubicacion']}"
+                    )
 
             else:
+
                 st.warning(
-                    "No se detectó texto. Puede ser un PDF escaneado y necesitar OCR."
+                    "No se detectó texto. Puede ser un PDF escaneado."
                 )
 
     else:
-        st.info("Adjunta un PDF para habilitar la lectura.")
+
+        st.info(
+            "Adjunta un PDF para habilitar la lectura."
+        )
 
     st.subheader("📝 Información salida")
 
     referencia = st.text_input(
-        "Referencia",
-        key="referencia_salida"
+        "Referencia"
     )
 
     comentarios = st.text_area(
-        "Comentarios",
-        key="comentarios_salida"
+        "Comentarios"
     )
 
     st.subheader("📦 Material")
 
     material_seleccionado = st.selectbox(
         "Selecciona material",
-        opciones_materiales,
-        index=st.session_state["material_idx_salida"],
-        key="material_salida_select"
+        opciones_materiales
     )
 
     material_info = materiales[
-        materiales["display"] == material_seleccionado
+        materiales["display"]
+        == material_seleccionado
     ].iloc[0]
 
-    codigo_material = material_info["codigo_material"]
-    descripcion = material_info["descripcion"]
+    codigo_material = material_info[
+        "codigo_material"
+    ]
 
-    existencia = obtener_existencia(codigo_material)
+    descripcion = material_info[
+        "descripcion"
+    ]
 
-    st.info(f"Existencia actual: {existencia}")
+    existencia = obtener_existencia(
+        codigo_material
+    )
+
+    st.info(
+        f"Existencia actual: {existencia}"
+    )
 
     cantidad = st.number_input(
         "Cantidad salida",
         min_value=0.0,
-        step=1.0,
-        key="cantidad_salida"
+        step=1.0
     )
 
     c1, c2 = st.columns(2)
 
     with c1:
+
         bodega = st.text_input(
-            "Bodega",
-            key="bodega_salida"
+            "Bodega"
         )
 
     with c2:
+
         ubicacion = st.text_input(
-            "Ubicación",
-            key="ubicacion_salida"
+            "Ubicación"
         )
 
     if st.button("💾 Registrar salida"):
 
         if not numero_documento:
-            st.error("Debes capturar número documento.")
+
+            st.error(
+                "Debes capturar número documento."
+            )
+
             return
 
         if archivo is None:
-            st.error("Debes adjuntar PDF obligatorio.")
+
+            st.error(
+                "Debes adjuntar PDF obligatorio."
+            )
+
             return
 
         if cantidad <= 0:
-            st.error("Cantidad inválida.")
+
+            st.error(
+                "Cantidad inválida."
+            )
+
             return
 
         if cantidad > existencia:
-            st.error("No existe stock suficiente.")
+
+            st.error(
+                "No existe stock suficiente."
+            )
+
             return
 
         carpeta = (
@@ -384,39 +435,85 @@ def salidas_inventario_app():
         ruta_archivo = carpeta / archivo.name
 
         with open(ruta_archivo, "wb") as f:
-            f.write(archivo.getbuffer())
+            f.write(
+                archivo.getbuffer()
+            )
 
         folio_movimiento = generar_folio()
 
         registrar_movimiento(
+
             folio_movimiento,
+
             "SALIDA",
+
             tipo_documento,
             numero_documento,
             str(ruta_archivo),
+
             codigo_material,
             descripcion,
+
             cantidad * -1,
+
             bodega,
             ubicacion,
+
             referencia,
             comentarios
         )
 
-        st.success("✅ Salida registrada correctamente")
+        st.success(
+            "✅ Salida registrada correctamente"
+        )
 
-        st.subheader("📄 Confirmación movimiento")
+        st.subheader(
+            "📄 Confirmación movimiento"
+        )
 
-        st.success(f"Folio movimiento: {folio_movimiento}")
+        st.success(
+            f"Folio movimiento: {folio_movimiento}"
+        )
 
-        st.write("Tipo documento:", tipo_documento)
-        st.write("Número documento:", numero_documento)
-        st.write("Material:", codigo_material)
-        st.write("Descripción:", descripcion)
-        st.write("Cantidad salida:", cantidad)
-        st.write("Bodega:", bodega)
-        st.write("Ubicación:", ubicacion)
-        st.write("Archivo:", archivo.name)
+        st.write(
+            "Tipo documento:",
+            tipo_documento
+        )
+
+        st.write(
+            "Número documento:",
+            numero_documento
+        )
+
+        st.write(
+            "Material:",
+            codigo_material
+        )
+
+        st.write(
+            "Descripción:",
+            descripcion
+        )
+
+        st.write(
+            "Cantidad salida:",
+            cantidad
+        )
+
+        st.write(
+            "Bodega:",
+            bodega
+        )
+
+        st.write(
+            "Ubicación:",
+            ubicacion
+        )
+
+        st.write(
+            "Archivo:",
+            archivo.name
+        )
 
 
 if __name__ == "__main__":
