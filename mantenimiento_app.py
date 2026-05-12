@@ -122,6 +122,7 @@ def mantenimiento_app():
                     "Actualización de tablas",
                     "Carga tablas inicial",
                     "🗄️ Crear tablas"
+                    "Revision Estructura Tablas"
                 ],
                 key="submenu_configuracion"
             )
@@ -164,5 +165,8 @@ def mantenimiento_app():
     elif menu == "⚙️ Configuración" and submenu == "🗄️ Crear tablas":
         crear_tablas_app()
 
+    elif menu == "⚙️ Configuración" and submenu == "🔍 Revisar estructura DB":
+        revisar_estructura_db_app()
+    
     else:
         st.info(f"Pantalla en construcción: {submenu}")
