@@ -8,49 +8,23 @@ from sigem_db import get_db_path
 
 def obtener_materiales():
 
-    db_path = get_db_path("compras")
+    db_path = get_db_path("inventarios")
     conn = sqlite3.connect(db_path)
 
     try:
-        columnas = pd.read_sql("PRAGMA table_info(materiales)", conn)
-
-        if columnas.empty:
-            conn.close()
-            return pd.DataFrame()
-
-        cols = columnas["name"].tolist()
-
-        campo_codigo = None
-        campo_descripcion = None
-
-        for c in ["codigo_material", "codigo", "clave", "sku"]:
-            if c in cols:
-                campo_codigo = c
-                break
-
-        for c in ["descripcion", "nombre", "producto", "material"]:
-            if c in cols:
-                campo_descripcion = c
-                break
-
-        if campo_codigo is None or campo_descripcion is None:
-            st.error("La tabla materiales no tiene columnas compatibles.")
-            st.write("Columnas encontradas:", cols)
-            conn.close()
-            return pd.DataFrame()
-
-        query = f"""
+        query = """
             SELECT
-                {campo_codigo} AS codigo_material,
-                {campo_descripcion} AS descripcion
+                codigo_material,
+                descripcion
             FROM materiales
-            ORDER BY {campo_descripcion}
+            WHERE estatus = 'Activo'
+            ORDER BY codigo_material
         """
 
         df = pd.read_sql(query, conn)
 
     except Exception as e:
-        st.error("Error leyendo tabla materiales.")
+        st.error("Error leyendo tabla materiales en inventarios.db")
         st.exception(e)
         df = pd.DataFrame()
 
@@ -60,7 +34,7 @@ def obtener_materiales():
 
 def obtener_existencia(codigo_material):
 
-    db_path = get_db_path("compras")
+    db_path = get_db_path("inventarios")
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
@@ -85,7 +59,7 @@ def registrar_movimiento(
     comentarios
 ):
 
-    db_path = get_db_path("compras")
+    db_path = get_db_path("inventarios")
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
@@ -131,7 +105,7 @@ def salidas_inventario_app():
     materiales = obtener_materiales()
 
     if materiales.empty:
-        st.warning("No existen materiales registrados o la tabla materiales no es compatible.")
+        st.warning("No existen materiales activos registrados en inventarios.db.")
         return
 
     st.subheader("🧾 Encabezado")
