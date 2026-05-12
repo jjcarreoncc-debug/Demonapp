@@ -78,3 +78,58 @@ def crear_tabla_movimientos_inventario():
 
     conn.commit()
     conn.close()
+
+
+def crear_tabla_inventario_fisico():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS inventario_fisico (
+            id_conteo INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            folio_conteo TEXT,
+            fecha_conteo TEXT,
+
+            codigo_material TEXT,
+            descripcion TEXT,
+
+            bodega TEXT,
+            ubicacion TEXT,
+
+            cantidad_sistema REAL DEFAULT 0,
+            cantidad_fisica REAL DEFAULT 0,
+            diferencia REAL DEFAULT 0,
+
+            usuario TEXT,
+            estatus TEXT DEFAULT 'Pendiente'
+        )
+    """)
+
+    columnas_nuevas = [
+        ("folio_conteo", "TEXT"),
+        ("fecha_conteo", "TEXT"),
+        ("codigo_material", "TEXT"),
+        ("descripcion", "TEXT"),
+        ("bodega", "TEXT"),
+        ("ubicacion", "TEXT"),
+        ("cantidad_sistema", "REAL DEFAULT 0"),
+        ("cantidad_fisica", "REAL DEFAULT 0"),
+        ("diferencia", "REAL DEFAULT 0"),
+        ("usuario", "TEXT"),
+        ("estatus", "TEXT DEFAULT 'Pendiente'"),
+    ]
+
+    for nombre_columna, tipo_columna in columnas_nuevas:
+        try:
+            cur.execute(
+                f"ALTER TABLE inventario_fisico ADD COLUMN {nombre_columna} {tipo_columna}"
+            )
+        except sqlite3.OperationalError:
+            pass
+
+    conn.commit()
+    conn.close()
