@@ -76,22 +76,39 @@ def leer_pdf(archivo_pdf):
     return texto_pdf
 
 
-def extraer_numero_documento(texto_pdf):
+def extraer_valor_por_etiqueta(texto_pdf, etiqueta):
 
-    patrones = [
-        r"Folio[:\s]+([A-Z0-9\-]+)",
-        r"Documento[:\s]+([A-Z0-9\-]+)",
-        r"Remisión[:\s]+([A-Z0-9\-]+)",
-        r"Venta[:\s]+([A-Z0-9\-]+)",
-        r"Vale[:\s]+([A-Z0-9\-]+)"
+    lineas = [
+        linea.strip()
+        for linea in texto_pdf.splitlines()
+        if linea.strip()
     ]
 
-    for patron in patrones:
-        encontrado = re.search(patron, texto_pdf, re.IGNORECASE)
-        if encontrado:
-            return encontrado.group(1)
+    for i, linea in enumerate(lineas):
+        if linea.lower() == etiqueta.lower():
+            if i + 1 < len(lineas):
+                return lineas[i + 1].strip()
 
     return ""
+
+
+def extraer_datos_pdf(texto_pdf):
+
+    datos = {
+        "numero_documento": extraer_valor_por_etiqueta(texto_pdf, "Folio"),
+        "codigo_material": extraer_valor_por_etiqueta(texto_pdf, "Material"),
+        "cantidad": extraer_valor_por_etiqueta(texto_pdf, "Cantidad"),
+        "bodega": extraer_valor_por_etiqueta(texto_pdf, "Bodega"),
+        "ubicacion": extraer_valor_por_etiqueta(texto_pdf, "Ubicación"),
+        "comentarios": extraer_valor_por_etiqueta(texto_pdf, "Comentarios"),
+    }
+
+    try:
+        datos["cantidad"] = float(str(datos["cantidad"]).replace(",", "."))
+    except:
+        datos["cantidad"] = 0.0
+
+    return datos
 
 
 def registrar_movimiento(
@@ -103,6 +120,8 @@ def registrar_movimiento(
     codigo_material,
     descripcion,
     cantidad,
+    bodega,
+    ubicacion,
     referencia,
     comentarios
 ):
@@ -143,8 +162,8 @@ def registrar_movimiento(
         cantidad,
         0,
         0,
-        "",
-        "",
+        bodega,
+        ubicacion,
         referencia,
         comentarios,
         st.session_state.get("usuario", "admin")
@@ -163,6 +182,35 @@ def salidas_inventario_app():
     if materiales.empty:
         st.warning("No existen materiales registrados.")
         return
+
+    materiales["display"] = (
+        materiales["codigo_material"].astype(str)
+        + " - "
+        + materiales["descripcion"].astype(str)
+    )
+
+    opciones_materiales = materiales["display"].tolist()
+
+    if "numero_documento_salida" not in st.session_state:
+        st.session_state["numero_documento_salida"] = ""
+
+    if "referencia_salida" not in st.session_state:
+        st.session_state["referencia_salida"] = ""
+
+    if "comentarios_salida" not in st.session_state:
+        st.session_state["comentarios_salida"] = ""
+
+    if "cantidad_salida" not in st.session_state:
+        st.session_state["cantidad_salida"] = 0.0
+
+    if "bodega_salida" not in st.session_state:
+        st.session_state["bodega_salida"] = ""
+
+    if "ubicacion_salida" not in st.session_state:
+        st.session_state["ubicacion_salida"] = ""
+
+    if "material_idx_salida" not in st.session_state:
+        st.session_state["material_idx_salida"] = 0
 
     st.subheader("🧾 Documento salida")
 
@@ -183,7 +231,10 @@ def salidas_inventario_app():
         )
 
     with c2:
-        numero_documento = st.text_input("Número documento")
+        numero_documento = st.text_input(
+            "Número documento",
+            key="numero_documento_salida"
+        )
 
     archivo = st.file_uploader(
         "Adjuntar PDF obligatorio",
@@ -194,18 +245,11 @@ def salidas_inventario_app():
     st.markdown("---")
     st.subheader("📄 Lectura del PDF")
 
-    texto_pdf = ""
-
     if archivo is not None:
 
         st.success(f"PDF adjuntado: {archivo.name}")
 
-        leer_pdf_btn = st.button(
-            "🔍 Leer PDF",
-            key="btn_leer_pdf_salida"
-        )
-
-        if leer_pdf_btn:
+        if st.button("🔍 Leer PDF", key="btn_leer_pdf_salida"):
 
             texto_pdf = leer_pdf(archivo)
 
@@ -219,12 +263,33 @@ def salidas_inventario_app():
                     height=250
                 )
 
-                numero_detectado = extraer_numero_documento(texto_pdf)
+                datos_pdf = extraer_datos_pdf(texto_pdf)
 
-                if numero_detectado:
-                    st.info(f"Número documento detectado: {numero_detectado}")
-                else:
-                    st.warning("No se detectó número de documento en el PDF.")
+                if datos_pdf["numero_documento"]:
+                    st.session_state["numero_documento_salida"] = datos_pdf["numero_documento"]
+
+                if datos_pdf["comentarios"]:
+                    st.session_state["comentarios_salida"] = datos_pdf["comentarios"]
+
+                if datos_pdf["cantidad"] > 0:
+                    st.session_state["cantidad_salida"] = datos_pdf["cantidad"]
+
+                if datos_pdf["bodega"]:
+                    st.session_state["bodega_salida"] = datos_pdf["bodega"]
+
+                if datos_pdf["ubicacion"]:
+                    st.session_state["ubicacion_salida"] = datos_pdf["ubicacion"]
+
+                if datos_pdf["codigo_material"]:
+                    codigo_detectado = datos_pdf["codigo_material"]
+
+                    for idx, opcion in enumerate(opciones_materiales):
+                        if opcion.startswith(codigo_detectado + " -"):
+                            st.session_state["material_idx_salida"] = idx
+                            break
+
+                st.success("✅ Datos del PDF cargados en pantalla")
+                st.rerun()
 
             else:
                 st.warning(
@@ -236,21 +301,23 @@ def salidas_inventario_app():
 
     st.subheader("📝 Información salida")
 
-    referencia = st.text_input("Referencia")
+    referencia = st.text_input(
+        "Referencia",
+        key="referencia_salida"
+    )
 
-    comentarios = st.text_area("Comentarios")
+    comentarios = st.text_area(
+        "Comentarios",
+        key="comentarios_salida"
+    )
 
     st.subheader("📦 Material")
 
-    materiales["display"] = (
-        materiales["codigo_material"].astype(str)
-        + " - "
-        + materiales["descripcion"].astype(str)
-    )
-
     material_seleccionado = st.selectbox(
         "Selecciona material",
-        materiales["display"]
+        opciones_materiales,
+        index=st.session_state["material_idx_salida"],
+        key="material_salida_select"
     )
 
     material_info = materiales[
@@ -267,8 +334,23 @@ def salidas_inventario_app():
     cantidad = st.number_input(
         "Cantidad salida",
         min_value=0.0,
-        step=1.0
+        step=1.0,
+        key="cantidad_salida"
     )
+
+    c1, c2 = st.columns(2)
+
+    with c1:
+        bodega = st.text_input(
+            "Bodega",
+            key="bodega_salida"
+        )
+
+    with c2:
+        ubicacion = st.text_input(
+            "Ubicación",
+            key="ubicacion_salida"
+        )
 
     if st.button("💾 Registrar salida"):
 
@@ -315,6 +397,8 @@ def salidas_inventario_app():
             codigo_material,
             descripcion,
             cantidad * -1,
+            bodega,
+            ubicacion,
             referencia,
             comentarios
         )
@@ -330,6 +414,8 @@ def salidas_inventario_app():
         st.write("Material:", codigo_material)
         st.write("Descripción:", descripcion)
         st.write("Cantidad salida:", cantidad)
+        st.write("Bodega:", bodega)
+        st.write("Ubicación:", ubicacion)
         st.write("Archivo:", archivo.name)
 
 
