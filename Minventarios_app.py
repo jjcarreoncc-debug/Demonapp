@@ -8,7 +8,7 @@ from alta_material_app import alta_material_app
 from baja_material_app import baja_material_app
 from consulta_material_app import consulta_material_app
 from entrada_compras_app import entrada_compras_app
-
+from consulta_entradas_compras_app import consulta_entradas_compras_app
 
 # =========================
 # APP INVENTARIOS
@@ -37,7 +37,10 @@ def inventarios_app():
         "registrar entrada de compras"
     ]:
         entrada_compras_app()
-
+        
+    elif opcion_inv == "Consultar entradas compra":
+        consulta_entradas_compras_app()
+                    
     elif opcion_inv == "Alta de SKU":
         st.info("Pantalla Alta de SKU en construcción")
 
