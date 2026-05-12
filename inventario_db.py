@@ -9,7 +9,7 @@ from sigem_db import get_db_path
 
 def crear_tablas_inventario():
 
-    db_path = get_db_path("inventario")
+    db_path = get_db_path("compras")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -23,10 +23,13 @@ def crear_tablas_inventario():
             descripcion TEXT,
             categoria TEXT,
             unidad_medida TEXT,
+
             costo REAL,
             precio REAL,
+
             stock_minimo REAL,
             stock_maximo REAL,
+
             activo INTEGER DEFAULT 1
         )
     """)
@@ -41,7 +44,7 @@ def crear_tablas_inventario():
 
 def crear_tabla_movimientos_inventario():
 
-    db_path = get_db_path("inventario")
+    db_path = get_db_path("compras")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
