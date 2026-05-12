@@ -67,13 +67,13 @@ def inventarios_app():
     # INVENTARIO FÍSICO
     # =========================
     elif opcion_limpia == "crear conteo":
-        inventario_fisico_app
+        inventario_fisico_app()
 
     elif opcion_limpia == "capturar conteo":
-        inventario_fisico_app
+        inventario_fisico_app()
 
     elif opcion_limpia == "consultar conteos":
-        inventario_fisico_app
+        inventario_fisico_app()
 
     elif opcion_limpia == "aplicar ajuste":
         inventario_fisico_app
