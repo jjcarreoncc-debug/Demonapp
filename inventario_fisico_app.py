@@ -16,7 +16,7 @@ def obtener_materiales():
                 codigo_material,
                 descripcion
             FROM materiales
-            WHERE activo = 1
+            WHERE estatus = 'Activo'
             ORDER BY codigo_material
         """, conn)
     except Exception:
@@ -135,7 +135,7 @@ def inventario_fisico_app():
         materiales = obtener_materiales()
 
         if materiales.empty:
-            st.warning("No hay materiales activos registrados en materiales.db.")
+            st.warning("No hay materiales con estatus Activo registrados en materiales.db.")
             st.stop()
 
         hora_actual = datetime.now().strftime("%H%M%S")
