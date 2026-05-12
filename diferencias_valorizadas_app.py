@@ -49,7 +49,7 @@ def obtener_diferencias_valorizadas():
 
             m.stock_minimo,
             m.stock_maximo,
-            m.rotacion_abc,
+            m.rotacion_abc
 
             
         FROM inventario_fisico f
