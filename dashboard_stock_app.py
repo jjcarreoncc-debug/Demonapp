@@ -33,47 +33,6 @@ from rotacion_app import (
 from ui_components import card_kpi
 
 
-def aplicar_css():
-    st.markdown("""
-    <style>
-    div.stButton > button {
-        width: 100%;
-        height: 70px;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 12px;
-        border: none;
-        background-color: #1f77b4;
-        color: white;
-    }
-    div.stButton > button:hover {
-        background-color: #145a86;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-
-def set_bg():
-    if not os.path.exists("imagen8.png"):
-        return
-
-    with open("imagen8.png", "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-
-    st.markdown(f"""
-    <style>
-    .stApp {{
-        background: linear-gradient(
-            rgba(255,255,255,0.85),
-            rgba(255,255,255,0.85)
-        ),
-        url("data:image/png;base64,{encoded}");
-        background-size: cover;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-
 def cargar_datos_stock():
 
     conn = sqlite3.connect(get_db_path("inventarios"))
