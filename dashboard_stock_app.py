@@ -209,7 +209,7 @@ def dashboard_general(df):
 def dashboard_stock_app():
 
     
-    set_bg()
+    
 
     st.title("📊 Analítica de Inventarios / Stock")
 
