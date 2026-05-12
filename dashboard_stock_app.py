@@ -206,8 +206,7 @@ def dashboard_general(df):
     with tab5:
         st.info("🚨 Módulo Alertas en construcción.")
 
-
-def inventarios_app():
+def dashboard_stock_app():
 
     aplicar_css()
     set_bg()
