@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+
 from pathlib import Path
 from datetime import datetime
+from pypdf import PdfReader
 
 from sigem_db import get_db_path
 
@@ -83,15 +85,77 @@ def entrada_compras_app():
     archivo_guardado = ""
 
     if archivo is not None:
-        carpeta = Path(__file__).resolve().parent / "documentos" / "compras"
-        carpeta.mkdir(parents=True, exist_ok=True)
+
+        carpeta = (
+            Path(__file__).resolve().parent
+            / "documentos"
+            / "compras"
+        )
+
+        carpeta.mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
         archivo_guardado = carpeta / archivo.name
 
         with open(archivo_guardado, "wb") as f:
             f.write(archivo.getbuffer())
 
-        st.success(f"Archivo adjuntado: {archivo.name}")
+        st.success(
+            f"Archivo adjuntado: {archivo.name}"
+        )
+
+        # =====================================
+        # LECTURA PDF
+        # =====================================
+
+        if archivo.name.lower().endswith(".pdf"):
+
+            st.markdown("---")
+            st.subheader("📄 Lectura del PDF")
+
+            if st.button("🔍 Leer PDF"):
+
+                try:
+
+                    reader = PdfReader(
+                        str(archivo_guardado)
+                    )
+
+                    texto_pdf = ""
+
+                    for page in reader.pages:
+
+                        texto_pdf += (
+                            page.extract_text() or ""
+                        )
+
+                    if texto_pdf.strip():
+
+                        st.success(
+                            "✅ Texto detectado en el PDF"
+                        )
+
+                        st.text_area(
+                            "Texto leído del PDF",
+                            texto_pdf,
+                            height=300
+                        )
+
+                    else:
+
+                        st.warning(
+                            "⚠️ No se detectó texto. Probablemente es un PDF escaneado y necesitará OCR."
+                        )
+
+                except Exception as e:
+
+                    st.error(
+                        "❌ Error leyendo PDF"
+                    )
+
+                    st.exception(e)
 
     st.subheader("📦 Detalle materiales")
 
@@ -115,27 +179,49 @@ def entrada_compras_app():
     )
 
     if not detalle.empty:
+
         detalle["total"] = (
             detalle["cantidad"].fillna(0)
             * detalle["costo_unitario"].fillna(0)
         ) + detalle["impuesto"].fillna(0)
 
         st.write("Vista previa total:")
-        st.dataframe(detalle, use_container_width=True)
 
-    if st.button("💾 Registrar entrada de compras"):
+        st.dataframe(
+            detalle,
+            use_container_width=True
+        )
+
+    if st.button(
+        "💾 Registrar entrada de compras"
+    ):
 
         if not proveedor or not factura:
-            st.error("Proveedor y factura son obligatorios.")
+
+            st.error(
+                "Proveedor y factura son obligatorios."
+            )
+
             return
 
         detalle_valido = detalle[
-            (detalle["codigo_material"].astype(str).str.strip() != "")
-            & (detalle["cantidad"] > 0)
+            (
+                detalle["codigo_material"]
+                .astype(str)
+                .str.strip() != ""
+            )
+            &
+            (
+                detalle["cantidad"] > 0
+            )
         ]
 
         if detalle_valido.empty:
-            st.error("Debes capturar al menos un material con cantidad mayor a cero.")
+
+            st.error(
+                "Debes capturar al menos un material con cantidad mayor a cero."
+            )
+
             return
 
         db_path = get_db_path("compras")
@@ -166,8 +252,13 @@ def entrada_compras_app():
             tipo_cambio,
             comentarios,
             str(archivo_guardado),
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            st.session_state.get("usuario", "admin")
+            datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            st.session_state.get(
+                "usuario",
+                "admin"
+            )
         ))
 
         id_entrada = cur.lastrowid
@@ -207,7 +298,9 @@ def entrada_compras_app():
         conn.commit()
         conn.close()
 
-        st.success(f"✅ Entrada registrada correctamente. Folio interno: {id_entrada}")
+        st.success(
+            f"✅ Entrada registrada correctamente. Folio interno: {id_entrada}"
+        )
 
 
 if __name__ == "__main__":
