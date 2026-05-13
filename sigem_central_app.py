@@ -44,7 +44,7 @@ with st.sidebar:
         "Módulos",
         [
             "📦 Minventarios",
-            "📦 Mlogistica":,
+            "📦 Mlogistica",
             "📊 Analíticos"
             "🛠️ Mantenimiento"
         ],
