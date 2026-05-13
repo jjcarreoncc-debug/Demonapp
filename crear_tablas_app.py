@@ -78,7 +78,7 @@ def crear_tablas_hoja_carga():
     # ==========================================
     # HOJA CARGA
     # ==========================================
-
+    
     cur.execute("""
         CREATE TABLE IF NOT EXISTS hoja_carga (
             id_hoja_carga INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -319,6 +319,8 @@ def crear_tablas_app():
     # ==========================================
 
     elif modulo == "Inventarios":
+        st.write("ENTRO INVENTARIOS")
+
 
         tablas_disponibles = [
             "Todas",
