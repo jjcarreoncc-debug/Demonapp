@@ -332,7 +332,7 @@ def dashboard_stock_app():
         "📊 Dashboard General"
     )
 
-    st.caption(f"Ruta: Inventarios / {vista}")
+    #st.caption(f"Ruta: Inventarios / {vista}")
 
     if vista == "📊 Dashboard General":
 
