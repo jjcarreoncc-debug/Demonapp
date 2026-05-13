@@ -6,6 +6,7 @@ from alta_embarque_app import alta_embarque_app
 from consulta_embarques_app import consulta_embarques_app
 from actualizar_estatus_embarque_app import actualizar_estatus_embarque_app
 from dashboard_embarques_app import dashboard_embarques_app
+from eventos_embarque_app import eventos_embarque_app
 
 
 def logistica_app():
@@ -73,6 +74,10 @@ def logistica_app():
     elif opcion_logistica == "📊 Dashboard embarques":
 
         dashboard_embarques_app()
+
+    elif opcion_logistica == "🛰️ Eventos embarque":
+
+        eventos_embarque_app()
 
     # =====================================================
     # BAJA EMBARQUE
