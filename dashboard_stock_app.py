@@ -153,6 +153,102 @@ def calcular_metricas(df):
     return metricas
 
 
+def aplicar_filtros_stock(df):
+
+    st.subheader("🎛️ Filtros Ejecutivos")
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    with col1:
+
+        categorias = ["Todos"]
+
+        if "categoria" in df.columns:
+            categorias += sorted(
+                df["categoria"].dropna().unique().tolist()
+            )
+
+        filtro_categoria = st.selectbox(
+            "🏷️ Categoría",
+            categorias
+        )
+
+    with col2:
+
+        filtro_estado = st.selectbox(
+            "🚨 Estado",
+            [
+                "Todos",
+                "Crítico",
+                "Sobrestock",
+                "Normal"
+            ]
+        )
+
+    with col3:
+
+        abc = ["Todos"]
+
+        if "rotacion_abc" in df.columns:
+            abc += sorted(
+                df["rotacion_abc"].dropna().unique().tolist()
+            )
+
+        filtro_abc = st.selectbox(
+            "📈 ABC",
+            abc
+        )
+
+    with col4:
+
+        top_n = st.selectbox(
+            "💰 Top",
+            [10, 20, 50, 100, 500]
+        )
+
+    with col5:
+
+        filtro_texto = st.text_input(
+            "🔎 Buscar material"
+        )
+
+    # =========================
+    # FILTROS
+    # =========================
+    if filtro_categoria != "Todos":
+        df = df[df["categoria"] == filtro_categoria]
+
+    if filtro_abc != "Todos":
+        df = df[df["rotacion_abc"] == filtro_abc]
+
+    if filtro_estado == "Crítico":
+        df = df[df["STOCK"] < df["STOCK_MIN"]]
+
+    elif filtro_estado == "Sobrestock":
+        df = df[df["STOCK"] > df["STOCK_MAX"]]
+
+    elif filtro_estado == "Normal":
+        df = df[
+            (df["STOCK"] >= df["STOCK_MIN"]) &
+            (df["STOCK"] <= df["STOCK_MAX"])
+        ]
+
+    if filtro_texto:
+        df = df[
+            df["descripcion"].str.contains(
+                filtro_texto,
+                case=False,
+                na=False
+            )
+        ]
+
+    df = df.head(top_n)
+
+    st.divider()
+
+    return df
+
+
 def dashboard_general(df):
 
     st.title("📊 Dashboard General Stock")
@@ -189,7 +285,11 @@ def dashboard_general(df):
         c5, c6 = st.columns(2)
 
         with c5:
-            card_kpi("💰 Valor inventario", f"${m['valor_inventario']:,.2f}", "#27ae60")
+            card_kpi(
+                "💰 Valor inventario",
+                f"${m['valor_inventario']:,.2f}",
+                "#27ae60"
+            )
 
         with c6:
             card_kpi("📊 Productos", len(df), "#34495e")
@@ -226,6 +326,8 @@ def dashboard_stock_app():
     if df.empty:
         st.warning("⚠️ No hay datos de materiales o movimientos para mostrar.")
         return
+
+    df = aplicar_filtros_stock(df)
 
     vista = st.session_state.get(
         "menu_inventarios",
