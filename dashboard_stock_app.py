@@ -340,7 +340,7 @@ def dashboard_stock_app():
 
     elif vista == "🚨 Críticos":
 
-        st.title("🚨 Módulo Críticos")
+        st.markdown("### 🚨 Críticos")
 
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Dashboard",
@@ -367,7 +367,7 @@ def dashboard_stock_app():
 
     elif vista == "⚠️ Sobrestock":
 
-        st.title("⚠️ Módulo Sobrestock")
+        st.markdown("### ⚠️ Sobrestock")
 
         tab1, tab2, tab3, tab4 = st.tabs([
             "Dashboard",
@@ -390,7 +390,7 @@ def dashboard_stock_app():
 
     elif vista == "🔄 Rotación":
 
-        st.title("🔄 Módulo Rotación")
+        st.markdown("### 🔄 Rotación")
 
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Dashboard",
