@@ -46,11 +46,8 @@ def agregar_columna_si_no_existe(cur, tabla, columna, tipo):
     except sqlite3.OperationalError as e:
 
         if "duplicate column name" in str(e).lower():
-
             st.info(f"ℹ️ La columna ya existe en {tabla}: {columna}")
-
         else:
-
             raise e
 
 
@@ -172,6 +169,54 @@ def alterar_movimientos_inventario():
 # LOGISTICA
 # =====================================================
 
+def crear_catalogo_estatus_embarque(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS estatus_embarque (
+            id_estatus INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_estatus TEXT UNIQUE NOT NULL,
+            descripcion TEXT NOT NULL,
+            secuencia INTEGER DEFAULT 0,
+            activo INTEGER DEFAULT 1,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    estatus_base = [
+        ("ALM", "En almacén", 1, 1),
+        ("PAT", "En patio", 2, 1),
+        ("SAL", "Ya salió", 3, 1),
+        ("TRA", "En tránsito", 4, 1),
+        ("ENT", "Entregado", 5, 1),
+        ("CAN", "Cancelado", 99, 1),
+    ]
+
+    cur.executemany("""
+        INSERT OR IGNORE INTO estatus_embarque (
+            codigo_estatus,
+            descripcion,
+            secuencia,
+            activo
+        )
+        VALUES (?, ?, ?, ?)
+    """, estatus_base)
+
+
+def crear_tabla_historial_estatus_embarque(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS historial_estatus_embarque (
+            id_historial INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_embarque TEXT NOT NULL,
+            estatus_anterior TEXT,
+            estatus_nuevo TEXT NOT NULL,
+            fecha_cambio TEXT DEFAULT CURRENT_TIMESTAMP,
+            usuario TEXT,
+            observaciones TEXT
+        )
+    """)
+
+
 def crear_tablas_logistica():
 
     db_path = get_db_path("logistica")
@@ -223,7 +268,10 @@ def crear_tablas_logistica():
             placas TEXT,
             operador TEXT,
             ruta TEXT,
-            estatus TEXT,
+            estatus TEXT DEFAULT 'En almacén',
+            fecha_estatus TEXT,
+            usuario_estatus TEXT,
+            observaciones_estatus TEXT,
             observaciones TEXT,
             usuario TEXT,
             fecha_creacion TEXT
@@ -248,6 +296,9 @@ def crear_tablas_logistica():
         )
     """)
 
+    crear_catalogo_estatus_embarque(cur)
+    crear_tabla_historial_estatus_embarque(cur)
+
     conn.commit()
     conn.close()
 
@@ -267,6 +318,9 @@ def alterar_tabla_embarques():
         ("folio_ruta", "TEXT"),
         ("origen_captura", "TEXT"),
         ("placas", "TEXT"),
+        ("fecha_estatus", "TEXT"),
+        ("usuario_estatus", "TEXT"),
+        ("observaciones_estatus", "TEXT"),
     ]
 
     st.subheader("🔧 Actualizando tabla embarques")
@@ -280,11 +334,26 @@ def alterar_tabla_embarques():
             tipo_columna
         )
 
+    cur.execute("""
+        UPDATE embarques
+        SET estatus = 'En almacén'
+        WHERE estatus IS NULL OR TRIM(estatus) = ''
+    """)
+
+    crear_catalogo_estatus_embarque(cur)
+    crear_tabla_historial_estatus_embarque(cur)
+
     conn.commit()
     conn.close()
 
     st.subheader("📋 Estructura final embarques")
     mostrar_estructura_tabla(db_path, "embarques")
+
+    st.subheader("📋 Catálogo estatus_embarque")
+    mostrar_estructura_tabla(db_path, "estatus_embarque")
+
+    st.subheader("📋 Historial estatus embarque")
+    mostrar_estructura_tabla(db_path, "historial_estatus_embarque")
 
 
 def alterar_tabla_detalle_embarque():
@@ -318,6 +387,28 @@ def alterar_tabla_detalle_embarque():
 
     st.subheader("📋 Estructura final detalle_embarque")
     mostrar_estructura_tabla(db_path, "detalle_embarque")
+
+
+def crear_tablas_control_embarques():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_catalogo_estatus_embarque(cur)
+    crear_tabla_historial_estatus_embarque(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tablas de control de embarques creadas/actualizadas")
+
+    st.subheader("📋 Catálogo estatus_embarque")
+    mostrar_estructura_tabla(db_path, "estatus_embarque")
+
+    st.subheader("📋 Historial estatus_embarque")
+    mostrar_estructura_tabla(db_path, "historial_estatus_embarque")
 
 
 # =====================================================
@@ -374,7 +465,9 @@ def crear_tablas_app():
             "pedidos",
             "detalle_pedido",
             "embarques",
-            "detalle_embarque"
+            "detalle_embarque",
+            "estatus_embarque",
+            "historial_estatus_embarque"
         ]
 
     tabla = st.selectbox(
@@ -440,7 +533,25 @@ def crear_tablas_app():
 
                 elif modulo == "Logística":
 
-                    crear_tablas_logistica()
+                    if tabla == "Todas":
+
+                        crear_tablas_logistica()
+
+                    elif tabla in [
+                        "pedidos",
+                        "detalle_pedido",
+                        "embarques",
+                        "detalle_embarque"
+                    ]:
+
+                        crear_tablas_logistica()
+
+                    elif tabla in [
+                        "estatus_embarque",
+                        "historial_estatus_embarque"
+                    ]:
+
+                        crear_tablas_control_embarques()
 
                 st.success(
                     f"✅ Tabla(s) creadas correctamente para {modulo}"
@@ -486,6 +597,14 @@ def crear_tablas_app():
 
                     alterar_tabla_embarques()
                     alterar_tabla_detalle_embarque()
+                    crear_tablas_control_embarques()
+
+                elif modulo == "Logística" and tabla in [
+                    "estatus_embarque",
+                    "historial_estatus_embarque"
+                ]:
+
+                    crear_tablas_control_embarques()
 
                 else:
 
