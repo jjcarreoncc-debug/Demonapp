@@ -60,6 +60,14 @@ def sidebar_logistica():
         opcion_logistica = "📋 Consulta embarque"
 
     if st.sidebar.button(
+       "📊 Dashboard embarques",
+       use_container_width=True
+    ):
+       menu_logistica = "📦 Embarques"
+       submenu_logistica = "Embarques"
+       opcion_logistica = "📊 Dashboard embarques"
+        
+    if st.sidebar.button(
         "✏️ Editar embarque",
         use_container_width=True
     ):
