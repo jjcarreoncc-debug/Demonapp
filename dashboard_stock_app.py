@@ -251,7 +251,7 @@ def aplicar_filtros_stock(df):
 
 def dashboard_general(df):
 
-    st.title("📊 Dashboard General Stock")
+    
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Inventario",
