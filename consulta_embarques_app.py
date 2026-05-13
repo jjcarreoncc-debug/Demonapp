@@ -351,14 +351,14 @@ def consulta_embarques_app():
 
         columnas_dashboard = [
 
+            "alerta",
+            "estatus",
             "folio_embarque",
             "folio_hoja_carga",
             "fecha",
             "cliente",
             "destino",
-            "transportista",
-            "estatus",
-            "alerta"
+            "transportista"
 
         ]
 
@@ -381,8 +381,21 @@ def consulta_embarques_app():
 
         st.subheader("🚦 Embarques con alertas")
 
+        columnas_alertas = [
+
+            "alerta",
+            "estatus",
+            "folio_embarque",
+            "fecha",
+            "cliente",
+            "destino",
+            "transportista",
+            "dias_embarque"
+
+        ]
+
         st.dataframe(
-            df_alertas,
+            df_alertas[columnas_alertas],
             use_container_width=True,
             height=500,
             hide_index=True
@@ -403,8 +416,20 @@ def consulta_embarques_app():
 
         st.subheader("📦 Embarques pendientes")
 
+        columnas_pendientes = [
+
+            "alerta",
+            "estatus",
+            "folio_embarque",
+            "fecha",
+            "cliente",
+            "destino",
+            "transportista"
+
+        ]
+
         st.dataframe(
-            df_pendientes,
+            df_pendientes[columnas_pendientes],
             use_container_width=True,
             height=500,
             hide_index=True
@@ -425,8 +450,20 @@ def consulta_embarques_app():
 
         st.subheader("🚚 Embarques en tránsito")
 
+        columnas_transito = [
+
+            "alerta",
+            "estatus",
+            "folio_embarque",
+            "fecha",
+            "cliente",
+            "destino",
+            "transportista"
+
+        ]
+
         st.dataframe(
-            df_transito,
+            df_transito[columnas_transito],
             use_container_width=True,
             height=500,
             hide_index=True
@@ -447,8 +484,20 @@ def consulta_embarques_app():
 
         st.subheader("✅ Embarques entregados")
 
+        columnas_entregados = [
+
+            "alerta",
+            "estatus",
+            "folio_embarque",
+            "fecha",
+            "cliente",
+            "destino",
+            "transportista"
+
+        ]
+
         st.dataframe(
-            df_entregados,
+            df_entregados[columnas_entregados],
             use_container_width=True,
             height=500,
             hide_index=True
