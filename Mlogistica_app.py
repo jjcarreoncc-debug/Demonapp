@@ -4,6 +4,7 @@ from sidebar_logistica import sidebar_logistica
 
 from alta_embarque_app import alta_embarque_app
 from consulta_embarques_app import consulta_embarques_app
+from actualizar_estatus_embarque_app import actualizar_estatus_embarque_app
 
 
 def logistica_app():
@@ -28,6 +29,11 @@ def logistica_app():
 
         alta_embarque_app()
 
+    elif opcion_logistica == "✏️ Actualizar estatus embarque":
+
+        actualizar_estatus_embarque_app()
+
+    
     # =====================================================
     # CONSULTA EMBARQUE
     # =====================================================
