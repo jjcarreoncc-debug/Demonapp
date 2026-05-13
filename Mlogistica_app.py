@@ -1,15 +1,32 @@
 import streamlit as st
 
 from sidebar_logistica import sidebar_logistica
+from alta_embarque_app import alta_embarque_app
 
 
 def logistica_app():
 
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
-    st.title("🚚 Logística")
+st.title("🚚 Logística")
 
-    st.divider()
+st.divider()
+
+
+# ==========================================
+# EMBARQUES
+# ==========================================
+
+if opcion_logistica == "➕ Alta embarque":
+
+    alta_embarque_app()
+
+
+# ==========================================
+# DEFAULT
+# ==========================================
+
+else:
 
     st.subheader(opcion_logistica)
 
