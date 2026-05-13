@@ -6,6 +6,7 @@ import altair as alt
 from sigem_db import get_db_path
 
 
+
 # =====================================================
 # OBTENER EMBARQUES
 # =====================================================
@@ -137,9 +138,9 @@ def pintar_barra_estatus(df):
         alt.Chart(df_grafica)
         # 
         .mark_bar(
-            size=28,
-            cornerRadiusTopLeft=4,
-            cornerRadiusTopRight=4
+            size=12,
+            cornerRadiusTopLeft=3,
+            cornerRadiusTopRight=3
         )         
         #
         .encode(
