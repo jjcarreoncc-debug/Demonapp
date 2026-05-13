@@ -2,47 +2,41 @@ import sqlite3
 import random
 from datetime import datetime, timedelta
 
+import streamlit as st
+
 from sigem_db import get_db_path
 
 
-def main():
+def carga_demo_analitica_inventarios_app():
+
+    st.title("📊 Carga Demo Analítica Inventarios")
+
+    if not st.button("🚀 Generar demo analítica", use_container_width=True):
+        return
 
     conn = sqlite3.connect(get_db_path("inventarios"))
     cur = conn.cursor()
 
     try:
-
-        # =========================
-        # ATTACH BASE MATERIALES
-        # =========================
         materiales_path = get_db_path("materiales")
 
         cur.execute(f"""
             ATTACH DATABASE '{materiales_path}' AS materiales_db
         """)
 
-        # =========================
-        # OBTENER MATERIALES
-        # =========================
         cur.execute("""
-            SELECT
-                codigo_material,
-                descripcion
+            SELECT codigo_material, descripcion
             FROM materiales_db.materiales
         """)
 
         materiales = cur.fetchall()
 
         if not materiales:
-            print("❌ No hay materiales.")
-            conn.close()
+            st.error("❌ No hay materiales en materiales.db")
             return
 
-        print(f"✅ Materiales encontrados: {len(materiales)}")
+        st.write(f"Materiales encontrados: {len(materiales)}")
 
-        # =========================
-        # LIMPIAR DEMO ANTERIOR
-        # =========================
         cur.execute("""
             DELETE FROM movimientos_inventario
             WHERE referencia = 'DEMO_ANALITICA'
@@ -60,14 +54,9 @@ def main():
 
         total = 0
 
-        # =========================
-        # GENERAR MOVIMIENTOS
-        # =========================
         for codigo, descripcion in materiales:
 
-            movimientos = random.randint(80, 150)
-
-            for i in range(movimientos):
+            for i in range(random.randint(80, 150)):
 
                 tipo = random.choice(tipos)
 
@@ -77,18 +66,10 @@ def main():
                     cantidad = random.randint(1, 45) * -1
 
                 fecha = (
-                    datetime.now()
-                    - timedelta(days=random.randint(1, 180))
+                    datetime.now() - timedelta(days=random.randint(1, 180))
                 ).strftime("%Y-%m-%d %H:%M:%S")
 
                 costo = random.randint(20, 600)
-
-                folio = (
-                    f"DEMO-"
-                    f"{codigo}-"
-                    f"{i}-"
-                    f"{datetime.now().strftime('%H%M%S')}"
-                )
 
                 cur.execute("""
                     INSERT INTO movimientos_inventario (
@@ -111,7 +92,7 @@ def main():
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    folio,
+                    f"DEMO-{codigo}-{total}",
                     fecha,
                     tipo,
                     "DEMO",
@@ -125,7 +106,7 @@ def main():
                     random.choice(bodegas),
                     random.choice(ubicaciones),
                     "DEMO_ANALITICA",
-                    "Carga demo batch analítica inventarios",
+                    "Carga demo analítica inventarios",
                     "admin"
                 ))
 
@@ -133,20 +114,15 @@ def main():
 
         conn.commit()
 
-        print(
-            f"✅ Carga demo terminada correctamente. "
-            f"Movimientos creados: {total}"
-        )
+        st.success(f"✅ Demo generado correctamente. Movimientos creados: {total}")
 
     except Exception as e:
-
-        print("❌ Error en carga demo:")
-        print(e)
+        st.error("❌ Error generando demo analítica")
+        st.exception(e)
 
     finally:
-
         conn.close()
 
 
 if __name__ == "__main__":
-    main()
+    carga_demo_analitica_inventarios_app()
