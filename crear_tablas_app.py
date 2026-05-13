@@ -217,6 +217,41 @@ def crear_tabla_historial_estatus_embarque(cur):
     """)
 
 
+# =====================================================
+# EVENTOS EMBARQUE
+# =====================================================
+
+def crear_tabla_eventos_embarque(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS eventos_embarque (
+
+            id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            folio_embarque TEXT NOT NULL,
+
+            fecha_evento TEXT NOT NULL,
+
+            tipo_evento TEXT,
+
+            estatus TEXT,
+
+            ubicacion TEXT,
+
+            comentarios TEXT,
+
+            usuario TEXT,
+
+            latitud REAL DEFAULT 0,
+
+            longitud REAL DEFAULT 0,
+
+            fecha_registro TEXT DEFAULT CURRENT_TIMESTAMP
+
+        )
+    """)
+
+
 def crear_tablas_logistica():
 
     db_path = get_db_path("logistica")
@@ -298,6 +333,7 @@ def crear_tablas_logistica():
 
     crear_catalogo_estatus_embarque(cur)
     crear_tabla_historial_estatus_embarque(cur)
+    crear_tabla_eventos_embarque(cur)
 
     conn.commit()
     conn.close()
@@ -342,6 +378,7 @@ def alterar_tabla_embarques():
 
     crear_catalogo_estatus_embarque(cur)
     crear_tabla_historial_estatus_embarque(cur)
+    crear_tabla_eventos_embarque(cur)
 
     conn.commit()
     conn.close()
@@ -354,6 +391,9 @@ def alterar_tabla_embarques():
 
     st.subheader("📋 Historial estatus embarque")
     mostrar_estructura_tabla(db_path, "historial_estatus_embarque")
+
+    st.subheader("📋 Eventos embarque")
+    mostrar_estructura_tabla(db_path, "eventos_embarque")
 
 
 def alterar_tabla_detalle_embarque():
@@ -398,6 +438,7 @@ def crear_tablas_control_embarques():
 
     crear_catalogo_estatus_embarque(cur)
     crear_tabla_historial_estatus_embarque(cur)
+    crear_tabla_eventos_embarque(cur)
 
     conn.commit()
     conn.close()
@@ -409,6 +450,9 @@ def crear_tablas_control_embarques():
 
     st.subheader("📋 Historial estatus_embarque")
     mostrar_estructura_tabla(db_path, "historial_estatus_embarque")
+
+    st.subheader("📋 Eventos embarque")
+    mostrar_estructura_tabla(db_path, "eventos_embarque")
 
 
 # =====================================================
@@ -467,7 +511,8 @@ def crear_tablas_app():
             "embarques",
             "detalle_embarque",
             "estatus_embarque",
-            "historial_estatus_embarque"
+            "historial_estatus_embarque",
+            "eventos_embarque"
         ]
 
     tabla = st.selectbox(
@@ -548,7 +593,8 @@ def crear_tablas_app():
 
                     elif tabla in [
                         "estatus_embarque",
-                        "historial_estatus_embarque"
+                        "historial_estatus_embarque",
+                        "eventos_embarque"
                     ]:
 
                         crear_tablas_control_embarques()
@@ -601,7 +647,8 @@ def crear_tablas_app():
 
                 elif modulo == "Logística" and tabla in [
                     "estatus_embarque",
-                    "historial_estatus_embarque"
+                    "historial_estatus_embarque",
+                    "eventos_embarque"
                 ]:
 
                     crear_tablas_control_embarques()
