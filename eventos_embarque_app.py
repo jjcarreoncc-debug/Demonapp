@@ -2,7 +2,7 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 from datetime import datetime
-
+import altair as alt
 from sigem_db import get_db_path
 
 
