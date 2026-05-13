@@ -48,79 +48,10 @@ def cargar_datos_stock():
         SELECT
             m.codigo_material AS NUMERO_PRODUCTO,
             m.codigo_material AS codigo_material,
-            m.descripcion AS DESCRIPCION,
-            m.descripcion AS descripcion,
-            m.descripcion_larga,
-            m.categoria,
-            m.familia,
-            m.marca,
-            m.tipo_material,
-            m.unidad_base,
-            COALESCE(m.stock_minimo, 0) AS STOCK_MIN,
-            COALESCE(m.stock_maximo, 0) AS STOCK_MAX,
-            COALESCE(m.stock_minimo, 0) AS stock_minimo,
-            COALESCE(m.stock_maximo, 0) AS stock_maximo,
-            COALESCE(m.costo_estandar, 0) AS costo_estandar,
-            COALESCE(m.precio_venta, 0) AS precio_venta,
-            COALESCE(m.rotacion_abc, '') AS rotacion_abc,
 
-            COALESCE(SUM(
-                CASE 
-                    WHEN i.cantidad > 0 THEN i.cantidad
-                    ELSE 0
-                END
-            ), 0) AS ENTRADA,
-
-            COALESCE(SUM(
-                CASE 
-                    WHEN i.cantidad < 0 THEN ABS(i.cantidad)
-                    ELSE 0
-                END
-            ), 0) AS SALIDA,
-
-            COALESCE(SUM(i.cantidad), 0) AS STOCK
-
-        FROM materiales_db.materiales m
-
-        LEFT JOIN movimientos_inventario i
-            ON m.codigo_material = i.codigo_material
-
-        GROUP BY
-            m.codigo_material,
-            m.descripcion,
-            m.descripcion_larga,
-            m.categoria,
-            m.familia,
-            m.marca,
-            m.tipo_material,
-            m.unidad_base,
-            m.stock_minimo,
-            m.stock_maximo,
-            m.costo_estandar,
-            m.precio_venta,
-            m.rotacion_abc
-
-        ORDER BY m.codigo_material
-    """
-
-    try:
-        df = pd.read_sql_query(query, conn)
-    except Exception as e:
-        conn.close()
-        st.error("❌ Error cargando datos de stock desde SQLite.")
-        st.exception(e)
-        return pd.DataFrame()
-
-    conn.close()
-
-    df["STOCK"] = pd.to_numeric(df["STOCK"], errors="coerce").fillna(0)
-    df["ENTRADA"] = pd.to_numeric(df["ENTRADA"], errors="coerce").fillna(0)
-    df["SALIDA"] = pd.to_numeric(df["SALIDA"], errors="coerce").fillna(0)
-    df["STOCK_MIN"] = pd.to_numeric(df["STOCK_MIN"], errors="coerce").fillna(0)
-    df["STOCK_MAX"] = pd.to_numeric(df["STOCK_MAX"], errors="coerce").fillna(0)
-
-    return df
-
+            m.descripcion AS NOMBRE_PRODUCTO,
+            m.descripcion AS PRODUCTO,
+            m.descripcion AS DESCRIPC
 
 def calcular_metricas(df):
 
@@ -208,7 +139,6 @@ def dashboard_general(df):
 
 def dashboard_stock_app():
 
-    
     
 
     st.title("📊 Analítica de Inventarios / Stock")
