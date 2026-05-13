@@ -6,105 +6,146 @@ from sigem_db import get_db_path
 
 
 def main():
+
     conn = sqlite3.connect(get_db_path("inventarios"))
     cur = conn.cursor()
 
-    cur.execute(
-        f"ATTACH DATABASE '{get_db_path('materiales')}' AS materiales_db"
-    )
+    try:
 
-    cur.execute("""
-        SELECT codigo_material, descripcion
-        FROM materiales_db.materiales
-       
-    """)
+        # =========================
+        # ATTACH BASE MATERIALES
+        # =========================
+        materiales_path = get_db_path("materiales")
 
-    materiales = cur.fetchall()
+        cur.execute(f"""
+            ATTACH DATABASE '{materiales_path}' AS materiales_db
+        """)
 
-    if not materiales:
-        print("No hay materiales activos.")
-        conn.close()
-        return
+        # =========================
+        # OBTENER MATERIALES
+        # =========================
+        cur.execute("""
+            SELECT
+                codigo_material,
+                descripcion
+            FROM materiales_db.materiales
+        """)
 
-    cur.execute("""
-        DELETE FROM movimientos_inventario
-        WHERE referencia = 'DEMO_ANALITICA'
-    """)
+        materiales = cur.fetchall()
 
-    tipos = [
-        "ENTRADA_COMPRA",
-        "SALIDA_VENTA",
-        "ENTRADA_AJUSTE",
-        "SALIDA_AJUSTE"
-    ]
+        if not materiales:
+            print("❌ No hay materiales.")
+            conn.close()
+            return
 
-    bodegas = ["CENTRAL", "NORTE", "SUR"]
-    ubicaciones = ["A-01", "B-01", "C-01", "D-01"]
+        print(f"✅ Materiales encontrados: {len(materiales)}")
 
-    total = 0
+        # =========================
+        # LIMPIAR DEMO ANTERIOR
+        # =========================
+        cur.execute("""
+            DELETE FROM movimientos_inventario
+            WHERE referencia = 'DEMO_ANALITICA'
+        """)
 
-    for codigo, descripcion in materiales:
-        for i in range(random.randint(80, 150)):
-            tipo = random.choice(tipos)
+        tipos = [
+            "ENTRADA_COMPRA",
+            "SALIDA_VENTA",
+            "ENTRADA_AJUSTE",
+            "SALIDA_AJUSTE"
+        ]
 
-            if "ENTRADA" in tipo:
-                cantidad = random.randint(10, 80)
-            else:
-                cantidad = random.randint(1, 45) * -1
+        bodegas = ["CENTRAL", "NORTE", "SUR"]
+        ubicaciones = ["A-01", "B-01", "C-01", "D-01"]
 
-            fecha = (
-                datetime.now() - timedelta(days=random.randint(1, 180))
-            ).strftime("%Y-%m-%d %H:%M:%S")
+        total = 0
 
-            costo = random.randint(20, 600)
+        # =========================
+        # GENERAR MOVIMIENTOS
+        # =========================
+        for codigo, descripcion in materiales:
 
-            folio = f"DEMO-{codigo}-{i}-{datetime.now().strftime('%H%M%S')}"
+            movimientos = random.randint(80, 150)
 
-            cur.execute("""
-                INSERT INTO movimientos_inventario (
-                    folio_movimiento,
+            for i in range(movimientos):
+
+                tipo = random.choice(tipos)
+
+                if "ENTRADA" in tipo:
+                    cantidad = random.randint(10, 80)
+                else:
+                    cantidad = random.randint(1, 45) * -1
+
+                fecha = (
+                    datetime.now()
+                    - timedelta(days=random.randint(1, 180))
+                ).strftime("%Y-%m-%d %H:%M:%S")
+
+                costo = random.randint(20, 600)
+
+                folio = (
+                    f"DEMO-"
+                    f"{codigo}-"
+                    f"{i}-"
+                    f"{datetime.now().strftime('%H%M%S')}"
+                )
+
+                cur.execute("""
+                    INSERT INTO movimientos_inventario (
+                        folio_movimiento,
+                        fecha,
+                        tipo_movimiento,
+                        tipo_documento,
+                        numero_documento,
+                        archivo_documento,
+                        codigo_material,
+                        descripcion,
+                        cantidad,
+                        costo_unitario,
+                        total,
+                        bodega,
+                        ubicacion,
+                        referencia,
+                        comentarios,
+                        usuario
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    folio,
                     fecha,
-                    tipo_movimiento,
-                    tipo_documento,
-                    numero_documento,
-                    archivo_documento,
-                    codigo_material,
+                    tipo,
+                    "DEMO",
+                    f"DOC-{total}",
+                    "",
+                    codigo,
                     descripcion,
                     cantidad,
-                    costo_unitario,
-                    total,
-                    bodega,
-                    ubicacion,
-                    referencia,
-                    comentarios,
-                    usuario
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                folio,
-                fecha,
-                tipo,
-                "DEMO",
-                f"DOC-{total}",
-                "",
-                codigo,
-                descripcion,
-                cantidad,
-                costo,
-                cantidad * costo,
-                random.choice(bodegas),
-                random.choice(ubicaciones),
-                "DEMO_ANALITICA",
-                "Carga demo batch analítica inventarios",
-                "admin"
-            ))
+                    costo,
+                    cantidad * costo,
+                    random.choice(bodegas),
+                    random.choice(ubicaciones),
+                    "DEMO_ANALITICA",
+                    "Carga demo batch analítica inventarios",
+                    "admin"
+                ))
 
-            total += 1
+                total += 1
 
-    conn.commit()
-    conn.close()
+        conn.commit()
 
-    print(f"✅ Carga demo terminada. Movimientos creados: {total}")
+        print(
+            f"✅ Carga demo terminada correctamente. "
+            f"Movimientos creados: {total}"
+        )
+
+    except Exception as e:
+
+        print("❌ Error en carga demo:")
+        print(e)
+
+    finally:
+
+        conn.close()
 
 
 if __name__ == "__main__":
