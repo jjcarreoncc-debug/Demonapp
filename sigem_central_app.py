@@ -3,6 +3,7 @@ import streamlit as st
 from Minventarios_app import inventarios_app
 from sidebar_analitico import analitico_app
 from mantenimiento_app import mantenimiento_app
+from Mlogistica_app import logistica_app
 
 
 def simular_login():
@@ -61,6 +62,10 @@ with st.sidebar:
 if st.session_state.modulo_central == "📦 Minventarios":
 
     inventarios_app()
+
+if st.session_state.modulo_central == "📦 Mlogistica":
+
+    logistica_app()
 
 elif st.session_state.modulo_central == "📊 Analíticos":
 
