@@ -52,7 +52,7 @@ def obtener_embarques():
 def pintar_barra_estatus(df):
 
     # =====================================================
-    # COLORES POR ESTATUS
+    # COLORES
     # =====================================================
 
     mapa_colores = {
@@ -67,34 +67,41 @@ def pintar_barra_estatus(df):
     }
 
     # =====================================================
-    # DATAFRAME DINAMICO
+    # DATAFRAME
     # =====================================================
 
-    df_status = (
+    df_grafica = df.copy()
 
-        df["estatus"]
+    df_grafica["estatus"] = (
+        df_grafica["estatus"]
         .fillna("Sin estatus")
         .astype(str)
-        .value_counts()
-        .reset_index()
-
     )
 
-    df_status.columns = [
-        "estatus",
-        "cantidad"
+    df_grafica["embarque"] = (
+        df_grafica["folio_embarque"]
+        .fillna("")
+        .astype(str)
+    )
+
+    # =====================================================
+    # SOLO REGISTROS VALIDOS
+    # =====================================================
+
+    df_grafica = df_grafica[
+        df_grafica["embarque"] != ""
     ]
 
-    # =====================================================
-    # SOLO ESTATUS CON DATOS
-    # =====================================================
+    if df_grafica.empty:
 
-    df_status = df_status[
-        df_status["cantidad"] > 0
-    ]
+        st.warning(
+            "No existen embarques para mostrar."
+        )
+
+        return
 
     # =====================================================
-    # COLOR DINAMICO
+    # COLORES DINAMICOS
     # =====================================================
 
     colores = [
@@ -104,9 +111,22 @@ def pintar_barra_estatus(df):
             "#6B7280"
         )
 
-        for estatus in df_status["estatus"]
+        for estatus in (
+            df_grafica["estatus"]
+            .unique()
+            .tolist()
+        )
 
     ]
+
+    # =====================================================
+    # ANCHO DINAMICO
+    # =====================================================
+
+    ancho_grafica = max(
+        1200,
+        len(df_grafica) * 90
+    )
 
     # =====================================================
     # GRAFICA
@@ -114,54 +134,80 @@ def pintar_barra_estatus(df):
 
     chart = (
 
-        alt.Chart(df_status)
+        alt.Chart(df_grafica)
 
         .mark_bar(
-            cornerRadiusTopRight=8,
-            cornerRadiusBottomRight=8
+            cornerRadiusTopLeft=6,
+            cornerRadiusTopRight=6
         )
 
         .encode(
 
-            y=alt.Y(
-                "estatus:N",
-                sort="-x",
-                title=None
+            x=alt.X(
+                "embarque:N",
+                title="Número de embarque",
+                sort=None,
+                axis=alt.Axis(
+                    labelAngle=-45
+                )
             ),
 
-            x=alt.X(
-                "cantidad:Q",
-                title="Cantidad de embarques",
-                axis=alt.Axis(
-                    format="d",
-                    tickMinStep=1
-                )
+            y=alt.Y(
+                "estatus:N",
+                title="Estatus"
             ),
 
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
-                    domain=df_status["estatus"].tolist(),
+                    domain=(
+                        df_grafica["estatus"]
+                        .unique()
+                        .tolist()
+                    ),
                     range=colores
                 ),
                 legend=None
             ),
 
             tooltip=[
+
+                alt.Tooltip(
+                    "folio_embarque:N",
+                    title="Embarque"
+                ),
+
+                alt.Tooltip(
+                    "cliente:N",
+                    title="Cliente"
+                ),
+
+                alt.Tooltip(
+                    "destino:N",
+                    title="Destino"
+                ),
+
+                alt.Tooltip(
+                    "transportista:N",
+                    title="Transportista"
+                ),
+
+                alt.Tooltip(
+                    "ruta:N",
+                    title="Ruta"
+                ),
+
                 alt.Tooltip(
                     "estatus:N",
                     title="Estatus"
-                ),
-                alt.Tooltip(
-                    "cantidad:Q",
-                    title="Cantidad",
-                    format="d"
                 )
+
             ]
 
         )
 
         .properties(
+            width=ancho_grafica,
             height=350
         )
 
@@ -169,7 +215,7 @@ def pintar_barra_estatus(df):
 
     st.altair_chart(
         chart,
-        use_container_width=True
+        use_container_width=False
     )
 
 
