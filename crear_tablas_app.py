@@ -75,10 +75,6 @@ def crear_tablas_hoja_carga():
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
-    # ==========================================
-    # HOJA CARGA
-    # ==========================================
-    
     cur.execute("""
         CREATE TABLE IF NOT EXISTS hoja_carga (
             id_hoja_carga INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,10 +91,6 @@ def crear_tablas_hoja_carga():
             fecha_creacion TEXT
         )
     """)
-
-    # ==========================================
-    # DETALLE HOJA CARGA
-    # ==========================================
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS detalle_hoja_carga (
@@ -190,10 +182,6 @@ def crear_tablas_logistica():
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
-    # ==========================================
-    # PEDIDOS
-    # ==========================================
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS pedidos (
             id_pedido INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -208,10 +196,6 @@ def crear_tablas_logistica():
         )
     """)
 
-    # ==========================================
-    # DETALLE PEDIDO
-    # ==========================================
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS detalle_pedido (
             id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -225,10 +209,6 @@ def crear_tablas_logistica():
             ubicacion TEXT
         )
     """)
-
-    # ==========================================
-    # EMBARQUES
-    # ==========================================
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS embarques (
@@ -249,10 +229,6 @@ def crear_tablas_logistica():
         )
     """)
 
-    # ==========================================
-    # DETALLE EMBARQUE
-    # ==========================================
-
     cur.execute("""
         CREATE TABLE IF NOT EXISTS detalle_embarque (
             id_detalle_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -271,6 +247,97 @@ def crear_tablas_logistica():
 
     conn.commit()
     conn.close()
+
+
+# =====================================================
+# ALTER EMBARQUES
+# =====================================================
+
+def alterar_tablas_embarques():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual embarques")
+
+    mostrar_estructura_tabla(
+        db_path,
+        "embarques"
+    )
+
+    columnas_embarques = [
+        ("folio_hoja_carga", "TEXT"),
+        ("origen_captura", "TEXT"),
+    ]
+
+    st.subheader("🔧 Actualizando tabla embarques")
+
+    for nombre_columna, tipo_columna in columnas_embarques:
+
+        try:
+
+            cur.execute(
+                f"""
+                ALTER TABLE embarques
+                ADD COLUMN {nombre_columna} {tipo_columna}
+                """
+            )
+
+            st.success(
+                f"✅ Columna agregada en embarques: {nombre_columna}"
+            )
+
+        except sqlite3.OperationalError:
+
+            st.info(
+                f"ℹ️ La columna ya existe en embarques: {nombre_columna}"
+            )
+
+    st.subheader("📋 Estructura actual detalle_embarque")
+
+    mostrar_estructura_tabla(
+        db_path,
+        "detalle_embarque"
+    )
+
+    columnas_detalle = [
+        ("folio_hoja_carga", "TEXT"),
+    ]
+
+    st.subheader("🔧 Actualizando tabla detalle_embarque")
+
+    for nombre_columna, tipo_columna in columnas_detalle:
+
+        try:
+
+            cur.execute(
+                f"""
+                ALTER TABLE detalle_embarque
+                ADD COLUMN {nombre_columna} {tipo_columna}
+                """
+            )
+
+            st.success(
+                f"✅ Columna agregada en detalle_embarque: {nombre_columna}"
+            )
+
+        except sqlite3.OperationalError:
+
+            st.info(
+                f"ℹ️ La columna ya existe en detalle_embarque: {nombre_columna}"
+            )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final embarques")
+
+    mostrar_estructura_tabla(
+        db_path,
+        "embarques"
+    )
 
 
 # =====================================================
@@ -302,10 +369,6 @@ def crear_tablas_app():
 
     tablas_disponibles = []
 
-    # ==========================================
-    # COMPRAS
-    # ==========================================
-
     if modulo == "Compras":
 
         tablas_disponibles = [
@@ -314,13 +377,7 @@ def crear_tablas_app():
             "entradas_compras_detalle"
         ]
 
-    # ==========================================
-    # INVENTARIOS
-    # ==========================================
-
     elif modulo == "Inventarios":
-        st.write("ENTRO INVENTARIOS")
-
 
         tablas_disponibles = [
             "Todas",
@@ -331,10 +388,6 @@ def crear_tablas_app():
             "hoja_carga",
             "detalle_hoja_carga"
         ]
-
-    # ==========================================
-    # LOGISTICA
-    # ==========================================
 
     elif modulo == "Logística":
 
@@ -352,9 +405,9 @@ def crear_tablas_app():
         key="crear_tablas_tabla"
     )
 
-    # ==========================================
+    # =====================================================
     # CREAR TABLAS
-    # ==========================================
+    # =====================================================
 
     if tipo_proceso == "Crear tabla":
 
@@ -369,17 +422,9 @@ def crear_tablas_app():
 
             try:
 
-                # ==========================================
-                # COMPRAS
-                # ==========================================
-
                 if modulo == "Compras":
 
                     crear_tablas_compras()
-
-                # ==========================================
-                # INVENTARIOS
-                # ==========================================
 
                 elif modulo == "Inventarios":
 
@@ -419,10 +464,6 @@ def crear_tablas_app():
 
                         crear_tablas_hoja_carga()
 
-                # ==========================================
-                # LOGISTICA
-                # ==========================================
-
                 elif modulo == "Logística":
 
                     crear_tablas_logistica()
@@ -439,9 +480,9 @@ def crear_tablas_app():
 
                 st.exception(e)
 
-    # ==========================================
+    # =====================================================
     # MODIFICAR ESTRUCTURA
-    # ==========================================
+    # =====================================================
 
     elif tipo_proceso == "Modificar estructura":
 
@@ -475,8 +516,34 @@ def crear_tablas_app():
 
                     st.exception(e)
 
+        elif (
+            modulo == "Logística"
+            and tabla == "embarques"
+        ):
+
+            if st.button(
+                "🛠️ Modificar estructura",
+                key="btn_alter_embarques"
+            ):
+
+                try:
+
+                    alterar_tablas_embarques()
+
+                    st.success(
+                        "✅ Estructura de embarques actualizada"
+                    )
+
+                except Exception as e:
+
+                    st.error(
+                        "❌ Error modificando embarques"
+                    )
+
+                    st.exception(e)
+
         else:
 
             st.info(
-                "Por ahora la modificación de estructura está habilitada solo para Inventarios / movimientos_inventario."
+                "Por ahora la modificación de estructura está habilitada para movimientos_inventario y embarques."
             )
