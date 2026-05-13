@@ -6,7 +6,6 @@ import altair as alt
 from sigem_db import get_db_path
 
 
-
 # =====================================================
 # OBTENER EMBARQUES
 # =====================================================
@@ -47,35 +46,36 @@ def obtener_embarques():
 
 
 # =====================================================
-# GRAFICA STATUS
+# GRAFICA ESTATUS POR EMBARQUE
 # =====================================================
 
 def pintar_barra_estatus(df):
 
-    # =====================================================
-    # COLORES
-    # =====================================================
+    orden_estatus = [
+        "Pendiente",
+        "En almacén",
+        "En patio",
+        "Ya salió",
+        "En tránsito",
+        "Entregado",
+        "Cancelado"
+    ]
 
     mapa_colores = {
-
+        "Pendiente": "#6B7280",
         "En almacén": "#7C3AED",
         "En patio": "#F97316",
         "Ya salió": "#EAB308",
         "En tránsito": "#2563EB",
         "Entregado": "#16A34A",
         "Cancelado": "#DC2626"
-
     }
-
-    # =====================================================
-    # DATAFRAME
-    # =====================================================
 
     df_grafica = df.copy()
 
     df_grafica["estatus"] = (
         df_grafica["estatus"]
-        .fillna("Sin estatus")
+        .fillna("Pendiente")
         .astype(str)
     )
 
@@ -84,10 +84,6 @@ def pintar_barra_estatus(df):
         .fillna("")
         .astype(str)
     )
-
-    # =====================================================
-    # SOLO REGISTROS VALIDOS
-    # =====================================================
 
     df_grafica = df_grafica[
         df_grafica["embarque"] != ""
@@ -101,50 +97,43 @@ def pintar_barra_estatus(df):
 
         return
 
-    # =====================================================
-    # COLORES DINAMICOS
-    # =====================================================
+    estatus_presentes = [
+        estatus
+        for estatus in orden_estatus
+        if estatus in df_grafica["estatus"].unique().tolist()
+    ]
+
+    estatus_no_catalogados = [
+        estatus
+        for estatus in df_grafica["estatus"].unique().tolist()
+        if estatus not in orden_estatus
+    ]
+
+    orden_final = estatus_presentes + estatus_no_catalogados
 
     colores = [
-
         mapa_colores.get(
             estatus,
             "#6B7280"
         )
-
-        for estatus in (
-            df_grafica["estatus"]
-            .unique()
-            .tolist()
-        )
-
+        for estatus in orden_final
     ]
 
-    # =====================================================
-    # ANCHO DINAMICO
-    # =====================================================
-
     ancho_grafica = max(
-        1200,
-        len(df_grafica) * 90
+        1300,
+        len(df_grafica) * 85
     )
 
-    # =====================================================
-    # GRAFIC
-    # =====================================================
-
     chart = (
-
         alt.Chart(df_grafica)
-        # 
         .mark_bar(
-            size=12,
+            size=16,
             cornerRadiusTopLeft=3,
-            cornerRadiusTopRight=3
-        )         
-        #
+            cornerRadiusTopRight=3,
+            cornerRadiusBottomLeft=3,
+            cornerRadiusBottomRight=3
+        )
         .encode(
-
             x=alt.X(
                 "embarque:N",
                 title="Número de embarque",
@@ -153,70 +142,62 @@ def pintar_barra_estatus(df):
                     labelAngle=-45
                 )
             ),
-            #
             y=alt.Y(
-              "estatus:N",
-              title="Estatus",
-              scale=alt.Scale(
-                  paddingInner=0.65,
-                  paddingOuter=0.25
-              )
+                "estatus:N",
+                sort=orden_final,
+                title="Estatus",
+                scale=alt.Scale(
+                    paddingInner=0.55,
+                    paddingOuter=0.25
+                )
             ),
-            #
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
-                    domain=(
-                        df_grafica["estatus"]
-                        .unique()
-                        .tolist()
-                    ),
+                    domain=orden_final,
                     range=colores
                 ),
                 legend=None
             ),
-
             tooltip=[
-
                 alt.Tooltip(
                     "folio_embarque:N",
                     title="Embarque"
                 ),
-
                 alt.Tooltip(
                     "cliente:N",
                     title="Cliente"
                 ),
-
                 alt.Tooltip(
                     "destino:N",
                     title="Destino"
                 ),
-
                 alt.Tooltip(
                     "transportista:N",
                     title="Transportista"
                 ),
-
+                alt.Tooltip(
+                    "vehiculo:N",
+                    title="Vehículo"
+                ),
+                alt.Tooltip(
+                    "placas:N",
+                    title="Placas"
+                ),
                 alt.Tooltip(
                     "ruta:N",
                     title="Ruta"
                 ),
-
                 alt.Tooltip(
                     "estatus:N",
                     title="Estatus"
                 )
-
             ]
-
         )
-
         .properties(
             width=ancho_grafica,
-            height=200
+            height=520
         )
-
     )
 
     st.altair_chart(
@@ -257,10 +238,6 @@ def dashboard_embarques_app():
 
         return
 
-    # =====================================================
-    # FECHAS
-    # =====================================================
-
     df["fecha"] = pd.to_datetime(
         df["fecha"],
         errors="coerce"
@@ -300,10 +277,6 @@ def dashboard_embarques_app():
                 .tolist()
             )
         )
-
-    # =====================================================
-    # FILTRADO
-    # =====================================================
 
     df_filtrado = df.copy()
 
@@ -367,19 +340,22 @@ def dashboard_embarques_app():
         )
     ].shape[0]
 
-    pendientes = (
-        total - entregados
-    )
+    pendientes = df_filtrado[
+        df_filtrado["estatus"]
+        .astype(str)
+        .str.lower()
+        .str.contains(
+            "pendiente",
+            na=False
+        )
+    ].shape[0]
 
     cumplimiento = (
-
         round(
             (entregados / total) * 100,
             1
         )
-
         if total > 0 else 0
-
     )
 
     st.divider()
@@ -418,43 +394,4 @@ def dashboard_embarques_app():
 
     pintar_barra_estatus(
         df_filtrado
-    )
-
-    st.divider()
-
-    # =====================================================
-    # TABLA
-    # =====================================================
-
-    st.subheader(
-        "📋 Base del dashboard"
-    )
-
-    columnas = [
-
-        "estatus",
-        "folio_embarque",
-        "folio_hoja_carga",
-        "fecha",
-        "cliente",
-        "destino",
-        "transportista",
-        "vehiculo",
-        "placas",
-        "ruta"
-
-    ]
-
-    columnas = [
-
-        col for col in columnas
-        if col in df_filtrado.columns
-
-    ]
-
-    st.dataframe(
-        df_filtrado[columnas],
-        use_container_width=True,
-        height=450,
-        hide_index=True
     )
