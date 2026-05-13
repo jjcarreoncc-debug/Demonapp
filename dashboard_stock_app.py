@@ -27,8 +27,8 @@ from rotacion_app import (
     detalle_rotacion_app
 )
 
-from ui_components import card_kpi
 from trazabilidad_app import trazabilidad_app
+from ui_components import card_kpi
 
 
 def cargar_datos_stock():
@@ -156,12 +156,9 @@ def calcular_metricas(df):
 
 def aplicar_filtros_stock(df):
 
-    
-
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
-
         categorias = ["Todos"]
 
         if "categoria" in df.columns:
@@ -175,7 +172,6 @@ def aplicar_filtros_stock(df):
         )
 
     with col2:
-
         filtro_estado = st.selectbox(
             "🚨 Estado",
             [
@@ -187,7 +183,6 @@ def aplicar_filtros_stock(df):
         )
 
     with col3:
-
         abc = ["Todos"]
 
         if "rotacion_abc" in df.columns:
@@ -201,21 +196,16 @@ def aplicar_filtros_stock(df):
         )
 
     with col4:
-
         top_n = st.selectbox(
             "💰 Top",
             [10, 20, 50, 100, 500]
         )
 
     with col5:
-
         filtro_texto = st.text_input(
             "🔎 Buscar material"
         )
 
-    # =========================
-    # FILTROS
-    # =========================
     if filtro_categoria != "Todos":
         df = df[df["categoria"] == filtro_categoria]
 
@@ -251,8 +241,6 @@ def aplicar_filtros_stock(df):
 
 
 def dashboard_general(df):
-
-    
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "Inventario",
@@ -333,15 +321,11 @@ def dashboard_stock_app():
         "📊 Dashboard General"
     )
 
-    #st.caption(f"Ruta: Inventarios / {vista}")
-
     if vista == "📊 Dashboard General":
 
         dashboard_general(df)
 
     elif vista == "🚨 Críticos":
-
-        
 
         tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "Dashboard",
@@ -368,8 +352,6 @@ def dashboard_stock_app():
 
     elif vista == "⚠️ Sobrestock":
 
-        
-
         tab1, tab2, tab3, tab4 = st.tabs([
             "Dashboard",
             "Mayor Exceso",
@@ -391,14 +373,12 @@ def dashboard_stock_app():
 
     elif vista == "🔄 Rotación":
 
-        
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        tab1, tab2, tab3, tab4, tab5 = st.tabs([
             "📊 Dashboard",
             "🏆 Top Vendidos",
             "🐢 Baja Rotación",
             "📥📤 Entradas/Salidas",
-            "📋 Detalle",
-            "🔎 Trazabilidad"
+            "📋 Detalle"
         ])
 
         with tab1:
@@ -416,10 +396,15 @@ def dashboard_stock_app():
         with tab5:
             detalle_rotacion_app(df)
 
-        with tab6:
-            trazabilidad_app()
-            
+    elif vista == "🔎 Trazabilidad":
+
+        trazabilidad_app()
+
     elif vista == "🤖 IA":
 
         st.title("🤖 IA Inventarios")
         st.info("Módulo de IA para inventarios en construcción.")
+
+    else:
+
+        dashboard_general(df)
