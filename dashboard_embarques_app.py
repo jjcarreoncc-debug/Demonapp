@@ -13,6 +13,7 @@ from openpyxl.styles import (
     Border,
     Side
 )
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 from sigem_db import get_db_path
 
