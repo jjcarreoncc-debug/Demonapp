@@ -1,4 +1,3 @@
-import streamlit as st
 import sqlite3
 import random
 from datetime import datetime, timedelta
@@ -6,138 +5,107 @@ from datetime import datetime, timedelta
 from sigem_db import get_db_path
 
 
-def carga_demo_analitica_inventarios_app():
+def main():
+    conn = sqlite3.connect(get_db_path("inventarios"))
+    cur = conn.cursor()
 
-    st.title("📊 Carga Demo Analítica Inventarios")
-    st.caption("Genera movimientos demo para alimentar dashboards analíticos.")
+    cur.execute(
+        f"ATTACH DATABASE '{get_db_path('materiales')}' AS materiales_db"
+    )
 
-    if st.button("🚀 Generar datos demo", use_container_width=True):
+    cur.execute("""
+        SELECT codigo_material, descripcion
+        FROM materiales_db.materiales
+        WHERE estatus = 'Activo'
+    """)
 
-        conn = sqlite3.connect(get_db_path("inventarios"))
-        cur = conn.cursor()
+    materiales = cur.fetchall()
 
-        try:
+    if not materiales:
+        print("No hay materiales activos.")
+        conn.close()
+        return
 
-            # =========================
-            # OBTENER MATERIALES
-            # =========================
+    cur.execute("""
+        DELETE FROM movimientos_inventario
+        WHERE referencia = 'DEMO_ANALITICA'
+    """)
+
+    tipos = [
+        "ENTRADA_COMPRA",
+        "SALIDA_VENTA",
+        "ENTRADA_AJUSTE",
+        "SALIDA_AJUSTE"
+    ]
+
+    bodegas = ["CENTRAL", "NORTE", "SUR"]
+    ubicaciones = ["A-01", "B-01", "C-01", "D-01"]
+
+    total = 0
+
+    for codigo, descripcion in materiales:
+        for i in range(random.randint(80, 150)):
+            tipo = random.choice(tipos)
+
+            if "ENTRADA" in tipo:
+                cantidad = random.randint(10, 80)
+            else:
+                cantidad = random.randint(1, 45) * -1
+
+            fecha = (
+                datetime.now() - timedelta(days=random.randint(1, 180))
+            ).strftime("%Y-%m-%d %H:%M:%S")
+
+            costo = random.randint(20, 600)
+
+            folio = f"DEMO-{codigo}-{i}-{datetime.now().strftime('%H%M%S')}"
+
             cur.execute("""
-                ATTACH DATABASE ? AS materiales_db
-            """, (get_db_path("materiales"),))
-
-            cur.execute("""
-                SELECT
+                INSERT INTO movimientos_inventario (
+                    folio_movimiento,
+                    fecha,
+                    tipo_movimiento,
+                    tipo_documento,
+                    numero_documento,
+                    archivo_documento,
                     codigo_material,
-                    descripcion
-                FROM materiales_db.materiales
-                WHERE estatus = 'Activo'
-            """)
+                    descripcion,
+                    cantidad,
+                    costo_unitario,
+                    total,
+                    bodega,
+                    ubicacion,
+                    referencia,
+                    comentarios,
+                    usuario
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                folio,
+                fecha,
+                tipo,
+                "DEMO",
+                f"DOC-{total}",
+                "",
+                codigo,
+                descripcion,
+                cantidad,
+                costo,
+                cantidad * costo,
+                random.choice(bodegas),
+                random.choice(ubicaciones),
+                "DEMO_ANALITICA",
+                "Carga demo batch analítica inventarios",
+                "admin"
+            ))
 
-            materiales = cur.fetchall()
+            total += 1
 
-            if not materiales:
-                st.warning("No existen materiales activos.")
-                conn.close()
-                return
+    conn.commit()
+    conn.close()
 
-            # =========================
-            # LIMPIAR DEMO ANTERIOR
-            # =========================
-            cur.execute("""
-                DELETE FROM movimientos_inventario
-                WHERE referencia = 'DEMO_ANALITICA'
-            """)
+    print(f"✅ Carga demo terminada. Movimientos creados: {total}")
 
-            # =========================
-            # GENERAR MOVIMIENTOS
-            # =========================
-            tipos = [
-                "ENTRADA_COMPRA",
-                "SALIDA_VENTA",
-                "ENTRADA_AJUSTE",
-                "SALIDA_AJUSTE"
-            ]
 
-            bodegas = ["CENTRAL", "NORTE", "SUR"]
-            ubicaciones = ["A-01", "B-01", "C-01"]
-
-            total_movs = 0
-
-            for material in materiales:
-
-                codigo = material[0]
-                descripcion = material[1]
-
-                movimientos_material = random.randint(10, 40)
-
-                for i in range(movimientos_material):
-
-                    tipo = random.choice(tipos)
-
-                    if "ENTRADA" in tipo:
-                        cantidad = random.randint(5, 50)
-                    else:
-                        cantidad = random.randint(1, 25) * -1
-
-                    fecha = (
-                        datetime.now()
-                        - timedelta(days=random.randint(1, 180))
-                    ).strftime("%Y-%m-%d %H:%M:%S")
-
-                    folio = f"DEMO-{datetime.now().strftime('%Y%m%d%H%M%S')}-{i}"
-
-                    cur.execute("""
-                        INSERT INTO movimientos_inventario (
-                            folio_movimiento,
-                            fecha,
-                            tipo_movimiento,
-                            tipo_documento,
-                            numero_documento,
-                            archivo_documento,
-                            codigo_material,
-                            descripcion,
-                            cantidad,
-                            costo_unitario,
-                            total,
-                            bodega,
-                            ubicacion,
-                            referencia,
-                            comentarios,
-                            usuario
-                        )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (
-                        folio,
-                        fecha,
-                        tipo,
-                        "DEMO",
-                        f"DOC-{i}",
-                        "",
-                        codigo,
-                        descripcion,
-                        cantidad,
-                        random.randint(10, 500),
-                        0,
-                        random.choice(bodegas),
-                        random.choice(ubicaciones),
-                        "DEMO_ANALITICA",
-                        "Carga demo analítica inventarios",
-                        "admin"
-                    ))
-
-                    total_movs += 1
-
-            conn.commit()
-
-            st.success(
-                f"✅ Datos demo generados correctamente. "
-                f"Movimientos creados: {total_movs}"
-            )
-
-        except Exception as e:
-
-            st.error("❌ Error generando demo.")
-            st.exception(e)
-
-        finally:
-            conn.close()
+if __name__ == "__main__":
+    main()
