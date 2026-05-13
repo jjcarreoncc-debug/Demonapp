@@ -52,6 +52,7 @@ def obtener_embarques():
 def pintar_barra_estatus(df):
 
     orden_estatus = [
+
         "Pendiente",
         "En almacén",
         "En patio",
@@ -59,9 +60,11 @@ def pintar_barra_estatus(df):
         "En tránsito",
         "Entregado",
         "Cancelado"
+
     ]
 
     mapa_colores = {
+
         "Pendiente": "#6B7280",
         "En almacén": "#7C3AED",
         "En patio": "#F97316",
@@ -69,7 +72,12 @@ def pintar_barra_estatus(df):
         "En tránsito": "#2563EB",
         "Entregado": "#16A34A",
         "Cancelado": "#DC2626"
+
     }
+
+    # =====================================================
+    # DATAFRAME
+    # =====================================================
 
     df_grafica = df.copy()
 
@@ -97,60 +105,89 @@ def pintar_barra_estatus(df):
 
         return
 
+    # =====================================================
+    # ORDEN DINAMICO
+    # =====================================================
+
     estatus_presentes = [
+
         estatus
         for estatus in orden_estatus
-        if estatus in df_grafica["estatus"].unique().tolist()
+        if estatus in (
+            df_grafica["estatus"]
+            .unique()
+            .tolist()
+        )
+
     ]
 
     estatus_no_catalogados = [
+
         estatus
-        for estatus in df_grafica["estatus"].unique().tolist()
+        for estatus in (
+            df_grafica["estatus"]
+            .unique()
+            .tolist()
+        )
         if estatus not in orden_estatus
+
     ]
 
-    orden_final = estatus_presentes + estatus_no_catalogados
+    orden_final = (
+        estatus_presentes
+        + estatus_no_catalogados
+    )
 
     colores = [
+
         mapa_colores.get(
             estatus,
-            "#6B7280"
+            "#9CA3AF"
         )
+
         for estatus in orden_final
+
     ]
 
+    # =====================================================
+    # ANCHO DINAMICO
+    # =====================================================
+
     ancho_grafica = max(
-        1300,
+        1400,
         len(df_grafica) * 85
     )
 
+    # =====================================================
+    # GRAFICA TIPO MATRIZ
+    # =====================================================
+
     chart = (
+
         alt.Chart(df_grafica)
-        .mark_bar(
-            size=16,
-            cornerRadiusTopLeft=3,
-            cornerRadiusTopRight=3,
-            cornerRadiusBottomLeft=3,
-            cornerRadiusBottomRight=3
+
+        .mark_rect(
+            cornerRadius=5
         )
+
         .encode(
+
             x=alt.X(
                 "embarque:N",
                 title="Número de embarque",
                 sort=None,
                 axis=alt.Axis(
-                    labelAngle=-45
+                    labelAngle=-45,
+                    labelLimit=120
                 )
             ),
+
             y=alt.Y(
                 "estatus:N",
                 sort=orden_final,
-                title="Estatus",
-                scale=alt.Scale(
-                    paddingInner=0.55,
-                    paddingOuter=0.25
-                )
+                title="Estatus"
             ),
+
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
@@ -159,45 +196,62 @@ def pintar_barra_estatus(df):
                 ),
                 legend=None
             ),
+
             tooltip=[
+
                 alt.Tooltip(
                     "folio_embarque:N",
                     title="Embarque"
                 ),
+
                 alt.Tooltip(
                     "cliente:N",
                     title="Cliente"
                 ),
+
                 alt.Tooltip(
                     "destino:N",
                     title="Destino"
                 ),
+
                 alt.Tooltip(
                     "transportista:N",
                     title="Transportista"
                 ),
+
                 alt.Tooltip(
                     "vehiculo:N",
                     title="Vehículo"
                 ),
+
                 alt.Tooltip(
                     "placas:N",
                     title="Placas"
                 ),
+
                 alt.Tooltip(
                     "ruta:N",
                     title="Ruta"
                 ),
+
                 alt.Tooltip(
                     "estatus:N",
                     title="Estatus"
                 )
+
             ]
+
         )
+
         .properties(
             width=ancho_grafica,
-            height=520
+            height=420
         )
+
+        .configure_view(
+            stroke="#D1D5DB"
+        )
+
     )
 
     st.altair_chart(
