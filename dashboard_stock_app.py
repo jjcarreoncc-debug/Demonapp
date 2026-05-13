@@ -391,12 +391,13 @@ def dashboard_stock_app():
     elif vista == "🔄 Rotación":
 
         
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
-            "Dashboard",
-            "Top Vendidos",
-            "Baja Rotación",
-            "Entradas vs Salidas",
-            "Detalle"
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            "📊 Dashboard",
+            "🏆 Top Vendidos",
+            "🐢 Baja Rotación",
+            "📥📤 Entradas/Salidas",
+            "📋 Detalle",
+            "🔎 Trazabilidad"
         ])
 
         with tab1:
@@ -414,6 +415,9 @@ def dashboard_stock_app():
         with tab5:
             detalle_rotacion_app(df)
 
+        with tab6:
+            trazabilidad_app()
+            
     elif vista == "🤖 IA":
 
         st.title("🤖 IA Inventarios")
