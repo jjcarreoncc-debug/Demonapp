@@ -12,11 +12,25 @@ def logistica_app():
 
     st.divider()
 
-    if opcion_logistica == "➕ Alta embarque":
+menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
-        alta_embarque_app()
+if opcion_logistica is None:
+    opcion_logistica = "➕ Alta embarque"
 
-    else:
+
+if opcion_logistica == "➕ Alta embarque":
+
+    alta_embarque_app()
+
+else:
+
+    st.subheader(opcion_logistica)
+
+    st.info("Módulo de Logística en construcción.")
+
+    st.write("Menú:", menu_logistica)
+    st.write("Submenú:", submenu_logistica)
+    st.write("Opción:", opcion_logistica)
 
         st.subheader(opcion_logistica)
 
