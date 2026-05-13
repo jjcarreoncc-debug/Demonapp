@@ -179,7 +179,6 @@ def registrar_evento_embarque(
 # =====================================================
 # TIMELINE VISUAL
 # =====================================================
-
 def pintar_timeline_visual(df_eventos):
 
     colores = {
@@ -204,6 +203,7 @@ def pintar_timeline_visual(df_eventos):
 
     st.markdown("""
         <style>
+
             .timeline-container {
                 border-left: 3px solid #D1D5DB;
                 margin-left: 18px;
@@ -259,6 +259,7 @@ def pintar_timeline_visual(df_eventos):
                 font-weight: 600;
                 margin-left: 8px;
             }
+
         </style>
     """, unsafe_allow_html=True)
 
@@ -266,36 +267,103 @@ def pintar_timeline_visual(df_eventos):
 
     for _, row in df_eventos.iterrows():
 
-        estatus = str(row.get("estatus", "") or "")
-        color = colores.get(estatus, "#6B7280")
-        icono = iconos.get(estatus, "📍")
+        estatus = str(
+            row.get("estatus", "") or ""
+        )
 
-        fecha = str(row.get("fecha_evento", "") or "")
-        tipo = str(row.get("tipo_evento", "") or "")
-        ubicacion = str(row.get("ubicacion", "") or "")
-        usuario = str(row.get("usuario", "") or "")
-        comentarios = str(row.get("comentarios", "") or "")
-        ###########################
+        color = colores.get(
+            estatus,
+            "#6B7280"
+        )
+
+        icono = iconos.get(
+            estatus,
+            "📍"
+        )
+
+        fecha = str(
+            row.get("fecha_evento", "") or ""
+        )
+
+        tipo = str(
+            row.get("tipo_evento", "") or ""
+        )
+
+        ubicacion = str(
+            row.get("ubicacion", "") or ""
+        )
+
+        usuario = str(
+            row.get("usuario", "") or ""
+        )
+
+        comentarios = str(
+            row.get("comentarios", "") or ""
+        )
+
         html += f"""
             <div class="timeline-item">
-                <div class="timeline-dot" style="background-color:{color};"></div>
-        
+
+                <div
+                    class="timeline-dot"
+                    style="background-color:{color};">
+                </div>
+
                 <div class="timeline-title">
+
                     {icono} {estatus}
-                    <span class="timeline-badge" style="background-color:{color};">
+
+                    <span
+                        class="timeline-badge"
+                        style="background-color:{color};">
+
                         {tipo}
+
                     </span>
+
                 </div>
-        
+
                 <div class="timeline-meta">
+
                     🕒 {fecha}
+
                 </div>
-        
+
                 <div class="timeline-meta">
-                    📍 {ubicacion if ubicacion else "Sin ubicación"} &nbsp; | &nbsp;
+
+                    📍 {ubicacion if ubicacion else "Sin ubicación"}
+
+                    &nbsp; | &nbsp;
+
                     👤 {usuario if usuario else "Sin usuario"}
+
                 </div>
         """
+
+        if comentarios:
+
+            html += f"""
+
+                <div class="timeline-comments">
+
+                    💬 {comentarios}
+
+                </div>
+
+            """
+
+        html += """
+
+            </div>
+
+        """
+
+    html += "</div>"
+
+    st.markdown(
+        html,
+        unsafe_allow_html=True
+    )
         ##############################
         if comentarios:
 
