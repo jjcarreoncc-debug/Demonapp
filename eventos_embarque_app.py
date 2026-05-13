@@ -195,8 +195,9 @@ def registrar_evento_embarque(
 # =====================================================
 # TIMELINE VISUAL CON ALTAIR
 # =====================================================
-
 def pintar_timeline_visual(df_eventos):
+
+    import altair as alt
 
     colores = {
         "Pendiente": "#6B7280",
@@ -225,62 +226,60 @@ def pintar_timeline_visual(df_eventos):
         errors="coerce"
     )
 
+    df_timeline = df_timeline.dropna(
+        subset=["fecha_evento"]
+    )
+
+    if df_timeline.empty:
+        st.info("No hay eventos válidos para mostrar.")
+        return
+
     df_timeline["estatus"] = (
         df_timeline["estatus"]
         .fillna("Pendiente")
         .astype(str)
     )
 
-    df_timeline["evento"] = (
-        df_timeline["tipo_evento"]
-        .fillna("")
-        .astype(str)
-    )
-
-    df_timeline["detalle"] = (
-        df_timeline["estatus"].astype(str)
-        + " | "
-        + df_timeline["evento"].astype(str)
-    )
-
-    df_timeline = df_timeline.dropna(
-        subset=["fecha_evento"]
-    )
-
-    if df_timeline.empty:
-
-        st.info("No hay eventos válidos para mostrar en timeline.")
-        return
+    df_timeline["orden_evento"] = range(1, len(df_timeline) + 1)
 
     colores_usados = [
         colores.get(estatus, "#9CA3AF")
         for estatus in orden_estatus
     ]
 
-    chart = (
+    linea = (
         alt.Chart(df_timeline)
-        .mark_circle(
-            size=260,
-            opacity=0.95
+        .mark_line(
+            color="#9CA3AF",
+            strokeWidth=3
         )
         .encode(
             x=alt.X(
-                "fecha_evento:T",
-                title="Fecha / hora evento",
-                axis=alt.Axis(
-                    format="%d/%m %H:%M",
-                    labelAngle=-45,
-                    grid=True
-                )
+                "orden_evento:O",
+                title="Secuencia del evento"
             ),
             y=alt.Y(
                 "estatus:N",
                 sort=orden_estatus,
-                title="Estatus",
-                axis=alt.Axis(
-                    grid=True,
-                    tickSize=0
-                )
+                title="Estatus"
+            )
+        )
+    )
+
+    puntos = (
+        alt.Chart(df_timeline)
+        .mark_circle(
+            size=280
+        )
+        .encode(
+            x=alt.X(
+                "orden_evento:O",
+                title="Secuencia del evento"
+            ),
+            y=alt.Y(
+                "estatus:N",
+                sort=orden_estatus,
+                title="Estatus"
             ),
             color=alt.Color(
                 "estatus:N",
@@ -292,15 +291,17 @@ def pintar_timeline_visual(df_eventos):
             ),
             tooltip=[
                 alt.Tooltip("fecha_evento:T", title="Fecha evento"),
-                alt.Tooltip("tipo_evento:N", title="Tipo evento"),
+                alt.Tooltip("tipo_evento:N", title="Evento"),
                 alt.Tooltip("estatus:N", title="Estatus"),
                 alt.Tooltip("ubicacion:N", title="Ubicación"),
                 alt.Tooltip("comentarios:N", title="Comentarios"),
-                alt.Tooltip("usuario:N", title="Usuario"),
-                alt.Tooltip("latitud:Q", title="Latitud"),
-                alt.Tooltip("longitud:Q", title="Longitud")
+                alt.Tooltip("usuario:N", title="Usuario")
             ]
         )
+    )
+
+    chart = (
+        (linea + puntos)
         .properties(
             height=420
         )
@@ -308,9 +309,7 @@ def pintar_timeline_visual(df_eventos):
             grid=True,
             gridColor="#D1D5DB",
             gridDash=[3, 2],
-            domain=False,
-            labelColor="#374151",
-            titleColor="#111827"
+            domain=False
         )
         .configure_view(
             stroke="#D1D5DB"
