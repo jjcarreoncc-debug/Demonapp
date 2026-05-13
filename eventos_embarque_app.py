@@ -40,7 +40,7 @@ def obtener_embarques():
 
 
 # =====================================================
-# OBTENER HISTORIAL EVENTOS
+# OBTENER EVENTOS EMBARQUE
 # =====================================================
 
 def obtener_eventos_embarque(folio_embarque):
@@ -51,6 +51,7 @@ def obtener_eventos_embarque(folio_embarque):
 
     query = """
         SELECT
+            id_evento,
             fecha_evento,
             tipo_evento,
             estatus,
@@ -62,7 +63,7 @@ def obtener_eventos_embarque(folio_embarque):
             fecha_registro
         FROM eventos_embarque
         WHERE folio_embarque = ?
-        ORDER BY fecha_evento DESC, id_evento DESC
+        ORDER BY fecha_evento ASC, id_evento ASC
     """
 
     df = pd.read_sql_query(
@@ -98,6 +99,16 @@ def registrar_evento_embarque(
     cur = conn.cursor()
 
     fecha_registro = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cur.execute("""
+        SELECT estatus
+        FROM embarques
+        WHERE folio_embarque = ?
+    """, (folio_embarque,))
+
+    row = cur.fetchone()
+
+    estatus_anterior = row[0] if row else ""
 
     cur.execute("""
         INSERT INTO eventos_embarque (
@@ -151,21 +162,10 @@ def registrar_evento_embarque(
             usuario,
             observaciones
         )
-        VALUES (
-            ?,
-            (
-                SELECT estatus
-                FROM embarques
-                WHERE folio_embarque = ?
-            ),
-            ?,
-            ?,
-            ?,
-            ?
-        )
+        VALUES (?, ?, ?, ?, ?, ?)
     """, (
         folio_embarque,
-        folio_embarque,
+        estatus_anterior,
         estatus,
         fecha_evento,
         usuario,
@@ -174,6 +174,142 @@ def registrar_evento_embarque(
 
     conn.commit()
     conn.close()
+
+
+# =====================================================
+# TIMELINE VISUAL
+# =====================================================
+
+def pintar_timeline_visual(df_eventos):
+
+    colores = {
+        "Pendiente": "#6B7280",
+        "En almacén": "#7C3AED",
+        "En patio": "#F97316",
+        "Ya salió": "#EAB308",
+        "En tránsito": "#2563EB",
+        "Entregado": "#16A34A",
+        "Cancelado": "#DC2626"
+    }
+
+    iconos = {
+        "Pendiente": "⏳",
+        "En almacén": "🏭",
+        "En patio": "🚛",
+        "Ya salió": "🚚",
+        "En tránsito": "🛣️",
+        "Entregado": "✅",
+        "Cancelado": "❌"
+    }
+
+    st.markdown("""
+        <style>
+            .timeline-container {
+                border-left: 3px solid #D1D5DB;
+                margin-left: 18px;
+                padding-left: 24px;
+            }
+
+            .timeline-item {
+                position: relative;
+                margin-bottom: 22px;
+                padding: 14px 16px;
+                border-radius: 12px;
+                background-color: #FFFFFF;
+                border: 1px solid #E5E7EB;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            }
+
+            .timeline-dot {
+                position: absolute;
+                left: -35px;
+                top: 18px;
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: 3px solid white;
+                box-shadow: 0 0 0 2px #D1D5DB;
+            }
+
+            .timeline-title {
+                font-size: 16px;
+                font-weight: 700;
+                color: #111827;
+                margin-bottom: 4px;
+            }
+
+            .timeline-meta {
+                font-size: 13px;
+                color: #4B5563;
+                margin-bottom: 6px;
+            }
+
+            .timeline-comments {
+                font-size: 14px;
+                color: #374151;
+                margin-top: 8px;
+            }
+
+            .timeline-badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 999px;
+                color: white;
+                font-size: 12px;
+                font-weight: 600;
+                margin-left: 8px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+    html = "<div class='timeline-container'>"
+
+    for _, row in df_eventos.iterrows():
+
+        estatus = str(row.get("estatus", "") or "")
+        color = colores.get(estatus, "#6B7280")
+        icono = iconos.get(estatus, "📍")
+
+        fecha = str(row.get("fecha_evento", "") or "")
+        tipo = str(row.get("tipo_evento", "") or "")
+        ubicacion = str(row.get("ubicacion", "") or "")
+        usuario = str(row.get("usuario", "") or "")
+        comentarios = str(row.get("comentarios", "") or "")
+
+        html += f"""
+            <div class="timeline-item">
+                <div class="timeline-dot" style="background-color:{color};"></div>
+
+                <div class="timeline-title">
+                    {icono} {estatus}
+                    <span class="timeline-badge" style="background-color:{color};">
+                        {tipo}
+                    </span>
+                </div>
+
+                <div class="timeline-meta">
+                    🕒 {fecha}
+                </div>
+
+                <div class="timeline-meta">
+                    📍 {ubicacion if ubicacion else "Sin ubicación"} &nbsp; | &nbsp;
+                    👤 {usuario if usuario else "Sin usuario"}
+                </div>
+        """
+
+        if comentarios:
+
+            html += f"""
+                <div class="timeline-comments">
+                    💬 {comentarios}
+                </div>
+            """
+
+        html += "</div>"
+
+    html += "</div>"
+
+    st.markdown(html, unsafe_allow_html=True)
 
 
 # =====================================================
@@ -285,6 +421,13 @@ def eventos_embarque_app():
         "Cancelado"
     ]
 
+    estatus_actual = str(embarque.get("estatus", "") or "")
+
+    if estatus_actual in estatus_lista:
+        index_estatus = estatus_lista.index(estatus_actual)
+    else:
+        index_estatus = 0
+
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -321,7 +464,8 @@ def eventos_embarque_app():
 
         estatus = st.selectbox(
             "Nuevo estatus",
-            estatus_lista
+            estatus_lista,
+            index=index_estatus
         )
 
     ubicacion = st.text_input(
@@ -421,12 +565,23 @@ def eventos_embarque_app():
 
         else:
 
-            st.dataframe(
-                df_eventos,
-                use_container_width=True,
-                height=350,
-                hide_index=True
-            )
+            tab1, tab2 = st.tabs([
+                "🧭 Timeline visual",
+                "📄 Tabla de eventos"
+            ])
+
+            with tab1:
+
+                pintar_timeline_visual(df_eventos)
+
+            with tab2:
+
+                st.dataframe(
+                    df_eventos,
+                    use_container_width=True,
+                    height=350,
+                    hide_index=True
+                )
 
     except Exception as e:
 
