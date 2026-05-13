@@ -10,13 +10,33 @@ from dashboard_embarques_app import dashboard_embarques_app
 
 def logistica_app():
 
+    # =====================================================
+    # SESSION STATE
+    # =====================================================
+
+    if "opcion_logistica" not in st.session_state:
+
+        st.session_state.opcion_logistica = "➕ Alta embarque"
+
+    # =====================================================
+    # SIDEBAR
+    # =====================================================
+
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
-    if opcion_logistica is None:
+    # =====================================================
+    # CONSERVAR OPCION
+    # =====================================================
 
-        menu_logistica = "📦 Embarques"
-        submenu_logistica = "Embarques"
-        opcion_logistica = "➕ Alta embarque"
+    if opcion_logistica is not None:
+
+        st.session_state.opcion_logistica = opcion_logistica
+
+    opcion_logistica = st.session_state.opcion_logistica
+
+    # =====================================================
+    # TITULO
+    # =====================================================
 
     st.title("🚚 Logística")
 
@@ -30,11 +50,14 @@ def logistica_app():
 
         alta_embarque_app()
 
+    # =====================================================
+    # ACTUALIZAR ESTATUS
+    # =====================================================
+
     elif opcion_logistica == "✏️ Actualizar estatus embarque":
 
         actualizar_estatus_embarque_app()
 
-    
     # =====================================================
     # CONSULTA EMBARQUE
     # =====================================================
@@ -43,9 +66,14 @@ def logistica_app():
 
         consulta_embarques_app()
 
+    # =====================================================
+    # DASHBOARD
+    # =====================================================
+
     elif opcion_logistica == "📊 Dashboard embarques":
 
         dashboard_embarques_app()
+
     # =====================================================
     # BAJA EMBARQUE
     # =====================================================
