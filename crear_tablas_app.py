@@ -14,6 +14,7 @@ from inventario_db import (
 
 
 def mostrar_estructura_tabla(db_path, tabla):
+
     st.title("🗄️ Crear / modificar tablas")
 
     conn = sqlite3.connect(db_path)
@@ -27,6 +28,7 @@ def mostrar_estructura_tabla(db_path, tabla):
 
     if df.empty:
         st.warning("No se encontró estructura para esta tabla.")
+
     else:
         st.dataframe(df, use_container_width=True)
 
@@ -36,6 +38,7 @@ def mostrar_estructura_tabla(db_path, tabla):
 # =====================================================
 
 def crear_tabla_ajustes_inventario():
+
     db_path = get_db_path("inventarios")
 
     conn = sqlite3.connect(db_path)
@@ -61,14 +64,76 @@ def crear_tabla_ajustes_inventario():
     conn.close()
 
 
+# =====================================================
+# HOJA CARGA
+# =====================================================
+
+def crear_tablas_hoja_carga():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    # ==========================================
+    # HOJA CARGA
+    # ==========================================
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS hoja_carga (
+            id_hoja_carga INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_hoja_carga TEXT UNIQUE NOT NULL,
+            fecha TEXT,
+            pedido TEXT,
+            cliente TEXT,
+            destino TEXT,
+            bodega_origen TEXT,
+            estatus TEXT,
+            responsable_surtido TEXT,
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT
+        )
+    """)
+
+    # ==========================================
+    # DETALLE HOJA CARGA
+    # ==========================================
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_hoja_carga (
+            id_detalle_hoja INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_hoja_carga TEXT NOT NULL,
+            pedido TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad_pedido REAL,
+            cantidad_surtida REAL,
+            bodega TEXT,
+            ubicacion TEXT,
+            peso REAL DEFAULT 0,
+            volumen REAL DEFAULT 0,
+            observaciones TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
 def alterar_movimientos_inventario():
+
     db_path = get_db_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
     st.subheader("📋 Estructura actual")
-    mostrar_estructura_tabla(db_path, "movimientos_inventario")
+
+    mostrar_estructura_tabla(
+        db_path,
+        "movimientos_inventario"
+    )
 
     columnas_nuevas = [
         ("folio_movimiento", "TEXT"),
@@ -83,7 +148,9 @@ def alterar_movimientos_inventario():
     st.subheader("🔧 Columnas a validar/agregar")
 
     for nombre_columna, tipo_columna in columnas_nuevas:
+
         try:
+
             cur.execute(
                 f"""
                 ALTER TABLE movimientos_inventario
@@ -91,16 +158,25 @@ def alterar_movimientos_inventario():
                 """
             )
 
-            st.success(f"✅ Columna agregada: {nombre_columna}")
+            st.success(
+                f"✅ Columna agregada: {nombre_columna}"
+            )
 
         except sqlite3.OperationalError:
-            st.info(f"ℹ️ La columna ya existe: {nombre_columna}")
+
+            st.info(
+                f"ℹ️ La columna ya existe: {nombre_columna}"
+            )
 
     conn.commit()
     conn.close()
 
     st.subheader("📋 Estructura final")
-    mostrar_estructura_tabla(db_path, "movimientos_inventario")
+
+    mostrar_estructura_tabla(
+        db_path,
+        "movimientos_inventario"
+    )
 
 
 # =====================================================
@@ -249,7 +325,9 @@ def crear_tablas_app():
             "materiales",
             "movimientos_inventario",
             "inventario_fisico",
-            "ajustes_inventario"
+            "ajustes_inventario",
+            "hoja_carga",
+            "detalle_hoja_carga"
         ]
 
     # ==========================================
@@ -282,7 +360,10 @@ def crear_tablas_app():
             "Este proceso crea únicamente la tabla seleccionada si no existe."
         )
 
-        if st.button("🚀 Crear tablas", key="btn_crear_tablas"):
+        if st.button(
+            "🚀 Crear tablas",
+            key="btn_crear_tablas"
+        ):
 
             try:
 
@@ -303,9 +384,14 @@ def crear_tablas_app():
                     if tabla == "Todas":
 
                         crear_tablas_inventario()
+
                         crear_tabla_movimientos_inventario()
+
                         crear_tabla_inventario_fisico()
+
                         crear_tabla_ajustes_inventario()
+
+                        crear_tablas_hoja_carga()
 
                     elif tabla == "materiales":
 
@@ -322,6 +408,14 @@ def crear_tablas_app():
                     elif tabla == "ajustes_inventario":
 
                         crear_tabla_ajustes_inventario()
+
+                    elif tabla == "hoja_carga":
+
+                        crear_tablas_hoja_carga()
+
+                    elif tabla == "detalle_hoja_carga":
+
+                        crear_tablas_hoja_carga()
 
                 # ==========================================
                 # LOGISTICA
@@ -353,9 +447,15 @@ def crear_tablas_app():
             "Este proceso modifica la estructura de una tabla existente sin borrar datos."
         )
 
-        if modulo == "Inventarios" and tabla == "movimientos_inventario":
+        if (
+            modulo == "Inventarios"
+            and tabla == "movimientos_inventario"
+        ):
 
-            if st.button("🛠️ Modificar estructura", key="btn_alter_mov_inv"):
+            if st.button(
+                "🛠️ Modificar estructura",
+                key="btn_alter_mov_inv"
+            ):
 
                 try:
 
