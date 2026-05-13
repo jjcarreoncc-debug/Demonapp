@@ -28,6 +28,7 @@ from rotacion_app import (
 )
 
 from ui_components import card_kpi
+from trazabilidad_app import trazabilidad_app
 
 
 def cargar_datos_stock():
