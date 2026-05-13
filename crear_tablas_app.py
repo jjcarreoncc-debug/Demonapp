@@ -15,8 +15,6 @@ from inventario_db import (
 
 def mostrar_estructura_tabla(db_path, tabla):
 
-    st.title("🗄️ Crear / modificar tablas")
-
     conn = sqlite3.connect(db_path)
 
     df = pd.read_sql_query(
@@ -27,8 +25,7 @@ def mostrar_estructura_tabla(db_path, tabla):
     conn.close()
 
     if df.empty:
-        st.warning("No se encontró estructura para esta tabla.")
-
+        st.warning(f"No se encontró estructura para la tabla {tabla}.")
     else:
         st.dataframe(df, use_container_width=True)
 
@@ -63,10 +60,6 @@ def crear_tabla_ajustes_inventario():
     conn.commit()
     conn.close()
 
-
-# =====================================================
-# HOJA CARGA
-# =====================================================
 
 def crear_tablas_hoja_carga():
 
@@ -120,12 +113,8 @@ def alterar_movimientos_inventario():
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
-    st.subheader("📋 Estructura actual")
-
-    mostrar_estructura_tabla(
-        db_path,
-        "movimientos_inventario"
-    )
+    st.subheader("📋 Estructura actual movimientos_inventario")
+    mostrar_estructura_tabla(db_path, "movimientos_inventario")
 
     columnas_nuevas = [
         ("folio_movimiento", "TEXT"),
@@ -142,7 +131,6 @@ def alterar_movimientos_inventario():
     for nombre_columna, tipo_columna in columnas_nuevas:
 
         try:
-
             cur.execute(
                 f"""
                 ALTER TABLE movimientos_inventario
@@ -150,25 +138,16 @@ def alterar_movimientos_inventario():
                 """
             )
 
-            st.success(
-                f"✅ Columna agregada: {nombre_columna}"
-            )
+            st.success(f"✅ Columna agregada: {nombre_columna}")
 
         except sqlite3.OperationalError:
-
-            st.info(
-                f"ℹ️ La columna ya existe: {nombre_columna}"
-            )
+            st.info(f"ℹ️ La columna ya existe: {nombre_columna}")
 
     conn.commit()
     conn.close()
 
-    st.subheader("📋 Estructura final")
-
-    mostrar_estructura_tabla(
-        db_path,
-        "movimientos_inventario"
-    )
+    st.subheader("📋 Estructura final movimientos_inventario")
+    mostrar_estructura_tabla(db_path, "movimientos_inventario")
 
 
 # =====================================================
@@ -214,6 +193,8 @@ def crear_tablas_logistica():
         CREATE TABLE IF NOT EXISTS embarques (
             id_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_embarque TEXT UNIQUE NOT NULL,
+            folio_hoja_carga TEXT,
+            origen_captura TEXT,
             pedido TEXT,
             fecha TEXT,
             cliente TEXT,
@@ -233,6 +214,7 @@ def crear_tablas_logistica():
         CREATE TABLE IF NOT EXISTS detalle_embarque (
             id_detalle_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_embarque TEXT NOT NULL,
+            folio_hoja_carga TEXT,
             pedido TEXT,
             codigo_material TEXT,
             descripcion TEXT,
@@ -249,10 +231,6 @@ def crear_tablas_logistica():
     conn.close()
 
 
-# =====================================================
-# ALTER EMBARQUES
-# =====================================================
-
 def alterar_tablas_embarques():
 
     db_path = get_db_path("logistica")
@@ -261,11 +239,7 @@ def alterar_tablas_embarques():
     cur = conn.cursor()
 
     st.subheader("📋 Estructura actual embarques")
-
-    mostrar_estructura_tabla(
-        db_path,
-        "embarques"
-    )
+    mostrar_estructura_tabla(db_path, "embarques")
 
     columnas_embarques = [
         ("folio_hoja_carga", "TEXT"),
@@ -277,7 +251,6 @@ def alterar_tablas_embarques():
     for nombre_columna, tipo_columna in columnas_embarques:
 
         try:
-
             cur.execute(
                 f"""
                 ALTER TABLE embarques
@@ -285,22 +258,13 @@ def alterar_tablas_embarques():
                 """
             )
 
-            st.success(
-                f"✅ Columna agregada en embarques: {nombre_columna}"
-            )
+            st.success(f"✅ Columna agregada en embarques: {nombre_columna}")
 
         except sqlite3.OperationalError:
-
-            st.info(
-                f"ℹ️ La columna ya existe en embarques: {nombre_columna}"
-            )
+            st.info(f"ℹ️ La columna ya existe en embarques: {nombre_columna}")
 
     st.subheader("📋 Estructura actual detalle_embarque")
-
-    mostrar_estructura_tabla(
-        db_path,
-        "detalle_embarque"
-    )
+    mostrar_estructura_tabla(db_path, "detalle_embarque")
 
     columnas_detalle = [
         ("folio_hoja_carga", "TEXT"),
@@ -311,7 +275,6 @@ def alterar_tablas_embarques():
     for nombre_columna, tipo_columna in columnas_detalle:
 
         try:
-
             cur.execute(
                 f"""
                 ALTER TABLE detalle_embarque
@@ -319,25 +282,19 @@ def alterar_tablas_embarques():
                 """
             )
 
-            st.success(
-                f"✅ Columna agregada en detalle_embarque: {nombre_columna}"
-            )
+            st.success(f"✅ Columna agregada en detalle_embarque: {nombre_columna}")
 
         except sqlite3.OperationalError:
-
-            st.info(
-                f"ℹ️ La columna ya existe en detalle_embarque: {nombre_columna}"
-            )
+            st.info(f"ℹ️ La columna ya existe en detalle_embarque: {nombre_columna}")
 
     conn.commit()
     conn.close()
 
     st.subheader("📋 Estructura final embarques")
+    mostrar_estructura_tabla(db_path, "embarques")
 
-    mostrar_estructura_tabla(
-        db_path,
-        "embarques"
-    )
+    st.subheader("📋 Estructura final detalle_embarque")
+    mostrar_estructura_tabla(db_path, "detalle_embarque")
 
 
 # =====================================================
@@ -431,13 +388,9 @@ def crear_tablas_app():
                     if tabla == "Todas":
 
                         crear_tablas_inventario()
-
                         crear_tabla_movimientos_inventario()
-
                         crear_tabla_inventario_fisico()
-
                         crear_tabla_ajustes_inventario()
-
                         crear_tablas_hoja_carga()
 
                     elif tabla == "materiales":
@@ -468,16 +421,11 @@ def crear_tablas_app():
 
                     crear_tablas_logistica()
 
-                st.success(
-                    f"✅ Tabla(s) creadas correctamente para {modulo}"
-                )
+                st.success(f"✅ Tabla(s) creadas correctamente para {modulo}")
 
             except Exception as e:
 
-                st.error(
-                    f"❌ Error creando tablas del módulo {modulo}"
-                )
-
+                st.error(f"❌ Error creando tablas del módulo {modulo}")
                 st.exception(e)
 
     # =====================================================
@@ -501,7 +449,6 @@ def crear_tablas_app():
             ):
 
                 try:
-
                     alterar_movimientos_inventario()
 
                     st.success(
@@ -509,42 +456,32 @@ def crear_tablas_app():
                     )
 
                 except Exception as e:
-
-                    st.error(
-                        "❌ Error modificando movimientos_inventario"
-                    )
-
+                    st.error("❌ Error modificando movimientos_inventario")
                     st.exception(e)
 
         elif (
-            
-            modulo.lower() == "logística".lower()
-            and tabla.lower() == "embarques"
+            modulo == "Logística"
+            and tabla in ["Todas", "embarques", "detalle_embarque"]
         ):
 
             if st.button(
-                "🛠️ Modificar estructura",
+                "🛠️ Modificar estructura embarques",
                 key="btn_alter_embarques"
             ):
 
                 try:
-
                     alterar_tablas_embarques()
 
                     st.success(
-                        "✅ Estructura de embarques actualizada"
+                        "✅ Estructura de embarques y detalle_embarque actualizada"
                     )
 
                 except Exception as e:
-
-                    st.error(
-                        "❌ Error modificando embarques"
-                    )
-
+                    st.error("❌ Error modificando embarques")
                     st.exception(e)
 
         else:
 
             st.info(
-                "Por ahora la modificación de estructura está habilitada para movimientos_inventario y embarques."
+                "Modificación disponible para: Inventarios / movimientos_inventario y Logística / embarques."
             )
