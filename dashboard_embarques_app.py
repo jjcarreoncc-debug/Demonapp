@@ -305,6 +305,10 @@ def generar_excel_dashboard(
 # =====================================================
 # GRAFICA MATRIZ
 # =====================================================
+############################################################################
+# =====================================================
+# GRAFICA MATRIZ
+# =====================================================
 
 def pintar_matriz_estatus(df):
 
@@ -348,26 +352,39 @@ def pintar_matriz_estatus(df):
     )
 
     chart = (
+
         alt.Chart(df_grafica)
+
         .mark_rect(
             cornerRadius=5,
             width=62,
             height=26
         )
+
         .encode(
+
             x=alt.X(
                 "embarque:N",
                 title="Número de embarque",
                 sort=None,
                 axis=alt.Axis(
-                    labelAngle=-45
+                    labelAngle=-45,
+                    labelLimit=130,
+                    grid=True,
+                    tickSize=0
                 )
             ),
+
             y=alt.Y(
                 "estatus:N",
                 sort=orden_estatus,
-                title="Estatus"
+                title="Estatus",
+                axis=alt.Axis(
+                    grid=True,
+                    tickSize=0
+                )
             ),
+
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
@@ -380,19 +397,37 @@ def pintar_matriz_estatus(df):
                 ),
                 legend=None
             )
+
         )
+
         .properties(
             width=ancho_grafica,
             height=520
         )
+
+        # ==========================================
+        # GRID / LINEAS
+        # ==========================================
+
+        .configure_axis(
+            grid=True,
+            gridColor="#D1D5DB",
+            gridDash=[3, 2],
+            domain=False,
+            labelColor="#374151",
+            titleColor="#111827"
+        )
+
+        .configure_view(
+            stroke="#D1D5DB"
+        )
+
     )
 
     st.altair_chart(
         chart,
         use_container_width=False
     )
-
-
 # =====================================================
 # APP
 # =====================================================
