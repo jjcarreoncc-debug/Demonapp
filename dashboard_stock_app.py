@@ -155,7 +155,7 @@ def calcular_metricas(df):
 
 def aplicar_filtros_stock(df):
 
-    st.subheader("🎛️ Filtros Ejecutivos")
+    
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
@@ -319,9 +319,7 @@ def dashboard_general(df):
 
 def dashboard_stock_app():
 
-    st.title("📊 Analítica de Inventarios / Stock")
-
-    df = cargar_datos_stock()
+        df = cargar_datos_stock()
 
     if df.empty:
         st.warning("⚠️ No hay datos de materiales o movimientos para mostrar.")
