@@ -191,6 +191,15 @@ def analitico_app():
                 st.session_state.modulo_analitico = "inventarios"
                 st.session_state.menu_inventarios = "🔄 Rotación"
                 st.rerun()
+            
+            if st.button(
+                "🔎 Trazabilidad",
+                use_container_width=True,
+                key="btn_inv_trazabilidad"
+            ):
+                 st.session_state.modulo_analitico = "inventarios"
+                 st.session_state.menu_inventarios = "🔎 Trazabilidad"
+                 st.rerun()
 
             if st.button(
                 "🤖 IA",
