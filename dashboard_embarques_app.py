@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import altair as alt
+from io import BytesIO
+from datetime import datetime
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils.dataframe import dataframe_to_rows
 
 from sigem_db import get_db_path
 
@@ -40,6 +46,120 @@ def obtener_embarques():
     conn.close()
 
     return df
+
+
+# =====================================================
+# EXPORTAR EXCEL
+# =====================================================
+
+def generar_excel_dashboard(
+    df_filtrado,
+    total,
+    transito,
+    pendientes,
+    cumplimiento
+):
+
+    wb = Workbook()
+
+    # =====================================================
+    # HOJA DASHBOARD
+    # =====================================================
+
+    ws = wb.active
+    ws.title = "Dashboard"
+
+    titulo_fill = PatternFill(
+        start_color="1F4E78",
+        end_color="1F4E78",
+        fill_type="solid"
+    )
+
+    titulo_font = Font(
+        color="FFFFFF",
+        bold=True,
+        size=12
+    )
+
+    ws["A1"] = "SIGEM - Dashboard embarques"
+    ws["A1"].font = Font(
+        bold=True,
+        size=16
+    )
+
+    ws["A3"] = "Total embarques"
+    ws["B3"] = total
+
+    ws["A4"] = "En tránsito"
+    ws["B4"] = transito
+
+    ws["A5"] = "Pendientes"
+    ws["B5"] = pendientes
+
+    ws["A6"] = "Cumplimiento"
+    ws["B6"] = f"{cumplimiento}%"
+
+    for celda in [
+        "A3",
+        "A4",
+        "A5",
+        "A6"
+    ]:
+
+        ws[celda].fill = titulo_fill
+        ws[celda].font = titulo_font
+
+    # =====================================================
+    # HOJA EMBARQUES
+    # =====================================================
+
+    ws2 = wb.create_sheet(
+        title="Embarques"
+    )
+
+    for row in dataframe_to_rows(
+        df_filtrado,
+        index=False,
+        header=True
+    ):
+
+        ws2.append(row)
+
+    for cell in ws2[1]:
+
+        cell.fill = titulo_fill
+        cell.font = titulo_font
+
+    # =====================================================
+    # ANCHOS
+    # =====================================================
+
+    for column_cells in ws2.columns:
+
+        length = max(
+            len(str(cell.value))
+            if cell.value else 0
+            for cell in column_cells
+        )
+
+        ws2.column_dimensions[
+            column_cells[0].column_letter
+        ].width = min(
+            length + 5,
+            40
+        )
+
+    # =====================================================
+    # GENERAR ARCHIVO
+    # =====================================================
+
+    excel_buffer = BytesIO()
+
+    wb.save(excel_buffer)
+
+    excel_buffer.seek(0)
+
+    return excel_buffer
 
 
 # =====================================================
@@ -328,6 +448,34 @@ def dashboard_embarques_app():
     c2.metric("🚚 En tránsito", transito)
     c3.metric("⏳ Pendientes", pendientes)
     c4.metric("✅ Cumplimiento", f"{cumplimiento}%")
+
+    st.divider()
+
+    # =====================================================
+    # EXPORTAR EXCEL
+    # =====================================================
+
+    excel_dashboard = generar_excel_dashboard(
+        df_filtrado,
+        total,
+        transito,
+        pendientes,
+        cumplimiento
+    )
+
+    st.download_button(
+        label="📥 Exportar dashboard Excel",
+        data=excel_dashboard,
+        file_name=(
+            f"dashboard_embarques_"
+            f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        ),
+        mime=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
+        use_container_width=True
+    )
 
     st.divider()
 
