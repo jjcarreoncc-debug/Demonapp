@@ -106,7 +106,17 @@ def sidebar_logistica():
             "Embarques",
             "📊 Dashboard embarques"
         )
-
+    if st.sidebar.button(
+            "📊 Dashboard embarques",
+            use_container_width=True,
+            key="log_btn_dashboard_embarques"
+    ):
+        
+            cambiar_opcion(
+                "📦 Embarques",
+                "Embarques",
+                "📊 Dashboard embarques"
+            )
     if st.sidebar.button(
         "✏️ Editar embarque",
         use_container_width=True,
