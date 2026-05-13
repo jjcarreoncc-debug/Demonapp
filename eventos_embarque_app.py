@@ -110,6 +110,10 @@ def registrar_evento_embarque(
 
     estatus_anterior = row[0] if row else ""
 
+    # ==========================================
+    # INSERT EVENTO
+    # ==========================================
+
     cur.execute("""
         INSERT INTO eventos_embarque (
             folio_embarque,
@@ -137,6 +141,10 @@ def registrar_evento_embarque(
         fecha_registro
     ))
 
+    # ==========================================
+    # UPDATE EMBARQUE
+    # ==========================================
+
     cur.execute("""
         UPDATE embarques
         SET
@@ -152,6 +160,10 @@ def registrar_evento_embarque(
         comentarios,
         folio_embarque
     ))
+
+    # ==========================================
+    # HISTORIAL
+    # ==========================================
 
     cur.execute("""
         INSERT INTO historial_estatus_embarque (
@@ -179,6 +191,7 @@ def registrar_evento_embarque(
 # =====================================================
 # TIMELINE VISUAL
 # =====================================================
+
 def pintar_timeline_visual(df_eventos):
 
     colores = {
@@ -202,6 +215,7 @@ def pintar_timeline_visual(df_eventos):
     }
 
     st.markdown("""
+
         <style>
 
             .timeline-container {
@@ -261,6 +275,7 @@ def pintar_timeline_visual(df_eventos):
             }
 
         </style>
+
     """, unsafe_allow_html=True)
 
     html = "<div class='timeline-container'>"
@@ -302,6 +317,7 @@ def pintar_timeline_visual(df_eventos):
         )
 
         html += f"""
+
             <div class="timeline-item">
 
                 <div
@@ -338,6 +354,7 @@ def pintar_timeline_visual(df_eventos):
                     👤 {usuario if usuario else "Sin usuario"}
 
                 </div>
+
         """
 
         if comentarios:
@@ -364,20 +381,6 @@ def pintar_timeline_visual(df_eventos):
         html,
         unsafe_allow_html=True
     )
-        ##############################
-        if comentarios:
-
-            html += f"""
-                <div class="timeline-comments">
-                    💬 {comentarios}
-                </div>
-            """
-
-        html += "</div>"
-
-    html += "</div>"
-
-    st.markdown(html, unsafe_allow_html=True)
 
 
 # =====================================================
@@ -429,13 +432,14 @@ def eventos_embarque_app():
     folio_seleccionado = opcion.split(" | ")[0]
 
     embarque = df_embarques[
-        df_embarques["folio_embarque"].astype(str) == folio_seleccionado
+        df_embarques["folio_embarque"].astype(str)
+        == folio_seleccionado
     ].iloc[0]
 
     st.divider()
 
     # =====================================================
-    # DATOS DEL EMBARQUE
+    # DATOS EMBARQUE
     # =====================================================
 
     st.subheader("📦 Datos del embarque")
@@ -443,19 +447,55 @@ def eventos_embarque_app():
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.write("**Folio:**", embarque.get("folio_embarque", ""))
-        st.write("**Cliente:**", embarque.get("cliente", ""))
-        st.write("**Destino:**", embarque.get("destino", ""))
+
+        st.write(
+            "**Folio:**",
+            embarque.get("folio_embarque", "")
+        )
+
+        st.write(
+            "**Cliente:**",
+            embarque.get("cliente", "")
+        )
+
+        st.write(
+            "**Destino:**",
+            embarque.get("destino", "")
+        )
 
     with c2:
-        st.write("**Transportista:**", embarque.get("transportista", ""))
-        st.write("**Vehículo:**", embarque.get("vehiculo", ""))
-        st.write("**Placas:**", embarque.get("placas", ""))
+
+        st.write(
+            "**Transportista:**",
+            embarque.get("transportista", "")
+        )
+
+        st.write(
+            "**Vehículo:**",
+            embarque.get("vehiculo", "")
+        )
+
+        st.write(
+            "**Placas:**",
+            embarque.get("placas", "")
+        )
 
     with c3:
-        st.write("**Operador:**", embarque.get("operador", ""))
-        st.write("**Ruta:**", embarque.get("ruta", ""))
-        st.write("**Estatus actual:**", embarque.get("estatus", ""))
+
+        st.write(
+            "**Operador:**",
+            embarque.get("operador", "")
+        )
+
+        st.write(
+            "**Ruta:**",
+            embarque.get("ruta", "")
+        )
+
+        st.write(
+            "**Estatus actual:**",
+            embarque.get("estatus", "")
+        )
 
     st.divider()
 
@@ -489,11 +529,18 @@ def eventos_embarque_app():
         "Cancelado"
     ]
 
-    estatus_actual = str(embarque.get("estatus", "") or "")
+    estatus_actual = str(
+        embarque.get("estatus", "") or ""
+    )
 
     if estatus_actual in estatus_lista:
-        index_estatus = estatus_lista.index(estatus_actual)
+
+        index_estatus = estatus_lista.index(
+            estatus_actual
+        )
+
     else:
+
         index_estatus = 0
 
     col1, col2, col3 = st.columns(3)
@@ -509,7 +556,9 @@ def eventos_embarque_app():
 
         hora_evento = st.time_input(
             "Hora evento",
-            value=datetime.now().time().replace(microsecond=0)
+            value=datetime.now().time().replace(
+                microsecond=0
+            )
         )
 
     with col3:
@@ -538,12 +587,12 @@ def eventos_embarque_app():
 
     ubicacion = st.text_input(
         "Ubicación",
-        placeholder="Ej. Patio CEDIS, Caseta Tepotzotlán, Cliente, Ruta 57..."
+        placeholder="Ej. Patio CEDIS..."
     )
 
     comentarios = st.text_area(
         "Comentarios",
-        placeholder="Describe el evento operativo..."
+        placeholder="Describe el evento..."
     )
 
     col6, col7 = st.columns(2)
@@ -571,52 +620,43 @@ def eventos_embarque_app():
 
     if guardar:
 
-        if not folio_seleccionado:
+        try:
 
-            st.warning("Selecciona un embarque.")
+            fecha_evento_completa = datetime.combine(
+                fecha_evento,
+                hora_evento
+            ).strftime("%Y-%m-%d %H:%M:%S")
 
-        elif not estatus:
+            registrar_evento_embarque(
+                folio_seleccionado,
+                fecha_evento_completa,
+                tipo_evento,
+                estatus,
+                ubicacion,
+                comentarios,
+                usuario,
+                latitud,
+                longitud
+            )
 
-            st.warning("Selecciona un estatus.")
+            st.success(
+                f"✅ Evento registrado para {folio_seleccionado}"
+            )
 
-        else:
+            st.rerun()
 
-            try:
+        except Exception as e:
 
-                fecha_evento_completa = datetime.combine(
-                    fecha_evento,
-                    hora_evento
-                ).strftime("%Y-%m-%d %H:%M:%S")
+            st.error(
+                "❌ Error registrando evento"
+            )
 
-                registrar_evento_embarque(
-                    folio_seleccionado,
-                    fecha_evento_completa,
-                    tipo_evento,
-                    estatus,
-                    ubicacion,
-                    comentarios,
-                    usuario,
-                    latitud,
-                    longitud
-                )
-
-                st.success(
-                    f"✅ Evento registrado para embarque {folio_seleccionado}"
-                )
-
-                st.session_state.opcion_logistica = "🛰️ Eventos embarque"
-
-                st.rerun()
-
-            except Exception as e:
-
-                st.error("❌ Error registrando evento")
-                st.exception(e)
+            st.exception(e)
 
     st.divider()
 
     # =====================================================
-    # TIMELINE / HISTORIAL
+    # TIMELINE
     # =====================================================
 
     st.subheader("📋 Timeline del embarque")
@@ -629,18 +669,22 @@ def eventos_embarque_app():
 
         if df_eventos.empty:
 
-            st.info("Este embarque aún no tiene eventos registrados.")
+            st.info(
+                "Este embarque aún no tiene eventos."
+            )
 
         else:
 
             tab1, tab2 = st.tabs([
                 "🧭 Timeline visual",
-                "📄 Tabla de eventos"
+                "📄 Tabla eventos"
             ])
 
             with tab1:
 
-                pintar_timeline_visual(df_eventos)
+                pintar_timeline_visual(
+                    df_eventos
+                )
 
             with tab2:
 
@@ -653,5 +697,8 @@ def eventos_embarque_app():
 
     except Exception as e:
 
-        st.error("❌ Error consultando eventos del embarque")
+        st.error(
+            "❌ Error consultando eventos"
+        )
+
         st.exception(e)
