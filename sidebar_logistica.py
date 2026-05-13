@@ -3,116 +3,96 @@ import streamlit as st
 
 def sidebar_logistica():
 
+    menu_logistica = None
+    submenu_logistica = None
+    opcion_logistica = None
+
+
     st.sidebar.markdown("## 🚚 Logística")
 
-    menu_log = st.sidebar.radio(
-        "Menú Logística",
-        [
-            "🏠 Inicio",
-            "📦 Embarques",
-            "🚛 Transporte",
-            "📍 Rutas",
-            "📡 Tracking",
-            "🧾 Entregas",
-            "📦 Inventario Logístico",
-            "📊 Analytics"
-        ]
+
+    # ==========================================
+    # INICIO
+    # ==========================================
+
+    if st.sidebar.button(
+        "🏠 Inicio",
+        use_container_width=True
+    ):
+        menu_logistica = "Inicio"
+
+
+    # ==========================================
+    # EMBARQUES
+    # ==========================================
+
+    st.sidebar.markdown("### 📦 Embarques")
+
+    if st.sidebar.button(
+        "➕ Generar embarque",
+        use_container_width=True
+    ):
+        menu_logistica = "Embarques"
+        submenu_logistica = "Generar"
+        opcion_logistica = "➕ Generar embarque"
+
+
+    if st.sidebar.button(
+        "📦 Carga embarque",
+        use_container_width=True
+    ):
+        menu_logistica = "Embarques"
+        submenu_logistica = "Carga"
+        opcion_logistica = "📦 Carga embarque"
+
+
+    if st.sidebar.button(
+        "📋 Consultar embarques",
+        use_container_width=True
+    ):
+        menu_logistica = "Embarques"
+        submenu_logistica = "Consulta"
+        opcion_logistica = "📋 Consultar embarques"
+
+
+    # ==========================================
+    # TRANSPORTE
+    # ==========================================
+
+    st.sidebar.markdown("### 🚛 Transporte")
+
+    if st.sidebar.button(
+        "🚚 Transportistas",
+        use_container_width=True
+    ):
+        menu_logistica = "Transporte"
+        opcion_logistica = "🚚 Transportistas"
+
+
+    if st.sidebar.button(
+        "🚗 Vehículos",
+        use_container_width=True
+    ):
+        menu_logistica = "Transporte"
+        opcion_logistica = "🚗 Vehículos"
+
+
+    # ==========================================
+    # TRACKING
+    # ==========================================
+
+    st.sidebar.markdown("### 📡 Tracking")
+
+    if st.sidebar.button(
+        "📍 Seguimiento embarque",
+        use_container_width=True
+    ):
+        menu_logistica = "Tracking"
+        opcion_logistica = "📍 Seguimiento embarque"
+
+
+    return (
+        menu_logistica,
+        submenu_logistica,
+        opcion_logistica
     )
-
-    submenu_log = None
-    opcion_log = None
-
-    if menu_log == "🏠 Inicio":
-        submenu_log = "Inicio"
-        opcion_log = "Resumen"
-
-    elif menu_log == "📦 Embarques":
-        submenu_log = st.sidebar.radio(
-            "Embarques",
-            [
-                "➕ Generar embarque",
-                "📦 Carga embarque",
-                "📋 Consultar embarques",
-                "✏️ Actualizar embarque",
-                "🚨 Embarques pendientes"
-            ]
-        )
-        opcion_log = submenu_log
-
-    elif menu_log == "🚛 Transporte":
-        submenu_log = st.sidebar.radio(
-            "Transporte",
-            [
-                "🚚 Transportistas",
-                "🚗 Vehículos",
-                "👨‍✈️ Operadores",
-                "⛽ Control transporte"
-            ]
-        )
-        opcion_log = submenu_log
-
-    elif menu_log == "📍 Rutas":
-        submenu_log = st.sidebar.radio(
-            "Rutas",
-            [
-                "➕ Crear ruta",
-                "📋 Consultar rutas",
-                "🗺️ Asignar rutas",
-                "⏱️ Tiempos entrega"
-            ]
-        )
-        opcion_log = submenu_log
-
-    elif menu_log == "📡 Tracking":
-        submenu_log = st.sidebar.radio(
-            "Tracking",
-            [
-                "📍 Seguimiento embarque",
-                "🕒 Eventos logísticos",
-                "🚨 Retrasos",
-                "📦 Tracking pedidos",
-                "🧾 Historial tracking"
-            ]
-        )
-        opcion_log = submenu_log
-
-    elif menu_log == "🧾 Entregas":
-        submenu_log = st.sidebar.radio(
-            "Entregas",
-            [
-                "✅ Confirmar entrega",
-                "📋 Historial entregas",
-                "🚨 Entregas pendientes",
-                "📄 Evidencias entrega"
-            ]
-        )
-        opcion_log = submenu_log
-
-    elif menu_log == "📦 Inventario Logístico":
-        submenu_log = st.sidebar.radio(
-            "Inventario Logístico",
-            [
-                "📤 Salidas embarque",
-                "📦 Material embarcado",
-                "🏭 Bodega despacho",
-                "📋 Trazabilidad logística"
-            ]
-        )
-        opcion_log = submenu_log
-
-    elif menu_log == "📊 Analytics":
-        submenu_log = st.sidebar.radio(
-            "Analytics",
-            [
-                "📊 Dashboard logística",
-                "🚚 Utilización transporte",
-                "⏱️ Entregas a tiempo",
-                "🚨 Retrasos",
-                "📈 Productividad logística",
-                "📍 Tracking analytics",
-                "💰 Costos logísticos"
-            ]
-        )
-        opcion_log = submenu_log
-
-    return menu_log, submenu_log, opcion_log
