@@ -1,7 +1,9 @@
 import streamlit as st
 
 from sidebar_logistica import sidebar_logistica
+
 from alta_embarque_app import alta_embarque_app
+from consulta_embarques_app import consulta_embarques_app
 
 
 def logistica_app():
@@ -9,6 +11,7 @@ def logistica_app():
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
     if opcion_logistica is None:
+
         menu_logistica = "📦 Embarques"
         submenu_logistica = "Embarques"
         opcion_logistica = "➕ Alta embarque"
@@ -17,9 +20,35 @@ def logistica_app():
 
     st.divider()
 
+    # =====================================================
+    # ALTA EMBARQUE
+    # =====================================================
+
     if opcion_logistica == "➕ Alta embarque":
 
         alta_embarque_app()
+
+    # =====================================================
+    # CONSULTA EMBARQUE
+    # =====================================================
+
+    elif opcion_logistica == "📋 Consulta embarque":
+
+        consulta_embarques_app()
+
+    # =====================================================
+    # BAJA EMBARQUE
+    # =====================================================
+
+    elif opcion_logistica == "❌ Baja embarque":
+
+        st.subheader("❌ Baja embarque")
+
+        st.info("Módulo en construcción.")
+
+    # =====================================================
+    # DEFAULT
+    # =====================================================
 
     else:
 
