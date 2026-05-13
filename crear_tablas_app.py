@@ -30,6 +30,30 @@ def mostrar_estructura_tabla(db_path, tabla):
         st.dataframe(df, use_container_width=True)
 
 
+def agregar_columna_si_no_existe(cur, tabla, columna, tipo):
+
+    try:
+
+        cur.execute(
+            f"""
+            ALTER TABLE {tabla}
+            ADD COLUMN {columna} {tipo}
+            """
+        )
+
+        st.success(f"✅ Columna agregada en {tabla}: {columna}")
+
+    except sqlite3.OperationalError as e:
+
+        if "duplicate column name" in str(e).lower():
+
+            st.info(f"ℹ️ La columna ya existe en {tabla}: {columna}")
+
+        else:
+
+            raise e
+
+
 # =====================================================
 # INVENTARIOS
 # =====================================================
@@ -130,20 +154,12 @@ def alterar_movimientos_inventario():
 
     for nombre_columna, tipo_columna in columnas_nuevas:
 
-        try:
-
-            cur.execute(
-                f"""
-                ALTER TABLE movimientos_inventario
-                ADD COLUMN {nombre_columna} {tipo_columna}
-                """
-            )
-
-            st.success(f"✅ Columna agregada: {nombre_columna}")
-
-        except sqlite3.OperationalError:
-
-            st.info(f"ℹ️ La columna ya existe: {nombre_columna}")
+        agregar_columna_si_no_existe(
+            cur,
+            "movimientos_inventario",
+            nombre_columna,
+            tipo_columna
+        )
 
     conn.commit()
     conn.close()
@@ -196,6 +212,7 @@ def crear_tablas_logistica():
             id_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_embarque TEXT UNIQUE NOT NULL,
             folio_hoja_carga TEXT,
+            folio_ruta TEXT,
             origen_captura TEXT,
             pedido TEXT,
             fecha TEXT,
@@ -203,6 +220,7 @@ def crear_tablas_logistica():
             destino TEXT,
             transportista TEXT,
             vehiculo TEXT,
+            placas TEXT,
             operador TEXT,
             ruta TEXT,
             estatus TEXT,
@@ -217,6 +235,7 @@ def crear_tablas_logistica():
             id_detalle_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_embarque TEXT NOT NULL,
             folio_hoja_carga TEXT,
+            folio_ruta TEXT,
             pedido TEXT,
             codigo_material TEXT,
             descripcion TEXT,
@@ -244,35 +263,22 @@ def alterar_tabla_embarques():
     mostrar_estructura_tabla(db_path, "embarques")
 
     columnas_embarques = [
-
         ("folio_hoja_carga", "TEXT"),
+        ("folio_ruta", "TEXT"),
         ("origen_captura", "TEXT"),
         ("placas", "TEXT"),
-
     ]
 
     st.subheader("🔧 Actualizando tabla embarques")
 
     for nombre_columna, tipo_columna in columnas_embarques:
 
-        try:
-
-            cur.execute(
-                f"""
-                ALTER TABLE embarques
-                ADD COLUMN {nombre_columna} {tipo_columna}
-                """
-            )
-
-            st.success(
-                f"✅ Columna agregada en embarques: {nombre_columna}"
-            )
-
-        except sqlite3.OperationalError:
-
-            st.info(
-                f"ℹ️ La columna ya existe en embarques: {nombre_columna}"
-            )
+        agregar_columna_si_no_existe(
+            cur,
+            "embarques",
+            nombre_columna,
+            tipo_columna
+        )
 
     conn.commit()
     conn.close()
@@ -292,33 +298,20 @@ def alterar_tabla_detalle_embarque():
     mostrar_estructura_tabla(db_path, "detalle_embarque")
 
     columnas_detalle = [
-
         ("folio_hoja_carga", "TEXT"),
-
+        ("folio_ruta", "TEXT"),
     ]
 
     st.subheader("🔧 Actualizando tabla detalle_embarque")
 
     for nombre_columna, tipo_columna in columnas_detalle:
 
-        try:
-
-            cur.execute(
-                f"""
-                ALTER TABLE detalle_embarque
-                ADD COLUMN {nombre_columna} {tipo_columna}
-                """
-            )
-
-            st.success(
-                f"✅ Columna agregada en detalle_embarque: {nombre_columna}"
-            )
-
-        except sqlite3.OperationalError:
-
-            st.info(
-                f"ℹ️ La columna ya existe en detalle_embarque: {nombre_columna}"
-            )
+        agregar_columna_si_no_existe(
+            cur,
+            "detalle_embarque",
+            nombre_columna,
+            tipo_columna
+        )
 
     conn.commit()
     conn.close()
@@ -460,7 +453,6 @@ def crear_tablas_app():
                 st.error(
                     f"❌ Error creando tablas del módulo {modulo}"
                 )
-
                 st.exception(e)
 
     # =====================================================
@@ -473,101 +465,39 @@ def crear_tablas_app():
             "Este proceso modifica la estructura de una tabla existente sin borrar datos."
         )
 
-        # ==========================================
-        # INVENTARIOS
-        # ==========================================
+        if st.button(
+            "🛠️ Modificar estructura",
+            key=f"btn_modificar_{modulo}_{tabla}"
+        ):
 
-        if modulo == "Inventarios":
+            try:
 
-            if tabla == "movimientos_inventario":
+                if modulo == "Inventarios" and tabla == "movimientos_inventario":
 
-                if st.button(
-                    "🛠️ Modificar estructura movimientos_inventario",
-                    key="btn_alter_mov_inv"
-                ):
+                    alterar_movimientos_inventario()
 
-                    try:
+                elif modulo == "Logística" and tabla == "embarques":
 
-                        alterar_movimientos_inventario()
+                    alterar_tabla_embarques()
 
-                        st.success(
-                            "✅ Estructura de movimientos_inventario actualizada"
-                        )
+                elif modulo == "Logística" and tabla == "detalle_embarque":
 
-                    except Exception as e:
+                    alterar_tabla_detalle_embarque()
 
-                        st.error(
-                            "❌ Error modificando movimientos_inventario"
-                        )
+                else:
 
-                        st.exception(e)
+                    st.info(
+                        f"No hay modificación configurada para {modulo} / {tabla}."
+                    )
+                    st.stop()
 
-            else:
-
-                st.info(
-                    "Para Inventarios solo está disponible movimientos_inventario."
+                st.success(
+                    f"✅ Estructura actualizada: {modulo} / {tabla}"
                 )
 
-        # ==========================================
-        # LOGISTICA
-        # ==========================================
+            except Exception as e:
 
-        elif modulo == "Logística":
-
-            if tabla == "embarques":
-
-                if st.button(
-                    "🛠️ Modificar estructura embarques",
-                    key="btn_alter_embarques"
-                ):
-
-                    try:
-
-                        alterar_tabla_embarques()
-
-                        st.success(
-                            "✅ Estructura de embarques actualizada"
-                        )
-
-                    except Exception as e:
-
-                        st.error(
-                            "❌ Error modificando embarques"
-                        )
-
-                        st.exception(e)
-
-            elif tabla == "detalle_embarque":
-
-                if st.button(
-                    "🛠️ Modificar estructura detalle_embarque",
-                    key="btn_alter_detalle_embarque"
-                ):
-
-                    try:
-
-                        alterar_tabla_detalle_embarque()
-
-                        st.success(
-                            "✅ Estructura de detalle_embarque actualizada"
-                        )
-
-                    except Exception as e:
-
-                        st.error(
-                            "❌ Error modificando detalle_embarque"
-                        )
-
-                        st.exception(e)
-
-            else:
-
-                st.info(
-                    "Selecciona embarques o detalle_embarque."
+                st.error(
+                    f"❌ Error modificando estructura: {modulo} / {tabla}"
                 )
-
-        else:
-
-            st.info(
-                "No hay modificaciones disponibles."
-            )
+                st.exception(e)
