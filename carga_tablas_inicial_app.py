@@ -5,6 +5,10 @@ import sqlite3
 from sigem_db import get_db_path
 
 
+# =====================================================
+# COLUMNAS MINIMAS
+# =====================================================
+
 COLUMNAS_MINIMAS = {
 
     "materiales": [
@@ -38,9 +42,27 @@ COLUMNAS_MINIMAS = {
         "descripcion",
         "cantidad",
         "costo_unitario"
+    ],
+
+    "rutas": [
+        "codigo_ruta",
+        "descripcion",
+        "origen",
+        "destino"
+    ],
+
+    "puntos_ruta": [
+        "codigo_ruta",
+        "secuencia",
+        "tipo_punto",
+        "ubicacion"
     ]
 }
 
+
+# =====================================================
+# BASES POR TABLA
+# =====================================================
 
 DB_POR_TABLA = {
 
@@ -50,9 +72,17 @@ DB_POR_TABLA = {
 
     "entradas_compras": "compras",
 
-    "entradas_compras_detalle": "compras"
+    "entradas_compras_detalle": "compras",
+
+    "rutas": "logistica",
+
+    "puntos_ruta": "logistica"
 }
 
+
+# =====================================================
+# APP
+# =====================================================
 
 def carga_tablas_inicial_app():
 
@@ -62,22 +92,23 @@ def carga_tablas_inicial_app():
         "Configuración / Carga inicial"
     )
 
-    # =====================================
+    # =====================================================
     # MODULO
-    # =====================================
+    # =====================================================
 
     modulo = st.selectbox(
         "Módulo",
         [
             "Inventarios",
-            "Compras"
+            "Compras",
+            "Logística"
         ],
         key="carga_modulo"
     )
 
-    # =====================================
+    # =====================================================
     # TABLAS
-    # =====================================
+    # =====================================================
 
     if modulo == "Inventarios":
 
@@ -86,11 +117,18 @@ def carga_tablas_inicial_app():
             "movimientos_inventario"
         ]
 
-    else:
+    elif modulo == "Compras":
 
         tablas_disponibles = [
             "entradas_compras",
             "entradas_compras_detalle"
+        ]
+
+    elif modulo == "Logística":
+
+        tablas_disponibles = [
+            "rutas",
+            "puntos_ruta"
         ]
 
     tabla = st.selectbox(
@@ -99,9 +137,22 @@ def carga_tablas_inicial_app():
         key="carga_tabla"
     )
 
-    # =====================================
+    # =====================================================
+    # COLUMNAS REQUERIDAS
+    # =====================================================
+
+    st.subheader("📋 Columnas mínimas requeridas")
+
+    st.write(
+        COLUMNAS_MINIMAS.get(
+            tabla,
+            []
+        )
+    )
+
+    # =====================================================
     # ARCHIVO
-    # =====================================
+    # =====================================================
 
     archivo = st.file_uploader(
         "Selecciona archivo CSV o Excel",
@@ -117,9 +168,9 @@ def carga_tablas_inicial_app():
 
         return
 
-    # =====================================
+    # =====================================================
     # LEER ARCHIVO
-    # =====================================
+    # =====================================================
 
     try:
 
@@ -138,9 +189,9 @@ def carga_tablas_inicial_app():
 
         return
 
-    # =====================================
+    # =====================================================
     # LIMPIAR COLUMNAS
-    # =====================================
+    # =====================================================
 
     df.columns = (
         df.columns
@@ -152,9 +203,9 @@ def carga_tablas_inicial_app():
         f"✅ Archivo leído correctamente: {len(df)} registros"
     )
 
-    # =====================================
+    # =====================================================
     # PREVIEW
-    # =====================================
+    # =====================================================
 
     st.subheader("👀 Vista previa")
 
@@ -163,9 +214,9 @@ def carga_tablas_inicial_app():
         use_container_width=True
     )
 
-    # =====================================
+    # =====================================================
     # VALIDAR COLUMNAS
-    # =====================================
+    # =====================================================
 
     columnas_minimas = COLUMNAS_MINIMAS.get(
         tabla,
@@ -204,32 +255,29 @@ def carga_tablas_inicial_app():
         "✅ Columnas mínimas correctas"
     )
 
-    # =====================================
-    # VALIDAR CODIGOS
-    # =====================================
+    # =====================================================
+    # VALIDACIONES ESPECIALES
+    # =====================================================
 
-    if "codigo_material" in df.columns:
+    if tabla == "rutas":
 
-        if df["codigo_material"].isna().any():
+        if df["codigo_ruta"].isna().any():
 
             st.error(
-                "❌ Hay registros sin codigo_material"
+                "❌ Hay registros sin codigo_ruta"
             )
 
             return
 
         duplicados = df[
-            df["codigo_material"]
+            df["codigo_ruta"]
             .duplicated(keep=False)
         ]
 
-        if (
-            not duplicados.empty
-            and tabla == "materiales"
-        ):
+        if not duplicados.empty:
 
             st.warning(
-                "⚠️ Hay códigos duplicados en el archivo"
+                "⚠️ Hay codigo_ruta duplicados"
             )
 
             st.dataframe(
@@ -239,9 +287,27 @@ def carga_tablas_inicial_app():
 
             return
 
-    # =====================================
+    if tabla == "puntos_ruta":
+
+        if df["codigo_ruta"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_ruta"
+            )
+
+            return
+
+        if df["secuencia"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin secuencia"
+            )
+
+            return
+
+    # =====================================================
     # BASE DESTINO
-    # =====================================
+    # =====================================================
 
     db_nombre = DB_POR_TABLA[tabla]
 
@@ -257,9 +323,9 @@ def carga_tablas_inicial_app():
 
     st.code(tabla)
 
-    # =====================================
+    # =====================================================
     # CONFIRMAR
-    # =====================================
+    # =====================================================
 
     confirmar = st.checkbox(
         "Confirmo que deseo agregar esta información",
@@ -274,9 +340,9 @@ def carga_tablas_inicial_app():
 
         return
 
-    # =====================================
+    # =====================================================
     # INSERTAR
-    # =====================================
+    # =====================================================
 
     if st.button(
         "🚀 Ejecutar carga",
