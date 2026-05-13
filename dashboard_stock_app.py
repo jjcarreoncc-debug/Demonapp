@@ -1,12 +1,8 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
-import base64
-import os
 
 from sigem_db import get_db_path
-
-
 
 from alertas_app import (
     dashboard_criticos,
@@ -37,7 +33,6 @@ from ui_components import card_kpi
 def cargar_datos_stock():
 
     conn = sqlite3.connect(get_db_path("inventarios"))
-
     materiales_path = get_db_path("materiales")
 
     conn.execute(f"""
@@ -48,10 +43,94 @@ def cargar_datos_stock():
         SELECT
             m.codigo_material AS NUMERO_PRODUCTO,
             m.codigo_material AS codigo_material,
-
             m.descripcion AS NOMBRE_PRODUCTO,
             m.descripcion AS PRODUCTO,
-            m.descripcion AS DESCRIPC
+            m.descripcion AS DESCRIPCION,
+            m.descripcion AS descripcion,
+            m.descripcion_larga,
+            m.categoria,
+            m.familia,
+            m.marca,
+            m.tipo_material,
+            m.unidad_base,
+
+            COALESCE(m.stock_minimo, 0) AS STOCK_MIN,
+            COALESCE(m.stock_maximo, 0) AS STOCK_MAX,
+            COALESCE(m.stock_minimo, 0) AS STOCK_MINIMO,
+            COALESCE(m.stock_maximo, 0) AS STOCK_MAXIMO,
+            COALESCE(m.stock_minimo, 0) AS stock_minimo,
+            COALESCE(m.stock_maximo, 0) AS stock_maximo,
+
+            COALESCE(m.costo_estandar, 0) AS costo_estandar,
+            COALESCE(m.precio_venta, 0) AS precio_venta,
+            COALESCE(m.rotacion_abc, '') AS rotacion_abc,
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN i.cantidad > 0 THEN i.cantidad
+                    ELSE 0
+                END
+            ), 0) AS ENTRADA,
+
+            COALESCE(SUM(
+                CASE 
+                    WHEN i.cantidad < 0 THEN ABS(i.cantidad)
+                    ELSE 0
+                END
+            ), 0) AS SALIDA,
+
+            COALESCE(SUM(i.cantidad), 0) AS STOCK
+
+        FROM materiales_db.materiales m
+
+        LEFT JOIN movimientos_inventario i
+            ON m.codigo_material = i.codigo_material
+
+        GROUP BY
+            m.codigo_material,
+            m.descripcion,
+            m.descripcion_larga,
+            m.categoria,
+            m.familia,
+            m.marca,
+            m.tipo_material,
+            m.unidad_base,
+            m.stock_minimo,
+            m.stock_maximo,
+            m.costo_estandar,
+            m.precio_venta,
+            m.rotacion_abc
+
+        ORDER BY m.codigo_material
+    """
+
+    try:
+        df = pd.read_sql_query(query, conn)
+
+    except Exception as e:
+        conn.close()
+        st.error("❌ Error cargando datos de stock desde SQLite.")
+        st.exception(e)
+        return pd.DataFrame()
+
+    conn.close()
+
+    df["STOCK"] = pd.to_numeric(df["STOCK"], errors="coerce").fillna(0)
+    df["ENTRADA"] = pd.to_numeric(df["ENTRADA"], errors="coerce").fillna(0)
+    df["SALIDA"] = pd.to_numeric(df["SALIDA"], errors="coerce").fillna(0)
+    df["STOCK_MIN"] = pd.to_numeric(df["STOCK_MIN"], errors="coerce").fillna(0)
+    df["STOCK_MAX"] = pd.to_numeric(df["STOCK_MAX"], errors="coerce").fillna(0)
+    df["STOCK_MINIMO"] = pd.to_numeric(df["STOCK_MINIMO"], errors="coerce").fillna(0)
+    df["STOCK_MAXIMO"] = pd.to_numeric(df["STOCK_MAXIMO"], errors="coerce").fillna(0)
+    df["costo_estandar"] = pd.to_numeric(df["costo_estandar"], errors="coerce").fillna(0)
+
+    df["STOCK_ACTUAL"] = df["STOCK"]
+    df["STOCK_DISPONIBLE"] = df["STOCK"]
+    df["CANTIDAD"] = df["STOCK"]
+    df["TIPO"] = "STOCK"
+
+    return df
+
 
 def calcular_metricas(df):
 
@@ -137,9 +216,8 @@ def dashboard_general(df):
     with tab5:
         st.info("🚨 Módulo Alertas en construcción.")
 
-def dashboard_stock_app():
 
-    
+def dashboard_stock_app():
 
     st.title("📊 Analítica de Inventarios / Stock")
 
@@ -236,8 +314,6 @@ def dashboard_stock_app():
 
         with tab5:
             detalle_rotacion_app(df)
-            
-   
 
     elif vista == "🤖 IA":
 
