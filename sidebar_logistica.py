@@ -3,9 +3,31 @@ import streamlit as st
 
 def sidebar_logistica():
 
-    menu_logistica = None
-    submenu_logistica = None
-    opcion_logistica = None
+    # ==========================================
+    # SESSION STATE
+    # ==========================================
+
+    if "menu_logistica" not in st.session_state:
+        st.session_state.menu_logistica = "📦 Embarques"
+
+    if "submenu_logistica" not in st.session_state:
+        st.session_state.submenu_logistica = "Embarques"
+
+    if "opcion_logistica" not in st.session_state:
+        st.session_state.opcion_logistica = "➕ Alta embarque"
+
+    # ==========================================
+    # FUNCIÓN PARA CAMBIAR OPCIÓN
+    # ==========================================
+
+    def cambiar_opcion(menu, submenu, opcion):
+        st.session_state.menu_logistica = menu
+        st.session_state.submenu_logistica = submenu
+        st.session_state.opcion_logistica = opcion
+
+    # ==========================================
+    # SIDEBAR
+    # ==========================================
 
     st.sidebar.markdown("## 🚚 Logística")
 
@@ -15,11 +37,14 @@ def sidebar_logistica():
 
     if st.sidebar.button(
         "🏠 Inicio",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_inicio"
     ):
-        menu_logistica = "Inicio"
-        submenu_logistica = "Inicio"
-        opcion_logistica = "🏠 Inicio"
+        cambiar_opcion(
+            "Inicio",
+            "Inicio",
+            "🏠 Inicio"
+        )
 
     # ==========================================
     # EMBARQUES
@@ -29,51 +54,69 @@ def sidebar_logistica():
 
     if st.sidebar.button(
         "➕ Alta embarque",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_alta_embarque"
     ):
-        menu_logistica = "📦 Embarques"
-        submenu_logistica = "Embarques"
-        opcion_logistica = "➕ Alta embarque"
+        cambiar_opcion(
+            "📦 Embarques",
+            "Embarques",
+            "➕ Alta embarque"
+        )
 
     if st.sidebar.button(
         "✏️ Actualizar estatus embarque",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_actualizar_estatus_embarque"
     ):
-        menu_logistica = "📦 Embarques"
-        submenu_logistica = "Embarques"
-        opcion_logistica = "✏️ Actualizar estatus embarque"
+        cambiar_opcion(
+            "📦 Embarques",
+            "Embarques",
+            "✏️ Actualizar estatus embarque"
+        )
 
     if st.sidebar.button(
         "❌ Baja embarque",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_baja_embarque"
     ):
-        menu_logistica = "📦 Embarques"
-        submenu_logistica = "Embarques"
-        opcion_logistica = "❌ Baja embarque"
+        cambiar_opcion(
+            "📦 Embarques",
+            "Embarques",
+            "❌ Baja embarque"
+        )
 
     if st.sidebar.button(
         "📋 Consulta embarque",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_consulta_embarque"
     ):
-        menu_logistica = "📦 Embarques"
-        submenu_logistica = "Embarques"
-        opcion_logistica = "📋 Consulta embarque"
+        cambiar_opcion(
+            "📦 Embarques",
+            "Embarques",
+            "📋 Consulta embarque"
+        )
 
     if st.sidebar.button(
-       "📊 Dashboard embarques",
-       use_container_width=True
+        "📊 Dashboard embarques",
+        use_container_width=True,
+        key="log_btn_dashboard_embarques"
     ):
-       menu_logistica = "📦 Embarques"
-       submenu_logistica = "Embarques"
-       opcion_logistica = "📊 Dashboard embarques"
-        
+        cambiar_opcion(
+            "📦 Embarques",
+            "Embarques",
+            "📊 Dashboard embarques"
+        )
+
     if st.sidebar.button(
         "✏️ Editar embarque",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_editar_embarque"
     ):
-        menu_logistica = "📦 Embarques"
-        submenu_logistica = "Embarques"
-        opcion_logistica = "✏️ Editar embarque"
+        cambiar_opcion(
+            "📦 Embarques",
+            "Embarques",
+            "✏️ Editar embarque"
+        )
 
     # ==========================================
     # TRANSPORTE
@@ -89,73 +132,97 @@ def sidebar_logistica():
 
     if st.sidebar.button(
         "➕ Alta transportista",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_alta_transportista"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👥 Transportistas"
-        opcion_logistica = "➕ Alta transportista"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👥 Transportistas",
+            "➕ Alta transportista"
+        )
 
     if st.sidebar.button(
         "❌ Baja transportista",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_baja_transportista"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👥 Transportistas"
-        opcion_logistica = "❌ Baja transportista"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👥 Transportistas",
+            "❌ Baja transportista"
+        )
 
     if st.sidebar.button(
         "📋 Consulta transportista",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_consulta_transportista"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👥 Transportistas"
-        opcion_logistica = "📋 Consulta transportista"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👥 Transportistas",
+            "📋 Consulta transportista"
+        )
 
     if st.sidebar.button(
         "✏️ Editar transportista",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_editar_transportista"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👥 Transportistas"
-        opcion_logistica = "✏️ Editar transportista"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👥 Transportistas",
+            "✏️ Editar transportista"
+        )
 
     # ==========================================
-    # VEHICULOS
+    # VEHÍCULOS
     # ==========================================
 
     st.sidebar.markdown("#### 🚚 Vehículos")
 
     if st.sidebar.button(
         "➕ Alta vehículo",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_alta_vehiculo"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "🚚 Vehículos"
-        opcion_logistica = "➕ Alta vehículo"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "🚚 Vehículos",
+            "➕ Alta vehículo"
+        )
 
     if st.sidebar.button(
         "❌ Baja vehículo",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_baja_vehiculo"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "🚚 Vehículos"
-        opcion_logistica = "❌ Baja vehículo"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "🚚 Vehículos",
+            "❌ Baja vehículo"
+        )
 
     if st.sidebar.button(
         "📋 Consulta vehículo",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_consulta_vehiculo"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "🚚 Vehículos"
-        opcion_logistica = "📋 Consulta vehículo"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "🚚 Vehículos",
+            "📋 Consulta vehículo"
+        )
 
     if st.sidebar.button(
         "✏️ Editar vehículo",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_editar_vehiculo"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "🚚 Vehículos"
-        opcion_logistica = "✏️ Editar vehículo"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "🚚 Vehículos",
+            "✏️ Editar vehículo"
+        )
 
     # ==========================================
     # OPERADORES
@@ -165,35 +232,47 @@ def sidebar_logistica():
 
     if st.sidebar.button(
         "➕ Alta operador",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_alta_operador"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👨 Operadores"
-        opcion_logistica = "➕ Alta operador"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👨 Operadores",
+            "➕ Alta operador"
+        )
 
     if st.sidebar.button(
         "❌ Baja operador",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_baja_operador"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👨 Operadores"
-        opcion_logistica = "❌ Baja operador"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👨 Operadores",
+            "❌ Baja operador"
+        )
 
     if st.sidebar.button(
         "📋 Consulta operador",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_consulta_operador"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👨 Operadores"
-        opcion_logistica = "📋 Consulta operador"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👨 Operadores",
+            "📋 Consulta operador"
+        )
 
     if st.sidebar.button(
         "✏️ Editar operador",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_editar_operador"
     ):
-        menu_logistica = "🚛 Transporte"
-        submenu_logistica = "👨 Operadores"
-        opcion_logistica = "✏️ Editar operador"
+        cambiar_opcion(
+            "🚛 Transporte",
+            "👨 Operadores",
+            "✏️ Editar operador"
+        )
 
     # ==========================================
     # RUTAS
@@ -203,35 +282,47 @@ def sidebar_logistica():
 
     if st.sidebar.button(
         "➕ Alta ruta",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_alta_ruta"
     ):
-        menu_logistica = "📍 Rutas"
-        submenu_logistica = "Rutas"
-        opcion_logistica = "➕ Alta ruta"
+        cambiar_opcion(
+            "📍 Rutas",
+            "Rutas",
+            "➕ Alta ruta"
+        )
 
     if st.sidebar.button(
         "❌ Baja ruta",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_baja_ruta"
     ):
-        menu_logistica = "📍 Rutas"
-        submenu_logistica = "Rutas"
-        opcion_logistica = "❌ Baja ruta"
+        cambiar_opcion(
+            "📍 Rutas",
+            "Rutas",
+            "❌ Baja ruta"
+        )
 
     if st.sidebar.button(
         "📋 Consulta ruta",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_consulta_ruta"
     ):
-        menu_logistica = "📍 Rutas"
-        submenu_logistica = "Rutas"
-        opcion_logistica = "📋 Consulta ruta"
+        cambiar_opcion(
+            "📍 Rutas",
+            "Rutas",
+            "📋 Consulta ruta"
+        )
 
     if st.sidebar.button(
         "✏️ Editar ruta",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_editar_ruta"
     ):
-        menu_logistica = "📍 Rutas"
-        submenu_logistica = "Rutas"
-        opcion_logistica = "✏️ Editar ruta"
+        cambiar_opcion(
+            "📍 Rutas",
+            "Rutas",
+            "✏️ Editar ruta"
+        )
 
     # ==========================================
     # TRACKING
@@ -241,30 +332,39 @@ def sidebar_logistica():
 
     if st.sidebar.button(
         "📍 Seguimiento embarque",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_seguimiento_embarque"
     ):
-        menu_logistica = "📡 Tracking"
-        submenu_logistica = "Tracking"
-        opcion_logistica = "📍 Seguimiento embarque"
+        cambiar_opcion(
+            "📡 Tracking",
+            "Tracking",
+            "📍 Seguimiento embarque"
+        )
 
     if st.sidebar.button(
         "📋 Consulta tracking",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_consulta_tracking"
     ):
-        menu_logistica = "📡 Tracking"
-        submenu_logistica = "Tracking"
-        opcion_logistica = "📋 Consulta tracking"
+        cambiar_opcion(
+            "📡 Tracking",
+            "Tracking",
+            "📋 Consulta tracking"
+        )
 
     if st.sidebar.button(
         "🚨 Eventos logísticos",
-        use_container_width=True
+        use_container_width=True,
+        key="log_btn_eventos_logisticos"
     ):
-        menu_logistica = "📡 Tracking"
-        submenu_logistica = "Tracking"
-        opcion_logistica = "🚨 Eventos logísticos"
+        cambiar_opcion(
+            "📡 Tracking",
+            "Tracking",
+            "🚨 Eventos logísticos"
+        )
 
     return (
-        menu_logistica,
-        submenu_logistica,
-        opcion_logistica
+        st.session_state.menu_logistica,
+        st.session_state.submenu_logistica,
+        st.session_state.opcion_logistica
     )
