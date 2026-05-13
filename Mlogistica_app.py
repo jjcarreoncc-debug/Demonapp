@@ -8,30 +8,20 @@ def logistica_app():
 
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
-st.title("🚚 Logística")
+    st.title("🚚 Logística")
 
-st.divider()
+    st.divider()
 
+    if opcion_logistica == "➕ Alta embarque":
 
-# ==========================================
-# EMBARQUES
-# ==========================================
+        alta_embarque_app()
 
-if opcion_logistica == "➕ Alta embarque":
+    else:
 
-    alta_embarque_app()
+        st.subheader(opcion_logistica)
 
+        st.info("Módulo de Logística en construcción.")
 
-# ==========================================
-# DEFAULT
-# ==========================================
-
-else:
-
-    st.subheader(opcion_logistica)
-
-    st.info("Módulo de Logística en construcción.")
-
-    st.write("Menú:", menu_logistica)
-    st.write("Submenú:", submenu_logistica)
-    st.write("Opción:", opcion_logistica)
+        st.write("Menú:", menu_logistica)
+        st.write("Submenú:", submenu_logistica)
+        st.write("Opción:", opcion_logistica)
