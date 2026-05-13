@@ -129,18 +129,19 @@ def pintar_barra_estatus(df):
     )
 
     # =====================================================
-    # GRAFICA
+    # GRAFIC
     # =====================================================
 
     chart = (
 
         alt.Chart(df_grafica)
-
+        # 
         .mark_bar(
-            cornerRadiusTopLeft=6,
-            cornerRadiusTopRight=6
-        )
-
+            size=28,
+            cornerRadiusTopLeft=4,
+            cornerRadiusTopRight=4
+        )         
+        #
         .encode(
 
             x=alt.X(
@@ -208,7 +209,7 @@ def pintar_barra_estatus(df):
 
         .properties(
             width=ancho_grafica,
-            height=350
+            height=200
         )
 
     )
