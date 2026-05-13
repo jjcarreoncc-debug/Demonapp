@@ -45,7 +45,7 @@ with st.sidebar:
         [
             "📦 Minventarios",
             "📦 Mlogistica",
-            "📊 Analíticos"
+            "📊 Analíticos",
             "🛠️ Mantenimiento"
         ],
         key="menu_central_sigem"
