@@ -16,7 +16,7 @@ def main():
     cur.execute("""
         SELECT codigo_material, descripcion
         FROM materiales_db.materiales
-        WHERE estatus = 'Activo'
+       
     """)
 
     materiales = cur.fetchall()
