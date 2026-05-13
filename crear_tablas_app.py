@@ -183,6 +183,7 @@ def crear_catalogo_estatus_embarque(cur):
     """)
 
     estatus_base = [
+        ("PEN", "Pendiente", 0, 1),
         ("ALM", "En almacén", 1, 1),
         ("PAT", "En patio", 2, 1),
         ("SAL", "Ya salió", 3, 1),
@@ -225,31 +226,84 @@ def crear_tabla_eventos_embarque(cur):
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS eventos_embarque (
-
             id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
-
             folio_embarque TEXT NOT NULL,
-
             fecha_evento TEXT NOT NULL,
-
             tipo_evento TEXT,
-
             estatus TEXT,
-
             ubicacion TEXT,
-
             comentarios TEXT,
-
             usuario TEXT,
-
             latitud REAL DEFAULT 0,
-
             longitud REAL DEFAULT 0,
-
             fecha_registro TEXT DEFAULT CURRENT_TIMESTAMP
-
         )
     """)
+
+
+# =====================================================
+# RUTAS
+# =====================================================
+
+def crear_tabla_rutas(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS rutas (
+            id_ruta INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_ruta TEXT UNIQUE NOT NULL,
+            descripcion TEXT,
+            origen TEXT,
+            destino TEXT,
+            distancia_km REAL DEFAULT 0,
+            tiempo_estimado REAL DEFAULT 0,
+            activo INTEGER DEFAULT 1,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_puntos_ruta(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS puntos_ruta (
+            id_punto INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_ruta TEXT NOT NULL,
+            secuencia INTEGER DEFAULT 0,
+            tipo_punto TEXT,
+            ubicacion TEXT,
+            ciudad TEXT,
+            estado TEXT,
+            latitud REAL DEFAULT 0,
+            longitud REAL DEFAULT 0,
+            tiempo_estimado REAL DEFAULT 0,
+            activo INTEGER DEFAULT 1,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tablas_rutas_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tablas de rutas creadas/actualizadas")
+
+    st.subheader("📋 Rutas")
+    mostrar_estructura_tabla(db_path, "rutas")
+
+    st.subheader("📋 Puntos ruta")
+    mostrar_estructura_tabla(db_path, "puntos_ruta")
 
 
 def crear_tablas_logistica():
@@ -334,6 +388,8 @@ def crear_tablas_logistica():
     crear_catalogo_estatus_embarque(cur)
     crear_tabla_historial_estatus_embarque(cur)
     crear_tabla_eventos_embarque(cur)
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
 
     conn.commit()
     conn.close()
@@ -379,6 +435,8 @@ def alterar_tabla_embarques():
     crear_catalogo_estatus_embarque(cur)
     crear_tabla_historial_estatus_embarque(cur)
     crear_tabla_eventos_embarque(cur)
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
 
     conn.commit()
     conn.close()
@@ -394,6 +452,12 @@ def alterar_tabla_embarques():
 
     st.subheader("📋 Eventos embarque")
     mostrar_estructura_tabla(db_path, "eventos_embarque")
+
+    st.subheader("📋 Rutas")
+    mostrar_estructura_tabla(db_path, "rutas")
+
+    st.subheader("📋 Puntos ruta")
+    mostrar_estructura_tabla(db_path, "puntos_ruta")
 
 
 def alterar_tabla_detalle_embarque():
@@ -439,6 +503,8 @@ def crear_tablas_control_embarques():
     crear_catalogo_estatus_embarque(cur)
     crear_tabla_historial_estatus_embarque(cur)
     crear_tabla_eventos_embarque(cur)
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
 
     conn.commit()
     conn.close()
@@ -453,6 +519,12 @@ def crear_tablas_control_embarques():
 
     st.subheader("📋 Eventos embarque")
     mostrar_estructura_tabla(db_path, "eventos_embarque")
+
+    st.subheader("📋 Rutas")
+    mostrar_estructura_tabla(db_path, "rutas")
+
+    st.subheader("📋 Puntos ruta")
+    mostrar_estructura_tabla(db_path, "puntos_ruta")
 
 
 # =====================================================
@@ -512,7 +584,9 @@ def crear_tablas_app():
             "detalle_embarque",
             "estatus_embarque",
             "historial_estatus_embarque",
-            "eventos_embarque"
+            "eventos_embarque",
+            "rutas",
+            "puntos_ruta"
         ]
 
     tabla = st.selectbox(
@@ -599,6 +673,13 @@ def crear_tablas_app():
 
                         crear_tablas_control_embarques()
 
+                    elif tabla in [
+                        "rutas",
+                        "puntos_ruta"
+                    ]:
+
+                        crear_tablas_rutas_logistica()
+
                 st.success(
                     f"✅ Tabla(s) creadas correctamente para {modulo}"
                 )
@@ -644,6 +725,7 @@ def crear_tablas_app():
                     alterar_tabla_embarques()
                     alterar_tabla_detalle_embarque()
                     crear_tablas_control_embarques()
+                    crear_tablas_rutas_logistica()
 
                 elif modulo == "Logística" and tabla in [
                     "estatus_embarque",
@@ -652,6 +734,13 @@ def crear_tablas_app():
                 ]:
 
                     crear_tablas_control_embarques()
+
+                elif modulo == "Logística" and tabla in [
+                    "rutas",
+                    "puntos_ruta"
+                ]:
+
+                    crear_tablas_rutas_logistica()
 
                 else:
 
