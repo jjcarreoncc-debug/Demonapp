@@ -471,30 +471,24 @@ def crear_tablas_app():
         ):
 
             try:
+               #
+               try:
 
-                if modulo == "Inventarios" and tabla == "movimientos_inventario":
-
-                    alterar_movimientos_inventario()
-
-                elif modulo == "Logística" and tabla == "embarques":
-
-                    alterar_tabla_embarques()
-
-                elif modulo == "Logística" and tabla == "detalle_embarque":
-
-                    alterar_tabla_detalle_embarque()
-
-                else:
-
-                    st.info(
-                        f"No hay modificación configurada para {modulo} / {tabla}."
-                    )
-                    st.stop()
-
-                st.success(
-                    f"✅ Estructura actualizada: {modulo} / {tabla}"
-                )
-
+                   if modulo == "Inventarios" and tabla == "movimientos_inventario":
+            
+                       alterar_movimientos_inventario()
+            
+                   elif modulo == "Logística" and tabla == "embarques":
+            
+                       alterar_tabla_embarques()
+            
+                   elif modulo == "Logística" and tabla == "detalle_embarque":
+            
+                       alterar_tabla_detalle_embarque()
+            
+                   st.success(
+                       f"✅ Estructura actualizada: {modulo} / {tabla}"
+                   ) 
             except Exception as e:
 
                 st.error(
