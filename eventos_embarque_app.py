@@ -275,28 +275,28 @@ def pintar_timeline_visual(df_eventos):
         ubicacion = str(row.get("ubicacion", "") or "")
         usuario = str(row.get("usuario", "") or "")
         comentarios = str(row.get("comentarios", "") or "")
-
+        ###########################
         html += f"""
             <div class="timeline-item">
                 <div class="timeline-dot" style="background-color:{color};"></div>
-
+        
                 <div class="timeline-title">
                     {icono} {estatus}
                     <span class="timeline-badge" style="background-color:{color};">
                         {tipo}
                     </span>
                 </div>
-
+        
                 <div class="timeline-meta">
                     🕒 {fecha}
                 </div>
-
+        
                 <div class="timeline-meta">
                     📍 {ubicacion if ubicacion else "Sin ubicación"} &nbsp; | &nbsp;
                     👤 {usuario if usuario else "Sin usuario"}
                 </div>
         """
-
+        ##############################
         if comentarios:
 
             html += f"""
