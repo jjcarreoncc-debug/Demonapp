@@ -221,9 +221,27 @@ def actualizar_estatus_embarque_app():
 
     st.title("✏️ Actualizar estatus embarque")
 
+    # =====================================================
+    # SESSION STATE
+    # =====================================================
+
+    if "refresh_estatus_embarque" not in st.session_state:
+
+        st.session_state["refresh_estatus_embarque"] = False
+
+    # =====================================================
+    # CONSULTAR EMBARQUES
+    # =====================================================
+
     try:
 
         df_embarques = obtener_embarques_para_estatus()
+
+        if st.session_state["refresh_estatus_embarque"]:
+
+            st.session_state["refresh_estatus_embarque"] = False
+
+            df_embarques = obtener_embarques_para_estatus()
 
     except Exception as e:
 
@@ -422,11 +440,11 @@ def actualizar_estatus_embarque_app():
                     observaciones
                 )
 
+                st.session_state["refresh_estatus_embarque"] = True
+
                 st.success(
                     f"✅ Estatus actualizado: {folio_seleccionado} → {nuevo_estatus}"
                 )
-
-                st.rerun()
 
             except Exception as e:
 
