@@ -319,7 +319,7 @@ def dashboard_general(df):
 
 def dashboard_stock_app():
 
-     df = cargar_datos_stock()
+    df = cargar_datos_stock()
 
     if df.empty:
         st.warning("⚠️ No hay datos de materiales o movimientos para mostrar.")
