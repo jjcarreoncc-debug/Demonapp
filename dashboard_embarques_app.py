@@ -153,12 +153,16 @@ def pintar_barra_estatus(df):
                     labelAngle=-45
                 )
             ),
-
+            #
             y=alt.Y(
-                "estatus:N",
-                title="Estatus"
+              "estatus:N",
+              title="Estatus",
+              scale=alt.Scale(
+                  paddingInner=0.65,
+                  paddingOuter=0.25
+              )
             ),
-
+            #
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
