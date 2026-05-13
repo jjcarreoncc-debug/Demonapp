@@ -192,6 +192,10 @@ def registrar_evento_embarque(
 # TIMELINE VISUAL
 # =====================================================
 
+# =====================================================
+# TIMELINE VISUAL CON ALTAIR
+# =====================================================
+
 def pintar_timeline_visual(df_eventos):
 
     colores = {
@@ -204,185 +208,119 @@ def pintar_timeline_visual(df_eventos):
         "Cancelado": "#DC2626"
     }
 
-    iconos = {
-        "Pendiente": "⏳",
-        "En almacén": "🏭",
-        "En patio": "🚛",
-        "Ya salió": "🚚",
-        "En tránsito": "🛣️",
-        "Entregado": "✅",
-        "Cancelado": "❌"
-    }
+    orden_estatus = [
+        "Pendiente",
+        "En almacén",
+        "En patio",
+        "Ya salió",
+        "En tránsito",
+        "Entregado",
+        "Cancelado"
+    ]
 
-    st.markdown("""
+    df_timeline = df_eventos.copy()
 
-        <style>
-
-            .timeline-container {
-                border-left: 3px solid #D1D5DB;
-                margin-left: 18px;
-                padding-left: 24px;
-            }
-
-            .timeline-item {
-                position: relative;
-                margin-bottom: 22px;
-                padding: 14px 16px;
-                border-radius: 12px;
-                background-color: #FFFFFF;
-                border: 1px solid #E5E7EB;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            }
-
-            .timeline-dot {
-                position: absolute;
-                left: -35px;
-                top: 18px;
-                width: 18px;
-                height: 18px;
-                border-radius: 50%;
-                border: 3px solid white;
-                box-shadow: 0 0 0 2px #D1D5DB;
-            }
-
-            .timeline-title {
-                font-size: 16px;
-                font-weight: 700;
-                color: #111827;
-                margin-bottom: 4px;
-            }
-
-            .timeline-meta {
-                font-size: 13px;
-                color: #4B5563;
-                margin-bottom: 6px;
-            }
-
-            .timeline-comments {
-                font-size: 14px;
-                color: #374151;
-                margin-top: 8px;
-            }
-
-            .timeline-badge {
-                display: inline-block;
-                padding: 3px 10px;
-                border-radius: 999px;
-                color: white;
-                font-size: 12px;
-                font-weight: 600;
-                margin-left: 8px;
-            }
-
-        </style>
-
-    """, unsafe_allow_html=True)
-
-    html = "<div class='timeline-container'>"
-
-    for _, row in df_eventos.iterrows():
-
-        estatus = str(
-            row.get("estatus", "") or ""
-        )
-
-        color = colores.get(
-            estatus,
-            "#6B7280"
-        )
-
-        icono = iconos.get(
-            estatus,
-            "📍"
-        )
-
-        fecha = str(
-            row.get("fecha_evento", "") or ""
-        )
-
-        tipo = str(
-            row.get("tipo_evento", "") or ""
-        )
-
-        ubicacion = str(
-            row.get("ubicacion", "") or ""
-        )
-
-        usuario = str(
-            row.get("usuario", "") or ""
-        )
-
-        comentarios = str(
-            row.get("comentarios", "") or ""
-        )
-
-        html += f"""
-
-            <div class="timeline-item">
-
-                <div
-                    class="timeline-dot"
-                    style="background-color:{color};">
-                </div>
-
-                <div class="timeline-title">
-
-                    {icono} {estatus}
-
-                    <span
-                        class="timeline-badge"
-                        style="background-color:{color};">
-
-                        {tipo}
-
-                    </span>
-
-                </div>
-
-                <div class="timeline-meta">
-
-                    🕒 {fecha}
-
-                </div>
-
-                <div class="timeline-meta">
-
-                    📍 {ubicacion if ubicacion else "Sin ubicación"}
-
-                    &nbsp; | &nbsp;
-
-                    👤 {usuario if usuario else "Sin usuario"}
-
-                </div>
-
-        """
-
-        if comentarios:
-
-            html += f"""
-
-                <div class="timeline-comments">
-
-                    💬 {comentarios}
-
-                </div>
-
-            """
-
-        html += """
-
-            </div>
-
-        """
-
-    html += "</div>"
-
-    st.markdown(
-        html,
-        unsafe_allow_html=True
+    df_timeline["fecha_evento"] = pd.to_datetime(
+        df_timeline["fecha_evento"],
+        errors="coerce"
     )
 
+    df_timeline["estatus"] = (
+        df_timeline["estatus"]
+        .fillna("Pendiente")
+        .astype(str)
+    )
 
+    df_timeline["evento"] = (
+        df_timeline["tipo_evento"]
+        .fillna("")
+        .astype(str)
+    )
+
+    df_timeline["detalle"] = (
+        df_timeline["estatus"].astype(str)
+        + " | "
+        + df_timeline["evento"].astype(str)
+    )
+
+    df_timeline = df_timeline.dropna(
+        subset=["fecha_evento"]
+    )
+
+    if df_timeline.empty:
+
+        st.info("No hay eventos válidos para mostrar en timeline.")
+        return
+
+    colores_usados = [
+        colores.get(estatus, "#9CA3AF")
+        for estatus in orden_estatus
+    ]
+
+    chart = (
+        alt.Chart(df_timeline)
+        .mark_circle(
+            size=260,
+            opacity=0.95
+        )
+        .encode(
+            x=alt.X(
+                "fecha_evento:T",
+                title="Fecha / hora evento",
+                axis=alt.Axis(
+                    format="%d/%m %H:%M",
+                    labelAngle=-45,
+                    grid=True
+                )
+            ),
+            y=alt.Y(
+                "estatus:N",
+                sort=orden_estatus,
+                title="Estatus",
+                axis=alt.Axis(
+                    grid=True,
+                    tickSize=0
+                )
+            ),
+            color=alt.Color(
+                "estatus:N",
+                scale=alt.Scale(
+                    domain=orden_estatus,
+                    range=colores_usados
+                ),
+                legend=None
+            ),
+            tooltip=[
+                alt.Tooltip("fecha_evento:T", title="Fecha evento"),
+                alt.Tooltip("tipo_evento:N", title="Tipo evento"),
+                alt.Tooltip("estatus:N", title="Estatus"),
+                alt.Tooltip("ubicacion:N", title="Ubicación"),
+                alt.Tooltip("comentarios:N", title="Comentarios"),
+                alt.Tooltip("usuario:N", title="Usuario"),
+                alt.Tooltip("latitud:Q", title="Latitud"),
+                alt.Tooltip("longitud:Q", title="Longitud")
+            ]
+        )
+        .properties(
+            height=420
+        )
+        .configure_axis(
+            grid=True,
+            gridColor="#D1D5DB",
+            gridDash=[3, 2],
+            domain=False,
+            labelColor="#374151",
+            titleColor="#111827"
+        )
+        .configure_view(
+            stroke="#D1D5DB"
+        )
+    )
+
+    st.altair_chart(
+        chart,
+        use_container_width=True
+    )
 # =====================================================
 # APP
 # =====================================================
