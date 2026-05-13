@@ -517,8 +517,9 @@ def crear_tablas_app():
                     st.exception(e)
 
         elif (
-            modulo == "Logística"
-            and tabla == "embarques"
+            
+            modulo.lower() == "logística".lower()
+            and tabla.lower() == "embarques"
         ):
 
             if st.button(
