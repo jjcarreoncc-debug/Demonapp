@@ -36,6 +36,12 @@ def sidebar_graficos_stock():
         use_container_width=True
     ):
         menu = "rotacion"
+        
+    if st.sidebar.button(
+        "🔎 Trazabilidad",
+        use_container_width=True
+    ):
+        menu = "Trazabilidad"
 
     if st.sidebar.button(
         "🤖 IA",
