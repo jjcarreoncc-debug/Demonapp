@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import altair as alt
 
 from sigem_db import get_db_path
 
@@ -61,18 +62,18 @@ def pintar_barra_estatus(df):
 
     ]
 
-    colores = {
+    colores = [
 
-        "En almacén": "🟣",
-        "En patio": "🟠",
-        "Ya salió": "🟡",
-        "En tránsito": "🔵",
-        "Entregado": "🟢",
-        "Cancelado": "🔴"
+        "#7C3AED",
+        "#F97316",
+        "#EAB308",
+        "#2563EB",
+        "#16A34A",
+        "#DC2626"
 
-    }
+    ]
 
-    conteo = (
+    df_status = (
         df["estatus"]
         .fillna("Sin estatus")
         .astype(str)
@@ -84,53 +85,59 @@ def pintar_barra_estatus(df):
         .reset_index()
     )
 
-    conteo.columns = [
+    df_status.columns = [
         "estatus",
         "cantidad"
     ]
 
-    total = int(
-        conteo["cantidad"].sum()
+    chart = (
+
+        alt.Chart(df_status)
+
+        .mark_bar(
+            cornerRadiusTopRight=8,
+            cornerRadiusBottomRight=8
+        )
+
+        .encode(
+
+            y=alt.Y(
+                "estatus:N",
+                sort=orden_estatus,
+                title="Estatus"
+            ),
+
+            x=alt.X(
+                "cantidad:Q",
+                title="Cantidad de embarques"
+            ),
+
+            color=alt.Color(
+                "estatus:N",
+                scale=alt.Scale(
+                    domain=orden_estatus,
+                    range=colores
+                ),
+                legend=None
+            ),
+
+            tooltip=[
+                "estatus",
+                "cantidad"
+            ]
+
+        )
+
+        .properties(
+            height=350
+        )
+
     )
 
-    maximo = max(
-        int(conteo["cantidad"].max()),
-        1
+    st.altair_chart(
+        chart,
+        use_container_width=True
     )
-
-    for _, row in conteo.iterrows():
-
-        estatus = row["estatus"]
-
-        cantidad = int(
-            row["cantidad"]
-        )
-
-        porcentaje = (
-            round(
-                (cantidad / total) * 100,
-                1
-            )
-            if total > 0 else 0
-        )
-
-        ancho = (
-            cantidad / maximo
-            if maximo > 0 else 0
-        )
-
-        emoji = colores.get(
-            estatus,
-            "⚪"
-        )
-
-        st.markdown(
-            f"""
-### {emoji} {estatus} — {cantidad} embarques ({porcentaje}%)
-"""
-        )
-
-        st.progress(ancho)
 
 
 # =====================================================
@@ -280,11 +287,14 @@ def dashboard_embarques_app():
     )
 
     cumplimiento = (
+
         round(
             (entregados / total) * 100,
             1
         )
+
         if total > 0 else 0
+
     )
 
     st.divider()
