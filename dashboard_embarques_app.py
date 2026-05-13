@@ -51,44 +51,66 @@ def obtener_embarques():
 
 def pintar_barra_estatus(df):
 
-    orden_estatus = [
+    # =====================================================
+    # COLORES POR ESTATUS
+    # =====================================================
 
-        "En almacén",
-        "En patio",
-        "Ya salió",
-        "En tránsito",
-        "Entregado",
-        "Cancelado"
+    mapa_colores = {
 
-    ]
+        "En almacén": "#7C3AED",
+        "En patio": "#F97316",
+        "Ya salió": "#EAB308",
+        "En tránsito": "#2563EB",
+        "Entregado": "#16A34A",
+        "Cancelado": "#DC2626"
 
-    colores = [
+    }
 
-        "#7C3AED",
-        "#F97316",
-        "#EAB308",
-        "#2563EB",
-        "#16A34A",
-        "#DC2626"
-
-    ]
+    # =====================================================
+    # DATAFRAME DINAMICO
+    # =====================================================
 
     df_status = (
+
         df["estatus"]
         .fillna("Sin estatus")
         .astype(str)
         .value_counts()
-        .reindex(
-            orden_estatus,
-            fill_value=0
-        )
         .reset_index()
+
     )
 
     df_status.columns = [
         "estatus",
         "cantidad"
     ]
+
+    # =====================================================
+    # SOLO ESTATUS CON DATOS
+    # =====================================================
+
+    df_status = df_status[
+        df_status["cantidad"] > 0
+    ]
+
+    # =====================================================
+    # COLOR DINAMICO
+    # =====================================================
+
+    colores = [
+
+        mapa_colores.get(
+            estatus,
+            "#6B7280"
+        )
+
+        for estatus in df_status["estatus"]
+
+    ]
+
+    # =====================================================
+    # GRAFICA
+    # =====================================================
 
     chart = (
 
@@ -103,27 +125,38 @@ def pintar_barra_estatus(df):
 
             y=alt.Y(
                 "estatus:N",
-                sort=orden_estatus,
-                title="Estatus"
+                sort="-x",
+                title=None
             ),
 
             x=alt.X(
                 "cantidad:Q",
-                title="Cantidad de embarques"
+                title="Cantidad de embarques",
+                axis=alt.Axis(
+                    format="d",
+                    tickMinStep=1
+                )
             ),
 
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
-                    domain=orden_estatus,
+                    domain=df_status["estatus"].tolist(),
                     range=colores
                 ),
                 legend=None
             ),
 
             tooltip=[
-                "estatus",
-                "cantidad"
+                alt.Tooltip(
+                    "estatus:N",
+                    title="Estatus"
+                ),
+                alt.Tooltip(
+                    "cantidad:Q",
+                    title="Cantidad",
+                    format="d"
+                )
             ]
 
         )
