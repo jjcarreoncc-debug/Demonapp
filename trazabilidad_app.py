@@ -53,9 +53,9 @@ def trazabilidad_app():
     query = """
         SELECT *
         FROM movimientos_inventario
-        WHERE DATE(fecha_movimiento)
+        WHERE DATE(fecha)
         BETWEEN ? AND ?
-        ORDER BY fecha_movimiento DESC
+        ORDER BY fecha DESC
     """
 
 
