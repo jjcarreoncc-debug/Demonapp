@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 
 from sigem_db import get_db_path
-
+st.warning("NUEVO ARCHIVO ALTA EMBARQUE")
 
 # =====================================================
 # OBTENER HOJAS CARGA PENDIENTES
