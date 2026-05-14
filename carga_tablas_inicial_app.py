@@ -74,6 +74,34 @@ COLUMNAS_MINIMAS = {
         "codigo_ruta",
         "fecha_salida",
         "estatus"
+    ],
+
+    # =====================================================
+    # NUEVO
+    # =====================================================
+
+    "embarques": [
+        "folio_embarque",
+        "pedido",
+        "fecha",
+        "cliente",
+        "destino",
+        "transportista",
+        "vehiculo",
+        "operador",
+        "ruta"
+    ],
+
+    "detalle_embarque": [
+        "folio_embarque",
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad_pedida",
+        "cantidad_embarcar",
+        "peso",
+        "volumen",
+        "bodega"
     ]
 }
 
@@ -98,7 +126,15 @@ DB_POR_TABLA = {
 
     "transportes": "logistica",
 
-    "detalle_transporte": "logistica"
+    "detalle_transporte": "logistica",
+
+    # =====================================================
+    # NUEVO
+    # =====================================================
+
+    "embarques": "logistica",
+
+    "detalle_embarque": "logistica"
 }
 
 
@@ -111,7 +147,7 @@ def carga_tablas_inicial_app():
     st.title("📥 Carga tablas inicial")
 
     st.caption(
-        "Configuración / Carga inicial"
+        "⚙️ Configuración / Carga inicial"
     )
 
     # =====================================================
@@ -152,7 +188,14 @@ def carga_tablas_inicial_app():
             "rutas",
             "puntos_ruta",
             "transportes",
-            "detalle_transporte"
+            "detalle_transporte",
+
+            # =====================================================
+            # NUEVO
+            # =====================================================
+
+            "embarques",
+            "detalle_embarque"
         ]
 
     tabla = st.selectbox(
@@ -379,6 +422,56 @@ def carga_tablas_inicial_app():
 
             st.error(
                 "❌ Hay registros sin codigo_ruta"
+            )
+
+            return
+
+    # =====================================================
+    # NUEVO
+    # =====================================================
+
+    if tabla == "embarques":
+
+        if df["folio_embarque"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_embarque"
+            )
+
+            return
+
+        duplicados = df[
+            df["folio_embarque"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay folio_embarque duplicados"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "detalle_embarque":
+
+        if df["folio_embarque"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_embarque"
+            )
+
+            return
+
+        if df["codigo_material"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_material"
             )
 
             return
