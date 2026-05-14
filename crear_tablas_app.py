@@ -363,6 +363,7 @@ def crear_tabla_eventos_embarque(cur):
         CREATE TABLE IF NOT EXISTS eventos_embarque (
             id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_embarque TEXT NOT NULL,
+            codigo_transporte TEXT,
             fecha_evento TEXT NOT NULL,
             tipo_evento TEXT,
             estatus TEXT,
