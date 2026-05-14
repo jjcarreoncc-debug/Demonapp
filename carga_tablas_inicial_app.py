@@ -56,6 +56,24 @@ COLUMNAS_MINIMAS = {
         "secuencia",
         "tipo_punto",
         "ubicacion"
+    ],
+
+    "transportes": [
+        "codigo_transporte",
+        "descripcion",
+        "tipo_transporte",
+        "transportista",
+        "vehiculo",
+        "placas",
+        "operador"
+    ],
+
+    "detalle_transporte": [
+        "codigo_transporte",
+        "folio_embarque",
+        "codigo_ruta",
+        "fecha_salida",
+        "estatus"
     ]
 }
 
@@ -76,7 +94,11 @@ DB_POR_TABLA = {
 
     "rutas": "logistica",
 
-    "puntos_ruta": "logistica"
+    "puntos_ruta": "logistica",
+
+    "transportes": "logistica",
+
+    "detalle_transporte": "logistica"
 }
 
 
@@ -128,7 +150,9 @@ def carga_tablas_inicial_app():
 
         tablas_disponibles = [
             "rutas",
-            "puntos_ruta"
+            "puntos_ruta",
+            "transportes",
+            "detalle_transporte"
         ]
 
     tabla = st.selectbox(
@@ -301,6 +325,60 @@ def carga_tablas_inicial_app():
 
             st.error(
                 "❌ Hay registros sin secuencia"
+            )
+
+            return
+
+    if tabla == "transportes":
+
+        if df["codigo_transporte"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_transporte"
+            )
+
+            return
+
+        duplicados = df[
+            df["codigo_transporte"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay codigo_transporte duplicados"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "detalle_transporte":
+
+        if df["codigo_transporte"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_transporte"
+            )
+
+            return
+
+        if df["folio_embarque"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_embarque"
+            )
+
+            return
+
+        if df["codigo_ruta"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_ruta"
             )
 
             return
