@@ -342,23 +342,13 @@ def registrar_evento_transporte(
             f"Solo se permite avanzar a: "
             f"{', '.join(permitidos)}."
         )
-
+    #
     cur.execute("""
-        INSERT INTO eventos_embarque (
-            codigo_transporte,
-            fecha_evento,
-            tipo_evento,
-            estatus,
-            ubicacion,
-            comentarios,
-            usuario,
-            latitud,
-            longitud,
-            fecha_registro
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
+    INSERT INTO eventos_embarque (
+
+        folio_embarque,
         codigo_transporte,
+
         fecha_evento,
         tipo_evento,
         estatus,
@@ -368,8 +358,27 @@ def registrar_evento_transporte(
         latitud,
         longitud,
         fecha_registro
-    ))
 
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+""", (
+
+    codigo_transporte,
+    codigo_transporte,
+
+    fecha_evento,
+    tipo_evento,
+    estatus,
+    ubicacion,
+    comentarios,
+    usuario,
+    latitud,
+    longitud,
+    fecha_registro
+
+))
+    #
     cur.execute("""
         UPDATE embarques
         SET
