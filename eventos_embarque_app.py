@@ -7,6 +7,58 @@ from sigem_db import get_db_path
 
 
 # =====================================================
+# FLUJO CONTROLADO DE ESTATUS
+# =====================================================
+
+ESTATUS_FLUJO = [
+    "Pendiente",
+    "En almacén",
+    "En patio",
+    "Ya salió",
+    "En tránsito",
+    "Entregado"
+]
+
+ESTATUS_CANCELACION = "Cancelado"
+
+TRANSICIONES_VALIDAS = {
+    "Pendiente": ["En almacén", "Cancelado"],
+    "En almacén": ["En patio", "Cancelado"],
+    "En patio": ["Ya salió", "Cancelado"],
+    "Ya salió": ["En tránsito", "Cancelado"],
+    "En tránsito": ["Entregado", "Cancelado"],
+    "Entregado": [],
+    "Cancelado": []
+}
+
+
+def obtener_siguientes_estatus(estatus_actual):
+    estatus_actual = str(estatus_actual or "").strip()
+
+    if not estatus_actual:
+        estatus_actual = "Pendiente"
+
+    return TRANSICIONES_VALIDAS.get(
+        estatus_actual,
+        []
+    )
+
+
+def validar_transicion_estatus(estatus_actual, estatus_nuevo):
+    estatus_actual = str(estatus_actual or "").strip()
+    estatus_nuevo = str(estatus_nuevo or "").strip()
+
+    permitidos = obtener_siguientes_estatus(
+        estatus_actual
+    )
+
+    if estatus_nuevo not in permitidos:
+        return False
+
+    return True
+
+
+# =====================================================
 # OBTENER EMBARQUES
 # =====================================================
 
@@ -245,6 +297,19 @@ def registrar_evento_embarque(
 
     estatus_anterior = row[0] if row else ""
 
+    if not validar_transicion_estatus(
+        estatus_anterior,
+        estatus
+    ):
+
+        conn.close()
+
+        raise ValueError(
+            f"No se permite cambiar de "
+            f"'{estatus_anterior}' a '{estatus}'. "
+            f"Debe respetarse la secuencia del embarque."
+        )
+
     cur.execute("""
         INSERT INTO eventos_embarque (
             folio_embarque,
@@ -475,9 +540,10 @@ def eventos_embarque_app():
     st.title("🛰️ Eventos embarque")
 
     st.info(
-        "Cambia el estatus del embarque. "
-        "La ubicación y coordenadas se toman "
-        "automáticamente de la ruta asignada."
+        "Cambia el estatus del embarque respetando "
+        "la secuencia operativa. La ubicación y "
+        "coordenadas se toman automáticamente de la "
+        "ruta asignada."
     )
 
     try:
@@ -536,6 +602,17 @@ def eventos_embarque_app():
         embarque.get("ruta", "") or ""
     ).strip()
 
+    estatus_actual = str(
+        embarque.get("estatus", "") or ""
+    ).strip()
+
+    if not estatus_actual:
+        estatus_actual = "Pendiente"
+
+    siguientes_estatus = obtener_siguientes_estatus(
+        estatus_actual
+    )
+
     st.divider()
 
     st.subheader("📦 Datos del embarque")
@@ -590,7 +667,7 @@ def eventos_embarque_app():
 
         st.write(
             "**Estatus actual:**",
-            embarque.get("estatus", "")
+            estatus_actual
         )
 
     st.divider()
@@ -599,173 +676,193 @@ def eventos_embarque_app():
         "➕ Registrar cambio de estatus"
     )
 
-    estatus_lista = [
-        "Pendiente",
-        "En almacén",
-        "En patio",
-        "Ya salió",
-        "En tránsito",
-        "Entregado",
-        "Cancelado"
-    ]
+    if estatus_actual in ["Entregado", "Cancelado"]:
 
-    estatus_actual = str(
-        embarque.get("estatus", "") or ""
-    )
+        st.success(
+            f"✅ Este embarque ya se encuentra en "
+            f"estatus final: {estatus_actual}"
+        )
 
-    if estatus_actual in estatus_lista:
+        st.info(
+            "No hay más cambios de estatus disponibles."
+        )
 
-        index_estatus = estatus_lista.index(
-            estatus_actual
+    elif not siguientes_estatus:
+
+        st.warning(
+            "⚠️ No hay una transición configurada "
+            "para el estatus actual."
         )
 
     else:
 
-        index_estatus = 0
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-
-        fecha_evento = st.date_input(
-            "Fecha evento",
-            value=datetime.now().date()
+        st.caption(
+            f"Flujo permitido desde **{estatus_actual}**: "
+            f"{', '.join(siguientes_estatus)}"
         )
 
-    with col2:
+        col1, col2, col3 = st.columns(3)
 
-        hora_evento = st.time_input(
-            "Hora evento",
-            value=datetime.now().time().replace(
-                microsecond=0
+        with col1:
+
+            fecha_evento = st.date_input(
+                "Fecha evento",
+                value=datetime.now().date()
             )
+
+        with col2:
+
+            hora_evento = st.time_input(
+                "Hora evento",
+                value=datetime.now().time().replace(
+                    microsecond=0
+                )
+            )
+
+        with col3:
+
+            usuario = st.text_input(
+                "Usuario",
+                value="admin"
+            )
+
+        estatus = st.selectbox(
+            "Nuevo estatus",
+            siguientes_estatus
         )
 
-    with col3:
+        tipo_evento = "Actualización de estatus"
 
-        usuario = st.text_input(
-            "Usuario",
-            value="admin"
+        punto_ruta = obtener_punto_por_estatus(
+            codigo_ruta,
+            estatus
         )
 
-    estatus = st.selectbox(
-        "Nuevo estatus",
-        estatus_lista,
-        index=index_estatus
-    )
+        ubicacion = punto_ruta["ubicacion"]
 
-    tipo_evento = "Actualización de estatus"
+        latitud = punto_ruta["latitud"]
 
-    punto_ruta = obtener_punto_por_estatus(
-        codigo_ruta,
-        estatus
-    )
+        longitud = punto_ruta["longitud"]
 
-    ubicacion = punto_ruta["ubicacion"]
-
-    latitud = punto_ruta["latitud"]
-
-    longitud = punto_ruta["longitud"]
-
-    st.markdown(
-        "### 📍 Datos automáticos de ruta"
-    )
-
-    col4, col5, col6 = st.columns(3)
-
-    with col4:
-
-        st.text_input(
-            "Ubicación",
-            value=ubicacion,
-            disabled=True
+        st.markdown(
+            "### 📍 Datos automáticos de ruta"
         )
 
-    with col5:
+        col4, col5, col6 = st.columns(3)
 
-        st.number_input(
-            "Latitud",
-            value=latitud,
-            format="%.6f",
-            disabled=True
+        with col4:
+
+            st.text_input(
+                "Ubicación",
+                value=ubicacion,
+                disabled=True
+            )
+
+        with col5:
+
+            st.number_input(
+                "Latitud",
+                value=latitud,
+                format="%.6f",
+                disabled=True
+            )
+
+        with col6:
+
+            st.number_input(
+                "Longitud",
+                value=longitud,
+                format="%.6f",
+                disabled=True
+            )
+
+        comentarios = st.text_area(
+            "Comentarios",
+            placeholder="Describe el cambio de estatus..."
         )
 
-    with col6:
+        if not codigo_ruta:
 
-        st.number_input(
-            "Longitud",
-            value=longitud,
-            format="%.6f",
-            disabled=True
+            st.warning(
+                "⚠️ Este embarque no tiene ruta asignada."
+            )
+
+        elif not ubicacion:
+
+            st.warning(
+                "⚠️ No se encontraron puntos de ruta "
+                "para este embarque."
+            )
+
+        guardar = st.button(
+            "💾 Guardar cambio de estatus",
+            use_container_width=True
         )
 
-    comentarios = st.text_area(
-        "Comentarios",
-        placeholder="Describe el cambio de estatus..."
-    )
+        if guardar:
 
-    if not codigo_ruta:
+            try:
 
-        st.warning(
-            "⚠️ Este embarque no tiene ruta asignada."
-        )
+                if not codigo_ruta:
 
-    elif not ubicacion:
+                    st.error(
+                        "❌ No se puede registrar "
+                        "el evento porque el embarque "
+                        "no tiene ruta asignada."
+                    )
 
-        st.warning(
-            "⚠️ No se encontraron puntos de ruta para este embarque."
-        )
+                    return
 
-    guardar = st.button(
-        "💾 Guardar cambio de estatus",
-        use_container_width=True
-    )
+                if not validar_transicion_estatus(
+                    estatus_actual,
+                    estatus
+                ):
 
-    if guardar:
+                    st.error(
+                        "❌ No puede seleccionar este "
+                        "estatus porque rompe la secuencia "
+                        "del proceso."
+                    )
 
-        try:
+                    st.warning(
+                        f"El estatus actual es "
+                        f"'{estatus_actual}' y solo se permite: "
+                        f"{', '.join(siguientes_estatus)}"
+                    )
 
-            if not codigo_ruta:
+                    return
 
-                st.error(
-                    "❌ No se puede registrar "
-                    "el evento porque el embarque "
-                    "no tiene ruta asignada."
+                fecha_evento_completa = datetime.combine(
+                    fecha_evento,
+                    hora_evento
+                ).strftime("%Y-%m-%d %H:%M:%S")
+
+                registrar_evento_embarque(
+                    folio_seleccionado,
+                    fecha_evento_completa,
+                    tipo_evento,
+                    estatus,
+                    ubicacion,
+                    comentarios,
+                    usuario,
+                    latitud,
+                    longitud
                 )
 
-                return
+                st.success(
+                    f"✅ Estatus actualizado "
+                    f"para {folio_seleccionado}"
+                )
 
-            fecha_evento_completa = datetime.combine(
-                fecha_evento,
-                hora_evento
-            ).strftime("%Y-%m-%d %H:%M:%S")
+                st.rerun()
 
-            registrar_evento_embarque(
-                folio_seleccionado,
-                fecha_evento_completa,
-                tipo_evento,
-                estatus,
-                ubicacion,
-                comentarios,
-                usuario,
-                latitud,
-                longitud
-            )
+            except Exception as e:
 
-            st.success(
-                f"✅ Estatus actualizado "
-                f"para {folio_seleccionado}"
-            )
+                st.error(
+                    "❌ Error registrando evento"
+                )
 
-            st.rerun()
-
-        except Exception as e:
-
-            st.error(
-                "❌ Error registrando evento"
-            )
-
-            st.exception(e)
+                st.exception(e)
 
     st.divider()
 
