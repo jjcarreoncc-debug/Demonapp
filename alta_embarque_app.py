@@ -3,6 +3,7 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import plotly.graph_objects as go
+from embarques_service import procesar_confirmacion_embarque
 
 from datetime import datetime
 
