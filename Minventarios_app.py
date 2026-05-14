@@ -60,6 +60,14 @@ def inventarios_app():
     elif opcion_limpia == "registrar salida venta":
         salidas_inventario_app()
 
+    elif opcion_limpia == "embarques":
+
+        embarques_inventario_app()
+
+    elif opcion_limpia == "consultar embarques":
+
+        embarques_inventario_app()
+
     # =========================
     # KARDEX
     # =========================
