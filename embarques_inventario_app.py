@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 from io import BytesIO
+import plotly.graph_objects as go
 
 from sigem_db import get_db_path
 
@@ -234,6 +235,73 @@ def confirmar_carga_embarque(embarque, detalle):
     }
 
 
+def mostrar_grafico_stock_3d(grafico_stock):
+    fig = go.Figure()
+
+    for idx, row in grafico_stock.iterrows():
+        material = str(row["codigo_material"])
+        cantidad_embarque = float(row["cantidad_embarcar"])
+        existencia = float(row["existencia_actual"])
+        faltante = float(row["faltante"])
+        validacion = str(row["validacion_stock"])
+
+        color = "green" if validacion == "OK" else "red"
+
+        fig.add_trace(
+            go.Scatter3d(
+                x=[material, material],
+                y=["Cantidad embarque", "Existencia actual"],
+                z=[cantidad_embarque, existencia],
+                mode="markers+lines+text",
+                marker=dict(
+                    size=8,
+                    color=color,
+                    opacity=0.95
+                ),
+                line=dict(
+                    width=6,
+                    color=color
+                ),
+                text=[
+                    f"Emb: {cantidad_embarque}",
+                    f"Exist: {existencia}"
+                ],
+                textposition="top center",
+                hovertext=[
+                    f"Material: {material}<br>"
+                    f"Cantidad embarque: {cantidad_embarque}<br>"
+                    f"Existencia actual: {existencia}<br>"
+                    f"Faltante: {faltante}<br>"
+                    f"Validación: {validacion}",
+                    f"Material: {material}<br>"
+                    f"Cantidad embarque: {cantidad_embarque}<br>"
+                    f"Existencia actual: {existencia}<br>"
+                    f"Faltante: {faltante}<br>"
+                    f"Validación: {validacion}"
+                ],
+                hoverinfo="text",
+                name=material
+            )
+        )
+
+    fig.update_layout(
+        title="Comparativo 3D: cantidad a embarcar vs inventario disponible",
+        scene=dict(
+            xaxis_title="Material",
+            yaxis_title="Concepto",
+            zaxis_title="Cantidad"
+        ),
+        height=620,
+        margin=dict(l=0, r=0, t=50, b=0),
+        showlegend=False
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+
 def embarques_inventario_app():
     st.title("📦 Embarques - Carga física")
 
@@ -408,16 +476,7 @@ def embarques_inventario_app():
                 hide_index=True
             )
 
-            st.bar_chart(
-                grafico_stock.set_index("codigo_material")[
-                    [
-                        "cantidad_embarcar",
-                        "existencia_actual",
-                        "faltante"
-                    ]
-                ],
-                use_container_width=True
-            )
+            mostrar_grafico_stock_3d(grafico_stock)
 
             sin_stock = detalle[
                 detalle["validacion_stock"] == "SIN STOCK"
