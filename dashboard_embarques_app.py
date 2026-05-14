@@ -30,21 +30,56 @@ def obtener_embarques():
 
     query = """
         SELECT
-            folio_embarque,
-            folio_hoja_carga,
-            folio_ruta,
-            pedido,
-            fecha,
-            cliente,
-            destino,
-            transportista,
-            vehiculo,
-            placas,
-            operador,
-            ruta,
-            estatus
-        FROM embarques
-        ORDER BY fecha DESC, folio_embarque DESC
+            e.folio_embarque,
+            e.folio_hoja_carga,
+            e.folio_ruta,
+            e.pedido,
+            e.fecha,
+            e.cliente,
+            e.destino,
+            e.transportista,
+            e.vehiculo,
+            e.placas,
+            e.operador,
+            e.ruta,
+            e.estatus,
+
+            i.tipo_incidencia,
+            i.prioridad AS prioridad_incidencia,
+            i.estatus AS estatus_incidencia,
+            i.descripcion_incidencia,
+            i.fecha AS fecha_incidencia
+
+        FROM embarques e
+
+        LEFT JOIN (
+
+            SELECT
+                i1.*
+
+            FROM incidencias i1
+
+            INNER JOIN (
+
+                SELECT
+                    folio_embarque,
+                    MAX(fecha) AS max_fecha
+
+                FROM incidencias
+
+                GROUP BY folio_embarque
+
+            ) ult
+
+            ON i1.folio_embarque = ult.folio_embarque
+            AND i1.fecha = ult.max_fecha
+
+        ) i
+
+        ON e.folio_embarque = i.folio_embarque
+
+        ORDER BY e.fecha DESC,
+                 e.folio_embarque DESC
     """
 
     df = pd.read_sql_query(query, conn)
@@ -72,10 +107,6 @@ def generar_excel_dashboard(
 
     ws.title = "Dashboard"
 
-    # =====================================================
-    # ESTILOS
-    # =====================================================
-
     azul = PatternFill(
         start_color="1F4E78",
         end_color="1F4E78",
@@ -100,20 +131,12 @@ def generar_excel_dashboard(
         bold=True
     )
 
-    # =====================================================
-    # TITULO
-    # =====================================================
-
     ws["A1"] = "SIGEM - Dashboard embarques"
 
     ws["A1"].font = Font(
         bold=True,
         size=16
     )
-
-    # =====================================================
-    # KPIS
-    # =====================================================
 
     ws["A3"] = "Total embarques"
     ws["B3"] = total
@@ -137,10 +160,6 @@ def generar_excel_dashboard(
         ws[celda].fill = azul
         ws[celda].font = font_blanca
         ws[celda].border = borde
-
-    # =====================================================
-    # MATRIZ
-    # =====================================================
 
     fila_inicio = 10
     col_inicio = 2
@@ -175,10 +194,6 @@ def generar_excel_dashboard(
         .tolist()
     )
 
-    # =====================================================
-    # ENCABEZADOS EMBARQUES
-    # =====================================================
-
     for idx, embarque in enumerate(embarques):
 
         celda = ws.cell(
@@ -205,10 +220,6 @@ def generar_excel_dashboard(
         ws.column_dimensions[
             celda.column_letter
         ].width = 14
-
-    # =====================================================
-    # ESTATUS
-    # =====================================================
 
     for idx_estatus, estatus in enumerate(orden_estatus):
 
@@ -265,10 +276,6 @@ def generar_excel_dashboard(
 
             celda.border = borde
 
-    # =====================================================
-    # HOJA DETALLE
-    # =====================================================
-
     ws2 = wb.create_sheet(
         title="Detalle embarques"
     )
@@ -289,10 +296,6 @@ def generar_excel_dashboard(
 
         cell.border = borde
 
-    # =====================================================
-    # BUFFER
-    # =====================================================
-
     buffer = BytesIO()
 
     wb.save(buffer)
@@ -302,10 +305,6 @@ def generar_excel_dashboard(
     return buffer
 
 
-# =====================================================
-# GRAFICA MATRIZ
-# =====================================================
-############################################################################
 # =====================================================
 # GRAFICA MATRIZ
 # =====================================================
@@ -396,7 +395,45 @@ def pintar_matriz_estatus(df):
                     )
                 ),
                 legend=None
-            )
+            ),
+
+            tooltip=[
+
+                alt.Tooltip(
+                    "embarque:N",
+                    title="Número de embarque"
+                ),
+
+                alt.Tooltip(
+                    "estatus:N",
+                    title="Estatus"
+                ),
+
+                alt.Tooltip(
+                    "tipo_incidencia:N",
+                    title="Última incidencia"
+                ),
+
+                alt.Tooltip(
+                    "prioridad_incidencia:N",
+                    title="Prioridad"
+                ),
+
+                alt.Tooltip(
+                    "estatus_incidencia:N",
+                    title="Estatus incidencia"
+                ),
+
+                alt.Tooltip(
+                    "descripcion_incidencia:N",
+                    title="Descripción"
+                ),
+
+                alt.Tooltip(
+                    "fecha_incidencia:N",
+                    title="Fecha incidencia"
+                )
+            ]
 
         )
 
@@ -404,10 +441,6 @@ def pintar_matriz_estatus(df):
             width=ancho_grafica,
             height=520
         )
-
-        # ==========================================
-        # GRID / LINEAS
-        # ==========================================
 
         .configure_axis(
             grid=True,
@@ -428,6 +461,8 @@ def pintar_matriz_estatus(df):
         chart,
         use_container_width=False
     )
+
+
 # =====================================================
 # APP
 # =====================================================
@@ -596,10 +631,6 @@ def dashboard_embarques_app():
     )
 
     st.divider()
-
-    # =====================================================
-    # EXPORTAR EXCEL ABAJO
-    # =====================================================
 
     excel_dashboard = generar_excel_dashboard(
         df_filtrado,
