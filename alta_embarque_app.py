@@ -5,7 +5,9 @@ import pandas as pd
 from datetime import datetime
 
 from sigem_db import get_db_path
+
 st.warning("NUEVO ARCHIVO ALTA EMBARQUE")
+
 
 # =====================================================
 # OBTENER HOJAS CARGA PENDIENTES
@@ -14,29 +16,48 @@ st.warning("NUEVO ARCHIVO ALTA EMBARQUE")
 def obtener_hojas_carga_pendientes():
 
     conn = sqlite3.connect(
-        get_db_path("logistica")
+        get_db_path("inventarios")
     )
 
     query = """
         SELECT
-            folio_hoja_carga,
-            cliente,
-            destino,
-            COUNT(codigo_material) AS materiales,
-            ROUND(SUM(peso), 2) AS peso_total,
-            ROUND(SUM(volumen), 2) AS volumen_total
 
-        FROM detalle_embarque
+            h.folio_hoja_carga,
 
-        WHERE folio_embarque IS NULL
-           OR folio_embarque = ''
+            h.cliente,
+
+            h.destino,
+
+            COUNT(d.codigo_material) AS materiales,
+
+            ROUND(SUM(d.peso), 2) AS peso_total,
+
+            ROUND(SUM(d.volumen), 2) AS volumen_total
+
+        FROM hoja_carga h
+
+        LEFT JOIN detalle_hoja_carga d
+            ON h.folio_hoja_carga = d.folio_hoja_carga
+
+        WHERE h.folio_hoja_carga NOT IN (
+
+            SELECT
+                folio_hoja_carga
+
+            FROM embarques
+
+            WHERE folio_hoja_carga IS NOT NULL
+        )
 
         GROUP BY
-            folio_hoja_carga,
-            cliente,
-            destino
 
-        ORDER BY folio_hoja_carga DESC
+            h.folio_hoja_carga,
+
+            h.cliente,
+
+            h.destino
+
+        ORDER BY h.folio_hoja_carga DESC
     """
 
     df = pd.read_sql_query(query, conn)
@@ -58,13 +79,21 @@ def obtener_transportes():
 
     query = """
         SELECT
+
             codigo_transporte,
+
             transportista,
+
             vehiculo,
+
             placas,
+
             operador,
+
             capacidad_peso,
+
             capacidad_volumen,
+
             estatus
 
         FROM transportes
@@ -109,18 +138,9 @@ def alta_embarque_app():
     # =====================================================
 
     try:
-        ####
 
-        df_hojas = pd.DataFrame({
-            "folio_hoja_carga": [],
-            "cliente": [],
-            "destino": [],
-            "prioridad": [],
-            "peso_total": [],
-            "volumen_total": [],
-            "estatus_hoja_carga": []
-        })
-        ###
+        df_hojas = obtener_hojas_carga_pendientes()
+
         df_transportes = obtener_transportes()
 
     except Exception as e:
