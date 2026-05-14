@@ -634,7 +634,7 @@ def eventos_embarque_app():
         f"para {folio_seleccionado}"
     )
 
-        st.rerun()
+    st.rerun()
     #
         st.session_state[
             "folio_eventos_seleccionado"
