@@ -15,6 +15,9 @@ from inventario_fisico_app import inventario_fisico_app
 from ajuste_inventario_fisico_app import ajuste_inventario_fisico_app
 from consulta_ajustes_app import consulta_ajustes_app
 from diferencias_valorizadas_app import diferencias_valorizadas_app
+from embarques_inventario_app import (
+    embarques_inventario_app
+)
 
 
 # =========================
