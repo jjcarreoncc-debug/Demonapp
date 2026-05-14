@@ -7,15 +7,18 @@ from io import BytesIO
 from sigem_db import get_db_path
 
 
+# =====================================================
+# CONSULTA DE EMBARQUES CARGADOS POR TRANSPORTE
+# Transporte = referencia principal
+# Embarque / cliente / destino = detalle de entrega
+# =====================================================
+
 def obtener_embarques_cargados():
 
     conn = sqlite3.connect(get_db_path("logistica"))
-
     inventarios_db = get_db_path("inventarios")
 
-    conn.execute(
-        f"ATTACH DATABASE '{inventarios_db}' AS inv"
-    )
+    conn.execute(f"ATTACH DATABASE '{inventarios_db}' AS inv")
 
     query = """
         WITH det AS (
@@ -29,7 +32,7 @@ def obtener_embarques_cargados():
             GROUP BY folio_embarque
         ),
 
-        mov AS (
+        mov_emb AS (
             SELECT
                 numero_documento,
                 COUNT(*) AS movimientos_inventario,
@@ -37,13 +40,28 @@ def obtener_embarques_cargados():
             FROM inv.movimientos_inventario
             WHERE tipo_documento = 'EMBARQUE'
             GROUP BY numero_documento
+        ),
+
+        mov_tr AS (
+            SELECT
+                numero_documento,
+                COUNT(*) AS movimientos_inventario,
+                MIN(fecha) AS fecha_salida_inventario
+            FROM inv.movimientos_inventario
+            WHERE tipo_documento = 'TRANSPORTE'
+            GROUP BY numero_documento
         )
 
         SELECT
             e.folio_embarque,
             e.codigo_transporte,
             e.fecha,
-            mov.fecha_salida_inventario,
+
+            COALESCE(
+                mov_emb.fecha_salida_inventario,
+                mov_tr.fecha_salida_inventario
+            ) AS fecha_salida_inventario,
+
             e.cliente,
             e.destino,
             e.transportista,
@@ -52,30 +70,50 @@ def obtener_embarques_cargados():
             e.operador,
             e.ruta,
             e.estatus,
+
             COALESCE(det.materiales, 0) AS materiales,
             COALESCE(det.cantidad_total, 0) AS cantidad_total,
             COALESCE(det.peso_total, 0) AS peso_total,
             COALESCE(det.volumen_total, 0) AS volumen_total,
-            COALESCE(mov.movimientos_inventario, 0) AS movimientos_inventario,
-            e.folio_embarque AS documento_inventario
+
+            COALESCE(
+                mov_emb.movimientos_inventario,
+                mov_tr.movimientos_inventario,
+                0
+            ) AS movimientos_inventario,
+
+            COALESCE(
+                mov_emb.numero_documento,
+                mov_tr.numero_documento,
+                e.codigo_transporte,
+                e.folio_embarque
+            ) AS documento_inventario
 
         FROM embarques e
 
-        INNER JOIN mov
-            ON mov.numero_documento = e.folio_embarque
+        LEFT JOIN mov_emb
+            ON mov_emb.numero_documento = e.folio_embarque
+
+        LEFT JOIN mov_tr
+            ON mov_tr.numero_documento = e.codigo_transporte
 
         LEFT JOIN det
             ON det.folio_embarque = e.folio_embarque
 
-        WHERE e.estatus = 'Cargado'
+        WHERE
+            e.estatus = 'Cargado'
+            AND (
+                mov_emb.numero_documento IS NOT NULL
+                OR mov_tr.numero_documento IS NOT NULL
+            )
 
         ORDER BY
             e.codigo_transporte,
-            mov.fecha_salida_inventario DESC
+            e.cliente,
+            e.destino
     """
 
     df = pd.read_sql_query(query, conn)
-
     conn.close()
 
     return df
@@ -84,30 +122,38 @@ def obtener_embarques_cargados():
 def obtener_detalle_embarque(folio_embarque):
 
     conn = sqlite3.connect(get_db_path("logistica"))
-
     inventarios_db = get_db_path("inventarios")
 
-    conn.execute(
-        f"ATTACH DATABASE '{inventarios_db}' AS inv"
-    )
+    conn.execute(f"ATTACH DATABASE '{inventarios_db}' AS inv")
 
     query = """
         SELECT
             d.folio_embarque,
+            e.codigo_transporte,
             d.codigo_material,
             d.descripcion,
             d.cantidad_embarcar,
+
             COALESCE(
                 (
-                    SELECT
-                        SUM(ABS(m.cantidad))
+                    SELECT SUM(ABS(m.cantidad))
                     FROM inv.movimientos_inventario m
-                    WHERE m.numero_documento = d.folio_embarque
-                      AND m.tipo_documento = 'EMBARQUE'
-                      AND m.codigo_material = d.codigo_material
+                    WHERE m.codigo_material = d.codigo_material
+                      AND (
+                            (
+                                m.numero_documento = d.folio_embarque
+                                AND m.tipo_documento = 'EMBARQUE'
+                            )
+                            OR
+                            (
+                                m.numero_documento = e.codigo_transporte
+                                AND m.tipo_documento = 'TRANSPORTE'
+                            )
+                          )
                 ),
                 0
             ) AS cantidad_descontada,
+
             d.peso,
             d.volumen,
             d.bodega,
@@ -115,17 +161,15 @@ def obtener_detalle_embarque(folio_embarque):
 
         FROM detalle_embarque d
 
+        LEFT JOIN embarques e
+            ON e.folio_embarque = d.folio_embarque
+
         WHERE d.folio_embarque = ?
 
         ORDER BY d.codigo_material
     """
 
-    df = pd.read_sql_query(
-        query,
-        conn,
-        params=[folio_embarque]
-    )
-
+    df = pd.read_sql_query(query, conn, params=[folio_embarque])
     conn.close()
 
     return df
@@ -134,7 +178,6 @@ def obtener_detalle_embarque(folio_embarque):
 def generar_excel_embarque(embarque, detalle):
 
     output = BytesIO()
-
     df_resumen = pd.DataFrame([embarque])
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -162,8 +205,8 @@ def mostrar_flujo_operacional(embarque):
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
-    col1.success("🟢 Hoja carga cerrada")
-    col2.success("🟢 Logística confirmó")
+    col1.success("🟢 Transporte creado")
+    col2.success("🟢 Carga confirmada")
     col3.success("🟢 Inventarios cargó")
     col4.success("🟢 Salida generada")
     col5.success("🟢 Terminado")
@@ -175,10 +218,10 @@ def mostrar_flujo_operacional(embarque):
 
 def consulta_embarques_inventario_app():
 
-    st.title("📋 Consulta embarques cargados")
+    st.title("📋 Consulta embarques cargados por transporte")
 
     st.caption(
-        "Inventarios / Salidas / Embarques / Consulta"
+        "Inventarios / Salidas / Transportes / Embarques"
     )
 
     st.divider()
@@ -201,10 +244,17 @@ def consulta_embarques_inventario_app():
 
         return
 
+    df["codigo_transporte"] = (
+        df["codigo_transporte"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+    )
+
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric("🚚 Transportes", df["codigo_transporte"].nunique())
-    c2.metric("📦 Embarques", len(df))
+    c2.metric("📦 Embarques / entregas", len(df))
     c3.metric("⚖️ Peso total", round(df["peso_total"].sum(), 2))
     c4.metric("📐 Volumen total", round(df["volumen_total"].sum(), 2))
 
@@ -216,7 +266,7 @@ def consulta_embarques_inventario_app():
 
     filtro_transporte = f1.text_input("Transporte")
     filtro_embarque = f2.text_input("Folio embarque")
-    filtro_cliente = f3.text_input("Cliente")
+    filtro_cliente = f3.text_input("Cliente / tienda")
     filtro_operador = f4.text_input("Operador")
     filtro_placas = f5.text_input("Placas")
 
@@ -255,9 +305,13 @@ def consulta_embarques_inventario_app():
             .str.contains(filtro_placas, case=False, na=False)
         ]
 
+    if df.empty:
+        st.warning("No hay registros con los filtros seleccionados.")
+        return
+
     st.markdown("---")
 
-    st.subheader("📋 Embarques cargados por transporte")
+    st.subheader("📋 Embarques / tiendas dentro del transporte")
 
     df["seleccionar"] = False
 
@@ -293,7 +347,7 @@ def consulta_embarques_inventario_app():
             "folio_embarque": "Embarque",
             "documento_inventario": "Doc. inventario",
             "fecha_salida_inventario": "Fecha salida inv.",
-            "cliente": "Cliente",
+            "cliente": "Cliente / tienda",
             "destino": "Destino",
             "transportista": "Transportista",
             "vehiculo": "Vehículo",
@@ -325,22 +379,39 @@ def consulta_embarques_inventario_app():
 
     st.markdown("---")
 
-    st.subheader("📊 Dashboard por transporte")
+    st.subheader("📊 Dashboard del transporte por cliente / embarque")
 
     g1, g2 = st.columns(2)
 
     with g1:
 
-        df_peso = (
-            df.groupby("codigo_transporte", as_index=False)["peso_total"]
-            .sum()
+        df_peso = df.copy()
+
+        df_peso["referencia"] = (
+            df_peso["cliente"].astype(str)
+            + " | "
+            + df_peso["folio_embarque"].astype(str)
         )
 
         fig_peso = px.bar(
             df_peso,
-            x="codigo_transporte",
+            x="referencia",
             y="peso_total",
-            title="Peso cargado por transporte"
+            color="codigo_transporte",
+            hover_data=[
+                "codigo_transporte",
+                "folio_embarque",
+                "cliente",
+                "destino",
+                "peso_total",
+                "volumen_total"
+            ],
+            title="Peso por cliente / embarque dentro del transporte"
+        )
+
+        fig_peso.update_layout(
+            xaxis_title="Cliente / Embarque",
+            yaxis_title="Peso total"
         )
 
         st.plotly_chart(
@@ -350,22 +421,61 @@ def consulta_embarques_inventario_app():
 
     with g2:
 
-        df_volumen = (
-            df.groupby("codigo_transporte", as_index=False)["volumen_total"]
-            .sum()
+        df_volumen = df.copy()
+
+        df_volumen["referencia"] = (
+            df_volumen["cliente"].astype(str)
+            + " | "
+            + df_volumen["folio_embarque"].astype(str)
         )
 
         fig_volumen = px.pie(
             df_volumen,
-            names="codigo_transporte",
+            names="referencia",
             values="volumen_total",
-            title="Volumen por transporte"
+            hover_data=[
+                "codigo_transporte",
+                "cliente",
+                "destino",
+                "volumen_total"
+            ],
+            title="Volumen por cliente / embarque"
         )
 
         st.plotly_chart(
             fig_volumen,
             use_container_width=True
         )
+
+    st.markdown("---")
+
+    st.subheader("📊 Resumen por transporte")
+
+    df_resumen_transporte = (
+        df.groupby(
+            [
+                "codigo_transporte",
+                "transportista",
+                "vehiculo",
+                "placas",
+                "operador"
+            ],
+            as_index=False
+        )
+        .agg(
+            embarques=("folio_embarque", "count"),
+            clientes=("cliente", "nunique"),
+            peso_total=("peso_total", "sum"),
+            volumen_total=("volumen_total", "sum"),
+            materiales=("materiales", "sum")
+        )
+    )
+
+    st.dataframe(
+        df_resumen_transporte,
+        use_container_width=True,
+        hide_index=True
+    )
 
     st.markdown("---")
 
@@ -391,7 +501,8 @@ def consulta_embarques_inventario_app():
 
     st.subheader(
         f"🚚 Transporte {embarque['codigo_transporte']} / "
-        f"Embarque {embarque['folio_embarque']}"
+        f"📦 Embarque {embarque['folio_embarque']} / "
+        f"🏬 {embarque['cliente']}"
     )
 
     c1, c2, c3, c4 = st.columns(4)
@@ -404,12 +515,13 @@ def consulta_embarques_inventario_app():
     st.markdown("---")
 
     st.write(f"**Transporte:** {embarque['codigo_transporte']}")
+    st.write(f"**Embarque:** {embarque['folio_embarque']}")
+    st.write(f"**Cliente / tienda:** {embarque['cliente']}")
+    st.write(f"**Destino:** {embarque['destino']}")
     st.write(f"**Transportista:** {embarque['transportista']}")
     st.write(f"**Vehículo:** {embarque['vehiculo']}")
     st.write(f"**Placas:** {embarque['placas']}")
     st.write(f"**Operador:** {embarque['operador']}")
-    st.write(f"**Cliente:** {embarque['cliente']}")
-    st.write(f"**Destino:** {embarque['destino']}")
     st.write(f"**Documento inventario:** {embarque['documento_inventario']}")
     st.write(f"**Fecha salida inventario:** {embarque['fecha_salida_inventario']}")
 
