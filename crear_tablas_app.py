@@ -366,6 +366,64 @@ def crear_tabla_detalle_transporte(cur):
     """)
 
 
+def crear_tabla_incidencias(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS incidencias (
+            id_incidencia INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_incidencia TEXT UNIQUE NOT NULL,
+            fecha TEXT,
+            modulo TEXT DEFAULT 'Logística',
+            proceso TEXT,
+            tipo_incidencia TEXT,
+            prioridad TEXT DEFAULT 'Media',
+            estatus TEXT DEFAULT 'Abierta',
+            folio_referencia TEXT,
+            folio_embarque TEXT,
+            folio_hoja_carga TEXT,
+            pedido TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad REAL DEFAULT 0,
+            cliente TEXT,
+            destino TEXT,
+            bodega TEXT,
+            ubicacion TEXT,
+            transportista TEXT,
+            vehiculo TEXT,
+            placas TEXT,
+            operador TEXT,
+            responsable TEXT,
+            descripcion_incidencia TEXT,
+            causa TEXT,
+            solucion TEXT,
+            fecha_solucion TEXT,
+            usuario_registro TEXT,
+            usuario_cierre TEXT,
+            observaciones TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tablas_incidencias_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_tabla_incidencias(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tabla incidencias creada o actualizada")
+
+    st.subheader("📋 Incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
+
+
 def crear_tablas_rutas_logistica():
 
     db_path = get_db_path("logistica")
@@ -482,6 +540,7 @@ def crear_tablas_logistica():
     crear_tabla_puntos_ruta(cur)
     crear_tabla_transportes(cur)
     crear_tabla_detalle_transporte(cur)
+    crear_tabla_incidencias(cur)
 
     conn.commit()
     conn.close()
@@ -533,6 +592,7 @@ def alterar_tabla_embarques():
     crear_tabla_puntos_ruta(cur)
     crear_tabla_transportes(cur)
     crear_tabla_detalle_transporte(cur)
+    crear_tabla_incidencias(cur)
 
     conn.commit()
     conn.close()
@@ -560,6 +620,9 @@ def alterar_tabla_embarques():
 
     st.subheader("📋 Detalle transporte")
     mostrar_estructura_tabla(db_path, "detalle_transporte")
+
+    st.subheader("📋 Incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
 
 
 def alterar_tabla_detalle_embarque():
@@ -595,6 +658,68 @@ def alterar_tabla_detalle_embarque():
     mostrar_estructura_tabla(db_path, "detalle_embarque")
 
 
+def alterar_tabla_incidencias():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
+
+    columnas_incidencias = [
+        ("modulo", "TEXT DEFAULT 'Logística'"),
+        ("proceso", "TEXT"),
+        ("tipo_incidencia", "TEXT"),
+        ("prioridad", "TEXT DEFAULT 'Media'"),
+        ("estatus", "TEXT DEFAULT 'Abierta'"),
+        ("folio_referencia", "TEXT"),
+        ("folio_embarque", "TEXT"),
+        ("folio_hoja_carga", "TEXT"),
+        ("pedido", "TEXT"),
+        ("codigo_material", "TEXT"),
+        ("descripcion", "TEXT"),
+        ("cantidad", "REAL DEFAULT 0"),
+        ("cliente", "TEXT"),
+        ("destino", "TEXT"),
+        ("bodega", "TEXT"),
+        ("ubicacion", "TEXT"),
+        ("transportista", "TEXT"),
+        ("vehiculo", "TEXT"),
+        ("placas", "TEXT"),
+        ("operador", "TEXT"),
+        ("responsable", "TEXT"),
+        ("descripcion_incidencia", "TEXT"),
+        ("causa", "TEXT"),
+        ("solucion", "TEXT"),
+        ("fecha_solucion", "TEXT"),
+        ("usuario_registro", "TEXT"),
+        ("usuario_cierre", "TEXT"),
+        ("observaciones", "TEXT"),
+        ("fecha_creacion", "TEXT"),
+    ]
+
+    st.subheader("🔧 Actualizando tabla incidencias")
+
+    crear_tabla_incidencias(cur)
+
+    for nombre_columna, tipo_columna in columnas_incidencias:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "incidencias",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
+
+
 def crear_tablas_control_embarques():
 
     db_path = get_db_path("logistica")
@@ -609,6 +734,7 @@ def crear_tablas_control_embarques():
     crear_tabla_puntos_ruta(cur)
     crear_tabla_transportes(cur)
     crear_tabla_detalle_transporte(cur)
+    crear_tabla_incidencias(cur)
 
     conn.commit()
     conn.close()
@@ -635,6 +761,9 @@ def crear_tablas_control_embarques():
 
     st.subheader("📋 Detalle transporte")
     mostrar_estructura_tabla(db_path, "detalle_transporte")
+
+    st.subheader("📋 Incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
 
 
 # =====================================================
@@ -699,7 +828,8 @@ def crear_tablas_app():
             "rutas",
             "puntos_ruta",
             "transportes",
-            "detalle_transporte"
+            "detalle_transporte",
+            "incidencias"
         ]
 
     tabla = st.selectbox(
@@ -791,6 +921,10 @@ def crear_tablas_app():
 
                         crear_tablas_rutas_logistica()
 
+                    elif tabla == "incidencias":
+
+                        crear_tablas_incidencias_logistica()
+
                 st.success(
                     f"✅ Tabla(s) creadas correctamente para {modulo}"
                 )
@@ -827,10 +961,15 @@ def crear_tablas_app():
 
                     alterar_tabla_detalle_embarque()
 
+                elif modulo == "Logística" and tabla == "incidencias":
+
+                    alterar_tabla_incidencias()
+
                 elif modulo == "Logística" and tabla == "Todas":
 
                     alterar_tabla_embarques()
                     alterar_tabla_detalle_embarque()
+                    alterar_tabla_incidencias()
                     crear_tablas_control_embarques()
                     crear_tablas_rutas_logistica()
 
