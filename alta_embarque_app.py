@@ -109,9 +109,18 @@ def alta_embarque_app():
     # =====================================================
 
     try:
+        ####
 
-        df_hojas = obtener_hojas_carga_pendientes()
-
+        df_hojas = pd.DataFrame({
+            "folio_hoja_carga": [],
+            "cliente": [],
+            "destino": [],
+            "prioridad": [],
+            "peso_total": [],
+            "volumen_total": [],
+            "estatus_hoja_carga": []
+        })
+        ###
         df_transportes = obtener_transportes()
 
     except Exception as e:
