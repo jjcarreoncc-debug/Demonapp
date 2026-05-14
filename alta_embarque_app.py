@@ -2,416 +2,387 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
-
-from datetime import date, datetime
+from datetime import datetime
 
 from sigem_db import get_db_path
 
 
-COLUMNAS_EXCEL_REQUERIDAS = [
-    "folio_embarque",
-    "folio_hoja_carga",
-    "fecha",
-    "cliente",
-    "destino",
-    "transportista",
-    "vehiculo",
-    "operador",
-    "ruta",
-    "estatus",
-    "codigo_material",
-    "descripcion",
-    "cantidad_embarcar",
-    "peso",
-    "volumen",
-    "bodega",
-    "ubicacion",
-    "observaciones",
-    "usuario"
-]
+# =====================================================
+# OBTENER HOJAS CARGA PENDIENTES
+# =====================================================
 
+def obtener_hojas_carga_pendientes():
 
-def limpiar_dataframe_excel(df):
+    conn = sqlite3.connect(
+        get_db_path("logistica")
+    )
 
-    df.columns = [
-        str(col).strip().lower()
-        for col in df.columns
-    ]
+    query = """
+        SELECT
+            folio_hoja_carga,
+            cliente,
+            destino,
+            COUNT(codigo_material) AS materiales,
+            ROUND(SUM(peso), 2) AS peso_total,
+            ROUND(SUM(volumen), 2) AS volumen_total
 
-    for col in COLUMNAS_EXCEL_REQUERIDAS:
-        if col not in df.columns:
-            df[col] = ""
+        FROM detalle_embarque
 
-    df = df[COLUMNAS_EXCEL_REQUERIDAS].copy()
+        WHERE folio_embarque IS NULL
+           OR folio_embarque = ''
 
-    df["folio_embarque"] = df["folio_embarque"].astype(str).str.strip()
-    df["folio_hoja_carga"] = df["folio_hoja_carga"].astype(str).str.strip()
-    df["codigo_material"] = df["codigo_material"].astype(str).str.strip()
-    df["descripcion"] = df["descripcion"].astype(str).str.strip()
+        GROUP BY
+            folio_hoja_carga,
+            cliente,
+            destino
 
-    df["cantidad_embarcar"] = pd.to_numeric(
-        df["cantidad_embarcar"],
-        errors="coerce"
-    ).fillna(0)
+        ORDER BY folio_hoja_carga DESC
+    """
 
-    df["peso"] = pd.to_numeric(
-        df["peso"],
-        errors="coerce"
-    ).fillna(0)
+    df = pd.read_sql_query(query, conn)
 
-    df["volumen"] = pd.to_numeric(
-        df["volumen"],
-        errors="coerce"
-    ).fillna(0)
-
-    df = df[df["folio_embarque"] != ""]
-    df = df[df["codigo_material"] != ""]
+    conn.close()
 
     return df
 
 
-def validar_columnas_excel(df):
+# =====================================================
+# OBTENER TRANSPORTES
+# =====================================================
 
-    columnas_archivo = [
-        str(col).strip().lower()
-        for col in df.columns
-    ]
+def obtener_transportes():
 
-    faltantes = [
-        col for col in COLUMNAS_EXCEL_REQUERIDAS
-        if col not in columnas_archivo
-    ]
-
-    return faltantes
-
-
-def guardar_embarque_manual(
-    folio_embarque,
-    folio_hoja_carga,
-    fecha,
-    cliente,
-    destino,
-    transportista,
-    vehiculo,
-    operador,
-    ruta,
-    estatus,
-    observaciones,
-    usuario
-):
-
-    conn = sqlite3.connect(get_db_path("logistica"))
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT INTO embarques (
-            folio_embarque,
-            folio_hoja_carga,
-            origen_captura,
-            fecha,
-            cliente,
-            destino,
-            transportista,
-            vehiculo,
-            operador,
-            ruta,
-            estatus,
-            observaciones,
-            usuario,
-            fecha_creacion
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        folio_embarque,
-        folio_hoja_carga,
-        "MANUAL",
-        fecha,
-        cliente,
-        destino,
-        transportista,
-        vehiculo,
-        operador,
-        ruta,
-        estatus,
-        observaciones,
-        usuario,
-        datetime.now()
-    ))
-
-    conn.commit()
-    conn.close()
-
-
-def guardar_embarques_excel(df):
-
-    conn = sqlite3.connect(get_db_path("logistica"))
-    cur = conn.cursor()
-
-    embarques_insertados = 0
-    detalles_insertados = 0
-    embarques_existentes = 0
-
-    embarques_header = df.drop_duplicates(
-        subset=["folio_embarque"]
+    conn = sqlite3.connect(
+        get_db_path("logistica")
     )
 
-    for _, row in embarques_header.iterrows():
+    query = """
+        SELECT
+            codigo_transporte,
+            transportista,
+            vehiculo,
+            placas,
+            operador,
+            capacidad_peso,
+            capacidad_volumen,
+            estatus
 
-        try:
-            cur.execute("""
-                INSERT INTO embarques (
-                    folio_embarque,
-                    folio_hoja_carga,
-                    origen_captura,
-                    fecha,
-                    cliente,
-                    destino,
-                    transportista,
-                    vehiculo,
-                    operador,
-                    ruta,
-                    estatus,
-                    observaciones,
-                    usuario,
-                    fecha_creacion
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                row.get("folio_embarque", ""),
-                row.get("folio_hoja_carga", ""),
-                "EXCEL",
-                str(row.get("fecha", "")),
-                row.get("cliente", ""),
-                row.get("destino", ""),
-                row.get("transportista", ""),
-                row.get("vehiculo", ""),
-                row.get("operador", ""),
-                row.get("ruta", ""),
-                row.get("estatus", "Pendiente"),
-                row.get("observaciones", ""),
-                row.get("usuario", "admin"),
-                datetime.now()
-            ))
+        FROM transportes
 
-            embarques_insertados += 1
+        ORDER BY codigo_transporte
+    """
 
-        except sqlite3.IntegrityError:
-            embarques_existentes += 1
+    df = pd.read_sql_query(query, conn)
 
-    for _, row in df.iterrows():
-
-        cur.execute("""
-            INSERT INTO detalle_embarque (
-                folio_embarque,
-                folio_hoja_carga,
-                codigo_material,
-                descripcion,
-                cantidad_embarcar,
-                peso,
-                volumen,
-                bodega,
-                ubicacion
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            row.get("folio_embarque", ""),
-            row.get("folio_hoja_carga", ""),
-            row.get("codigo_material", ""),
-            row.get("descripcion", ""),
-            row.get("cantidad_embarcar", 0),
-            row.get("peso", 0),
-            row.get("volumen", 0),
-            row.get("bodega", ""),
-            row.get("ubicacion", "")
-        ))
-
-        detalles_insertados += 1
-
-    conn.commit()
     conn.close()
 
-    return embarques_insertados, embarques_existentes, detalles_insertados
+    return df
 
+
+# =====================================================
+# GENERAR FOLIO EMBARQUE
+# =====================================================
+
+def generar_folio_embarque():
+
+    fecha = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    return f"EMB-{fecha}"
+
+
+# =====================================================
+# APP
+# =====================================================
 
 def alta_embarque_app():
 
-    st.title("➕ Alta embarque")
+    st.title("🚛 Planeación de embarque")
 
     st.caption(
-        "Hoja carga → Embarque → Tracking → Entrega"
+        "Hoja carga → Transporte → Embarque"
     )
 
     st.divider()
 
-    tab1, tab2 = st.tabs([
-        "📝 Captura manual",
-        "📤 Carga Excel"
-    ])
+    # =====================================================
+    # CARGAR INFORMACION
+    # =====================================================
 
-    with tab1:
+    try:
 
-        with st.form("form_alta_embarque"):
+        df_hojas = obtener_hojas_carga_pendientes()
 
-            st.subheader("📦 Datos generales")
+        df_transportes = obtener_transportes()
 
-            col1, col2 = st.columns(2)
+    except Exception as e:
 
-            with col1:
-                folio_embarque = st.text_input("Folio embarque")
-                folio_hoja_carga = st.text_input("Folio hoja carga")
-                fecha = st.date_input("Fecha", value=date.today())
-                cliente = st.text_input("Cliente")
+        st.error("❌ Error cargando información.")
+        st.exception(e)
 
-            with col2:
-                destino = st.text_input("Destino")
+        return
 
-                estatus = st.selectbox(
-                    "Estatus",
-                    [
-                        "Pendiente",
-                        "Preparación",
-                        "En ruta",
-                        "Entregado",
-                        "Cancelado"
-                    ]
-                )
+    if df_hojas.empty:
 
-                usuario = st.text_input(
-                    "Usuario",
-                    value="admin"
-                )
-
-            st.subheader("🚛 Transporte")
-
-            col3, col4 = st.columns(2)
-
-            with col3:
-                transportista = st.text_input("Transportista")
-                vehiculo = st.text_input("Vehículo")
-
-            with col4:
-                operador = st.text_input("Operador")
-                ruta = st.text_input("Ruta")
-
-            observaciones = st.text_area("Observaciones")
-
-            guardar = st.form_submit_button("💾 Guardar embarque")
-
-        if guardar:
-
-            if not folio_embarque:
-                st.warning("Captura el folio del embarque.")
-                st.stop()
-
-            try:
-                guardar_embarque_manual(
-                    folio_embarque,
-                    folio_hoja_carga,
-                    fecha,
-                    cliente,
-                    destino,
-                    transportista,
-                    vehiculo,
-                    operador,
-                    ruta,
-                    estatus,
-                    observaciones,
-                    usuario
-                )
-
-                st.success("✅ Embarque registrado correctamente.")
-
-            except sqlite3.IntegrityError:
-                st.error("❌ Ese folio de embarque ya existe.")
-
-            except Exception as e:
-                st.error("❌ Error guardando embarque.")
-                st.exception(e)
-
-    with tab2:
-
-        st.subheader("📤 Carga masiva embarques")
-
-        st.info(
-            "El Excel puede contener múltiples embarques. "
-            "La app agrupa por folio_embarque y crea el detalle por cada material."
+        st.warning(
+            "No existen hojas de carga pendientes."
         )
 
-        archivo_excel = st.file_uploader(
-            "Subir archivo Excel",
-            type=["xlsx"]
+        return
+
+    if df_transportes.empty:
+
+        st.warning(
+            "No existen transportes registrados."
         )
 
-        if archivo_excel is not None:
+        return
+
+    # =====================================================
+    # KPIS
+    # =====================================================
+
+    total_hojas = len(df_hojas)
+
+    peso_total = round(
+        df_hojas["peso_total"].sum(),
+        2
+    )
+
+    volumen_total = round(
+        df_hojas["volumen_total"].sum(),
+        2
+    )
+
+    total_transportes = len(df_transportes)
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    c1.metric(
+        "📦 Hojas pendientes",
+        total_hojas
+    )
+
+    c2.metric(
+        "⚖️ Peso total",
+        peso_total
+    )
+
+    c3.metric(
+        "📐 Volumen total",
+        volumen_total
+    )
+
+    c4.metric(
+        "🚛 Transportes",
+        total_transportes
+    )
+
+    st.divider()
+
+    # =====================================================
+    # PANTALLA PRINCIPAL
+    # =====================================================
+
+    col1, col2, col3 = st.columns([4, 3, 4])
+
+    # =====================================================
+    # PANEL 1
+    # =====================================================
+
+    with col1:
+
+        st.subheader("📦 Hojas carga pendientes")
+
+        hoja_seleccionada = st.selectbox(
+            "Selecciona hoja carga",
+            df_hojas["folio_hoja_carga"]
+            .astype(str)
+            .tolist()
+        )
+
+        hoja = df_hojas[
+            df_hojas["folio_hoja_carga"]
+            .astype(str)
+            == str(hoja_seleccionada)
+        ].iloc[0]
+
+        st.markdown("---")
+
+        st.write(
+            f"**Cliente:** {hoja['cliente']}"
+        )
+
+        st.write(
+            f"**Destino:** {hoja['destino']}"
+        )
+
+        st.write(
+            f"**Materiales:** {hoja['materiales']}"
+        )
+
+        st.write(
+            f"**Peso total:** {hoja['peso_total']}"
+        )
+
+        st.write(
+            f"**Volumen total:** {hoja['volumen_total']}"
+        )
+
+    # =====================================================
+    # PANEL 2
+    # =====================================================
+
+    with col2:
+
+        st.subheader("🚛 Transportes")
+
+        transporte_seleccionado = st.selectbox(
+            "Selecciona transporte",
+            df_transportes["codigo_transporte"]
+            .astype(str)
+            .tolist()
+        )
+
+        transporte = df_transportes[
+            df_transportes["codigo_transporte"]
+            .astype(str)
+            == str(transporte_seleccionado)
+        ].iloc[0]
+
+        st.markdown("---")
+
+        st.write(
+            f"**Transportista:** {transporte['transportista']}"
+        )
+
+        st.write(
+            f"**Vehículo:** {transporte['vehiculo']}"
+        )
+
+        st.write(
+            f"**Operador:** {transporte['operador']}"
+        )
+
+        st.write(
+            f"**Cap. peso:** {transporte['capacidad_peso']}"
+        )
+
+        st.write(
+            f"**Cap. volumen:** {transporte['capacidad_volumen']}"
+        )
+
+        st.write(
+            f"**Estatus:** {transporte['estatus']}"
+        )
+
+    # =====================================================
+    # PANEL 3
+    # =====================================================
+
+    with col3:
+
+        st.subheader("✅ Embarque a crear")
+
+        peso_hoja = float(
+            hoja["peso_total"]
+        )
+
+        volumen_hoja = float(
+            hoja["volumen_total"]
+        )
+
+        capacidad_peso = float(
+            transporte["capacidad_peso"]
+        )
+
+        capacidad_volumen = float(
+            transporte["capacidad_volumen"]
+        )
+
+        porcentaje_peso = round(
+            (peso_hoja / capacidad_peso) * 100,
+            1
+        ) if capacidad_peso > 0 else 0
+
+        porcentaje_volumen = round(
+            (volumen_hoja / capacidad_volumen) * 100,
+            1
+        ) if capacidad_volumen > 0 else 0
+
+        st.write(
+            f"**Hoja carga:** {hoja_seleccionada}"
+        )
+
+        st.write(
+            f"**Transporte:** {transporte_seleccionado}"
+        )
+
+        st.write(
+            f"**Peso hoja:** {peso_hoja}"
+        )
+
+        st.write(
+            f"**Volumen hoja:** {volumen_hoja}"
+        )
+
+        st.write(
+            f"**% ocupación peso:** {porcentaje_peso}%"
+        )
+
+        st.write(
+            f"**% ocupación volumen:** {porcentaje_volumen}%"
+        )
+
+        st.markdown("---")
+
+        validacion_ok = True
+
+        if peso_hoja > capacidad_peso:
+
+            st.error(
+                "❌ El peso excede la capacidad del transporte."
+            )
+
+            validacion_ok = False
+
+        if volumen_hoja > capacidad_volumen:
+
+            st.error(
+                "❌ El volumen excede la capacidad del transporte."
+            )
+
+            validacion_ok = False
+
+        if validacion_ok:
+
+            st.success(
+                "✅ Transporte válido para la carga."
+            )
+
+        st.markdown("---")
+
+        if st.button(
+            "🚀 Crear embarque",
+            use_container_width=True,
+            disabled=not validacion_ok
+        ):
 
             try:
-                df_original = pd.read_excel(archivo_excel)
 
-                faltantes = validar_columnas_excel(df_original)
+                folio_embarque = generar_folio_embarque()
 
-                if faltantes:
-                    st.error("❌ El Excel no trae todas las columnas requeridas.")
-                    st.write("Columnas faltantes:", faltantes)
-                    st.write("Columnas detectadas:", df_original.columns.tolist())
-                    st.stop()
-
-                df = limpiar_dataframe_excel(df_original)
-
-                if df.empty:
-                    st.warning("El archivo no contiene registros válidos.")
-                    st.stop()
-
-                st.subheader("📋 Vista previa")
-
-                st.dataframe(
-                    df,
-                    use_container_width=True,
-                    hide_index=True
+                st.success(
+                    f"✅ Embarque creado: {folio_embarque}"
                 )
 
-                total_registros = len(df)
-                total_embarques = df["folio_embarque"].nunique()
-                total_materiales = df["codigo_material"].nunique()
-
-                c1, c2, c3 = st.columns(3)
-
-                with c1:
-                    st.metric("Registros", total_registros)
-
-                with c2:
-                    st.metric("Embarques", total_embarques)
-
-                with c3:
-                    st.metric("Materiales únicos", total_materiales)
-
-                if st.button(
-                    "💾 Guardar embarques",
-                    use_container_width=True
-                ):
-
-                    (
-                        embarques_insertados,
-                        embarques_existentes,
-                        detalles_insertados
-                    ) = guardar_embarques_excel(df)
-
-                    st.success("✅ Carga procesada correctamente.")
-
-                    st.write(
-                        "Embarques nuevos:",
-                        embarques_insertados
-                    )
-
-                    st.write(
-                        "Embarques ya existentes:",
-                        embarques_existentes
-                    )
-
-                    st.write(
-                        "Detalles insertados:",
-                        detalles_insertados
-                    )
+                st.info(
+                    "Próximo paso: guardar encabezado y detalle."
+                )
 
             except Exception as e:
-                st.error("❌ Error procesando Excel.")
+
+                st.error(
+                    "❌ Error creando embarque."
+                )
+
                 st.exception(e)
