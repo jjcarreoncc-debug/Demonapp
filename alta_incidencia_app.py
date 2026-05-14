@@ -7,30 +7,67 @@ from sigem_db import get_db_path
 
 
 # =====================================================
-# OBTENER EMBARQUES
+# ASEGURAR COLUMNA CODIGO_TRANSPORTE EN INCIDENCIAS
 # =====================================================
 
-def obtener_embarques():
+def asegurar_columna_codigo_transporte():
+
+    db_path = get_db_path("logistica")
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("PRAGMA table_info(incidencias)")
+    columnas = [col[1] for col in cur.fetchall()]
+
+    if "codigo_transporte" not in columnas:
+        cur.execute("""
+            ALTER TABLE incidencias
+            ADD COLUMN codigo_transporte TEXT
+        """)
+
+    conn.commit()
+    conn.close()
+
+
+# =====================================================
+# OBTENER TRANSPORTES
+# =====================================================
+
+def obtener_transportes():
 
     db_path = get_db_path("logistica")
     conn = sqlite3.connect(db_path)
 
     query = """
         SELECT
-            folio_embarque,
-            folio_hoja_carga,
-            pedido,
-            fecha,
-            cliente,
-            destino,
+            codigo_transporte,
+            codigo_ruta,
+            ruta,
             transportista,
             vehiculo,
             placas,
             operador,
-            ruta,
-            estatus
+            estatus,
+            COUNT(folio_embarque) AS total_embarques,
+            GROUP_CONCAT(folio_embarque, ', ') AS embarques,
+            GROUP_CONCAT(folio_hoja_carga, ', ') AS hojas_carga,
+            GROUP_CONCAT(pedido, ', ') AS pedidos,
+            GROUP_CONCAT(cliente, ', ') AS clientes,
+            GROUP_CONCAT(destino, ', ') AS destinos,
+            MAX(fecha) AS fecha
         FROM embarques
-        ORDER BY fecha DESC, folio_embarque DESC
+        WHERE codigo_transporte IS NOT NULL
+          AND TRIM(codigo_transporte) <> ''
+        GROUP BY
+            codigo_transporte,
+            codigo_ruta,
+            ruta,
+            transportista,
+            vehiculo,
+            placas,
+            operador,
+            estatus
+        ORDER BY fecha DESC, codigo_transporte DESC
     """
 
     df = pd.read_sql_query(query, conn)
@@ -55,6 +92,8 @@ def generar_folio_incidencia():
 
 def registrar_incidencia(datos):
 
+    asegurar_columna_codigo_transporte()
+
     db_path = get_db_path("logistica")
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -69,6 +108,7 @@ def registrar_incidencia(datos):
             prioridad,
             estatus,
             folio_referencia,
+            codigo_transporte,
             folio_embarque,
             folio_hoja_carga,
             pedido,
@@ -86,7 +126,7 @@ def registrar_incidencia(datos):
             observaciones,
             fecha_creacion
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, datos)
 
     conn.commit()
@@ -102,69 +142,78 @@ def alta_incidencia_app():
     st.subheader("➕ Alta incidencia")
 
     st.info(
-        "Registra incidencias operativas relacionadas con embarques, "
-        "hojas de carga, pedidos, transporte o proceso logístico."
+        "Registra incidencias operativas relacionadas con el transporte, "
+        "incluyendo sus embarques, hojas de carga, ruta y proceso logístico."
     )
 
     try:
 
-        df_embarques = obtener_embarques()
+        asegurar_columna_codigo_transporte()
+        df_transportes = obtener_transportes()
 
     except Exception as e:
 
-        st.error("❌ Error consultando embarques.")
+        st.error("❌ Error consultando transportes.")
         st.exception(e)
         return
 
-    if df_embarques.empty:
+    if df_transportes.empty:
 
-        st.warning("No existen embarques registrados.")
+        st.warning("No existen transportes registrados.")
         return
 
-    df_embarques = df_embarques.fillna("")
+    df_transportes = df_transportes.fillna("")
 
-    df_embarques["opcion"] = (
-        df_embarques["folio_embarque"].astype(str)
+    df_transportes["opcion"] = (
+        df_transportes["codigo_transporte"].astype(str)
         + " | "
-        + df_embarques["cliente"].astype(str)
+        + df_transportes["transportista"].astype(str)
         + " | "
-        + df_embarques["destino"].astype(str)
+        + df_transportes["operador"].astype(str)
         + " | "
-        + df_embarques["estatus"].astype(str)
+        + df_transportes["estatus"].astype(str)
     )
 
-    opcion_embarque = st.selectbox(
-        "Selecciona embarque relacionado",
-        df_embarques["opcion"].tolist()
+    opcion_transporte = st.selectbox(
+        "Selecciona transporte relacionado",
+        df_transportes["opcion"].tolist()
     )
 
-    folio_embarque = opcion_embarque.split(" | ")[0].strip()
+    codigo_transporte = opcion_transporte.split(" | ")[0].strip()
 
-    embarque = df_embarques[
-        df_embarques["folio_embarque"].astype(str).str.strip()
-        == folio_embarque
+    transporte = df_transportes[
+        df_transportes["codigo_transporte"].astype(str).str.strip()
+        == codigo_transporte
     ].iloc[0]
 
     st.divider()
 
-    st.subheader("📦 Datos del embarque")
+    st.subheader("🚚 Datos del transporte")
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.write("**Folio embarque:**", embarque.get("folio_embarque", ""))
-        st.write("**Hoja carga:**", embarque.get("folio_hoja_carga", ""))
-        st.write("**Pedido:**", embarque.get("pedido", ""))
+        st.write("**Código transporte:**", transporte.get("codigo_transporte", ""))
+        st.write("**Ruta:**", transporte.get("ruta", ""))
+        st.write("**Código ruta:**", transporte.get("codigo_ruta", ""))
 
     with c2:
-        st.write("**Cliente:**", embarque.get("cliente", ""))
-        st.write("**Destino:**", embarque.get("destino", ""))
-        st.write("**Estatus:**", embarque.get("estatus", ""))
+        st.write("**Transportista:**", transporte.get("transportista", ""))
+        st.write("**Vehículo:**", transporte.get("vehiculo", ""))
+        st.write("**Placas:**", transporte.get("placas", ""))
 
     with c3:
-        st.write("**Transportista:**", embarque.get("transportista", ""))
-        st.write("**Vehículo:**", embarque.get("vehiculo", ""))
-        st.write("**Operador:**", embarque.get("operador", ""))
+        st.write("**Operador:**", transporte.get("operador", ""))
+        st.write("**Estatus:**", transporte.get("estatus", ""))
+        st.write("**Total embarques:**", transporte.get("total_embarques", 0))
+
+    st.markdown("### 📦 Embarques incluidos en el transporte")
+
+    st.write("**Embarques:**", transporte.get("embarques", ""))
+    st.write("**Hojas de carga:**", transporte.get("hojas_carga", ""))
+    st.write("**Pedidos:**", transporte.get("pedidos", ""))
+    st.write("**Clientes:**", transporte.get("clientes", ""))
+    st.write("**Destinos:**", transporte.get("destinos", ""))
 
     st.divider()
 
@@ -200,15 +249,16 @@ def alta_incidencia_app():
         proceso = st.selectbox(
             "Proceso",
             [
-                "Embarque",
-                "Hoja de carga",
-                "Pedido",
                 "Transporte",
                 "Ruta",
                 "Entrega",
+                "Hoja de carga",
+                "Embarque",
+                "Pedido",
                 "Almacén",
                 "Otro"
-            ]
+            ],
+            index=0
         )
 
     with col5:
@@ -293,16 +343,17 @@ def alta_incidencia_app():
                 tipo_incidencia,
                 prioridad,
                 "Abierta",
-                folio_embarque,
-                embarque.get("folio_embarque", ""),
-                embarque.get("folio_hoja_carga", ""),
-                embarque.get("pedido", ""),
-                embarque.get("cliente", ""),
-                embarque.get("destino", ""),
-                embarque.get("transportista", ""),
-                embarque.get("vehiculo", ""),
-                embarque.get("placas", ""),
-                embarque.get("operador", ""),
+                codigo_transporte,
+                codigo_transporte,
+                transporte.get("embarques", ""),
+                transporte.get("hojas_carga", ""),
+                transporte.get("pedidos", ""),
+                transporte.get("clientes", ""),
+                transporte.get("destinos", ""),
+                transporte.get("transportista", ""),
+                transporte.get("vehiculo", ""),
+                transporte.get("placas", ""),
+                transporte.get("operador", ""),
                 responsable,
                 descripcion_incidencia,
                 causa,
@@ -315,7 +366,7 @@ def alta_incidencia_app():
             registrar_incidencia(datos)
 
             st.success(
-                f"✅ Incidencia registrada correctamente: {folio_incidencia}"
+                f"✅ Incidencia registrada correctamente para el transporte {codigo_transporte}: {folio_incidencia}"
             )
 
         except Exception as e:
