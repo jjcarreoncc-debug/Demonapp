@@ -51,6 +51,44 @@ def agregar_columna_si_no_existe(cur, tabla, columna, tipo):
             raise e
 
 
+def obtener_db_por_modulo(modulo):
+
+    if modulo == "Compras":
+        return "compras"
+
+    if modulo == "Inventarios":
+        return "inventarios"
+
+    if modulo == "Logística":
+        return "logistica"
+
+    return None
+
+
+def borrar_tabla(modulo, tabla):
+
+    db_nombre = obtener_db_por_modulo(modulo)
+
+    if db_nombre is None:
+        raise Exception(
+            "No se encontró base de datos para el módulo seleccionado."
+        )
+
+    db_path = get_db_path(db_nombre)
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute(
+        f"DROP TABLE IF EXISTS {tabla}"
+    )
+
+    conn.commit()
+    conn.close()
+
+    return db_path
+
+
 # =====================================================
 # INVENTARIOS
 # =====================================================
@@ -605,13 +643,14 @@ def crear_tablas_control_embarques():
 
 def crear_tablas_app():
 
-    st.title("🗄️ Crear / modificar tablas")
+    st.title("🗄️ Crear / modificar / borrar tablas")
 
     tipo_proceso = st.selectbox(
         "Tipo proceso",
         [
             "Crear tabla",
-            "Modificar estructura"
+            "Modificar estructura",
+            "Borrar tabla"
         ],
         key="tipo_proceso_tablas"
     )
@@ -827,5 +866,60 @@ def crear_tablas_app():
 
                 st.error(
                     f"❌ Error modificando estructura: {modulo} / {tabla}"
+                )
+                st.exception(e)
+
+    elif tipo_proceso == "Borrar tabla":
+
+        st.error(
+            "⚠️ Este proceso elimina completamente la tabla y toda su información."
+        )
+
+        st.warning(
+            "⚠️ Esta acción no se puede deshacer."
+        )
+
+        if tabla == "Todas":
+
+            st.error(
+                "Por seguridad no se permite borrar 'Todas'. Selecciona una tabla específica."
+            )
+            st.stop()
+
+        confirmar_borrado = st.checkbox(
+            f"Confirmo borrar la tabla: {tabla}",
+            key=f"confirmar_borrado_{modulo}_{tabla}"
+        )
+
+        if not confirmar_borrado:
+
+            st.info(
+                "Marca la confirmación para habilitar el borrado."
+            )
+            st.stop()
+
+        if st.button(
+            "🗑️ Borrar tabla",
+            key=f"btn_borrar_{modulo}_{tabla}"
+        ):
+
+            try:
+
+                db_path = borrar_tabla(
+                    modulo,
+                    tabla
+                )
+
+                st.success(
+                    f"✅ Tabla eliminada correctamente: {tabla}"
+                )
+
+                st.write("📂 Base afectada:")
+                st.code(str(db_path))
+
+            except Exception as e:
+
+                st.error(
+                    f"❌ Error borrando tabla: {tabla}"
                 )
                 st.exception(e)
