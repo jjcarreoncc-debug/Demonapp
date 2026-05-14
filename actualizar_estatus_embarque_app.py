@@ -8,10 +8,10 @@ from sigem_db import get_db_path
 
 
 # =====================================================
-# OBTENER EMBARQUES
+# OBTENER TRANSPORTES
 # =====================================================
 
-def obtener_embarques_para_estatus():
+def obtener_transportes_para_estatus():
 
     db_path = get_db_path("logistica")
 
@@ -19,24 +19,43 @@ def obtener_embarques_para_estatus():
 
     query = """
         SELECT
-            folio_embarque,
-            folio_hoja_carga,
-            folio_ruta,
-            pedido,
-            fecha,
-            cliente,
-            destino,
+            codigo_transporte,
+            MAX(folio_hoja_carga) AS folio_hoja_carga,
+            MAX(folio_ruta) AS folio_ruta,
+            MAX(fecha) AS fecha,
             transportista,
             vehiculo,
             placas,
             operador,
             ruta,
             estatus,
-            fecha_estatus,
-            usuario_estatus,
-            observaciones_estatus
+            GROUP_CONCAT(cliente, ', ') AS clientes,
+            GROUP_CONCAT(destino, ', ') AS destinos,
+            COUNT(folio_embarque) AS total_embarques,
+            MAX(fecha_estatus) AS fecha_estatus,
+            MAX(usuario_estatus) AS usuario_estatus,
+            MAX(observaciones_estatus) AS observaciones_estatus
         FROM embarques
-        ORDER BY fecha DESC, folio_embarque DESC
+        WHERE
+            codigo_transporte IS NOT NULL
+            AND TRIM(codigo_transporte) <> ''
+            AND UPPER(TRIM(estatus)) NOT IN (
+                'ENTREGADO',
+                'CANCELADO',
+                'FINALIZADO',
+                'FINALIZADA',
+                'CONCLUIDO',
+                'CONCLUIDA'
+            )
+        GROUP BY
+            codigo_transporte,
+            transportista,
+            vehiculo,
+            placas,
+            operador,
+            ruta,
+            estatus
+        ORDER BY fecha DESC, codigo_transporte DESC
     """
 
     df = pd.read_sql_query(query, conn)
@@ -83,10 +102,10 @@ def obtener_catalogo_estatus():
 
 
 # =====================================================
-# OBTENER DETALLE EMBARQUE
+# OBTENER DETALLE TRANSPORTE
 # =====================================================
 
-def obtener_detalle_embarque(folio_embarque):
+def obtener_detalle_transporte(codigo_transporte):
 
     db_path = get_db_path("logistica")
 
@@ -94,9 +113,8 @@ def obtener_detalle_embarque(folio_embarque):
 
     query = """
         SELECT
+            codigo_transporte,
             folio_embarque,
-            folio_hoja_carga,
-            folio_ruta,
             pedido,
             codigo_material,
             descripcion,
@@ -107,14 +125,43 @@ def obtener_detalle_embarque(folio_embarque):
             bodega,
             ubicacion
         FROM detalle_embarque
-        WHERE folio_embarque = ?
+        WHERE codigo_transporte = ?
     """
 
-    df = pd.read_sql_query(
-        query,
-        conn,
-        params=[folio_embarque]
-    )
+    try:
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=[codigo_transporte]
+        )
+
+    except Exception:
+
+        query = """
+            SELECT
+                e.codigo_transporte,
+                d.folio_embarque,
+                d.pedido,
+                d.codigo_material,
+                d.descripcion,
+                d.cantidad_pedida,
+                d.cantidad_embarcar,
+                d.peso,
+                d.volumen,
+                d.bodega,
+                d.ubicacion
+            FROM detalle_embarque d
+            LEFT JOIN embarques e
+                ON d.folio_embarque = e.folio_embarque
+            WHERE e.codigo_transporte = ?
+        """
+
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=[codigo_transporte]
+        )
 
     conn.close()
 
@@ -125,7 +172,7 @@ def obtener_detalle_embarque(folio_embarque):
 # OBTENER HISTORIAL
 # =====================================================
 
-def obtener_historial_estatus(folio_embarque):
+def obtener_historial_estatus(codigo_transporte):
 
     db_path = get_db_path("logistica")
 
@@ -147,7 +194,7 @@ def obtener_historial_estatus(folio_embarque):
     df = pd.read_sql_query(
         query,
         conn,
-        params=[folio_embarque]
+        params=[codigo_transporte]
     )
 
     conn.close()
@@ -159,8 +206,8 @@ def obtener_historial_estatus(folio_embarque):
 # ACTUALIZAR ESTATUS
 # =====================================================
 
-def actualizar_estatus_embarque(
-    folio_embarque,
+def actualizar_estatus_transporte(
+    codigo_transporte,
     estatus_anterior,
     estatus_nuevo,
     usuario,
@@ -181,13 +228,13 @@ def actualizar_estatus_embarque(
             fecha_estatus = ?,
             usuario_estatus = ?,
             observaciones_estatus = ?
-        WHERE folio_embarque = ?
+        WHERE codigo_transporte = ?
     """, (
         estatus_nuevo,
         fecha_cambio,
         usuario,
         observaciones,
-        folio_embarque
+        codigo_transporte
     ))
 
     cur.execute("""
@@ -201,7 +248,7 @@ def actualizar_estatus_embarque(
         )
         VALUES (?, ?, ?, ?, ?, ?)
     """, (
-        folio_embarque,
+        codigo_transporte,
         estatus_anterior,
         estatus_nuevo,
         fecha_cambio,
@@ -219,39 +266,39 @@ def actualizar_estatus_embarque(
 
 def actualizar_estatus_embarque_app():
 
-    st.title("✏️ Actualizar estatus embarque")
+    st.title("🚚 Actualizar estatus transporte")
 
     # =====================================================
     # SESSION STATE
     # =====================================================
 
-    if "refresh_estatus_embarque" not in st.session_state:
+    if "refresh_estatus_transporte" not in st.session_state:
 
-        st.session_state["refresh_estatus_embarque"] = False
+        st.session_state["refresh_estatus_transporte"] = False
 
     # =====================================================
-    # CONSULTAR EMBARQUES
+    # CONSULTAR TRANSPORTES
     # =====================================================
 
     try:
 
-        df_embarques = obtener_embarques_para_estatus()
+        df_transportes = obtener_transportes_para_estatus()
 
-        if st.session_state["refresh_estatus_embarque"]:
+        if st.session_state["refresh_estatus_transporte"]:
 
-            st.session_state["refresh_estatus_embarque"] = False
+            st.session_state["refresh_estatus_transporte"] = False
 
-            df_embarques = obtener_embarques_para_estatus()
+            df_transportes = obtener_transportes_para_estatus()
 
     except Exception as e:
 
-        st.error("❌ Error consultando embarques")
+        st.error("❌ Error consultando transportes")
         st.exception(e)
         return
 
-    if df_embarques.empty:
+    if df_transportes.empty:
 
-        st.warning("No existen embarques registrados.")
+        st.warning("No existen transportes activos registrados.")
         return
 
     try:
@@ -273,13 +320,13 @@ def actualizar_estatus_embarque_app():
     # FILTROS
     # =====================================================
 
-    st.subheader("🔎 Buscar embarque")
+    st.subheader("🔎 Buscar transporte")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
 
-        filtro_folio = st.text_input("Folio embarque")
+        filtro_transporte = st.text_input("Código transporte")
 
     with col2:
 
@@ -290,7 +337,7 @@ def actualizar_estatus_embarque_app():
         filtro_estatus = st.selectbox(
             "Estatus actual",
             ["Todos"] + sorted(
-                df_embarques["estatus"]
+                df_transportes["estatus"]
                 .dropna()
                 .astype(str)
                 .unique()
@@ -298,20 +345,20 @@ def actualizar_estatus_embarque_app():
             )
         )
 
-    df_filtrado = df_embarques.copy()
+    df_filtrado = df_transportes.copy()
 
-    if filtro_folio:
+    if filtro_transporte:
 
         df_filtrado = df_filtrado[
-            df_filtrado["folio_embarque"]
+            df_filtrado["codigo_transporte"]
             .astype(str)
-            .str.contains(filtro_folio, case=False, na=False)
+            .str.contains(filtro_transporte, case=False, na=False)
         ]
 
     if filtro_cliente:
 
         df_filtrado = df_filtrado[
-            df_filtrado["cliente"]
+            df_filtrado["clientes"]
             .astype(str)
             .str.contains(filtro_cliente, case=False, na=False)
         ]
@@ -324,63 +371,99 @@ def actualizar_estatus_embarque_app():
 
     if df_filtrado.empty:
 
-        st.warning("No hay embarques con los filtros seleccionados.")
+        st.warning("No hay transportes con los filtros seleccionados.")
         return
 
     # =====================================================
-    # SELECCIONAR EMBARQUE
+    # SELECCIONAR TRANSPORTE
     # =====================================================
 
     df_filtrado["opcion"] = (
-        df_filtrado["folio_embarque"].astype(str)
+        df_filtrado["codigo_transporte"].astype(str)
         + " | "
-        + df_filtrado["cliente"].fillna("").astype(str)
+        + df_filtrado["clientes"].fillna("").astype(str)
         + " | "
-        + df_filtrado["destino"].fillna("").astype(str)
+        + df_filtrado["destinos"].fillna("").astype(str)
         + " | "
         + df_filtrado["estatus"].fillna("").astype(str)
     )
 
     opcion = st.selectbox(
-        "Selecciona embarque",
+        "Selecciona transporte",
         df_filtrado["opcion"].tolist()
     )
 
-    folio_seleccionado = opcion.split(" | ")[0]
+    codigo_transporte = opcion.split(" | ")[0]
 
-    embarque = df_filtrado[
-        df_filtrado["folio_embarque"].astype(str) == folio_seleccionado
+    transporte = df_filtrado[
+        df_filtrado["codigo_transporte"].astype(str)
+        == codigo_transporte
     ].iloc[0]
 
     st.divider()
 
     # =====================================================
-    # DATOS DEL EMBARQUE
+    # DATOS DEL TRANSPORTE
     # =====================================================
 
-    st.subheader("📦 Datos del embarque")
+    st.subheader("🚚 Datos del transporte")
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
 
-        st.write("**Folio embarque:**", embarque.get("folio_embarque", ""))
-        st.write("**Hoja carga:**", embarque.get("folio_hoja_carga", ""))
-        st.write("**Pedido:**", embarque.get("pedido", ""))
+        st.write(
+            "**Código transporte:**",
+            transporte.get("codigo_transporte", "")
+        )
+
+        st.write(
+            "**Hoja carga:**",
+            transporte.get("folio_hoja_carga", "")
+        )
+
+        st.write(
+            "**Total embarques:**",
+            transporte.get("total_embarques", 0)
+        )
 
     with c2:
 
-        st.write("**Cliente:**", embarque.get("cliente", ""))
-        st.write("**Destino:**", embarque.get("destino", ""))
-        st.write("**Ruta:**", embarque.get("ruta", ""))
+        st.write(
+            "**Clientes:**",
+            transporte.get("clientes", "")
+        )
+
+        st.write(
+            "**Destinos:**",
+            transporte.get("destinos", "")
+        )
+
+        st.write(
+            "**Ruta:**",
+            transporte.get("ruta", "")
+        )
 
     with c3:
 
-        st.write("**Transportista:**", embarque.get("transportista", ""))
-        st.write("**Vehículo:**", embarque.get("vehiculo", ""))
-        st.write("**Placas:**", embarque.get("placas", ""))
+        st.write(
+            "**Transportista:**",
+            transporte.get("transportista", "")
+        )
 
-    estatus_actual = str(embarque.get("estatus", "") or "")
+        st.write(
+            "**Vehículo:**",
+            transporte.get("vehiculo", "")
+        )
+
+        st.write(
+            "**Placas:**",
+            transporte.get("placas", "")
+        )
+
+    estatus_actual = str(
+        transporte.get("estatus", "") or ""
+    )
 
     st.info(f"📌 Estatus actual: {estatus_actual}")
 
@@ -392,7 +475,9 @@ def actualizar_estatus_embarque_app():
 
     if estatus_actual in catalogo_estatus:
 
-        index_estatus = catalogo_estatus.index(estatus_actual)
+        index_estatus = catalogo_estatus.index(
+            estatus_actual
+        )
 
     else:
 
@@ -426,25 +511,33 @@ def actualizar_estatus_embarque_app():
 
         if nuevo_estatus == estatus_actual:
 
-            st.warning("Selecciona un estatus diferente al actual.")
+            st.warning(
+                "Selecciona un estatus diferente al actual."
+            )
 
         else:
 
             try:
 
-                actualizar_estatus_embarque(
-                    folio_seleccionado,
+                actualizar_estatus_transporte(
+                    codigo_transporte,
                     estatus_actual,
                     nuevo_estatus,
                     usuario,
                     observaciones
                 )
 
-                st.session_state["refresh_estatus_embarque"] = True
+                st.session_state[
+                    "refresh_estatus_transporte"
+                ] = True
 
                 st.success(
-                    f"✅ Estatus actualizado: {folio_seleccionado} → {nuevo_estatus}"
+                    f"✅ Estatus actualizado: "
+                    f"{codigo_transporte} → "
+                    f"{nuevo_estatus}"
                 )
+
+                st.rerun()
 
             except Exception as e:
 
@@ -452,13 +545,13 @@ def actualizar_estatus_embarque_app():
                 st.exception(e)
 
     # =====================================================
-    # CARGA DEL EMBARQUE
+    # DETALLE TRANSPORTE
     # =====================================================
 
     st.divider()
 
     tab1, tab2 = st.tabs([
-        "📄 Carga del embarque",
+        "📄 Carga del transporte",
         "🕒 Historial de estatus"
     ])
 
@@ -466,13 +559,15 @@ def actualizar_estatus_embarque_app():
 
         try:
 
-            df_detalle = obtener_detalle_embarque(
-                folio_seleccionado
+            df_detalle = obtener_detalle_transporte(
+                codigo_transporte
             )
 
             if df_detalle.empty:
 
-                st.warning("Este embarque no tiene detalle registrado.")
+                st.warning(
+                    "Este transporte no tiene detalle registrado."
+                )
 
             else:
 
@@ -485,7 +580,10 @@ def actualizar_estatus_embarque_app():
 
         except Exception as e:
 
-            st.error("❌ Error consultando carga del embarque")
+            st.error(
+                "❌ Error consultando carga del transporte"
+            )
+
             st.exception(e)
 
     with tab2:
@@ -493,12 +591,14 @@ def actualizar_estatus_embarque_app():
         try:
 
             df_historial = obtener_historial_estatus(
-                folio_seleccionado
+                codigo_transporte
             )
 
             if df_historial.empty:
 
-                st.info("Este embarque todavía no tiene historial de cambios.")
+                st.info(
+                    "Este transporte todavía no tiene historial."
+                )
 
             else:
 
