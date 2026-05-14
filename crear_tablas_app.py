@@ -218,10 +218,6 @@ def crear_tabla_historial_estatus_embarque(cur):
     """)
 
 
-# =====================================================
-# EVENTOS EMBARQUE
-# =====================================================
-
 def crear_tabla_eventos_embarque(cur):
 
     cur.execute("""
@@ -240,10 +236,6 @@ def crear_tabla_eventos_embarque(cur):
         )
     """)
 
-
-# =====================================================
-# RUTAS
-# =====================================================
 
 def crear_tabla_rutas(cur):
 
@@ -284,6 +276,31 @@ def crear_tabla_puntos_ruta(cur):
     """)
 
 
+def crear_tabla_transportes(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS transportes (
+            id_transporte INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_transporte TEXT UNIQUE NOT NULL,
+            descripcion TEXT,
+            tipo_transporte TEXT,
+            transportista TEXT,
+            vehiculo TEXT,
+            placas TEXT,
+            operador TEXT,
+            telefono_operador TEXT,
+            codigo_ruta TEXT,
+            capacidad_peso REAL DEFAULT 0,
+            capacidad_volumen REAL DEFAULT 0,
+            estatus TEXT DEFAULT 'Disponible',
+            activo INTEGER DEFAULT 1,
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
 def crear_tablas_rutas_logistica():
 
     db_path = get_db_path("logistica")
@@ -293,17 +310,21 @@ def crear_tablas_rutas_logistica():
 
     crear_tabla_rutas(cur)
     crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
 
     conn.commit()
     conn.close()
 
-    st.success("✅ Tablas de rutas creadas/actualizadas")
+    st.success("✅ Tablas de rutas / transportes creadas o actualizadas")
 
     st.subheader("📋 Rutas")
     mostrar_estructura_tabla(db_path, "rutas")
 
     st.subheader("📋 Puntos ruta")
     mostrar_estructura_tabla(db_path, "puntos_ruta")
+
+    st.subheader("📋 Transportes")
+    mostrar_estructura_tabla(db_path, "transportes")
 
 
 def crear_tablas_logistica():
@@ -390,6 +411,7 @@ def crear_tablas_logistica():
     crear_tabla_eventos_embarque(cur)
     crear_tabla_rutas(cur)
     crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
 
     conn.commit()
     conn.close()
@@ -413,6 +435,8 @@ def alterar_tabla_embarques():
         ("fecha_estatus", "TEXT"),
         ("usuario_estatus", "TEXT"),
         ("observaciones_estatus", "TEXT"),
+        ("codigo_transporte", "TEXT"),
+        ("codigo_ruta", "TEXT"),
     ]
 
     st.subheader("🔧 Actualizando tabla embarques")
@@ -437,6 +461,7 @@ def alterar_tabla_embarques():
     crear_tabla_eventos_embarque(cur)
     crear_tabla_rutas(cur)
     crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
 
     conn.commit()
     conn.close()
@@ -458,6 +483,9 @@ def alterar_tabla_embarques():
 
     st.subheader("📋 Puntos ruta")
     mostrar_estructura_tabla(db_path, "puntos_ruta")
+
+    st.subheader("📋 Transportes")
+    mostrar_estructura_tabla(db_path, "transportes")
 
 
 def alterar_tabla_detalle_embarque():
@@ -505,6 +533,7 @@ def crear_tablas_control_embarques():
     crear_tabla_eventos_embarque(cur)
     crear_tabla_rutas(cur)
     crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
 
     conn.commit()
     conn.close()
@@ -525,6 +554,9 @@ def crear_tablas_control_embarques():
 
     st.subheader("📋 Puntos ruta")
     mostrar_estructura_tabla(db_path, "puntos_ruta")
+
+    st.subheader("📋 Transportes")
+    mostrar_estructura_tabla(db_path, "transportes")
 
 
 # =====================================================
@@ -586,7 +618,8 @@ def crear_tablas_app():
             "historial_estatus_embarque",
             "eventos_embarque",
             "rutas",
-            "puntos_ruta"
+            "puntos_ruta",
+            "transportes"
         ]
 
     tabla = st.selectbox(
@@ -594,10 +627,6 @@ def crear_tablas_app():
         tablas_disponibles,
         key="crear_tablas_tabla"
     )
-
-    # =====================================================
-    # CREAR TABLAS
-    # =====================================================
 
     if tipo_proceso == "Crear tabla":
 
@@ -675,7 +704,8 @@ def crear_tablas_app():
 
                     elif tabla in [
                         "rutas",
-                        "puntos_ruta"
+                        "puntos_ruta",
+                        "transportes"
                     ]:
 
                         crear_tablas_rutas_logistica()
@@ -690,10 +720,6 @@ def crear_tablas_app():
                     f"❌ Error creando tablas del módulo {modulo}"
                 )
                 st.exception(e)
-
-    # =====================================================
-    # MODIFICAR ESTRUCTURA
-    # =====================================================
 
     elif tipo_proceso == "Modificar estructura":
 
@@ -737,7 +763,8 @@ def crear_tablas_app():
 
                 elif modulo == "Logística" and tabla in [
                     "rutas",
-                    "puntos_ruta"
+                    "puntos_ruta",
+                    "transportes"
                 ]:
 
                     crear_tablas_rutas_logistica()
