@@ -28,6 +28,30 @@ COLUMNAS_MINIMAS = {
         "cantidad"
     ],
 
+    "hoja_carga": [
+        "folio_hoja_carga",
+        "fecha",
+        "pedido",
+        "cliente",
+        "destino",
+        "bodega_origen",
+        "estatus",
+        "responsable_surtido"
+    ],
+
+    "detalle_hoja_carga": [
+        "folio_hoja_carga",
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad_pedido",
+        "cantidad_surtida",
+        "bodega",
+        "ubicacion",
+        "peso",
+        "volumen"
+    ],
+
     "entradas_compras": [
         "proveedor",
         "factura",
@@ -146,6 +170,10 @@ DB_POR_TABLA = {
 
     "movimientos_inventario": "inventarios",
 
+    "hoja_carga": "inventarios",
+
+    "detalle_hoja_carga": "inventarios",
+
     "entradas_compras": "compras",
 
     "entradas_compras_detalle": "compras",
@@ -192,7 +220,9 @@ def carga_tablas_inicial_app():
 
         tablas_disponibles = [
             "materiales",
-            "movimientos_inventario"
+            "movimientos_inventario",
+            "hoja_carga",
+            "detalle_hoja_carga"
         ]
 
     elif modulo == "Compras":
@@ -315,7 +345,81 @@ def carga_tablas_inicial_app():
     )
 
     # =====================================================
-    # VALIDACIONES ESPECIALES
+    # VALIDACIONES ESPECIALES INVENTARIOS
+    # =====================================================
+
+    if tabla == "hoja_carga":
+
+        if df["folio_hoja_carga"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_hoja_carga"
+            )
+
+            return
+
+        if df["cliente"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin cliente"
+            )
+
+            return
+
+        if df["destino"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin destino"
+            )
+
+            return
+
+        duplicados = df[
+            df["folio_hoja_carga"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay folio_hoja_carga duplicados en el archivo"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "detalle_hoja_carga":
+
+        if df["folio_hoja_carga"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_hoja_carga"
+            )
+
+            return
+
+        if df["codigo_material"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_material"
+            )
+
+            return
+
+        if df["cantidad_pedido"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin cantidad_pedido"
+            )
+
+            return
+
+    # =====================================================
+    # VALIDACIONES ESPECIALES LOGISTICA
     # =====================================================
 
     if tabla == "rutas":
