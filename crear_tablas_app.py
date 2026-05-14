@@ -119,7 +119,7 @@ def crear_tabla_ajustes_inventario():
     conn.commit()
     conn.close()
 
-########
+
 def crear_tablas_hoja_carga():
 
     db_path = get_db_path("inventarios")
@@ -130,79 +130,48 @@ def crear_tablas_hoja_carga():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS hoja_carga (
             id_hoja_carga INTEGER PRIMARY KEY AUTOINCREMENT,
-
             folio_hoja_carga TEXT UNIQUE NOT NULL,
-
             fecha TEXT,
-
             pedido TEXT,
-
             cliente TEXT,
-
             destino TEXT,
-
             prioridad TEXT,
-
             ruta_sugerida TEXT,
-
             estatus_hoja_carga TEXT,
-
             peso_total REAL DEFAULT 0,
-
             volumen_total REAL DEFAULT 0,
-
             transportista_sugerido TEXT,
-
             tipo_transporte TEXT,
-
             fecha_entrega TEXT,
-
             bodega_origen TEXT,
-
             estatus TEXT,
-
             responsable_surtido TEXT,
-
             observaciones TEXT,
-
             usuario TEXT,
-
             fecha_creacion TEXT
         )
     """)
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS detalle_hoja_carga (
-
             id_detalle_hoja INTEGER PRIMARY KEY AUTOINCREMENT,
-
             folio_hoja_carga TEXT NOT NULL,
-
             pedido TEXT,
-
             codigo_material TEXT,
-
             descripcion TEXT,
-
             cantidad_pedido REAL,
-
             cantidad_surtida REAL,
-
             bodega TEXT,
-
             ubicacion TEXT,
-
             peso REAL DEFAULT 0,
-
             volumen REAL DEFAULT 0,
-
             observaciones TEXT
         )
     """)
 
     conn.commit()
     conn.close()
-####
+
 
 def alterar_tabla_hoja_carga():
 
@@ -211,38 +180,27 @@ def alterar_tabla_hoja_carga():
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
-    st.subheader(
-        "📋 Estructura actual hoja_carga"
-    )
-
-    mostrar_estructura_tabla(
-        db_path,
-        "hoja_carga"
-    )
+    st.subheader("📋 Estructura actual hoja_carga")
+    mostrar_estructura_tabla(db_path, "hoja_carga")
 
     columnas_hoja = [
-
         ("prioridad", "TEXT"),
-
         ("ruta_sugerida", "TEXT"),
-
         ("estatus_hoja_carga", "TEXT"),
-
         ("peso_total", "REAL DEFAULT 0"),
-
         ("volumen_total", "REAL DEFAULT 0"),
-
         ("transportista_sugerido", "TEXT"),
-
         ("tipo_transporte", "TEXT"),
-
-        ("fecha_entrega", "TEXT")
-
+        ("fecha_entrega", "TEXT"),
+        ("bodega_origen", "TEXT"),
+        ("estatus", "TEXT"),
+        ("responsable_surtido", "TEXT"),
+        ("observaciones", "TEXT"),
+        ("usuario", "TEXT"),
+        ("fecha_creacion", "TEXT")
     ]
 
-    st.subheader(
-        "🔧 Actualizando tabla hoja_carga"
-    )
+    st.subheader("🔧 Actualizando tabla hoja_carga")
 
     for nombre_columna, tipo_columna in columnas_hoja:
 
@@ -256,14 +214,51 @@ def alterar_tabla_hoja_carga():
     conn.commit()
     conn.close()
 
-    st.subheader(
-        "📋 Estructura final hoja_carga"
-    )
+    st.subheader("📋 Estructura final hoja_carga")
+    mostrar_estructura_tabla(db_path, "hoja_carga")
 
-    mostrar_estructura_tabla(
-        db_path,
-        "hoja_carga"
-    )
+
+def alterar_tabla_detalle_hoja_carga():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual detalle_hoja_carga")
+    mostrar_estructura_tabla(db_path, "detalle_hoja_carga")
+
+    columnas_detalle = [
+        ("pedido", "TEXT"),
+        ("codigo_material", "TEXT"),
+        ("descripcion", "TEXT"),
+        ("cantidad_pedido", "REAL"),
+        ("cantidad_surtida", "REAL"),
+        ("bodega", "TEXT"),
+        ("ubicacion", "TEXT"),
+        ("peso", "REAL DEFAULT 0"),
+        ("volumen", "REAL DEFAULT 0"),
+        ("observaciones", "TEXT")
+    ]
+
+    st.subheader("🔧 Actualizando tabla detalle_hoja_carga")
+
+    for nombre_columna, tipo_columna in columnas_detalle:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "detalle_hoja_carga",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final detalle_hoja_carga")
+    mostrar_estructura_tabla(db_path, "detalle_hoja_carga")
+
+
 def alterar_movimientos_inventario():
 
     db_path = get_db_path("inventarios")
@@ -1051,10 +1046,20 @@ def crear_tablas_app():
                 if modulo == "Inventarios" and tabla == "movimientos_inventario":
 
                     alterar_movimientos_inventario()
-                    
+
                 elif modulo == "Inventarios" and tabla == "hoja_carga":
 
-                    alterar_tabla_hoja_carga()    
+                    alterar_tabla_hoja_carga()
+
+                elif modulo == "Inventarios" and tabla == "detalle_hoja_carga":
+
+                    alterar_tabla_detalle_hoja_carga()
+
+                elif modulo == "Inventarios" and tabla == "Todas":
+
+                    alterar_movimientos_inventario()
+                    alterar_tabla_hoja_carga()
+                    alterar_tabla_detalle_hoja_carga()
 
                 elif modulo == "Logística" and tabla == "embarques":
 
