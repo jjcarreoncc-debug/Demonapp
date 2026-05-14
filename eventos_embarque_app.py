@@ -19,7 +19,15 @@ ESTATUS_FLUJO = [
     "Entregado"
 ]
 
-ESTATUS_CANCELACION = "Cancelado"
+ESTATUS_LISTA_COMPLETA = [
+    "Pendiente",
+    "En almacén",
+    "En patio",
+    "Ya salió",
+    "En tránsito",
+    "Entregado",
+    "Cancelado"
+]
 
 TRANSICIONES_VALIDAS = {
     "Pendiente": ["En almacén", "Cancelado"],
@@ -33,6 +41,7 @@ TRANSICIONES_VALIDAS = {
 
 
 def obtener_siguientes_estatus(estatus_actual):
+
     estatus_actual = str(estatus_actual or "").strip()
 
     if not estatus_actual:
@@ -45,6 +54,7 @@ def obtener_siguientes_estatus(estatus_actual):
 
 
 def validar_transicion_estatus(estatus_actual, estatus_nuevo):
+
     estatus_actual = str(estatus_actual or "").strip()
     estatus_nuevo = str(estatus_nuevo or "").strip()
 
@@ -52,10 +62,7 @@ def validar_transicion_estatus(estatus_actual, estatus_nuevo):
         estatus_actual
     )
 
-    if estatus_nuevo not in permitidos:
-        return False
-
-    return True
+    return estatus_nuevo in permitidos
 
 
 # =====================================================
@@ -236,6 +243,7 @@ def obtener_eventos_embarque(folio_embarque):
     query = """
         SELECT
             id_evento,
+            folio_embarque,
             fecha_evento,
             tipo_evento,
             estatus,
@@ -246,7 +254,7 @@ def obtener_eventos_embarque(folio_embarque):
             longitud,
             fecha_registro
         FROM eventos_embarque
-        WHERE folio_embarque = ?
+        WHERE TRIM(folio_embarque) = TRIM(?)
         ORDER BY fecha_evento ASC, id_evento ASC
     """
 
@@ -290,24 +298,41 @@ def registrar_evento_embarque(
     cur.execute("""
         SELECT estatus
         FROM embarques
-        WHERE folio_embarque = ?
+        WHERE TRIM(folio_embarque) = TRIM(?)
     """, (folio_embarque,))
 
     row = cur.fetchone()
 
     estatus_anterior = row[0] if row else ""
 
+    if not estatus_anterior:
+        estatus_anterior = "Pendiente"
+
+    if estatus_anterior == estatus:
+
+        conn.close()
+
+        raise ValueError(
+            f"El embarque ya se encuentra "
+            f"en estatus '{estatus}'."
+        )
+
     if not validar_transicion_estatus(
         estatus_anterior,
         estatus
     ):
+
+        permitidos = obtener_siguientes_estatus(
+            estatus_anterior
+        )
 
         conn.close()
 
         raise ValueError(
             f"No se permite cambiar de "
             f"'{estatus_anterior}' a '{estatus}'. "
-            f"Debe respetarse la secuencia del embarque."
+            f"Solo se permite avanzar a: "
+            f"{', '.join(permitidos)}."
         )
 
     cur.execute("""
@@ -344,7 +369,7 @@ def registrar_evento_embarque(
             fecha_estatus = ?,
             usuario_estatus = ?,
             observaciones_estatus = ?
-        WHERE folio_embarque = ?
+        WHERE TRIM(folio_embarque) = TRIM(?)
     """, (
         estatus,
         fecha_evento,
@@ -482,6 +507,10 @@ def pintar_timeline_visual(df_eventos):
             ),
             tooltip=[
                 alt.Tooltip(
+                    "folio_embarque:N",
+                    title="Folio"
+                ),
+                alt.Tooltip(
                     "fecha_evento:T",
                     title="Fecha evento"
                 ),
@@ -568,6 +597,19 @@ def eventos_embarque_app():
 
         return
 
+    df_embarques["folio_embarque"] = (
+        df_embarques["folio_embarque"]
+        .astype(str)
+        .str.strip()
+    )
+
+    df_embarques["estatus"] = (
+        df_embarques["estatus"]
+        .fillna("Pendiente")
+        .astype(str)
+        .str.strip()
+    )
+
     df_embarques["opcion"] = (
         df_embarques["folio_embarque"]
         .astype(str)
@@ -585,16 +627,41 @@ def eventos_embarque_app():
         .astype(str)
     )
 
+    opciones_embarque = df_embarques["opcion"].tolist()
+
+    if (
+        "folio_eventos_seleccionado"
+        not in st.session_state
+    ):
+
+        st.session_state[
+            "folio_eventos_seleccionado"
+        ] = opciones_embarque[0]
+
+    if (
+        st.session_state["folio_eventos_seleccionado"]
+        not in opciones_embarque
+    ):
+
+        st.session_state[
+            "folio_eventos_seleccionado"
+        ] = opciones_embarque[0]
+
     opcion = st.selectbox(
         "Selecciona embarque",
-        df_embarques["opcion"].tolist()
+        opciones_embarque,
+        key="folio_eventos_seleccionado"
     )
 
-    folio_seleccionado = opcion.split(" | ")[0]
+    folio_seleccionado = (
+        opcion.split(" | ")[0]
+        .strip()
+    )
 
     embarque = df_embarques[
         df_embarques["folio_embarque"]
         .astype(str)
+        .str.strip()
         == folio_seleccionado
     ].iloc[0]
 
@@ -697,8 +764,9 @@ def eventos_embarque_app():
     else:
 
         st.caption(
-            f"Flujo permitido desde **{estatus_actual}**: "
-            f"{', '.join(siguientes_estatus)}"
+            f"El estatus actual es **{estatus_actual}**. "
+            f"El siguiente permitido es: "
+            f"**{', '.join(siguientes_estatus)}**"
         )
 
         col1, col2, col3 = st.columns(3)
@@ -728,7 +796,7 @@ def eventos_embarque_app():
 
         estatus = st.selectbox(
             "Nuevo estatus",
-            siguientes_estatus
+            ESTATUS_LISTA_COMPLETA
         )
 
         tipo_evento = "Actualización de estatus"
@@ -813,21 +881,22 @@ def eventos_embarque_app():
 
                     return
 
-                if not validar_transicion_estatus(
-                    estatus_actual,
-                    estatus
-                ):
+                permitidos = obtener_siguientes_estatus(
+                    estatus_actual
+                )
+
+                if estatus not in permitidos:
 
                     st.error(
-                        "❌ No puede seleccionar este "
-                        "estatus porque rompe la secuencia "
-                        "del proceso."
+                        "❌ No puede seleccionar este estatus "
+                        "porque rompe la secuencia del proceso."
                     )
 
                     st.warning(
-                        f"El estatus actual es "
-                        f"'{estatus_actual}' y solo se permite: "
-                        f"{', '.join(siguientes_estatus)}"
+                        f"El embarque actualmente está en "
+                        f"'{estatus_actual}'. "
+                        f"Solo puede avanzar a: "
+                        f"{', '.join(permitidos)}."
                     )
 
                     return
@@ -853,6 +922,10 @@ def eventos_embarque_app():
                     f"✅ Estatus actualizado "
                     f"para {folio_seleccionado}"
                 )
+
+                st.session_state[
+                    "folio_eventos_seleccionado"
+                ] = opcion
 
                 st.rerun()
 
