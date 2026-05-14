@@ -123,7 +123,8 @@ def sidebar_inventarios():
                         set_opcion("Operaciones", "Salidas", "Registrar merma")
                     if st.button("Consultar mermas"):
                         set_opcion("Operaciones", "Salidas", "Consultar mermas")
-                with st.expander("Embarques"):
+                        
+           with st.expander("Embarques"):
 
                     if st.button("Confirmar carga embarque"):
                 
