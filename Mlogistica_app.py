@@ -8,16 +8,8 @@ from actualizar_estatus_embarque_app import actualizar_estatus_embarque_app
 from dashboard_embarques_app import dashboard_embarques_app
 from eventos_embarque_app import eventos_embarque_app
 
-# =====================================================
-# INCIDENCIAS
-# =====================================================
+from alta_incidencia_app import alta_incidencia_app
 
-try:
-    from alta_incidencia_app import alta_incidencia_app
-except Exception:
-    def alta_incidencia_app():
-        st.subheader("➕ Alta incidencia")
-        st.info("Módulo en construcción.")
 
 try:
     from baja_incidencia_app import baja_incidencia_app
@@ -55,35 +47,22 @@ except Exception:
         st.info("Módulo en construcción.")
 
 
+def limpiar_opcion(texto):
+    return str(texto).strip().lower()
+
+
 def logistica_app():
 
-    # =====================================================
-    # SESSION STATE
-    # =====================================================
-
     if "opcion_logistica" not in st.session_state:
-
         st.session_state.opcion_logistica = "➕ Alta embarque"
-
-    # =====================================================
-    # SIDEBAR
-    # =====================================================
 
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
-    # =====================================================
-    # CONSERVAR OPCION
-    # =====================================================
-
     if opcion_logistica is not None:
-
         st.session_state.opcion_logistica = opcion_logistica
 
     opcion_logistica = st.session_state.opcion_logistica
-
-    # =====================================================
-    # TITULO
-    # =====================================================
+    opcion_limpia = limpiar_opcion(opcion_logistica)
 
     st.title("🚚 Logística")
 
@@ -93,78 +72,66 @@ def logistica_app():
 
     st.divider()
 
-    # =====================================================
-    # EMBARQUES
-    # =====================================================
-
-    if opcion_logistica == "➕ Alta embarque":
+    if opcion_limpia == limpiar_opcion("➕ Alta embarque"):
 
         alta_embarque_app()
 
-    elif opcion_logistica == "✏️ Actualizar estatus embarque":
+    elif opcion_limpia == limpiar_opcion("✏️ Actualizar estatus embarque"):
 
         actualizar_estatus_embarque_app()
 
-    elif opcion_logistica == "📋 Consulta embarque":
+    elif opcion_limpia == limpiar_opcion("📋 Consulta embarque"):
 
         consulta_embarques_app()
 
-    elif opcion_logistica == "📊 Dashboard embarques":
+    elif opcion_limpia == limpiar_opcion("📊 Dashboard embarques"):
 
         dashboard_embarques_app()
 
-    elif opcion_logistica == "🛰️ Eventos embarque":
+    elif opcion_limpia == limpiar_opcion("🛰️ Eventos embarque"):
 
         eventos_embarque_app()
 
-    elif opcion_logistica == "❌ Baja embarque":
+    elif opcion_limpia == limpiar_opcion("❌ Baja embarque"):
 
         st.subheader("❌ Baja embarque")
         st.info("Módulo en construcción.")
 
-    elif opcion_logistica == "✏️ Editar embarque":
+    elif opcion_limpia == limpiar_opcion("✏️ Editar embarque"):
 
         st.subheader("✏️ Editar embarque")
         st.info("Módulo en construcción.")
 
-    # =====================================================
-    # INCIDENCIAS
-    # =====================================================
-
-    elif opcion_logistica == "➕ Alta incidencia":
+    elif opcion_limpia == limpiar_opcion("➕ Alta incidencia"):
 
         alta_incidencia_app()
 
-    elif opcion_logistica == "❌ Baja incidencia":
+    elif opcion_limpia == limpiar_opcion("❌ Baja incidencia"):
 
         baja_incidencia_app()
 
-    elif opcion_logistica == "📋 Consulta incidencia":
+    elif opcion_limpia == limpiar_opcion("📋 Consulta incidencia"):
 
         consulta_incidencia_app()
 
-    elif opcion_logistica == "✏️ Actualizar incidencia":
+    elif opcion_limpia == limpiar_opcion("✏️ Actualizar incidencia"):
 
         actualizar_incidencia_app()
 
-    elif opcion_logistica == "✅ Cerrar incidencia":
+    elif opcion_limpia == limpiar_opcion("✅ Cerrar incidencia"):
 
         cerrar_incidencia_app()
 
-    elif opcion_logistica == "📊 Dashboard incidencias":
+    elif opcion_limpia == limpiar_opcion("📊 Dashboard incidencias"):
 
         dashboard_incidencias_app()
-
-    # =====================================================
-    # DEFAULT
-    # =====================================================
 
     else:
 
         st.subheader(opcion_logistica)
-
         st.info("Módulo de Logística en construcción.")
 
         st.write("Menú:", menu_logistica)
         st.write("Submenú:", submenu_logistica)
         st.write("Opción:", opcion_logistica)
+        st.write("Opción limpia:", opcion_limpia)
