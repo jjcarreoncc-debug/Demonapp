@@ -607,30 +607,30 @@ def eventos_embarque_app():
 
     opciones_embarque = df_embarques["opcion"].tolist()
 
-    if (
-        "folio_eventos_seleccionado"
-        not in st.session_state
-    ):
+    #if (
+     
+    #"folio_eventos_seleccionado"
+    #    not in st.session_state
+    #):
+
+     #   st.session_state[
+      #      "folio_eventos_seleccionado"
+      #  ] = opciones_embarque[0]
+
+    #if (
+     #   st.session_state["folio_eventos_seleccionado"]
+      #  not in opciones_embarque
+    # ):
 
         st.session_state[
             "folio_eventos_seleccionado"
         ] = opciones_embarque[0]
-
-    if (
-        st.session_state["folio_eventos_seleccionado"]
-        not in opciones_embarque
-    ):
-
-        st.session_state[
-            "folio_eventos_seleccionado"
-        ] = opciones_embarque[0]
-
+    #
     opcion = st.selectbox(
         "Selecciona embarque",
-        opciones_embarque,
-        key="folio_eventos_seleccionado"
-    )
-
+        opciones_embarque
+)
+    #
     folio_seleccionado = (
         opcion.split(" | ")[0]
         .strip()
