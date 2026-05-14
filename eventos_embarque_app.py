@@ -628,12 +628,14 @@ def eventos_embarque_app():
     )
 
     opciones_embarque = df_embarques["opcion"].tolist()
+    #
+    st.success(
+        f"✅ Estatus actualizado "
+        f"para {folio_seleccionado}"
+    )
 
-    if (
-        "folio_eventos_seleccionado"
-        not in st.session_state
-    ):
-
+        st.rerun()
+    #
         st.session_state[
             "folio_eventos_seleccionado"
         ] = opciones_embarque[0]
