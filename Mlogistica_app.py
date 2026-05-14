@@ -9,6 +9,7 @@ from dashboard_embarques_app import dashboard_embarques_app
 from eventos_embarque_app import eventos_embarque_app
 
 from alta_incidencia_app import alta_incidencia_app
+from dashboard_incidencias_app import dashboard_incidencias_app
 
 
 try:
