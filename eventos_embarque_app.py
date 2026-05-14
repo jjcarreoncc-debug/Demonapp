@@ -10,15 +10,6 @@ from sigem_db import get_db_path
 # FLUJO CONTROLADO DE ESTATUS
 # =====================================================
 
-ESTATUS_FLUJO = [
-    "Pendiente",
-    "En almacén",
-    "En patio",
-    "Ya salió",
-    "En tránsito",
-    "Entregado"
-]
-
 ESTATUS_LISTA_COMPLETA = [
     "Pendiente",
     "En almacén",
@@ -72,7 +63,6 @@ def validar_transicion_estatus(estatus_actual, estatus_nuevo):
 def obtener_embarques():
 
     db_path = get_db_path("logistica")
-
     conn = sqlite3.connect(db_path)
 
     query = """
@@ -92,7 +82,6 @@ def obtener_embarques():
     """
 
     df = pd.read_sql_query(query, conn)
-
     conn.close()
 
     return df
@@ -105,7 +94,6 @@ def obtener_embarques():
 def obtener_puntos_ruta(codigo_ruta):
 
     db_path = get_db_path("logistica")
-
     conn = sqlite3.connect(db_path)
 
     query = """
@@ -162,29 +150,17 @@ def obtener_punto_por_estatus(codigo_ruta, estatus):
         ]
 
         if not puntos_patio.empty:
-
             punto = puntos_patio.iloc[0]
-
         elif len(df_puntos) >= 2:
-
             punto = df_puntos.iloc[1]
-
         else:
-
             punto = df_puntos.iloc[0]
 
     elif estatus in ["Ya salió", "En tránsito"]:
 
-        if len(df_puntos) >= 3:
-
+        if len(df_puntos) >= 2:
             punto = df_puntos.iloc[1]
-
-        elif len(df_puntos) >= 2:
-
-            punto = df_puntos.iloc[1]
-
         else:
-
             punto = df_puntos.iloc[0]
 
     elif estatus == "Entregado":
@@ -212,11 +188,9 @@ def obtener_punto_por_estatus(codigo_ruta, estatus):
     )
 
     if ciudad:
-
         ubicacion = f"{ubicacion} - {ciudad}"
 
     if estado:
-
         ubicacion = f"{ubicacion}, {estado}"
 
     return {
@@ -237,7 +211,6 @@ def obtener_punto_por_estatus(codigo_ruta, estatus):
 def obtener_eventos_embarque(folio_embarque):
 
     db_path = get_db_path("logistica")
-
     conn = sqlite3.connect(db_path)
 
     query = """
@@ -286,9 +259,7 @@ def registrar_evento_embarque(
 ):
 
     db_path = get_db_path("logistica")
-
     conn = sqlite3.connect(db_path)
-
     cur = conn.cursor()
 
     fecha_registro = datetime.now().strftime(
@@ -305,8 +276,16 @@ def registrar_evento_embarque(
 
     estatus_anterior = row[0] if row else ""
 
+    estatus_anterior = str(
+        estatus_anterior or ""
+    ).strip()
+
     if not estatus_anterior:
         estatus_anterior = "Pendiente"
+
+    estatus = str(
+        estatus or ""
+    ).strip()
 
     if estatus_anterior == estatus:
 
@@ -398,7 +377,6 @@ def registrar_evento_embarque(
     ))
 
     conn.commit()
-
     conn.close()
 
 
@@ -628,14 +606,12 @@ def eventos_embarque_app():
     )
 
     opciones_embarque = df_embarques["opcion"].tolist()
-    #
-    st.success(
-        f"✅ Estatus actualizado "
-        f"para {folio_seleccionado}"
-    )
 
-    st.rerun()
-    #
+    if (
+        "folio_eventos_seleccionado"
+        not in st.session_state
+    ):
+
         st.session_state[
             "folio_eventos_seleccionado"
         ] = opciones_embarque[0]
@@ -809,9 +785,7 @@ def eventos_embarque_app():
         )
 
         ubicacion = punto_ruta["ubicacion"]
-
         latitud = punto_ruta["latitud"]
-
         longitud = punto_ruta["longitud"]
 
         st.markdown(
@@ -924,10 +898,6 @@ def eventos_embarque_app():
                     f"✅ Estatus actualizado "
                     f"para {folio_seleccionado}"
                 )
-
-                st.session_state[
-                    "folio_eventos_seleccionado"
-                ] = opcion
 
                 st.rerun()
 
