@@ -7,27 +7,16 @@ from io import BytesIO
 from sigem_db import get_db_path
 
 
-# =====================================================
-# UTILIDADES
-# =====================================================
-
 def obtener_columnas_tabla(conn, tabla):
-
-    df_cols = pd.read_sql_query(
-        f"PRAGMA table_info({tabla})",
-        conn
-    )
-
+    df_cols = pd.read_sql_query(f"PRAGMA table_info({tabla})", conn)
     return df_cols["name"].tolist()
 
 
 def insertar_dinamico(conn, tabla, datos):
-
     columnas_tabla = obtener_columnas_tabla(conn, tabla)
 
     datos_filtrados = {
-        k: v
-        for k, v in datos.items()
+        k: v for k, v in datos.items()
         if k in columnas_tabla
     }
 
@@ -38,25 +27,15 @@ def insertar_dinamico(conn, tabla, datos):
     placeholders = ",".join(["?"] * len(columnas))
 
     sql = f"""
-        INSERT INTO {tabla} (
-            {",".join(columnas)}
-        )
-        VALUES (
-            {placeholders}
-        )
+        INSERT INTO {tabla} ({",".join(columnas)})
+        VALUES ({placeholders})
     """
 
     valores = [datos_filtrados[col] for col in columnas]
-
     conn.execute(sql, valores)
 
 
-# =====================================================
-# CONSULTAS
-# =====================================================
-
 def obtener_embarques_pendientes():
-
     conn = sqlite3.connect(get_db_path("logistica"))
 
     query = """
@@ -101,23 +80,15 @@ def obtener_embarques_pendientes():
     """
 
     df = pd.read_sql_query(query, conn)
-
     conn.close()
-
     return df
 
 
 def obtener_detalle_embarque(folio_embarque):
-
-    conn = sqlite3.connect(
-        get_db_path("logistica")
-    )
-
+    conn = sqlite3.connect(get_db_path("logistica"))
     inventarios_db = get_db_path("inventarios")
 
-    conn.execute(
-        f"ATTACH DATABASE '{inventarios_db}' AS inv"
-    )
+    conn.execute(f"ATTACH DATABASE '{inventarios_db}' AS inv")
 
     query = """
         SELECT
@@ -133,7 +104,6 @@ def obtener_detalle_embarque(folio_embarque):
             d.volumen,
             d.bodega,
             d.ubicacion,
-
             ROUND(
                 COALESCE(
                     (
@@ -145,7 +115,6 @@ def obtener_detalle_embarque(folio_embarque):
                 ),
                 2
             ) AS existencia_actual,
-
             CASE
                 WHEN ROUND(
                     COALESCE(
@@ -159,36 +128,23 @@ def obtener_detalle_embarque(folio_embarque):
                     2
                 ) >= d.cantidad_embarcar
                 THEN 'OK'
-
                 ELSE 'SIN STOCK'
             END AS validacion_stock
-
         FROM detalle_embarque d
-
         WHERE d.folio_embarque = ?
-
         ORDER BY d.codigo_material
     """
 
-    df = pd.read_sql_query(
-        query,
-        conn,
-        params=[folio_embarque]
-    )
-
+    df = pd.read_sql_query(query, conn, params=[folio_embarque])
     conn.close()
-
     return df
 
 
 def generar_excel_hoja_embarque(embarque, detalle):
-
     output = BytesIO()
-
     df_resumen = pd.DataFrame([embarque])
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-
         df_resumen.to_excel(
             writer,
             sheet_name="Resumen embarque",
@@ -202,27 +158,18 @@ def generar_excel_hoja_embarque(embarque, detalle):
         )
 
     output.seek(0)
-
     return output
 
 
-# =====================================================
-# CONFIRMAR CARGA / SALIDA INVENTARIO
-# =====================================================
-
 def confirmar_carga_embarque(embarque, detalle):
-
     conn_inv = sqlite3.connect(get_db_path("inventarios"))
     conn_log = sqlite3.connect(get_db_path("logistica"))
 
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     folio_embarque = embarque["folio_embarque"]
 
     try:
-
         for _, row in detalle.iterrows():
-
             cantidad = row.get("cantidad_embarcar", 0)
 
             datos_movimiento = {
@@ -262,8 +209,7 @@ def confirmar_carga_embarque(embarque, detalle):
 
         conn_log.execute("""
             UPDATE notificaciones_inventarios
-            SET
-                estatus = 'Atendida'
+            SET estatus = 'Atendida'
             WHERE folio_embarque = ?
         """, (
             folio_embarque,
@@ -273,13 +219,10 @@ def confirmar_carga_embarque(embarque, detalle):
         conn_log.commit()
 
     except Exception as e:
-
         conn_inv.rollback()
         conn_log.rollback()
-
         conn_inv.close()
         conn_log.close()
-
         raise e
 
     conn_inv.close()
@@ -291,32 +234,22 @@ def confirmar_carga_embarque(embarque, detalle):
     }
 
 
-# =====================================================
-# APP
-# =====================================================
-
 def embarques_inventario_app():
-
     st.title("📦 Embarques - Carga física")
 
-    st.caption(
-        "Inventarios / Salidas / Embarques"
-    )
+    st.caption("Inventarios / Salidas / Embarques")
 
     st.divider()
 
     try:
-
         df_embarques = obtener_embarques_pendientes()
 
     except Exception as e:
-
         st.error("❌ Error consultando embarques pendientes.")
         st.exception(e)
         return
 
     if df_embarques.empty:
-
         st.warning("No existen embarques pendientes de carga.")
         return
 
@@ -331,7 +264,6 @@ def embarques_inventario_app():
     )
 
     with tab_pendientes:
-
         st.subheader("📦 Embarques pendientes de carga")
 
         columnas = [
@@ -376,46 +308,29 @@ def embarques_inventario_app():
             key="editor_embarques_inventario"
         )
 
-        df_sel = df_editor[
-            df_editor["seleccionar"] == True
-        ]
+        df_sel = df_editor[df_editor["seleccionar"] == True]
 
         if df_sel.empty:
-
-            st.info(
-                "Selecciona un embarque para revisar o confirmar."
-            )
+            st.info("Selecciona un embarque para revisar o confirmar.")
 
         elif len(df_sel) > 1:
-
-            st.error(
-                "Selecciona solo un embarque."
-            )
+            st.error("Selecciona solo un embarque.")
 
         else:
-
             st.success(
                 f"Embarque seleccionado: {df_sel.iloc[0]['folio_embarque']}"
             )
 
     with tab_detalle:
-
         st.subheader("📋 Detalle del embarque")
 
         if "df_sel" not in locals() or df_sel.empty:
-
-            st.info(
-                "Primero selecciona un embarque."
-            )
+            st.info("Primero selecciona un embarque.")
 
         elif len(df_sel) > 1:
-
-            st.warning(
-                "Selecciona solo un embarque."
-            )
+            st.warning("Selecciona solo un embarque.")
 
         else:
-
             embarque = df_sel.iloc[0].to_dict()
 
             detalle = obtener_detalle_embarque(
@@ -424,47 +339,18 @@ def embarques_inventario_app():
 
             c1, c2, c3, c4 = st.columns(4)
 
-            c1.metric(
-                "📦 Embarque",
-                embarque["folio_embarque"]
-            )
-
-            c2.metric(
-                "📋 Materiales",
-                len(detalle)
-            )
-
-            c3.metric(
-                "⚖️ Peso",
-                embarque["peso_total"]
-            )
-
-            c4.metric(
-                "📐 Volumen",
-                embarque["volumen_total"]
-            )
+            c1.metric("📦 Embarque", embarque["folio_embarque"])
+            c2.metric("📋 Materiales", len(detalle))
+            c3.metric("⚖️ Peso", embarque["peso_total"])
+            c4.metric("📐 Volumen", embarque["volumen_total"])
 
             st.markdown("---")
 
-            st.write(
-                f"**Cliente:** {embarque['cliente']}"
-            )
-
-            st.write(
-                f"**Destino:** {embarque['destino']}"
-            )
-
-            st.write(
-                f"**Vehículo:** {embarque['vehiculo']}"
-            )
-
-            st.write(
-                f"**Placas:** {embarque['placas']}"
-            )
-
-            st.write(
-                f"**Operador:** {embarque['operador']}"
-            )
+            st.write(f"**Cliente:** {embarque['cliente']}")
+            st.write(f"**Destino:** {embarque['destino']}")
+            st.write(f"**Vehículo:** {embarque['vehiculo']}")
+            st.write(f"**Placas:** {embarque['placas']}")
+            st.write(f"**Operador:** {embarque['operador']}")
 
             st.markdown("---")
 
@@ -475,12 +361,9 @@ def embarques_inventario_app():
             )
 
             st.markdown("---")
-            ########################################################################33
-            
-            st.subheader(
-                "📊 Inventario disponible materiales"
-            )
-            
+
+            st.subheader("📊 Inventario disponible materiales")
+
             grafico_stock = detalle[
                 [
                     "codigo_material",
@@ -490,32 +373,41 @@ def embarques_inventario_app():
                     "validacion_stock"
                 ]
             ].copy()
-            
+
             grafico_stock["cantidad_embarcar"] = pd.to_numeric(
                 grafico_stock["cantidad_embarcar"],
                 errors="coerce"
             ).fillna(0)
-            
+
             grafico_stock["existencia_actual"] = pd.to_numeric(
                 grafico_stock["existencia_actual"],
                 errors="coerce"
             ).fillna(0)
-            
+
             grafico_stock["faltante"] = (
                 grafico_stock["cantidad_embarcar"]
                 - grafico_stock["existencia_actual"]
             )
-            
+
             grafico_stock["faltante"] = grafico_stock["faltante"].apply(
                 lambda x: x if x > 0 else 0
             )
-            
+
             st.dataframe(
-                grafico_stock,
+                grafico_stock[
+                    [
+                        "codigo_material",
+                        "descripcion",
+                        "cantidad_embarcar",
+                        "existencia_actual",
+                        "faltante",
+                        "validacion_stock"
+                    ]
+                ],
                 use_container_width=True,
                 hide_index=True
             )
-            
+
             st.bar_chart(
                 grafico_stock.set_index("codigo_material")[
                     [
@@ -525,15 +417,30 @@ def embarques_inventario_app():
                     ]
                 ],
                 use_container_width=True
-           #     hide_index=True
             )
-                            
-                     
-            else:
 
-                st.success(
-                    "✅ Inventario suficiente para cargar el embarque."
+            sin_stock = detalle[
+                detalle["validacion_stock"] == "SIN STOCK"
+            ]
+
+            if not sin_stock.empty:
+                st.error("❌ Existen materiales sin inventario suficiente.")
+
+                st.dataframe(
+                    sin_stock[
+                        [
+                            "codigo_material",
+                            "descripcion",
+                            "cantidad_embarcar",
+                            "existencia_actual"
+                        ]
+                    ],
+                    use_container_width=True,
+                    hide_index=True
                 )
+
+            else:
+                st.success("✅ Inventario suficiente para cargar el embarque.")
 
             excel = generar_excel_hoja_embarque(
                 embarque,
@@ -548,25 +455,15 @@ def embarques_inventario_app():
             )
 
     with tab_confirmar:
-
-        st.subheader(
-            "✅ Confirmar carga física de embarque"
-        )
+        st.subheader("✅ Confirmar carga física de embarque")
 
         if "df_sel" not in locals() or df_sel.empty:
-
-            st.info(
-                "Primero selecciona un embarque."
-            )
+            st.info("Primero selecciona un embarque.")
 
         elif len(df_sel) > 1:
-
-            st.warning(
-                "Selecciona solo un embarque."
-            )
+            st.warning("Selecciona solo un embarque.")
 
         else:
-
             embarque = df_sel.iloc[0].to_dict()
 
             detalle = obtener_detalle_embarque(
@@ -578,7 +475,6 @@ def embarques_inventario_app():
             ]
 
             if not sin_stock.empty:
-
                 st.error(
                     "❌ No es posible confirmar el embarque. "
                     "Existen materiales sin stock suficiente."
@@ -605,38 +501,18 @@ def embarques_inventario_app():
 
             c1, c2, c3 = st.columns(3)
 
-            c1.metric(
-                "📦 Embarque",
-                embarque["folio_embarque"]
-            )
-
-            c2.metric(
-                "⚖️ Peso",
-                embarque["peso_total"]
-            )
-
-            c3.metric(
-                "📐 Volumen",
-                embarque["volumen_total"]
-            )
+            c1.metric("📦 Embarque", embarque["folio_embarque"])
+            c2.metric("⚖️ Peso", embarque["peso_total"])
+            c3.metric("📐 Volumen", embarque["volumen_total"])
 
             st.markdown("---")
 
-            st.write(
-                f"**Cliente:** {embarque['cliente']}"
-            )
-
-            st.write(
-                f"**Destino:** {embarque['destino']}"
-            )
-
+            st.write(f"**Cliente:** {embarque['cliente']}")
+            st.write(f"**Destino:** {embarque['destino']}")
             st.write(
                 f"**Transporte:** {embarque['vehiculo']} / {embarque['placas']}"
             )
-
-            st.write(
-                f"**Operador:** {embarque['operador']}"
-            )
+            st.write(f"**Operador:** {embarque['operador']}")
 
             confirmar = st.checkbox(
                 "Confirmo que el embarque fue cargado físicamente",
@@ -644,11 +520,7 @@ def embarques_inventario_app():
             )
 
             if not confirmar:
-
-                st.info(
-                    "Marca la confirmación para habilitar el proceso."
-                )
-
+                st.info("Marca la confirmación para habilitar el proceso.")
                 return
 
             if st.button(
@@ -657,22 +529,15 @@ def embarques_inventario_app():
             ):
 
                 try:
-
                     resultado = confirmar_carga_embarque(
                         embarque,
                         detalle
                     )
 
-                    st.success(
-                        resultado["mensaje"]
-                    )
+                    st.success(resultado["mensaje"])
 
                 except Exception as e:
-
-                    st.error(
-                        "❌ Error confirmando carga de embarque."
-                    )
-
+                    st.error("❌ Error confirmando carga de embarque.")
                     st.exception(e)
 
 
