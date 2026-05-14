@@ -30,7 +30,7 @@ def obtener_incidencias():
             prioridad,
             estatus,
             folio_referencia,
-            folio_embarque,
+            codigo_transporte,
             folio_hoja_carga,
             pedido,
             codigo_material,
@@ -54,11 +54,107 @@ def obtener_incidencias():
             observaciones,
             fecha_creacion
         FROM incidencias
+        WHERE
+            codigo_transporte IS NOT NULL
+            AND TRIM(codigo_transporte) <> ''
+            AND UPPER(TRIM(estatus)) NOT IN (
+                'CONCLUIDA',
+                'CONCLUIDO',
+                'FINALIZADA',
+                'FINALIZADO',
+                'CERRADA',
+                'CERRADO',
+                'RESUELTA',
+                'RESUELTO',
+                'CANCELADA',
+                'CANCELADO'
+            )
         ORDER BY fecha DESC, folio_incidencia DESC
     """
 
-    df = pd.read_sql_query(query, conn)
+    try:
+        df = pd.read_sql_query(query, conn)
+
+    except Exception:
+
+        query = """
+            SELECT
+                folio_incidencia,
+                fecha,
+                modulo,
+                proceso,
+                tipo_incidencia,
+                prioridad,
+                estatus,
+                folio_referencia,
+                '' AS codigo_transporte,
+                folio_hoja_carga,
+                pedido,
+                codigo_material,
+                descripcion,
+                cantidad,
+                cliente,
+                destino,
+                bodega,
+                ubicacion,
+                transportista,
+                vehiculo,
+                placas,
+                operador,
+                responsable,
+                descripcion_incidencia,
+                causa,
+                solucion,
+                fecha_solucion,
+                usuario_registro,
+                usuario_cierre,
+                observaciones,
+                fecha_creacion
+            FROM incidencias
+            WHERE
+                UPPER(TRIM(estatus)) NOT IN (
+                    'CONCLUIDA',
+                    'CONCLUIDO',
+                    'FINALIZADA',
+                    'FINALIZADO',
+                    'CERRADA',
+                    'CERRADO',
+                    'RESUELTA',
+                    'RESUELTO',
+                    'CANCELADA',
+                    'CANCELADO'
+                )
+            ORDER BY fecha DESC, folio_incidencia DESC
+        """
+
+        df = pd.read_sql_query(query, conn)
+
     conn.close()
+
+    return df
+
+
+# =====================================================
+# PREPARAR DATOS
+# =====================================================
+
+def preparar_incidencias(df):
+
+    df = df.copy()
+    df = df.fillna("")
+
+    if "codigo_transporte" not in df.columns:
+        df["codigo_transporte"] = ""
+
+    df["transporte_mostrar"] = (
+        df["codigo_transporte"]
+        .astype(str)
+        .str.strip()
+    )
+
+    df = df[
+        df["transporte_mostrar"] != ""
+    ]
 
     return df
 
@@ -67,7 +163,7 @@ def obtener_incidencias():
 # EXPORTAR EXCEL
 # =====================================================
 
-def generar_excel_incidencias(df_filtrado, total, abiertas, proceso, cerradas, criticas):
+def generar_excel_incidencias(df_filtrado, total, abiertas, proceso, criticas):
 
     wb = Workbook()
     ws = wb.active
@@ -82,28 +178,24 @@ def generar_excel_incidencias(df_filtrado, total, abiertas, proceso, cerradas, c
         bottom=Side(style="thin")
     )
 
-    ws["A1"] = "SIGEM - Dashboard incidencias"
+    ws["A1"] = "SIGEM - Dashboard incidencias por transporte"
     ws["A1"].font = Font(bold=True, size=16)
 
-    ws["A3"] = "Total incidencias"
-    ws["B3"] = total
+    indicadores = [
+        ("Total incidencias", total),
+        ("Abiertas", abiertas),
+        ("En proceso", proceso),
+        ("Críticas", criticas)
+    ]
 
-    ws["A4"] = "Abiertas"
-    ws["B4"] = abiertas
-
-    ws["A5"] = "En proceso"
-    ws["B5"] = proceso
-
-    ws["A6"] = "Cerradas"
-    ws["B6"] = cerradas
-
-    ws["A7"] = "Críticas"
-    ws["B7"] = criticas
-
-    for celda in ["A3", "A4", "A5", "A6", "A7"]:
-        ws[celda].fill = azul
-        ws[celda].font = font_blanca
-        ws[celda].border = borde
+    fila = 3
+    for titulo, valor in indicadores:
+        ws[f"A{fila}"] = titulo
+        ws[f"B{fila}"] = valor
+        ws[f"A{fila}"].fill = azul
+        ws[f"A{fila}"].font = font_blanca
+        ws[f"A{fila}"].border = borde
+        fila += 1
 
     ws2 = wb.create_sheet(title="Detalle incidencias")
 
@@ -131,10 +223,7 @@ def pintar_matriz_incidencias(df):
     orden_estatus = [
         "Abierta",
         "En proceso",
-        "En seguimiento",
-        "Resuelta",
-        "Cerrada",
-        "Cancelada"
+        "En seguimiento"
     ]
 
     mapa_colores = {
@@ -173,17 +262,13 @@ def pintar_matriz_incidencias(df):
     )
 
     chart = (
-
         alt.Chart(df_grafica)
-
         .mark_rect(
             cornerRadius=5,
             width=62,
             height=26
         )
-
         .encode(
-
             x=alt.X(
                 "incidencia:N",
                 title="Folio incidencia",
@@ -195,7 +280,6 @@ def pintar_matriz_incidencias(df):
                     tickSize=0
                 )
             ),
-
             y=alt.Y(
                 "estatus:N",
                 sort=orden_estatus,
@@ -205,7 +289,6 @@ def pintar_matriz_incidencias(df):
                     tickSize=0
                 )
             ),
-
             color=alt.Color(
                 "prioridad:N",
                 scale=alt.Scale(
@@ -214,27 +297,27 @@ def pintar_matriz_incidencias(df):
                 ),
                 legend=alt.Legend(title="Prioridad")
             ),
-
             tooltip=[
                 alt.Tooltip("folio_incidencia:N", title="Folio incidencia"),
-                alt.Tooltip("folio_embarque:N", title="Embarque"),
+                alt.Tooltip("transporte_mostrar:N", title="Transporte"),
                 alt.Tooltip("estatus:N", title="Estatus incidencia"),
                 alt.Tooltip("prioridad:N", title="Prioridad"),
                 alt.Tooltip("tipo_incidencia:N", title="Tipo incidencia"),
                 alt.Tooltip("cliente:N", title="Cliente"),
+                alt.Tooltip("destino:N", title="Destino"),
                 alt.Tooltip("transportista:N", title="Transportista"),
+                alt.Tooltip("vehiculo:N", title="Vehículo"),
+                alt.Tooltip("placas:N", title="Placas"),
+                alt.Tooltip("operador:N", title="Operador"),
                 alt.Tooltip("responsable:N", title="Responsable"),
                 alt.Tooltip("descripcion_incidencia:N", title="Descripción"),
                 alt.Tooltip("fecha:N", title="Fecha incidencia")
             ]
-
         )
-
         .properties(
             width=ancho_grafica,
             height=520
         )
-
         .configure_axis(
             grid=True,
             gridColor="#D1D5DB",
@@ -243,11 +326,9 @@ def pintar_matriz_incidencias(df):
             labelColor="#374151",
             titleColor="#111827"
         )
-
         .configure_view(
             stroke="#D1D5DB"
         )
-
     )
 
     st.altair_chart(
@@ -262,7 +343,7 @@ def pintar_matriz_incidencias(df):
 
 def dashboard_incidencias_app():
 
-    st.title("📊 Dashboard incidencias")
+    st.title("📊 Dashboard incidencias por transporte")
 
     try:
         df = obtener_incidencias()
@@ -273,17 +354,21 @@ def dashboard_incidencias_app():
         return
 
     if df.empty:
-        st.warning("No existen incidencias registradas.")
+        st.warning("No existen incidencias activas por transporte.")
         return
 
-    df = df.fillna("")
+    df = preparar_incidencias(df)
+
+    if df.empty:
+        st.warning("No existen incidencias activas con transporte asignado.")
+        return
 
     st.subheader("🔎 Filtros")
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        filtro_cliente = st.text_input("Cliente")
+        filtro_transporte = st.text_input("Transporte")
 
     with col2:
         filtro_transportista = st.text_input("Transportista")
@@ -300,7 +385,29 @@ def dashboard_incidencias_app():
             ["Todos"] + sorted(df["prioridad"].astype(str).unique().tolist())
         )
 
+    col5, col6 = st.columns(2)
+
+    with col5:
+        filtro_cliente = st.text_input("Cliente")
+
+    with col6:
+        filtro_operador = st.text_input("Operador")
+
     df_filtrado = df.copy()
+
+    if filtro_transporte:
+        df_filtrado = df_filtrado[
+            df_filtrado["transporte_mostrar"]
+            .astype(str)
+            .str.contains(filtro_transporte, case=False, na=False)
+        ]
+
+    if filtro_transportista:
+        df_filtrado = df_filtrado[
+            df_filtrado["transportista"]
+            .astype(str)
+            .str.contains(filtro_transportista, case=False, na=False)
+        ]
 
     if filtro_cliente:
         df_filtrado = df_filtrado[
@@ -309,11 +416,11 @@ def dashboard_incidencias_app():
             .str.contains(filtro_cliente, case=False, na=False)
         ]
 
-    if filtro_transportista:
+    if filtro_operador:
         df_filtrado = df_filtrado[
-            df_filtrado["transportista"]
+            df_filtrado["operador"]
             .astype(str)
-            .str.contains(filtro_transportista, case=False, na=False)
+            .str.contains(filtro_operador, case=False, na=False)
         ]
 
     if filtro_estatus != "Todos":
@@ -340,12 +447,6 @@ def dashboard_incidencias_app():
         .str.contains("proceso|seguimiento", case=False, na=False)
     ].shape[0]
 
-    cerradas = df_filtrado[
-        df_filtrado["estatus"]
-        .astype(str)
-        .str.contains("Cerrada|Resuelta", case=False, na=False)
-    ].shape[0]
-
     criticas = df_filtrado[
         df_filtrado["prioridad"]
         .astype(str)
@@ -354,13 +455,12 @@ def dashboard_incidencias_app():
 
     st.divider()
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("🚨 Incidencias", total)
+    c1.metric("🚨 Incidencias activas", total)
     c2.metric("🟡 Abiertas", abiertas)
     c3.metric("🔵 En proceso", proceso)
-    c4.metric("✅ Cerradas", cerradas)
-    c5.metric("🔴 Críticas", criticas)
+    c4.metric("🔴 Críticas", criticas)
 
     st.divider()
 
@@ -370,10 +470,35 @@ def dashboard_incidencias_app():
 
     st.divider()
 
-    st.subheader("📋 Detalle de incidencias")
+    st.subheader("📋 Detalle de incidencias por transporte")
+
+    columnas_detalle = [
+        "folio_incidencia",
+        "fecha",
+        "estatus",
+        "prioridad",
+        "tipo_incidencia",
+        "transporte_mostrar",
+        "transportista",
+        "vehiculo",
+        "placas",
+        "operador",
+        "responsable",
+        "cliente",
+        "destino",
+        "descripcion_incidencia",
+        "causa",
+        "solucion",
+        "observaciones"
+    ]
+
+    columnas_existentes = [
+        col for col in columnas_detalle
+        if col in df_filtrado.columns
+    ]
 
     st.dataframe(
-        df_filtrado,
+        df_filtrado[columnas_existentes],
         use_container_width=True,
         height=350,
         hide_index=True
@@ -382,11 +507,10 @@ def dashboard_incidencias_app():
     st.divider()
 
     excel_dashboard = generar_excel_incidencias(
-        df_filtrado,
+        df_filtrado[columnas_existentes],
         total,
         abiertas,
         proceso,
-        cerradas,
         criticas
     )
 
@@ -394,7 +518,7 @@ def dashboard_incidencias_app():
         label="📥 Exportar dashboard Excel",
         data=excel_dashboard,
         file_name=(
-            f"dashboard_incidencias_"
+            f"dashboard_incidencias_transportes_"
             f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         ),
         mime=(
