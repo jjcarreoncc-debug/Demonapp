@@ -74,6 +74,34 @@ COLUMNAS_MINIMAS = {
         "codigo_ruta",
         "fecha_salida",
         "estatus"
+    ],
+
+    # =====================================================
+    # NUEVO
+    # =====================================================
+
+    "embarques": [
+        "folio_embarque",
+        "pedido",
+        "fecha",
+        "cliente",
+        "destino",
+        "transportista",
+        "vehiculo",
+        "operador",
+        "ruta"
+    ],
+
+    "detalle_embarque": [
+        "folio_embarque",
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad_pedida",
+        "cantidad_embarcar",
+        "peso",
+        "volumen",
+        "bodega"
     ]
 }
 
@@ -98,7 +126,15 @@ DB_POR_TABLA = {
 
     "transportes": "logistica",
 
-    "detalle_transporte": "logistica"
+    "detalle_transporte": "logistica",
+
+    # =====================================================
+    # NUEVO
+    # =====================================================
+
+    "embarques": "logistica",
+
+    "detalle_embarque": "logistica"
 }
 
 
@@ -152,7 +188,14 @@ def carga_tablas_inicial_app():
             "rutas",
             "puntos_ruta",
             "transportes",
-            "detalle_transporte"
+            "detalle_transporte",
+
+            # =====================================================
+            # NUEVO
+            # =====================================================
+
+            "embarques",
+            "detalle_embarque"
         ]
 
     tabla = st.selectbox(
@@ -280,6 +323,60 @@ def carga_tablas_inicial_app():
     )
 
     # =====================================================
+    # VALIDAR COLUMNAS VS TABLA SQLITE
+    # =====================================================
+
+    db_nombre = DB_POR_TABLA[tabla]
+
+    db_path = get_db_path(db_nombre)
+
+    conn_validacion = sqlite3.connect(db_path)
+
+    df_estructura = pd.read_sql_query(
+        f"PRAGMA table_info({tabla})",
+        conn_validacion
+    )
+
+    columnas_tabla = (
+        df_estructura["name"]
+        .astype(str)
+        .str.strip()
+        .tolist()
+    )
+
+    columnas_invalidas = [
+
+        col
+
+        for col in df.columns
+
+        if col not in columnas_tabla
+
+    ]
+
+    if columnas_invalidas:
+
+        st.error(
+            "❌ Existen columnas que no pertenecen a la tabla"
+        )
+
+        st.write(columnas_invalidas)
+
+        st.write("📋 Columnas válidas tabla:")
+
+        st.write(columnas_tabla)
+
+        conn_validacion.close()
+
+        return
+
+    conn_validacion.close()
+
+    st.success(
+        "✅ Validación estructura tabla correcta"
+    )
+
+    # =====================================================
     # VALIDACIONES ESPECIALES
     # =====================================================
 
@@ -289,42 +386,6 @@ def carga_tablas_inicial_app():
 
             st.error(
                 "❌ Hay registros sin codigo_ruta"
-            )
-
-            return
-
-        duplicados = df[
-            df["codigo_ruta"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay codigo_ruta duplicados"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "puntos_ruta":
-
-        if df["codigo_ruta"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_ruta"
-            )
-
-            return
-
-        if df["secuencia"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin secuencia"
             )
 
             return
@@ -339,24 +400,6 @@ def carga_tablas_inicial_app():
 
             return
 
-        duplicados = df[
-            df["codigo_transporte"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay codigo_transporte duplicados"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
     if tabla == "detalle_transporte":
 
         if df["codigo_transporte"].isna().any():
@@ -367,6 +410,8 @@ def carga_tablas_inicial_app():
 
             return
 
+    if tabla == "embarques":
+
         if df["folio_embarque"].isna().any():
 
             st.error(
@@ -375,10 +420,12 @@ def carga_tablas_inicial_app():
 
             return
 
-        if df["codigo_ruta"].isna().any():
+    if tabla == "detalle_embarque":
+
+        if df["folio_embarque"].isna().any():
 
             st.error(
-                "❌ Hay registros sin codigo_ruta"
+                "❌ Hay registros sin folio_embarque"
             )
 
             return
@@ -386,10 +433,6 @@ def carga_tablas_inicial_app():
     # =====================================================
     # BASE DESTINO
     # =====================================================
-
-    db_nombre = DB_POR_TABLA[tabla]
-
-    db_path = get_db_path(db_nombre)
 
     st.markdown("---")
 
