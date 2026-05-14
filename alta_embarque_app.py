@@ -891,22 +891,36 @@ def alta_embarque_app():
 
             disabled=not validacion_ok
         ):
-
+            #######
             try:
 
-                folios = (
-                    crear_embarques_desde_hojas(
-                        df_seleccionadas,
-                        transporte
-                    )
+                resultado = procesar_confirmacion_embarque(
+                    df_seleccionadas,
+                    transporte
                 )
 
                 st.success(
-                    "✅ Embarques creados"
+                    resultado["mensaje"]
                 )
 
-                st.write(folios)
+                st.write(
+                    resultado["folios"]
+                )
 
+                st.download_button(
+                    label="📥 Descargar Excel embarque",
+                    data=resultado["excel"],
+                    file_name="embarque.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+            except Exception as e:
+
+                st.error(
+                    "❌ Error creando embarques."
+                )
+
+                st.exception(e)
             except Exception as e:
 
                 st.error(
