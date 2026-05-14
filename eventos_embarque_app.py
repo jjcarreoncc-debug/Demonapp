@@ -32,6 +32,7 @@ TRANSICIONES_VALIDAS = {
 
 
 def obtener_siguientes_estatus(estatus_actual):
+
     estatus_actual = str(estatus_actual or "").strip()
 
     if not estatus_actual:
@@ -41,6 +42,7 @@ def obtener_siguientes_estatus(estatus_actual):
 
 
 def validar_transicion_estatus(estatus_actual, estatus_nuevo):
+
     estatus_actual = str(estatus_actual or "").strip()
     estatus_nuevo = str(estatus_nuevo or "").strip()
 
@@ -50,27 +52,45 @@ def validar_transicion_estatus(estatus_actual, estatus_nuevo):
 
 
 # =====================================================
-# OBTENER EMBARQUES
+# OBTENER TRANSPORTES
 # =====================================================
 
-def obtener_embarques():
+def obtener_transportes():
+
     db_path = get_db_path("logistica")
     conn = sqlite3.connect(db_path)
 
     query = """
         SELECT
-            folio_embarque,
+            codigo_transporte,
             fecha,
-            cliente,
-            destino,
+            transportista,
+            vehiculo,
+            placas,
+            operador,
+            ruta,
+            estatus,
+            COUNT(folio_embarque) AS total_embarques,
+            GROUP_CONCAT(cliente, ', ') AS clientes,
+            GROUP_CONCAT(destino, ', ') AS destinos
+        FROM embarques
+        WHERE
+            codigo_transporte IS NOT NULL
+            AND TRIM(codigo_transporte) <> ''
+            AND UPPER(TRIM(estatus)) NOT IN (
+                'ENTREGADO',
+                'CANCELADO'
+            )
+        GROUP BY
+            codigo_transporte,
+            fecha,
             transportista,
             vehiculo,
             placas,
             operador,
             ruta,
             estatus
-        FROM embarques
-        ORDER BY fecha DESC, folio_embarque DESC
+        ORDER BY fecha DESC, codigo_transporte DESC
     """
 
     df = pd.read_sql_query(query, conn)
@@ -84,6 +104,7 @@ def obtener_embarques():
 # =====================================================
 
 def obtener_puntos_ruta(codigo_ruta):
+
     db_path = get_db_path("logistica")
     conn = sqlite3.connect(db_path)
 
@@ -114,9 +135,11 @@ def obtener_puntos_ruta(codigo_ruta):
 
 
 def obtener_punto_por_estatus(codigo_ruta, estatus):
+
     df_puntos = obtener_puntos_ruta(codigo_ruta)
 
     if df_puntos.empty:
+
         return {
             "ubicacion": "",
             "latitud": 0.0,
@@ -126,9 +149,11 @@ def obtener_punto_por_estatus(codigo_ruta, estatus):
     estatus = str(estatus).strip()
 
     if estatus in ["Pendiente", "En almacén"]:
+
         punto = df_puntos.iloc[0]
 
     elif estatus == "En patio":
+
         puntos_patio = df_puntos[
             df_puntos["tipo_punto"]
             .fillna("")
@@ -138,24 +163,31 @@ def obtener_punto_por_estatus(codigo_ruta, estatus):
 
         if not puntos_patio.empty:
             punto = puntos_patio.iloc[0]
+
         elif len(df_puntos) >= 2:
             punto = df_puntos.iloc[1]
+
         else:
             punto = df_puntos.iloc[0]
 
     elif estatus in ["Ya salió", "En tránsito"]:
+
         if len(df_puntos) >= 2:
             punto = df_puntos.iloc[1]
+
         else:
             punto = df_puntos.iloc[0]
 
     elif estatus == "Entregado":
+
         punto = df_puntos.iloc[-1]
 
     elif estatus == "Cancelado":
+
         punto = df_puntos.iloc[0]
 
     else:
+
         punto = df_puntos.iloc[0]
 
     ubicacion = str(punto.get("ubicacion", "") or "")
@@ -176,17 +208,18 @@ def obtener_punto_por_estatus(codigo_ruta, estatus):
 
 
 # =====================================================
-# OBTENER EVENTOS EMBARQUE
+# OBTENER EVENTOS TRANSPORTE
 # =====================================================
 
-def obtener_eventos_embarque(folio_embarque):
+def obtener_eventos_transporte(codigo_transporte):
+
     db_path = get_db_path("logistica")
     conn = sqlite3.connect(db_path)
 
     query = """
         SELECT
             id_evento,
-            folio_embarque,
+            codigo_transporte,
             fecha_evento,
             tipo_evento,
             estatus,
@@ -197,14 +230,14 @@ def obtener_eventos_embarque(folio_embarque):
             longitud,
             fecha_registro
         FROM eventos_embarque
-        WHERE TRIM(folio_embarque) = TRIM(?)
+        WHERE TRIM(codigo_transporte) = TRIM(?)
         ORDER BY fecha_evento ASC, id_evento ASC
     """
 
     df = pd.read_sql_query(
         query,
         conn,
-        params=[folio_embarque]
+        params=[codigo_transporte]
     )
 
     conn.close()
@@ -213,11 +246,11 @@ def obtener_eventos_embarque(folio_embarque):
 
 
 # =====================================================
-# REGISTRAR EVENTO
+# REGISTRAR EVENTO TRANSPORTE
 # =====================================================
 
-def registrar_evento_embarque(
-    folio_embarque,
+def registrar_evento_transporte(
+    codigo_transporte,
     fecha_evento,
     tipo_evento,
     estatus,
@@ -227,6 +260,7 @@ def registrar_evento_embarque(
     latitud,
     longitud
 ):
+
     db_path = get_db_path("logistica")
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -236,8 +270,9 @@ def registrar_evento_embarque(
     cur.execute("""
         SELECT estatus
         FROM embarques
-        WHERE TRIM(folio_embarque) = TRIM(?)
-    """, (folio_embarque,))
+        WHERE TRIM(codigo_transporte) = TRIM(?)
+        LIMIT 1
+    """, (codigo_transporte,))
 
     row = cur.fetchone()
 
@@ -250,25 +285,35 @@ def registrar_evento_embarque(
     estatus = str(estatus or "").strip()
 
     if estatus_anterior == estatus:
+
         conn.close()
+
         raise ValueError(
-            f"El embarque ya se encuentra en estatus '{estatus}'."
+            f"El transporte ya se encuentra en estatus '{estatus}'."
         )
 
-    if not validar_transicion_estatus(estatus_anterior, estatus):
-        permitidos = obtener_siguientes_estatus(estatus_anterior)
+    if not validar_transicion_estatus(
+        estatus_anterior,
+        estatus
+    ):
+
+        permitidos = obtener_siguientes_estatus(
+            estatus_anterior
+        )
 
         conn.close()
 
         raise ValueError(
-            f"No se permite cambiar de '{estatus_anterior}' "
-            f"a '{estatus}'. Solo se permite avanzar a: "
+            f"No se permite cambiar de "
+            f"'{estatus_anterior}' "
+            f"a '{estatus}'. "
+            f"Solo se permite avanzar a: "
             f"{', '.join(permitidos)}."
         )
 
     cur.execute("""
         INSERT INTO eventos_embarque (
-            folio_embarque,
+            codigo_transporte,
             fecha_evento,
             tipo_evento,
             estatus,
@@ -281,7 +326,7 @@ def registrar_evento_embarque(
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        folio_embarque,
+        codigo_transporte,
         fecha_evento,
         tipo_evento,
         estatus,
@@ -300,13 +345,13 @@ def registrar_evento_embarque(
             fecha_estatus = ?,
             usuario_estatus = ?,
             observaciones_estatus = ?
-        WHERE TRIM(folio_embarque) = TRIM(?)
+        WHERE TRIM(codigo_transporte) = TRIM(?)
     """, (
         estatus,
         fecha_evento,
         usuario,
         comentarios,
-        folio_embarque
+        codigo_transporte
     ))
 
     cur.execute("""
@@ -320,7 +365,7 @@ def registrar_evento_embarque(
         )
         VALUES (?, ?, ?, ?, ?, ?)
     """, (
-        folio_embarque,
+        codigo_transporte,
         estatus_anterior,
         estatus,
         fecha_evento,
@@ -337,6 +382,7 @@ def registrar_evento_embarque(
 # =====================================================
 
 def pintar_timeline_visual(df_eventos):
+
     colores = {
         "Pendiente": "#6B7280",
         "En almacén": "#7C3AED",
@@ -364,10 +410,16 @@ def pintar_timeline_visual(df_eventos):
         errors="coerce"
     )
 
-    df_timeline = df_timeline.dropna(subset=["fecha_evento"])
+    df_timeline = df_timeline.dropna(
+        subset=["fecha_evento"]
+    )
 
     if df_timeline.empty:
-        st.info("No hay eventos válidos para mostrar.")
+
+        st.info(
+            "No hay eventos válidos para mostrar."
+        )
+
         return
 
     df_timeline["estatus"] = (
@@ -376,7 +428,10 @@ def pintar_timeline_visual(df_eventos):
         .astype(str)
     )
 
-    df_timeline["orden_evento"] = range(1, len(df_timeline) + 1)
+    df_timeline["orden_evento"] = range(
+        1,
+        len(df_timeline) + 1
+    )
 
     colores_usados = [
         colores.get(estatus, "#9CA3AF")
@@ -424,13 +479,34 @@ def pintar_timeline_visual(df_eventos):
                 legend=None
             ),
             tooltip=[
-                alt.Tooltip("folio_embarque:N", title="Folio"),
-                alt.Tooltip("fecha_evento:T", title="Fecha evento"),
-                alt.Tooltip("tipo_evento:N", title="Evento"),
-                alt.Tooltip("estatus:N", title="Estatus"),
-                alt.Tooltip("ubicacion:N", title="Ubicación"),
-                alt.Tooltip("comentarios:N", title="Comentarios"),
-                alt.Tooltip("usuario:N", title="Usuario")
+                alt.Tooltip(
+                    "codigo_transporte:N",
+                    title="Transporte"
+                ),
+                alt.Tooltip(
+                    "fecha_evento:T",
+                    title="Fecha evento"
+                ),
+                alt.Tooltip(
+                    "tipo_evento:N",
+                    title="Evento"
+                ),
+                alt.Tooltip(
+                    "estatus:N",
+                    title="Estatus"
+                ),
+                alt.Tooltip(
+                    "ubicacion:N",
+                    title="Ubicación"
+                ),
+                alt.Tooltip(
+                    "comentarios:N",
+                    title="Comentarios"
+                ),
+                alt.Tooltip(
+                    "usuario:N",
+                    title="Usuario"
+                )
             ]
         )
     )
@@ -444,10 +520,15 @@ def pintar_timeline_visual(df_eventos):
             gridDash=[3, 2],
             domain=False
         )
-        .configure_view(stroke="#D1D5DB")
+        .configure_view(
+            stroke="#D1D5DB"
+        )
     )
 
-    st.altair_chart(chart, use_container_width=True)
+    st.altair_chart(
+        chart,
+        use_container_width=True
+    )
 
 
 # =====================================================
@@ -455,131 +536,220 @@ def pintar_timeline_visual(df_eventos):
 # =====================================================
 
 def eventos_embarque_app():
-    st.title("🛰️ Eventos embarque")
+
+    st.title("🚚 Eventos transporte")
 
     st.info(
-        "Cambia el estatus del embarque respetando "
-        "la secuencia operativa. La ubicación y "
-        "coordenadas se toman automáticamente de la "
-        "ruta asignada."
+        "Cambia el estatus del transporte "
+        "respetando la secuencia operativa. "
+        "La ubicación y coordenadas se toman "
+        "automáticamente de la ruta asignada."
     )
 
     try:
-        df_embarques = obtener_embarques()
+
+        df_transportes = obtener_transportes()
 
     except Exception as e:
-        st.error("❌ Error consultando embarques")
+
+        st.error(
+            "❌ Error consultando transportes"
+        )
+
         st.exception(e)
+
         return
 
-    if df_embarques.empty:
-        st.warning("No existen embarques registrados.")
+    if df_transportes.empty:
+
+        st.warning(
+            "No existen transportes registrados."
+        )
+
         return
 
-    df_embarques["folio_embarque"] = (
-        df_embarques["folio_embarque"]
+    df_transportes["codigo_transporte"] = (
+        df_transportes["codigo_transporte"]
         .astype(str)
         .str.strip()
     )
 
-    df_embarques["estatus"] = (
-        df_embarques["estatus"]
+    df_transportes["estatus"] = (
+        df_transportes["estatus"]
         .fillna("Pendiente")
         .astype(str)
         .str.strip()
     )
 
-    df_embarques["opcion"] = (
-        df_embarques["folio_embarque"]
+    df_transportes["opcion"] = (
+        df_transportes["codigo_transporte"]
         .astype(str)
         + " | "
-        + df_embarques["cliente"]
+        + df_transportes["transportista"]
         .fillna("")
         .astype(str)
         + " | "
-        + df_embarques["destino"]
+        + df_transportes["ruta"]
         .fillna("")
         .astype(str)
         + " | "
-        + df_embarques["estatus"]
+        + df_transportes["estatus"]
         .fillna("")
         .astype(str)
     )
 
-    opciones_embarque = df_embarques["opcion"].tolist()
+    opciones_transporte = (
+        df_transportes["opcion"]
+        .tolist()
+    )
 
     opcion = st.selectbox(
-        "Selecciona embarque",
-        opciones_embarque
+        "Selecciona transporte",
+        opciones_transporte
     )
 
-    folio_seleccionado = (
+    codigo_transporte = (
         opcion.split(" | ")[0]
         .strip()
     )
 
-    embarque = df_embarques[
-        df_embarques["folio_embarque"]
+    transporte = df_transportes[
+        df_transportes["codigo_transporte"]
         .astype(str)
         .str.strip()
-        == folio_seleccionado
+        == codigo_transporte
     ].iloc[0]
 
     codigo_ruta = str(
-        embarque.get("ruta", "") or ""
+        transporte.get("ruta", "") or ""
     ).strip()
 
     estatus_actual = str(
-        embarque.get("estatus", "") or ""
+        transporte.get("estatus", "") or ""
     ).strip()
 
     if not estatus_actual:
         estatus_actual = "Pendiente"
 
-    siguientes_estatus = obtener_siguientes_estatus(estatus_actual)
+    siguientes_estatus = (
+        obtener_siguientes_estatus(
+            estatus_actual
+        )
+    )
 
     st.divider()
 
-    st.subheader("📦 Datos del embarque")
+    st.subheader("🚚 Datos del transporte")
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.write("**Folio:**", embarque.get("folio_embarque", ""))
-        st.write("**Cliente:**", embarque.get("cliente", ""))
-        st.write("**Destino:**", embarque.get("destino", ""))
+
+        st.write(
+            "**Transporte:**",
+            transporte.get(
+                "codigo_transporte",
+                ""
+            )
+        )
+
+        st.write(
+            "**Clientes:**",
+            transporte.get(
+                "clientes",
+                ""
+            )
+        )
+
+        st.write(
+            "**Destinos:**",
+            transporte.get(
+                "destinos",
+                ""
+            )
+        )
 
     with c2:
-        st.write("**Transportista:**", embarque.get("transportista", ""))
-        st.write("**Vehículo:**", embarque.get("vehiculo", ""))
-        st.write("**Placas:**", embarque.get("placas", ""))
+
+        st.write(
+            "**Transportista:**",
+            transporte.get(
+                "transportista",
+                ""
+            )
+        )
+
+        st.write(
+            "**Vehículo:**",
+            transporte.get(
+                "vehiculo",
+                ""
+            )
+        )
+
+        st.write(
+            "**Placas:**",
+            transporte.get(
+                "placas",
+                ""
+            )
+        )
 
     with c3:
-        st.write("**Operador:**", embarque.get("operador", ""))
-        st.write("**Ruta:**", codigo_ruta)
-        st.write("**Estatus actual:**", estatus_actual)
+
+        st.write(
+            "**Operador:**",
+            transporte.get(
+                "operador",
+                ""
+            )
+        )
+
+        st.write(
+            "**Ruta:**",
+            codigo_ruta
+        )
+
+        st.write(
+            "**Estatus actual:**",
+            estatus_actual
+        )
 
     st.divider()
 
-    st.subheader("➕ Registrar cambio de estatus")
+    st.subheader(
+        "➕ Registrar cambio de estatus"
+    )
 
-    if estatus_actual in ["Entregado", "Cancelado"]:
+    if estatus_actual in [
+        "Entregado",
+        "Cancelado"
+    ]:
+
         st.success(
-            f"✅ Este embarque ya se encuentra en "
-            f"estatus final: {estatus_actual}"
+            f"✅ Este transporte ya se "
+            f"encuentra en estatus final: "
+            f"{estatus_actual}"
         )
 
-        st.info("No hay más cambios de estatus disponibles.")
+        st.info(
+            "No hay más cambios "
+            "de estatus disponibles."
+        )
 
     elif not siguientes_estatus:
+
         st.warning(
-            "⚠️ No hay una transición configurada "
-            "para el estatus actual."
+            "⚠️ No hay una transición "
+            "configurada para el "
+            "estatus actual."
         )
 
     else:
+
         st.caption(
-            f"El estatus actual es **{estatus_actual}**. "
+            f"El estatus actual es "
+            f"**{estatus_actual}**. "
             f"El siguiente permitido es: "
             f"**{', '.join(siguientes_estatus)}**"
         )
@@ -587,18 +757,23 @@ def eventos_embarque_app():
         col1, col2, col3 = st.columns(3)
 
         with col1:
+
             fecha_evento = st.date_input(
                 "Fecha evento",
                 value=datetime.now().date()
             )
 
         with col2:
+
             hora_evento = st.time_input(
                 "Hora evento",
-                value=datetime.now().time().replace(microsecond=0)
+                value=datetime.now()
+                .time()
+                .replace(microsecond=0)
             )
 
         with col3:
+
             usuario = st.text_input(
                 "Usuario",
                 value="admin"
@@ -609,7 +784,9 @@ def eventos_embarque_app():
             ESTATUS_LISTA_COMPLETA
         )
 
-        tipo_evento = "Actualización de estatus"
+        tipo_evento = (
+            "Actualización de estatus"
+        )
 
         punto_ruta = obtener_punto_por_estatus(
             codigo_ruta,
@@ -620,11 +797,14 @@ def eventos_embarque_app():
         latitud = punto_ruta["latitud"]
         longitud = punto_ruta["longitud"]
 
-        st.markdown("### 📍 Datos automáticos de ruta")
+        st.markdown(
+            "### 📍 Datos automáticos de ruta"
+        )
 
         col4, col5, col6 = st.columns(3)
 
         with col4:
+
             st.text_input(
                 "Ubicación",
                 value=ubicacion,
@@ -632,6 +812,7 @@ def eventos_embarque_app():
             )
 
         with col5:
+
             st.number_input(
                 "Latitud",
                 value=latitud,
@@ -640,6 +821,7 @@ def eventos_embarque_app():
             )
 
         with col6:
+
             st.number_input(
                 "Longitud",
                 value=longitud,
@@ -649,16 +831,25 @@ def eventos_embarque_app():
 
         comentarios = st.text_area(
             "Comentarios",
-            placeholder="Describe el cambio de estatus..."
+            placeholder=(
+                "Describe el cambio "
+                "de estatus..."
+            )
         )
 
         if not codigo_ruta:
-            st.warning("⚠️ Este embarque no tiene ruta asignada.")
+
+            st.warning(
+                "⚠️ Este transporte "
+                "no tiene ruta asignada."
+            )
 
         elif not ubicacion:
+
             st.warning(
-                "⚠️ No se encontraron puntos de ruta "
-                "para este embarque."
+                "⚠️ No se encontraron "
+                "puntos de ruta para "
+                "este transporte."
             )
 
         guardar = st.button(
@@ -667,25 +858,38 @@ def eventos_embarque_app():
         )
 
         if guardar:
+
             try:
+
                 if not codigo_ruta:
+
                     st.error(
                         "❌ No se puede registrar "
-                        "el evento porque el embarque "
-                        "no tiene ruta asignada."
+                        "el evento porque el "
+                        "transporte no tiene "
+                        "ruta asignada."
                     )
+
                     return
 
-                permitidos = obtener_siguientes_estatus(estatus_actual)
+                permitidos = (
+                    obtener_siguientes_estatus(
+                        estatus_actual
+                    )
+                )
 
                 if estatus not in permitidos:
+
                     st.error(
-                        "❌ No puede seleccionar este estatus "
-                        "porque rompe la secuencia del proceso."
+                        "❌ No puede seleccionar "
+                        "este estatus porque "
+                        "rompe la secuencia "
+                        "del proceso."
                     )
 
                     st.warning(
-                        f"El embarque actualmente está en "
+                        f"El transporte "
+                        f"actualmente está en "
                         f"'{estatus_actual}'. "
                         f"Solo puede avanzar a: "
                         f"{', '.join(permitidos)}."
@@ -693,13 +897,17 @@ def eventos_embarque_app():
 
                     return
 
-                fecha_evento_completa = datetime.combine(
-                    fecha_evento,
-                    hora_evento
-                ).strftime("%Y-%m-%d %H:%M:%S")
+                fecha_evento_completa = (
+                    datetime.combine(
+                        fecha_evento,
+                        hora_evento
+                    ).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                )
 
-                registrar_evento_embarque(
-                    folio_seleccionado,
+                registrar_evento_transporte(
+                    codigo_transporte,
                     fecha_evento_completa,
                     tipo_evento,
                     estatus,
@@ -712,33 +920,54 @@ def eventos_embarque_app():
 
                 st.success(
                     f"✅ Estatus actualizado "
-                    f"para {folio_seleccionado}"
+                    f"para el transporte "
+                    f"{codigo_transporte}"
                 )
 
             except Exception as e:
-                st.error("❌ Error registrando evento")
+
+                st.error(
+                    "❌ Error registrando evento"
+                )
+
                 st.exception(e)
 
     st.divider()
 
-    st.subheader("📋 Timeline del embarque")
+    st.subheader(
+        "📋 Timeline del transporte"
+    )
 
     try:
-        df_eventos = obtener_eventos_embarque(folio_seleccionado)
+
+        df_eventos = (
+            obtener_eventos_transporte(
+                codigo_transporte
+            )
+        )
 
         if df_eventos.empty:
-            st.info("Este embarque aún no tiene eventos.")
+
+            st.info(
+                "Este transporte aún "
+                "no tiene eventos."
+            )
 
         else:
+
             tab1, tab2 = st.tabs([
                 "🧭 Timeline visual",
                 "📄 Tabla eventos"
             ])
 
             with tab1:
-                pintar_timeline_visual(df_eventos)
+
+                pintar_timeline_visual(
+                    df_eventos
+                )
 
             with tab2:
+
                 st.dataframe(
                     df_eventos,
                     use_container_width=True,
@@ -747,5 +976,9 @@ def eventos_embarque_app():
                 )
 
     except Exception as e:
-        st.error("❌ Error consultando eventos")
+
+        st.error(
+            "❌ Error consultando eventos"
+        )
+
         st.exception(e)
