@@ -168,6 +168,10 @@ def procesar_confirmacion_embarque(df_seleccionadas, transporte):
 
     fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+    codigo_transporte = (
+        f"TR-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    )
+    
     folios_creados = []
     registros_embarque = []
     registros_detalle = []
@@ -184,7 +188,7 @@ def procesar_confirmacion_embarque(df_seleccionadas, transporte):
                 "folio_hoja_carga": hoja.get("folio_hoja_carga", ""),
                 "folio_ruta": transporte.get("codigo_ruta", ""),
                 "codigo_ruta": transporte.get("codigo_ruta", ""),
-                "codigo_transporte": transporte.get("codigo_transporte", ""),
+                "codigo_transporte": codigo_transporte,
                 "pedido": hoja.get("pedido", ""),
                 "fecha": fecha_actual,
                 "cliente": hoja.get("cliente", ""),
