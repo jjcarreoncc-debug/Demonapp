@@ -1,568 +1,719 @@
 import streamlit as st
-import sqlite3
 import pandas as pd
-from datetime import datetime
+import sqlite3
 
 from sigem_db import get_db_path
 
-st.warning("NUEVO ARCHIVO ALTA EMBARQUE - SELECCIÓN MULTIPLE")
-
 
 # =====================================================
-# UTILIDADES
+# COLUMNAS MINIMAS
 # =====================================================
 
-def obtener_columnas_tabla(conn, tabla):
+COLUMNAS_MINIMAS = {
 
-    df_cols = pd.read_sql_query(
-        f"PRAGMA table_info({tabla})",
-        conn
-    )
+    "materiales": [
+        "codigo_material",
+        "descripcion",
+        "categoria",
+        "familia",
+        "unidad_base",
+        "estatus"
+    ],
 
-    return df_cols["name"].tolist()
+    "movimientos_inventario": [
+        "fecha",
+        "tipo_movimiento",
+        "codigo_material",
+        "descripcion",
+        "cantidad"
+    ],
 
+    "hoja_carga": [
+        "folio_hoja_carga",
+        "fecha",
+        "pedido",
+        "cliente",
+        "destino",
+        "bodega_origen",
+        "estatus",
+        "responsable_surtido"
+    ],
 
-def insertar_dinamico(conn, tabla, datos):
+    "detalle_hoja_carga": [
+        "folio_hoja_carga",
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad_pedido",
+        "cantidad_surtida",
+        "bodega",
+        "ubicacion",
+        "peso",
+        "volumen"
+    ],
 
-    columnas_tabla = obtener_columnas_tabla(
-        conn,
-        tabla
-    )
+    "entradas_compras": [
+        "proveedor",
+        "factura",
+        "fecha_factura",
+        "fecha_recepcion",
+        "moneda"
+    ],
 
-    datos_filtrados = {
-        k: v
-        for k, v in datos.items()
-        if k in columnas_tabla
-    }
+    "entradas_compras_detalle": [
+        "id_entrada",
+        "codigo_material",
+        "descripcion",
+        "cantidad",
+        "costo_unitario"
+    ],
 
-    if not datos_filtrados:
-        return
+    "rutas": [
+        "codigo_ruta",
+        "descripcion",
+        "origen",
+        "destino"
+    ],
 
-    columnas = list(datos_filtrados.keys())
+    "puntos_ruta": [
+        "codigo_ruta",
+        "secuencia",
+        "tipo_punto",
+        "ubicacion"
+    ],
 
-    placeholders = ",".join(["?"] * len(columnas))
+    "transportes": [
+        "codigo_transporte",
+        "descripcion",
+        "tipo_transporte",
+        "transportista",
+        "vehiculo",
+        "placas",
+        "operador"
+    ],
 
-    sql = f"""
-        INSERT INTO {tabla} (
-            {",".join(columnas)}
-        )
-        VALUES (
-            {placeholders}
-        )
-    """
+    "detalle_transporte": [
+        "codigo_transporte",
+        "folio_embarque",
+        "codigo_ruta",
+        "fecha_salida",
+        "estatus"
+    ],
 
-    valores = [
-        datos_filtrados[col]
-        for col in columnas
+    "embarques": [
+        "folio_embarque",
+        "pedido",
+        "fecha",
+        "cliente",
+        "destino",
+        "transportista",
+        "vehiculo",
+        "operador",
+        "ruta"
+    ],
+
+    "detalle_embarque": [
+        "folio_embarque",
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad_pedida",
+        "cantidad_embarcar",
+        "peso",
+        "volumen",
+        "bodega"
+    ],
+
+    "incidencias": [
+        "folio_incidencia",
+        "fecha",
+        "modulo",
+        "proceso",
+        "tipo_incidencia",
+        "prioridad",
+        "estatus",
+        "folio_referencia",
+        "folio_embarque",
+        "folio_hoja_carga",
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad",
+        "cliente",
+        "destino",
+        "bodega",
+        "ubicacion",
+        "transportista",
+        "vehiculo",
+        "placas",
+        "operador",
+        "responsable",
+        "descripcion_incidencia",
+        "causa",
+        "solucion",
+        "fecha_solucion",
+        "usuario_registro",
+        "usuario_cierre",
+        "observaciones",
+        "fecha_creacion"
     ]
-
-    conn.execute(
-        sql,
-        valores
-    )
+}
 
 
 # =====================================================
-# OBTENER HOJAS CARGA PENDIENTES
+# BASES POR TABLA
 # =====================================================
 
-def obtener_hojas_carga_pendientes():
+DB_POR_TABLA = {
 
-    conn = sqlite3.connect(
-        get_db_path("logistica")
-    )
+    "materiales": "materiales",
 
-    inventarios_db = get_db_path("inventarios")
+    "movimientos_inventario": "inventarios",
 
-    conn.execute(
-        f"ATTACH DATABASE '{inventarios_db}' AS inv"
-    )
+    "hoja_carga": "inventarios",
 
-    query = """
-        SELECT
-            h.folio_hoja_carga,
-            h.pedido,
-            h.cliente,
-            h.destino,
-            h.estatus,
-            COUNT(d.codigo_material) AS materiales,
-            ROUND(COALESCE(SUM(d.peso), 0), 2) AS peso_total,
-            ROUND(COALESCE(SUM(d.volumen), 0), 2) AS volumen_total
+    "detalle_hoja_carga": "inventarios",
 
-        FROM inv.hoja_carga h
+    "entradas_compras": "compras",
 
-        LEFT JOIN inv.detalle_hoja_carga d
-            ON h.folio_hoja_carga = d.folio_hoja_carga
+    "entradas_compras_detalle": "compras",
 
-        WHERE h.folio_hoja_carga NOT IN (
-            SELECT folio_hoja_carga
-            FROM embarques
-            WHERE folio_hoja_carga IS NOT NULL
-              AND TRIM(folio_hoja_carga) <> ''
-        )
+    "rutas": "logistica",
 
-        GROUP BY
-            h.folio_hoja_carga,
-            h.pedido,
-            h.cliente,
-            h.destino,
-            h.estatus
+    "puntos_ruta": "logistica",
 
-        ORDER BY h.folio_hoja_carga DESC
-    """
+    "transportes": "logistica",
 
-    df = pd.read_sql_query(
-        query,
-        conn
-    )
+    "detalle_transporte": "logistica",
 
-    conn.close()
+    "embarques": "logistica",
 
-    return df
+    "detalle_embarque": "logistica",
 
-
-# =====================================================
-# OBTENER DETALLE HOJA CARGA
-# =====================================================
-
-def obtener_detalle_hoja_carga(folio_hoja_carga):
-
-    conn = sqlite3.connect(
-        get_db_path("inventarios")
-    )
-
-    query = """
-        SELECT
-            folio_hoja_carga,
-            pedido,
-            codigo_material,
-            descripcion,
-            cantidad_pedido,
-            cantidad_surtida,
-            bodega,
-            ubicacion,
-            peso,
-            volumen,
-            observaciones
-
-        FROM detalle_hoja_carga
-
-        WHERE folio_hoja_carga = ?
-    """
-
-    df = pd.read_sql_query(
-        query,
-        conn,
-        params=[folio_hoja_carga]
-    )
-
-    conn.close()
-
-    return df
-
-
-# =====================================================
-# OBTENER TRANSPORTES
-# =====================================================
-
-def obtener_transportes():
-
-    conn = sqlite3.connect(
-        get_db_path("logistica")
-    )
-
-    query = """
-        SELECT
-            codigo_transporte,
-            descripcion,
-            transportista,
-            vehiculo,
-            placas,
-            operador,
-            codigo_ruta,
-            capacidad_peso,
-            capacidad_volumen,
-            estatus
-
-        FROM transportes
-
-        WHERE estatus IS NULL
-           OR estatus = ''
-           OR estatus = 'Disponible'
-
-        ORDER BY codigo_transporte
-    """
-
-    df = pd.read_sql_query(
-        query,
-        conn
-    )
-
-    conn.close()
-
-    return df
-
-
-# =====================================================
-# GENERAR FOLIO EMBARQUE
-# =====================================================
-
-def generar_folio_embarque():
-
-    fecha = datetime.now().strftime("%Y%m%d%H%M%S")
-
-    return f"EMB-{fecha}"
-
-
-# =====================================================
-# CREAR EMBARQUES
-# =====================================================
-
-def crear_embarques_desde_hojas(df_seleccionadas, transporte):
-
-    conn = sqlite3.connect(
-        get_db_path("logistica")
-    )
-
-    fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    folios_creados = []
-
-    try:
-
-        for i, hoja in df_seleccionadas.iterrows():
-
-            folio_embarque = generar_folio_embarque() + f"-{i + 1}"
-
-            datos_embarque = {
-                "folio_embarque": folio_embarque,
-                "folio_hoja_carga": hoja["folio_hoja_carga"],
-                "folio_ruta": transporte.get("codigo_ruta", ""),
-                "codigo_ruta": transporte.get("codigo_ruta", ""),
-                "codigo_transporte": transporte.get("codigo_transporte", ""),
-                "pedido": hoja.get("pedido", ""),
-                "fecha": fecha_actual,
-                "cliente": hoja.get("cliente", ""),
-                "destino": hoja.get("destino", ""),
-                "transportista": transporte.get("transportista", ""),
-                "vehiculo": transporte.get("vehiculo", ""),
-                "placas": transporte.get("placas", ""),
-                "operador": transporte.get("operador", ""),
-                "ruta": transporte.get("codigo_ruta", ""),
-                "estatus": "En almacén",
-                "fecha_estatus": fecha_actual,
-                "usuario_estatus": "admin",
-                "observaciones": "Creado desde asignación de transporte",
-                "usuario": "admin",
-                "fecha_creacion": fecha_actual
-            }
-
-            insertar_dinamico(
-                conn,
-                "embarques",
-                datos_embarque
-            )
-
-            df_detalle = obtener_detalle_hoja_carga(
-                hoja["folio_hoja_carga"]
-            )
-
-            for _, det in df_detalle.iterrows():
-
-                datos_detalle = {
-                    "folio_embarque": folio_embarque,
-                    "folio_hoja_carga": hoja["folio_hoja_carga"],
-                    "folio_ruta": transporte.get("codigo_ruta", ""),
-                    "pedido": det.get("pedido", hoja.get("pedido", "")),
-                    "codigo_material": det.get("codigo_material", ""),
-                    "descripcion": det.get("descripcion", ""),
-                    "cantidad_pedida": det.get("cantidad_pedido", 0),
-                    "cantidad_embarcar": det.get("cantidad_surtida", det.get("cantidad_pedido", 0)),
-                    "peso": det.get("peso", 0),
-                    "volumen": det.get("volumen", 0),
-                    "bodega": det.get("bodega", ""),
-                    "ubicacion": det.get("ubicacion", "")
-                }
-
-                insertar_dinamico(
-                    conn,
-                    "detalle_embarque",
-                    datos_detalle
-                )
-
-            folios_creados.append(
-                folio_embarque
-            )
-
-        conn.commit()
-
-    except Exception as e:
-
-        conn.rollback()
-        conn.close()
-        raise e
-
-    conn.close()
-
-    return folios_creados
+    "incidencias": "logistica"
+}
 
 
 # =====================================================
 # APP
 # =====================================================
 
-def alta_embarque_app():
+def carga_tablas_inicial_app():
 
-    st.title("🚛 Asignación de embarques a transporte")
+    st.title("📥 Carga tablas inicial")
 
     st.caption(
-        "Selecciona hojas de carga pendientes y asígnalas a un transporte disponible."
+        "⚙️ Configuración / Carga inicial"
     )
 
-    st.divider()
+    modulo = st.selectbox(
+        "Módulo",
+        [
+            "Inventarios",
+            "Compras",
+            "Logística"
+        ],
+        key="carga_modulo"
+    )
+
+    if modulo == "Inventarios":
+
+        tablas_disponibles = [
+            "materiales",
+            "movimientos_inventario",
+            "hoja_carga",
+            "detalle_hoja_carga"
+        ]
+
+    elif modulo == "Compras":
+
+        tablas_disponibles = [
+            "entradas_compras",
+            "entradas_compras_detalle"
+        ]
+
+    elif modulo == "Logística":
+
+        tablas_disponibles = [
+            "rutas",
+            "puntos_ruta",
+            "transportes",
+            "detalle_transporte",
+            "embarques",
+            "detalle_embarque",
+            "incidencias"
+        ]
+
+    tabla = st.selectbox(
+        "Tabla destino",
+        tablas_disponibles,
+        key="carga_tabla"
+    )
+
+    st.subheader("📋 Columnas mínimas requeridas")
+
+    st.write(
+        COLUMNAS_MINIMAS.get(
+            tabla,
+            []
+        )
+    )
+
+    archivo = st.file_uploader(
+        "Selecciona archivo CSV o Excel",
+        type=["csv", "xlsx"],
+        key="archivo_carga_inicial"
+    )
+
+    if archivo is None:
+
+        st.info(
+            "Carga un archivo CSV o Excel para iniciar."
+        )
+
+        return
 
     try:
 
-        df_hojas = obtener_hojas_carga_pendientes()
+        if archivo.name.lower().endswith(".csv"):
 
-        df_transportes = obtener_transportes()
+            df = pd.read_csv(archivo)
+
+        else:
+
+            df = pd.read_excel(archivo)
 
     except Exception as e:
 
-        st.error("❌ Error cargando información.")
+        st.error("❌ Error leyendo archivo")
         st.exception(e)
 
         return
 
-    if df_hojas.empty:
+    df.columns = (
+        df.columns
+        .astype(str)
+        .str.strip()
+    )
 
-        st.warning(
-            "No existen hojas de carga pendientes."
+    st.success(
+        f"✅ Archivo leído correctamente: {len(df)} registros"
+    )
+
+    st.subheader("👀 Vista previa")
+
+    st.dataframe(
+        df.head(20),
+        use_container_width=True
+    )
+
+    columnas_minimas = COLUMNAS_MINIMAS.get(
+        tabla,
+        []
+    )
+
+    st.subheader("✅ Validación columnas mínimas")
+
+    columnas_faltantes = [
+
+        col
+
+        for col in columnas_minimas
+
+        if col not in df.columns
+
+    ]
+
+    if columnas_faltantes:
+
+        st.error(
+            "❌ Faltan columnas obligatorias"
         )
+
+        st.write(columnas_faltantes)
+
+        st.info(
+            "Columnas mínimas requeridas:"
+        )
+
+        st.write(columnas_minimas)
 
         return
 
-    if df_transportes.empty:
-
-        st.warning(
-            "No existen transportes disponibles."
-        )
-
-        return
-
-    df_hojas["seleccionar"] = False
-
-    total_hojas = len(df_hojas)
-
-    peso_total = round(
-        df_hojas["peso_total"].sum(),
-        2
+    st.success(
+        "✅ Columnas mínimas correctas"
     )
 
-    volumen_total = round(
-        df_hojas["volumen_total"].sum(),
-        2
-    )
+    # =====================================================
+    # VALIDACIONES ESPECIALES INVENTARIOS
+    # =====================================================
 
-    total_transportes = len(df_transportes)
+    if tabla == "hoja_carga":
 
-    c1, c2, c3, c4 = st.columns(4)
+        if df["folio_hoja_carga"].isna().any():
 
-    c1.metric("📦 Hojas pendientes", total_hojas)
-    c2.metric("⚖️ Peso total", peso_total)
-    c3.metric("📐 Volumen total", volumen_total)
-    c4.metric("🚛 Transportes", total_transportes)
+            st.error(
+                "❌ Hay registros sin folio_hoja_carga"
+            )
 
-    st.divider()
+            return
 
-    col1, col2, col3 = st.columns([5, 3, 4])
+        if df["cliente"].isna().any():
 
-    with col1:
+            st.error(
+                "❌ Hay registros sin cliente"
+            )
 
-        st.subheader("📦 Hojas de carga pendientes")
+            return
 
-        columnas_mostrar = [
-            "seleccionar",
-            "folio_hoja_carga",
-            "cliente",
-            "destino",
-            "materiales",
-            "peso_total",
-            "volumen_total",
-            "estatus"
+        if df["destino"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin destino"
+            )
+
+            return
+
+        duplicados = df[
+            df["folio_hoja_carga"]
+            .duplicated(keep=False)
         ]
 
-        df_editor = st.data_editor(
-            df_hojas[columnas_mostrar],
-            hide_index=True,
-            use_container_width=True,
-            column_config={
-                "seleccionar": st.column_config.CheckboxColumn(
-                    "Sel.",
-                    default=False
-                ),
-                "folio_hoja_carga": "Hoja",
-                "cliente": "Cliente",
-                "destino": "Destino",
-                "materiales": "Mat.",
-                "peso_total": "Peso",
-                "volumen_total": "Vol.",
-                "estatus": "Estatus"
-            },
-            disabled=[
-                "folio_hoja_carga",
-                "cliente",
-                "destino",
-                "materiales",
-                "peso_total",
-                "volumen_total",
-                "estatus"
-            ],
-            key="editor_hojas_carga"
-        )
-
-        df_seleccionadas = df_editor[
-            df_editor["seleccionar"] == True
-        ]
-
-        st.caption(
-            f"Hojas seleccionadas: {len(df_seleccionadas)}"
-        )
-
-    with col2:
-
-        st.subheader("🚛 Transporte")
-
-        transporte_seleccionado = st.selectbox(
-            "Selecciona transporte",
-            df_transportes["codigo_transporte"]
-            .astype(str)
-            .tolist()
-        )
-
-        transporte = df_transportes[
-            df_transportes["codigo_transporte"]
-            .astype(str)
-            == str(transporte_seleccionado)
-        ].iloc[0]
-
-        st.markdown("---")
-
-        st.write(f"**Transportista:** {transporte['transportista']}")
-        st.write(f"**Vehículo:** {transporte['vehiculo']}")
-        st.write(f"**Placas:** {transporte['placas']}")
-        st.write(f"**Operador:** {transporte['operador']}")
-        st.write(f"**Ruta:** {transporte.get('codigo_ruta', '')}")
-        st.write(f"**Cap. peso:** {transporte['capacidad_peso']}")
-        st.write(f"**Cap. volumen:** {transporte['capacidad_volumen']}")
-
-    with col3:
-
-        st.subheader("✅ Carga planeada")
-
-        peso_seleccionado = round(
-            df_seleccionadas["peso_total"].sum(),
-            2
-        ) if not df_seleccionadas.empty else 0
-
-        volumen_seleccionado = round(
-            df_seleccionadas["volumen_total"].sum(),
-            2
-        ) if not df_seleccionadas.empty else 0
-
-        capacidad_peso = float(
-            transporte["capacidad_peso"]
-        )
-
-        capacidad_volumen = float(
-            transporte["capacidad_volumen"]
-        )
-
-        porcentaje_peso = round(
-            (peso_seleccionado / capacidad_peso) * 100,
-            1
-        ) if capacidad_peso > 0 else 0
-
-        porcentaje_volumen = round(
-            (volumen_seleccionado / capacidad_volumen) * 100,
-            1
-        ) if capacidad_volumen > 0 else 0
-
-        st.metric("📦 Hojas seleccionadas", len(df_seleccionadas))
-        st.metric("⚖️ Peso seleccionado", peso_seleccionado)
-        st.metric("📐 Volumen seleccionado", volumen_seleccionado)
-
-        st.markdown("---")
-
-        st.write(f"**Capacidad peso:** {capacidad_peso}")
-        st.write(f"**Capacidad volumen:** {capacidad_volumen}")
-        st.write(f"**% ocupación peso:** {porcentaje_peso}%")
-        st.write(f"**% ocupación volumen:** {porcentaje_volumen}%")
-
-        st.markdown("---")
-
-        validacion_ok = True
-
-        if df_seleccionadas.empty:
+        if not duplicados.empty:
 
             st.warning(
-                "Selecciona una o más hojas de carga."
+                "⚠️ Hay folio_hoja_carga duplicados en el archivo"
             )
 
-            validacion_ok = False
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
 
-        if peso_seleccionado > capacidad_peso:
+            return
+
+    if tabla == "detalle_hoja_carga":
+
+        if df["folio_hoja_carga"].isna().any():
 
             st.error(
-                "❌ El peso excede la capacidad del transporte."
+                "❌ Hay registros sin folio_hoja_carga"
             )
 
-            validacion_ok = False
+            return
 
-        if volumen_seleccionado > capacidad_volumen:
+        if df["codigo_material"].isna().any():
 
             st.error(
-                "❌ El volumen excede la capacidad del transporte."
+                "❌ Hay registros sin codigo_material"
             )
 
-            validacion_ok = False
+            return
 
-        if validacion_ok:
+        if df["cantidad_pedido"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin cantidad_pedido"
+            )
+
+            return
+
+    # =====================================================
+    # VALIDACIONES ESPECIALES LOGISTICA
+    # =====================================================
+
+    if tabla == "rutas":
+
+        if df["codigo_ruta"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_ruta"
+            )
+
+            return
+
+        duplicados = df[
+            df["codigo_ruta"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay codigo_ruta duplicados"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "puntos_ruta":
+
+        if df["codigo_ruta"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_ruta"
+            )
+
+            return
+
+        if df["secuencia"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin secuencia"
+            )
+
+            return
+
+    if tabla == "transportes":
+
+        if df["codigo_transporte"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_transporte"
+            )
+
+            return
+
+        duplicados = df[
+            df["codigo_transporte"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay codigo_transporte duplicados"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "detalle_transporte":
+
+        if df["codigo_transporte"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_transporte"
+            )
+
+            return
+
+        if df["folio_embarque"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_embarque"
+            )
+
+            return
+
+        if df["codigo_ruta"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_ruta"
+            )
+
+            return
+
+    if tabla == "embarques":
+
+        if df["folio_embarque"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_embarque"
+            )
+
+            return
+
+        duplicados = df[
+            df["folio_embarque"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay folio_embarque duplicados"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "detalle_embarque":
+
+        if df["folio_embarque"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_embarque"
+            )
+
+            return
+
+        if df["codigo_material"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_material"
+            )
+
+            return
+
+    if tabla == "incidencias":
+
+        if df["folio_incidencia"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin folio_incidencia"
+            )
+
+            return
+
+        if df["fecha"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin fecha"
+            )
+
+            return
+
+        if df["tipo_incidencia"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin tipo_incidencia"
+            )
+
+            return
+
+        if df["prioridad"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin prioridad"
+            )
+
+            return
+
+        if df["estatus"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin estatus"
+            )
+
+            return
+
+        if df["descripcion_incidencia"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin descripcion_incidencia"
+            )
+
+            return
+
+        duplicados = df[
+            df["folio_incidencia"]
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay folio_incidencia duplicados"
+            )
+
+            st.dataframe(
+                duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    db_nombre = DB_POR_TABLA[tabla]
+
+    db_path = get_db_path(db_nombre)
+
+    st.markdown("---")
+
+    st.write("📂 Base destino:")
+
+    st.code(str(db_path))
+
+    st.write("📋 Tabla destino:")
+
+    st.code(tabla)
+
+    confirmar = st.checkbox(
+        "Confirmo que deseo agregar esta información",
+        key="confirmar_carga_inicial"
+    )
+
+    if not confirmar:
+
+        st.info(
+            "Marca la confirmación para habilitar la carga."
+        )
+
+        return
+
+    if st.button(
+        "🚀 Ejecutar carga",
+        key="btn_ejecutar_carga_inicial"
+    ):
+
+        try:
+
+            conn = sqlite3.connect(db_path)
+
+            df.to_sql(
+                tabla,
+                conn,
+                if_exists="append",
+                index=False
+            )
+
+            total = pd.read_sql_query(
+                f"""
+                SELECT COUNT(*) AS total
+                FROM {tabla}
+                """,
+                conn
+            )["total"].iloc[0]
+
+            conn.close()
 
             st.success(
-                "✅ Transporte válido para la carga seleccionada."
+                "✅ Información cargada correctamente"
             )
 
-        if st.button(
-            "🚀 Confirmar asignación",
-            use_container_width=True,
-            disabled=not validacion_ok
-        ):
+            st.write(
+                "📊 Registros cargados desde archivo:"
+            )
 
-            try:
+            st.write(len(df))
 
-                folios = crear_embarques_desde_hojas(
-                    df_seleccionadas,
-                    transporte
-                )
+            st.write(
+                "📦 Total registros actuales en tabla:"
+            )
 
-                st.success(
-                    "✅ Embarques creados correctamente"
-                )
+            st.write(total)
 
-                st.write("Folios generados:")
+        except Exception as e:
 
-                st.write(folios)
+            st.error(
+                "❌ Error cargando información"
+            )
 
-            except Exception as e:
-
-                st.error(
-                    "❌ Error creando embarques."
-                )
-
-                st.exception(e)
+            st.exception(e)
 
 
 if __name__ == "__main__":
 
-    alta_embarque_app()
+    carga_tablas_inicial_app()
