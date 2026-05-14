@@ -87,6 +87,8 @@ def obtener_transportes():
         SELECT
             codigo_transporte,
             MAX(fecha) AS fecha,
+            MAX(codigo_ruta) AS codigo_ruta,
+            MAX(folio_ruta) AS folio_ruta,
             transportista,
             vehiculo,
             placas,
@@ -637,7 +639,10 @@ def eventos_embarque_app():
     ].iloc[0]
 
     codigo_ruta = str(
-        transporte.get("ruta", "") or ""
+        transporte.get("codigo_ruta", "")
+        or transporte.get("folio_ruta", "")
+        or transporte.get("ruta", "")
+        or ""
     ).strip()
 
     estatus_actual = str(
@@ -697,6 +702,11 @@ def eventos_embarque_app():
 
         st.write(
             "**Ruta:**",
+            transporte.get("ruta", "")
+        )
+
+        st.write(
+            "**Código ruta:**",
             codigo_ruta
         )
 
