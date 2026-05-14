@@ -16,7 +16,13 @@ st.warning("NUEVO ARCHIVO ALTA EMBARQUE")
 def obtener_hojas_carga_pendientes():
 
     conn = sqlite3.connect(
-        get_db_path("inventarios")
+        get_db_path("logistica")
+    )
+
+    inventarios_db = get_db_path("inventarios")
+
+    conn.execute(
+        f"ATTACH DATABASE '{inventarios_db}' AS inv"
     )
 
     query = """
@@ -30,13 +36,13 @@ def obtener_hojas_carga_pendientes():
 
             COUNT(d.codigo_material) AS materiales,
 
-            ROUND(SUM(d.peso), 2) AS peso_total,
+            ROUND(COALESCE(SUM(d.peso), 0), 2) AS peso_total,
 
-            ROUND(SUM(d.volumen), 2) AS volumen_total
+            ROUND(COALESCE(SUM(d.volumen), 0), 2) AS volumen_total
 
-        FROM hoja_carga h
+        FROM inv.hoja_carga h
 
-        LEFT JOIN detalle_hoja_carga d
+        LEFT JOIN inv.detalle_hoja_carga d
             ON h.folio_hoja_carga = d.folio_hoja_carga
 
         WHERE h.folio_hoja_carga NOT IN (
