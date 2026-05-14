@@ -51,15 +51,22 @@ def agregar_columna_si_no_existe(cur, tabla, columna, tipo):
             raise e
 
 
+def normalizar_texto(texto):
+
+    return str(texto).strip().lower().replace("í", "i")
+
+
 def obtener_db_por_modulo(modulo):
 
-    if modulo == "Compras":
+    modulo_limpio = normalizar_texto(modulo)
+
+    if modulo_limpio == "compras":
         return "compras"
 
-    if modulo == "Inventarios":
+    if modulo_limpio == "inventarios":
         return "inventarios"
 
-    if modulo == "Logística":
+    if modulo_limpio == "logistica":
         return "logistica"
 
     return None
@@ -694,30 +701,6 @@ def alterar_tabla_embarques():
     st.subheader("📋 Estructura final embarques")
     mostrar_estructura_tabla(db_path, "embarques")
 
-    st.subheader("📋 Catálogo estatus_embarque")
-    mostrar_estructura_tabla(db_path, "estatus_embarque")
-
-    st.subheader("📋 Historial estatus embarque")
-    mostrar_estructura_tabla(db_path, "historial_estatus_embarque")
-
-    st.subheader("📋 Eventos embarque")
-    mostrar_estructura_tabla(db_path, "eventos_embarque")
-
-    st.subheader("📋 Rutas")
-    mostrar_estructura_tabla(db_path, "rutas")
-
-    st.subheader("📋 Puntos ruta")
-    mostrar_estructura_tabla(db_path, "puntos_ruta")
-
-    st.subheader("📋 Transportes")
-    mostrar_estructura_tabla(db_path, "transportes")
-
-    st.subheader("📋 Detalle transporte")
-    mostrar_estructura_tabla(db_path, "detalle_transporte")
-
-    st.subheader("📋 Incidencias")
-    mostrar_estructura_tabla(db_path, "incidencias")
-
 
 def alterar_tabla_detalle_embarque():
 
@@ -762,50 +745,7 @@ def alterar_tabla_incidencias():
     st.subheader("📋 Estructura actual incidencias")
     mostrar_estructura_tabla(db_path, "incidencias")
 
-    columnas_incidencias = [
-        ("modulo", "TEXT DEFAULT 'Logística'"),
-        ("proceso", "TEXT"),
-        ("tipo_incidencia", "TEXT"),
-        ("prioridad", "TEXT DEFAULT 'Media'"),
-        ("estatus", "TEXT DEFAULT 'Abierta'"),
-        ("folio_referencia", "TEXT"),
-        ("folio_embarque", "TEXT"),
-        ("folio_hoja_carga", "TEXT"),
-        ("pedido", "TEXT"),
-        ("codigo_material", "TEXT"),
-        ("descripcion", "TEXT"),
-        ("cantidad", "REAL DEFAULT 0"),
-        ("cliente", "TEXT"),
-        ("destino", "TEXT"),
-        ("bodega", "TEXT"),
-        ("ubicacion", "TEXT"),
-        ("transportista", "TEXT"),
-        ("vehiculo", "TEXT"),
-        ("placas", "TEXT"),
-        ("operador", "TEXT"),
-        ("responsable", "TEXT"),
-        ("descripcion_incidencia", "TEXT"),
-        ("causa", "TEXT"),
-        ("solucion", "TEXT"),
-        ("fecha_solucion", "TEXT"),
-        ("usuario_registro", "TEXT"),
-        ("usuario_cierre", "TEXT"),
-        ("observaciones", "TEXT"),
-        ("fecha_creacion", "TEXT"),
-    ]
-
-    st.subheader("🔧 Actualizando tabla incidencias")
-
     crear_tabla_incidencias(cur)
-
-    for nombre_columna, tipo_columna in columnas_incidencias:
-
-        agregar_columna_si_no_existe(
-            cur,
-            "incidencias",
-            nombre_columna,
-            tipo_columna
-        )
 
     conn.commit()
     conn.close()
@@ -834,30 +774,6 @@ def crear_tablas_control_embarques():
     conn.close()
 
     st.success("✅ Tablas de control de embarques creadas/actualizadas")
-
-    st.subheader("📋 Catálogo estatus_embarque")
-    mostrar_estructura_tabla(db_path, "estatus_embarque")
-
-    st.subheader("📋 Historial estatus_embarque")
-    mostrar_estructura_tabla(db_path, "historial_estatus_embarque")
-
-    st.subheader("📋 Eventos embarque")
-    mostrar_estructura_tabla(db_path, "eventos_embarque")
-
-    st.subheader("📋 Rutas")
-    mostrar_estructura_tabla(db_path, "rutas")
-
-    st.subheader("📋 Puntos ruta")
-    mostrar_estructura_tabla(db_path, "puntos_ruta")
-
-    st.subheader("📋 Transportes")
-    mostrar_estructura_tabla(db_path, "transportes")
-
-    st.subheader("📋 Detalle transporte")
-    mostrar_estructura_tabla(db_path, "detalle_transporte")
-
-    st.subheader("📋 Incidencias")
-    mostrar_estructura_tabla(db_path, "incidencias")
 
 
 # =====================================================
@@ -932,6 +848,9 @@ def crear_tablas_app():
         key="crear_tablas_tabla"
     )
 
+    tabla_limpia = normalizar_texto(tabla)
+    modulo_limpio = normalizar_texto(modulo)
+
     if tipo_proceso == "Crear tabla":
 
         st.info(
@@ -945,13 +864,13 @@ def crear_tablas_app():
 
             try:
 
-                if modulo == "Compras":
+                if modulo_limpio == "compras":
 
                     crear_tablas_compras()
 
-                elif modulo == "Inventarios":
+                elif modulo_limpio == "inventarios":
 
-                    if tabla == "Todas":
+                    if tabla_limpia == "todas":
 
                         crear_tablas_inventario()
                         crear_tabla_movimientos_inventario()
@@ -959,37 +878,37 @@ def crear_tablas_app():
                         crear_tabla_ajustes_inventario()
                         crear_tablas_hoja_carga()
 
-                    elif tabla == "materiales":
+                    elif tabla_limpia == "materiales":
 
                         crear_tablas_inventario()
 
-                    elif tabla == "movimientos_inventario":
+                    elif tabla_limpia == "movimientos_inventario":
 
                         crear_tabla_movimientos_inventario()
 
-                    elif tabla == "inventario_fisico":
+                    elif tabla_limpia == "inventario_fisico":
 
                         crear_tabla_inventario_fisico()
 
-                    elif tabla == "ajustes_inventario":
+                    elif tabla_limpia == "ajustes_inventario":
 
                         crear_tabla_ajustes_inventario()
 
-                    elif tabla == "hoja_carga":
+                    elif tabla_limpia == "hoja_carga":
 
                         crear_tablas_hoja_carga()
 
-                    elif tabla == "detalle_hoja_carga":
+                    elif tabla_limpia == "detalle_hoja_carga":
 
                         crear_tablas_hoja_carga()
 
-                elif modulo == "Logística":
+                elif modulo_limpio == "logistica":
 
-                    if tabla == "Todas":
+                    if tabla_limpia == "todas":
 
                         crear_tablas_logistica()
 
-                    elif tabla in [
+                    elif tabla_limpia in [
                         "pedidos",
                         "detalle_pedido",
                         "embarques",
@@ -998,7 +917,7 @@ def crear_tablas_app():
 
                         crear_tablas_logistica()
 
-                    elif tabla in [
+                    elif tabla_limpia in [
                         "estatus_embarque",
                         "historial_estatus_embarque",
                         "eventos_embarque"
@@ -1006,7 +925,7 @@ def crear_tablas_app():
 
                         crear_tablas_control_embarques()
 
-                    elif tabla in [
+                    elif tabla_limpia in [
                         "rutas",
                         "puntos_ruta",
                         "transportes",
@@ -1015,7 +934,7 @@ def crear_tablas_app():
 
                         crear_tablas_rutas_logistica()
 
-                    elif tabla == "incidencias":
+                    elif tabla_limpia == "incidencias":
 
                         crear_tablas_incidencias_logistica()
 
@@ -1029,146 +948,95 @@ def crear_tablas_app():
                     f"❌ Error creando tablas del módulo {modulo}"
                 )
                 st.exception(e)
-    ##
-    # =====================================================
-# REEMPLAZA COMPLETO ESTE BLOQUE
-# =====================================================
 
-elif tipo_proceso == "Modificar estructura":
+    elif tipo_proceso == "Modificar estructura":
 
-    st.warning(
-        "Este proceso modifica la estructura de una tabla existente sin borrar datos."
-    )
+        st.warning(
+            "Este proceso modifica la estructura de una tabla existente sin borrar datos."
+        )
 
-    if st.button(
-        "🛠️ Modificar estructura",
-        key=f"btn_modificar_{modulo}_{tabla}"
-    ):
+        if st.button(
+            "🛠️ Modificar estructura",
+            key=f"btn_modificar_{modulo_limpio}_{tabla_limpia}"
+        ):
 
-        try:
+            try:
 
-            tabla_limpia = str(tabla).strip().lower()
-            modulo_limpio = str(modulo).strip().lower()
+                st.info(f"Validando modificación: {modulo_limpio} / {tabla_limpia}")
 
-            # =====================================================
-            # INVENTARIOS
-            # =====================================================
+                if modulo_limpio == "inventarios" and tabla_limpia == "hoja_carga":
 
-            if (
-                modulo_limpio == "inventarios"
-                and tabla_limpia == "movimientos_inventario"
-            ):
+                    alterar_tabla_hoja_carga()
 
-                alterar_movimientos_inventario()
+                elif modulo_limpio == "inventarios" and tabla_limpia == "detalle_hoja_carga":
 
-            elif (
-                modulo_limpio == "inventarios"
-                and tabla_limpia == "hoja_carga"
-            ):
+                    alterar_tabla_detalle_hoja_carga()
 
-                alterar_tabla_hoja_carga()
+                elif modulo_limpio == "inventarios" and tabla_limpia == "movimientos_inventario":
 
-            elif (
-                modulo_limpio == "inventarios"
-                and tabla_limpia == "detalle_hoja_carga"
-            ):
+                    alterar_movimientos_inventario()
 
-                alterar_tabla_detalle_hoja_carga()
+                elif modulo_limpio == "inventarios" and tabla_limpia == "todas":
 
-            elif (
-                modulo_limpio == "inventarios"
-                and tabla_limpia == "todas"
-            ):
+                    alterar_tabla_hoja_carga()
+                    alterar_tabla_detalle_hoja_carga()
+                    alterar_movimientos_inventario()
 
-                alterar_movimientos_inventario()
+                elif modulo_limpio == "logistica" and tabla_limpia == "embarques":
 
-                alterar_tabla_hoja_carga()
+                    alterar_tabla_embarques()
 
-                alterar_tabla_detalle_hoja_carga()
+                elif modulo_limpio == "logistica" and tabla_limpia == "detalle_embarque":
 
-            # =====================================================
-            # LOGISTICA
-            # =====================================================
+                    alterar_tabla_detalle_embarque()
 
-            elif (
-                modulo_limpio == "logística"
-                and tabla_limpia == "embarques"
-            ):
+                elif modulo_limpio == "logistica" and tabla_limpia == "incidencias":
 
-                alterar_tabla_embarques()
+                    alterar_tabla_incidencias()
 
-            elif (
-                modulo_limpio == "logística"
-                and tabla_limpia == "detalle_embarque"
-            ):
+                elif modulo_limpio == "logistica" and tabla_limpia == "todas":
 
-                alterar_tabla_detalle_embarque()
+                    alterar_tabla_embarques()
+                    alterar_tabla_detalle_embarque()
+                    alterar_tabla_incidencias()
+                    crear_tablas_control_embarques()
+                    crear_tablas_rutas_logistica()
 
-            elif (
-                modulo_limpio == "logística"
-                and tabla_limpia == "incidencias"
-            ):
-
-                alterar_tabla_incidencias()
-
-            elif (
-                modulo_limpio == "logística"
-                and tabla_limpia == "todas"
-            ):
-
-                alterar_tabla_embarques()
-
-                alterar_tabla_detalle_embarque()
-
-                alterar_tabla_incidencias()
-
-                crear_tablas_control_embarques()
-
-                crear_tablas_rutas_logistica()
-
-            elif (
-                modulo_limpio == "logística"
-                and tabla_limpia in [
+                elif modulo_limpio == "logistica" and tabla_limpia in [
                     "estatus_embarque",
                     "historial_estatus_embarque",
                     "eventos_embarque"
-                ]
-            ):
+                ]:
 
-                crear_tablas_control_embarques()
+                    crear_tablas_control_embarques()
 
-            elif (
-                modulo_limpio == "logística"
-                and tabla_limpia in [
+                elif modulo_limpio == "logistica" and tabla_limpia in [
                     "rutas",
                     "puntos_ruta",
                     "transportes",
                     "detalle_transporte"
-                ]
-            ):
+                ]:
 
-                crear_tablas_rutas_logistica()
+                    crear_tablas_rutas_logistica()
 
-            else:
+                else:
 
-                st.warning(
-                    f"No hay modificación configurada para: {modulo} / {tabla}"
+                    st.warning(
+                        f"No hay modificación configurada para: {modulo} / {tabla}"
+                    )
+                    st.stop()
+
+                st.success(
+                    f"✅ Estructura actualizada: {modulo} / {tabla}"
                 )
 
-                st.stop()
+            except Exception as e:
 
-            st.success(
-                f"✅ Estructura actualizada: {modulo} / {tabla}"
-            )
+                st.error(
+                    f"❌ Error modificando estructura: {modulo} / {tabla}"
+                )
+                st.exception(e)
 
-        except Exception as e:
-
-            st.error(
-                f"❌ Error modificando estructura: {modulo} / {tabla}"
-            )
-
-            st.exception(e)
-    ########################33 
     elif tipo_proceso == "Borrar tabla":
 
         st.error(
@@ -1179,7 +1047,7 @@ elif tipo_proceso == "Modificar estructura":
             "⚠️ Esta acción no se puede deshacer."
         )
 
-        if tabla == "Todas":
+        if tabla_limpia == "todas":
 
             st.error(
                 "Por seguridad no se permite borrar 'Todas'. Selecciona una tabla específica."
@@ -1188,7 +1056,7 @@ elif tipo_proceso == "Modificar estructura":
 
         confirmar_borrado = st.checkbox(
             f"Confirmo borrar la tabla: {tabla}",
-            key=f"confirmar_borrado_{modulo}_{tabla}"
+            key=f"confirmar_borrado_{modulo_limpio}_{tabla_limpia}"
         )
 
         if not confirmar_borrado:
@@ -1200,7 +1068,7 @@ elif tipo_proceso == "Modificar estructura":
 
         if st.button(
             "🗑️ Borrar tabla",
-            key=f"btn_borrar_{modulo}_{tabla}"
+            key=f"btn_borrar_{modulo_limpio}_{tabla_limpia}"
         ):
 
             try:
