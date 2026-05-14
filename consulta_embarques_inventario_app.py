@@ -481,6 +481,45 @@ def consulta_embarques_inventario_app():
 
     st.markdown("---")
 
+    # =================================================
+    # FLUJO OPERACIONAL
+    # =================================================
+
+    st.subheader(
+        "🟢 Flujo operacional completado"
+    )
+
+    st.success(
+        "🟢 Hoja de carga cerrada"
+    )
+
+    st.success(
+        "🟢 Embarque confirmado por logística"
+    )
+
+    st.success(
+        "🟢 Carga física confirmada por Inventarios"
+    )
+
+    st.success(
+        "🟢 Salida inventario generada"
+    )
+
+    st.success(
+        f"🟢 Documento inventario generado: "
+        f"{embarque['folio_embarque']}"
+    )
+
+    st.success(
+        "🟢 Proceso terminado"
+    )
+
+    st.markdown("---")
+
+    st.subheader(
+        "📦 Materiales embarcados"
+    )
+
     st.dataframe(
         detalle,
         use_container_width=True,
