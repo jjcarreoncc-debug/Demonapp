@@ -1,378 +1,447 @@
 import streamlit as st
 
 
+def set_opcion_logistica(menu, submenu, opcion):
+    st.session_state.menu_logistica = menu
+    st.session_state.submenu_logistica = submenu
+    st.session_state.opcion_logistica = opcion
+
+
 def sidebar_logistica():
 
-    # ==========================================
-    # SESSION STATE
-    # ==========================================
+    with st.sidebar:
 
-    if "menu_logistica" not in st.session_state:
-        st.session_state.menu_logistica = "📦 Embarques"
+        st.markdown("## 🏢 SIGEM")
+        st.markdown("### 🚚 Logística")
+        st.markdown("---")
 
-    if "submenu_logistica" not in st.session_state:
-        st.session_state.submenu_logistica = "Embarques"
+        # ==========================================
+        # SESSION STATE
+        # ==========================================
 
-    if "opcion_logistica" not in st.session_state:
-        st.session_state.opcion_logistica = "➕ Alta embarque"
+        if "menu_logistica" not in st.session_state:
+            set_opcion_logistica(
+                "Embarques",
+                "Gestión de embarques",
+                "➕ Alta embarque"
+            )
 
-    # ==========================================
-    # FUNCIÓN PARA CAMBIAR OPCIÓN
-    # ==========================================
+        # ==========================================
+        # INICIO
+        # ==========================================
 
-    def cambiar_opcion(menu, submenu, opcion):
-        st.session_state.menu_logistica = menu
-        st.session_state.submenu_logistica = submenu
-        st.session_state.opcion_logistica = opcion
+        if st.button(
+            "🏠 Inicio",
+            use_container_width=True,
+            key="log_btn_inicio"
+        ):
+            set_opcion_logistica(
+                "Inicio",
+                "Inicio",
+                "🏠 Inicio"
+            )
 
-    # ==========================================
-    # SIDEBAR
-    # ==========================================
+        # ==========================================
+        # EMBARQUES
+        # ==========================================
 
-    st.sidebar.markdown("## 🚚 Logística")
+        with st.expander("📦 Embarques", expanded=True):
 
-    # ==========================================
-    # INICIO
-    # ==========================================
+            with st.expander("📋 Gestión de embarques", expanded=True):
 
-    if st.sidebar.button(
-        "🏠 Inicio",
-        use_container_width=True,
-        key="log_btn_inicio"
-    ):
-        cambiar_opcion(
-            "Inicio",
-            "Inicio",
-            "🏠 Inicio"
-        )
+                if st.button(
+                    "➕ Alta embarque",
+                    use_container_width=True,
+                    key="log_btn_alta_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Gestión de embarques",
+                        "➕ Alta embarque"
+                    )
 
-    # ==========================================
-    # EMBARQUES
-    # ==========================================
+                if st.button(
+                    "✏️ Editar embarque",
+                    use_container_width=True,
+                    key="log_btn_editar_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Gestión de embarques",
+                        "✏️ Editar embarque"
+                    )
 
-    st.sidebar.markdown("### 📦 Embarques")
+                if st.button(
+                    "❌ Baja embarque",
+                    use_container_width=True,
+                    key="log_btn_baja_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Gestión de embarques",
+                        "❌ Baja embarque"
+                    )
 
-    if st.sidebar.button(
-        "➕ Alta embarque",
-        use_container_width=True,
-        key="log_btn_alta_embarque"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "➕ Alta embarque"
-        )
+                if st.button(
+                    "📋 Consulta embarque",
+                    use_container_width=True,
+                    key="log_btn_consulta_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Gestión de embarques",
+                        "📋 Consulta embarque"
+                    )
 
-    if st.sidebar.button(
-        "✏️ Actualizar estatus embarque",
-        use_container_width=True,
-        key="log_btn_actualizar_estatus_embarque"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "✏️ Actualizar estatus embarque"
-        )
+            with st.expander("🔄 Estatus y eventos"):
 
-    if st.sidebar.button(
-        "❌ Baja embarque",
-        use_container_width=True,
-        key="log_btn_baja_embarque"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "❌ Baja embarque"
-        )
+                if st.button(
+                    "✏️ Actualizar estatus embarque",
+                    use_container_width=True,
+                    key="log_btn_actualizar_estatus_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Estatus y eventos",
+                        "✏️ Actualizar estatus embarque"
+                    )
 
-    if st.sidebar.button(
-        "📋 Consulta embarque",
-        use_container_width=True,
-        key="log_btn_consulta_embarque"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "📋 Consulta embarque"
-        )
+                if st.button(
+                    "🛰️ Eventos embarque",
+                    use_container_width=True,
+                    key="log_btn_eventos_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Estatus y eventos",
+                        "🛰️ Eventos embarque"
+                    )
 
-    if st.sidebar.button(
-        "📊 Dashboard embarques",
-        use_container_width=True,
-        key="log_btn_dashboard_embarques"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "📊 Dashboard embarques"
-        )
+            with st.expander("📊 Consultas y dashboard"):
 
-    if st.sidebar.button(
-        "🛰️ Eventos embarque",
-        use_container_width=True,
-        key="log_btn_eventos_embarque"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "🛰️ Eventos embarque"
-        )
+                if st.button(
+                    "📊 Dashboard embarques",
+                    use_container_width=True,
+                    key="log_btn_dashboard_embarques"
+                ):
+                    set_opcion_logistica(
+                        "Embarques",
+                        "Consultas y dashboard",
+                        "📊 Dashboard embarques"
+                    )
 
-    if st.sidebar.button(
-        "✏️ Editar embarque",
-        use_container_width=True,
-        key="log_btn_editar_embarque"
-    ):
-        cambiar_opcion(
-            "📦 Embarques",
-            "Embarques",
-            "✏️ Editar embarque"
-        )
+        # ==========================================
+        # TRANSPORTE
+        # ==========================================
 
-    # ==========================================
-    # TRANSPORTE
-    # ==========================================
+        with st.expander("🚛 Transporte"):
 
-    st.sidebar.markdown("### 🚛 Transporte")
+            with st.expander("👥 Transportistas"):
 
-    # ==========================================
-    # TRANSPORTISTAS
-    # ==========================================
+                if st.button(
+                    "➕ Alta transportista",
+                    use_container_width=True,
+                    key="log_btn_alta_transportista"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Transportistas",
+                        "➕ Alta transportista"
+                    )
 
-    st.sidebar.markdown("#### 👥 Transportistas")
+                if st.button(
+                    "❌ Baja transportista",
+                    use_container_width=True,
+                    key="log_btn_baja_transportista"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Transportistas",
+                        "❌ Baja transportista"
+                    )
 
-    if st.sidebar.button(
-        "➕ Alta transportista",
-        use_container_width=True,
-        key="log_btn_alta_transportista"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👥 Transportistas",
-            "➕ Alta transportista"
-        )
+                if st.button(
+                    "📋 Consulta transportista",
+                    use_container_width=True,
+                    key="log_btn_consulta_transportista"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Transportistas",
+                        "📋 Consulta transportista"
+                    )
 
-    if st.sidebar.button(
-        "❌ Baja transportista",
-        use_container_width=True,
-        key="log_btn_baja_transportista"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👥 Transportistas",
-            "❌ Baja transportista"
-        )
+                if st.button(
+                    "✏️ Editar transportista",
+                    use_container_width=True,
+                    key="log_btn_editar_transportista"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Transportistas",
+                        "✏️ Editar transportista"
+                    )
 
-    if st.sidebar.button(
-        "📋 Consulta transportista",
-        use_container_width=True,
-        key="log_btn_consulta_transportista"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👥 Transportistas",
-            "📋 Consulta transportista"
-        )
+            with st.expander("🚚 Vehículos"):
 
-    if st.sidebar.button(
-        "✏️ Editar transportista",
-        use_container_width=True,
-        key="log_btn_editar_transportista"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👥 Transportistas",
-            "✏️ Editar transportista"
-        )
+                if st.button(
+                    "➕ Alta vehículo",
+                    use_container_width=True,
+                    key="log_btn_alta_vehiculo"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Vehículos",
+                        "➕ Alta vehículo"
+                    )
 
-    # ==========================================
-    # VEHÍCULOS
-    # ==========================================
+                if st.button(
+                    "❌ Baja vehículo",
+                    use_container_width=True,
+                    key="log_btn_baja_vehiculo"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Vehículos",
+                        "❌ Baja vehículo"
+                    )
 
-    st.sidebar.markdown("#### 🚚 Vehículos")
+                if st.button(
+                    "📋 Consulta vehículo",
+                    use_container_width=True,
+                    key="log_btn_consulta_vehiculo"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Vehículos",
+                        "📋 Consulta vehículo"
+                    )
 
-    if st.sidebar.button(
-        "➕ Alta vehículo",
-        use_container_width=True,
-        key="log_btn_alta_vehiculo"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "🚚 Vehículos",
-            "➕ Alta vehículo"
-        )
+                if st.button(
+                    "✏️ Editar vehículo",
+                    use_container_width=True,
+                    key="log_btn_editar_vehiculo"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Vehículos",
+                        "✏️ Editar vehículo"
+                    )
 
-    if st.sidebar.button(
-        "❌ Baja vehículo",
-        use_container_width=True,
-        key="log_btn_baja_vehiculo"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "🚚 Vehículos",
-            "❌ Baja vehículo"
-        )
+            with st.expander("👨 Operadores"):
 
-    if st.sidebar.button(
-        "📋 Consulta vehículo",
-        use_container_width=True,
-        key="log_btn_consulta_vehiculo"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "🚚 Vehículos",
-            "📋 Consulta vehículo"
-        )
+                if st.button(
+                    "➕ Alta operador",
+                    use_container_width=True,
+                    key="log_btn_alta_operador"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Operadores",
+                        "➕ Alta operador"
+                    )
 
-    if st.sidebar.button(
-        "✏️ Editar vehículo",
-        use_container_width=True,
-        key="log_btn_editar_vehiculo"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "🚚 Vehículos",
-            "✏️ Editar vehículo"
-        )
+                if st.button(
+                    "❌ Baja operador",
+                    use_container_width=True,
+                    key="log_btn_baja_operador"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Operadores",
+                        "❌ Baja operador"
+                    )
 
-    # ==========================================
-    # OPERADORES
-    # ==========================================
+                if st.button(
+                    "📋 Consulta operador",
+                    use_container_width=True,
+                    key="log_btn_consulta_operador"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Operadores",
+                        "📋 Consulta operador"
+                    )
 
-    st.sidebar.markdown("#### 👨 Operadores")
+                if st.button(
+                    "✏️ Editar operador",
+                    use_container_width=True,
+                    key="log_btn_editar_operador"
+                ):
+                    set_opcion_logistica(
+                        "Transporte",
+                        "Operadores",
+                        "✏️ Editar operador"
+                    )
 
-    if st.sidebar.button(
-        "➕ Alta operador",
-        use_container_width=True,
-        key="log_btn_alta_operador"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👨 Operadores",
-            "➕ Alta operador"
-        )
+        # ==========================================
+        # RUTAS
+        # ==========================================
 
-    if st.sidebar.button(
-        "❌ Baja operador",
-        use_container_width=True,
-        key="log_btn_baja_operador"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👨 Operadores",
-            "❌ Baja operador"
-        )
+        with st.expander("📍 Rutas"):
 
-    if st.sidebar.button(
-        "📋 Consulta operador",
-        use_container_width=True,
-        key="log_btn_consulta_operador"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👨 Operadores",
-            "📋 Consulta operador"
-        )
+            with st.expander("🗺️ Gestión de rutas"):
 
-    if st.sidebar.button(
-        "✏️ Editar operador",
-        use_container_width=True,
-        key="log_btn_editar_operador"
-    ):
-        cambiar_opcion(
-            "🚛 Transporte",
-            "👨 Operadores",
-            "✏️ Editar operador"
-        )
+                if st.button(
+                    "➕ Alta ruta",
+                    use_container_width=True,
+                    key="log_btn_alta_ruta"
+                ):
+                    set_opcion_logistica(
+                        "Rutas",
+                        "Gestión de rutas",
+                        "➕ Alta ruta"
+                    )
 
-    # ==========================================
-    # RUTAS
-    # ==========================================
+                if st.button(
+                    "❌ Baja ruta",
+                    use_container_width=True,
+                    key="log_btn_baja_ruta"
+                ):
+                    set_opcion_logistica(
+                        "Rutas",
+                        "Gestión de rutas",
+                        "❌ Baja ruta"
+                    )
 
-    st.sidebar.markdown("### 📍 Rutas")
+                if st.button(
+                    "📋 Consulta ruta",
+                    use_container_width=True,
+                    key="log_btn_consulta_ruta"
+                ):
+                    set_opcion_logistica(
+                        "Rutas",
+                        "Gestión de rutas",
+                        "📋 Consulta ruta"
+                    )
 
-    if st.sidebar.button(
-        "➕ Alta ruta",
-        use_container_width=True,
-        key="log_btn_alta_ruta"
-    ):
-        cambiar_opcion(
-            "📍 Rutas",
-            "Rutas",
-            "➕ Alta ruta"
-        )
+                if st.button(
+                    "✏️ Editar ruta",
+                    use_container_width=True,
+                    key="log_btn_editar_ruta"
+                ):
+                    set_opcion_logistica(
+                        "Rutas",
+                        "Gestión de rutas",
+                        "✏️ Editar ruta"
+                    )
 
-    if st.sidebar.button(
-        "❌ Baja ruta",
-        use_container_width=True,
-        key="log_btn_baja_ruta"
-    ):
-        cambiar_opcion(
-            "📍 Rutas",
-            "Rutas",
-            "❌ Baja ruta"
-        )
+        # ==========================================
+        # TRACKING
+        # ==========================================
 
-    if st.sidebar.button(
-        "📋 Consulta ruta",
-        use_container_width=True,
-        key="log_btn_consulta_ruta"
-    ):
-        cambiar_opcion(
-            "📍 Rutas",
-            "Rutas",
-            "📋 Consulta ruta"
-        )
+        with st.expander("📡 Tracking"):
 
-    if st.sidebar.button(
-        "✏️ Editar ruta",
-        use_container_width=True,
-        key="log_btn_editar_ruta"
-    ):
-        cambiar_opcion(
-            "📍 Rutas",
-            "Rutas",
-            "✏️ Editar ruta"
-        )
+            with st.expander("📍 Seguimiento"):
 
-    # ==========================================
-    # TRACKING
-    # ==========================================
+                if st.button(
+                    "📍 Seguimiento embarque",
+                    use_container_width=True,
+                    key="log_btn_seguimiento_embarque"
+                ):
+                    set_opcion_logistica(
+                        "Tracking",
+                        "Seguimiento",
+                        "📍 Seguimiento embarque"
+                    )
 
-    st.sidebar.markdown("### 📡 Tracking")
+                if st.button(
+                    "📋 Consulta tracking",
+                    use_container_width=True,
+                    key="log_btn_consulta_tracking"
+                ):
+                    set_opcion_logistica(
+                        "Tracking",
+                        "Seguimiento",
+                        "📋 Consulta tracking"
+                    )
 
-    if st.sidebar.button(
-        "📍 Seguimiento embarque",
-        use_container_width=True,
-        key="log_btn_seguimiento_embarque"
-    ):
-        cambiar_opcion(
-            "📡 Tracking",
-            "Tracking",
-            "📍 Seguimiento embarque"
-        )
+                if st.button(
+                    "🚨 Eventos logísticos",
+                    use_container_width=True,
+                    key="log_btn_eventos_logisticos"
+                ):
+                    set_opcion_logistica(
+                        "Tracking",
+                        "Seguimiento",
+                        "🚨 Eventos logísticos"
+                    )
 
-    if st.sidebar.button(
-        "📋 Consulta tracking",
-        use_container_width=True,
-        key="log_btn_consulta_tracking"
-    ):
-        cambiar_opcion(
-            "📡 Tracking",
-            "Tracking",
-            "📋 Consulta tracking"
-        )
+        # ==========================================
+        # INCIDENCIAS
+        # ==========================================
 
-    if st.sidebar.button(
-        "🚨 Eventos logísticos",
-        use_container_width=True,
-        key="log_btn_eventos_logisticos"
-    ):
-        cambiar_opcion(
-            "📡 Tracking",
-            "Tracking",
-            "🚨 Eventos logísticos"
-        )
+        with st.expander("🚨 Incidencias"):
+
+            with st.expander("📝 Gestión de incidencias"):
+
+                if st.button(
+                    "➕ Alta incidencia",
+                    use_container_width=True,
+                    key="log_btn_alta_incidencia"
+                ):
+                    set_opcion_logistica(
+                        "Incidencias",
+                        "Gestión de incidencias",
+                        "➕ Alta incidencia"
+                    )
+
+                if st.button(
+                    "❌ Baja incidencia",
+                    use_container_width=True,
+                    key="log_btn_baja_incidencia"
+                ):
+                    set_opcion_logistica(
+                        "Incidencias",
+                        "Gestión de incidencias",
+                        "❌ Baja incidencia"
+                    )
+
+                if st.button(
+                    "📋 Consulta incidencia",
+                    use_container_width=True,
+                    key="log_btn_consulta_incidencia"
+                ):
+                    set_opcion_logistica(
+                        "Incidencias",
+                        "Gestión de incidencias",
+                        "📋 Consulta incidencia"
+                    )
+
+                if st.button(
+                    "✏️ Actualizar incidencia",
+                    use_container_width=True,
+                    key="log_btn_actualizar_incidencia"
+                ):
+                    set_opcion_logistica(
+                        "Incidencias",
+                        "Gestión de incidencias",
+                        "✏️ Actualizar incidencia"
+                    )
+
+                if st.button(
+                    "✅ Cerrar incidencia",
+                    use_container_width=True,
+                    key="log_btn_cerrar_incidencia"
+                ):
+                    set_opcion_logistica(
+                        "Incidencias",
+                        "Gestión de incidencias",
+                        "✅ Cerrar incidencia"
+                    )
+
+            with st.expander("📊 Consultas y dashboard"):
+
+                if st.button(
+                    "📊 Dashboard incidencias",
+                    use_container_width=True,
+                    key="log_btn_dashboard_incidencias"
+                ):
+                    set_opcion_logistica(
+                        "Incidencias",
+                        "Consultas y dashboard",
+                        "📊 Dashboard incidencias"
+                    )
 
     return (
         st.session_state.menu_logistica,
