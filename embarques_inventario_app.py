@@ -475,56 +475,60 @@ def embarques_inventario_app():
             )
 
             st.markdown("---")
-
+            ########################################################################33
+            
             st.subheader(
                 "📊 Inventario disponible materiales"
             )
-
+            
             grafico_stock = detalle[
                 [
                     "codigo_material",
+                    "descripcion",
                     "cantidad_embarcar",
-                    "existencia_actual"
+                    "existencia_actual",
+                    "validacion_stock"
                 ]
             ].copy()
-
-            grafico_stock = grafico_stock.rename(
-                columns={
-                    "codigo_material": "Material",
-                    "cantidad_embarcar": "Cantidad embarque",
-                    "existencia_actual": "Existencia"
-                }
+            
+            grafico_stock["cantidad_embarcar"] = pd.to_numeric(
+                grafico_stock["cantidad_embarcar"],
+                errors="coerce"
+            ).fillna(0)
+            
+            grafico_stock["existencia_actual"] = pd.to_numeric(
+                grafico_stock["existencia_actual"],
+                errors="coerce"
+            ).fillna(0)
+            
+            grafico_stock["faltante"] = (
+                grafico_stock["cantidad_embarcar"]
+                - grafico_stock["existencia_actual"]
             )
-
+            
+            grafico_stock["faltante"] = grafico_stock["faltante"].apply(
+                lambda x: x if x > 0 else 0
+            )
+            
+            st.dataframe(
+                grafico_stock,
+                use_container_width=True,
+                hide_index=True
+            )
+            
             st.bar_chart(
-                grafico_stock.set_index("Material")
+                grafico_stock.set_index("codigo_material")[
+                    [
+                        "cantidad_embarcar",
+                        "existencia_actual",
+                        "faltante"
+                    ]
+                ],
+                use_container_width=True
+           #     hide_index=True
             )
-
-            st.markdown("---")
-
-            sin_stock = detalle[
-                detalle["validacion_stock"] == "SIN STOCK"
-            ]
-
-            if not sin_stock.empty:
-
-                st.error(
-                    "❌ Existen materiales sin inventario suficiente."
-                )
-
-                st.dataframe(
-                    sin_stock[
-                        [
-                            "codigo_material",
-                            "descripcion",
-                            "cantidad_embarcar",
-                            "existencia_actual"
-                        ]
-                    ],
-                    use_container_width=True,
-                    hide_index=True
-                )
-
+                            
+                     
             else:
 
                 st.success(
