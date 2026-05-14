@@ -6,7 +6,7 @@ from datetime import datetime
 
 from sigem_db import get_db_path
 
-st.warning("NUEVO ARCHIVO ALTA EMBARQUE - SELECCIÓN MULTIPLE")
+st.warning("NUEVO ARCHIVO ALTA EMBARQUE - TRANSPORTES SUGERIDOS")
 
 
 # =====================================================
@@ -188,7 +188,7 @@ def obtener_transportes():
         FROM transportes
 
         WHERE estatus IS NULL
-           OR estatus = ''
+           OR TRIM(estatus) = ''
            OR estatus = 'Disponible'
 
         ORDER BY codigo_transporte
@@ -278,7 +278,10 @@ def crear_embarques_desde_hojas(df_seleccionadas, transporte):
                     "codigo_material": det.get("codigo_material", ""),
                     "descripcion": det.get("descripcion", ""),
                     "cantidad_pedida": det.get("cantidad_pedido", 0),
-                    "cantidad_embarcar": det.get("cantidad_surtida", det.get("cantidad_pedido", 0)),
+                    "cantidad_embarcar": det.get(
+                        "cantidad_surtida",
+                        det.get("cantidad_pedido", 0)
+                    ),
                     "peso": det.get("peso", 0),
                     "volumen": det.get("volumen", 0),
                     "bodega": det.get("bodega", ""),
@@ -317,7 +320,7 @@ def alta_embarque_app():
     st.title("🚛 Asignación de embarques a transporte")
 
     st.caption(
-        "Selecciona hojas de carga pendientes y asígnalas a un transporte disponible."
+        "Selecciona hojas de carga pendientes y el sistema sugerirá transportes compatibles."
     )
 
     st.divider()
@@ -376,14 +379,42 @@ def alta_embarque_app():
 
     st.divider()
 
-    col1, col2, col3 = st.columns([5, 3, 4])
+    # =====================================================
+    # HOJAS DE CARGA
+    # =====================================================
 
-    with col1:
+    st.subheader("📦 Hojas de carga pendientes")
 
-        st.subheader("📦 Hojas de carga pendientes")
+    columnas_mostrar = [
+        "seleccionar",
+        "folio_hoja_carga",
+        "cliente",
+        "destino",
+        "materiales",
+        "peso_total",
+        "volumen_total",
+        "estatus"
+    ]
 
-        columnas_mostrar = [
-            "seleccionar",
+    df_editor = st.data_editor(
+        df_hojas[columnas_mostrar],
+        hide_index=True,
+        use_container_width=True,
+        height=360,
+        column_config={
+            "seleccionar": st.column_config.CheckboxColumn(
+                "Sel.",
+                default=False
+            ),
+            "folio_hoja_carga": "Hoja",
+            "cliente": "Cliente",
+            "destino": "Destino",
+            "materiales": "Mat.",
+            "peso_total": "Peso",
+            "volumen_total": "Vol.",
+            "estatus": "Estatus"
+        },
+        disabled=[
             "folio_hoja_carga",
             "cliente",
             "destino",
@@ -391,116 +422,142 @@ def alta_embarque_app():
             "peso_total",
             "volumen_total",
             "estatus"
-        ]
+        ],
+        key="editor_hojas_carga"
+    )
 
-        df_editor = st.data_editor(
-            df_hojas[columnas_mostrar],
-            hide_index=True,
-            use_container_width=True,
-            column_config={
-                "seleccionar": st.column_config.CheckboxColumn(
-                    "Sel.",
-                    default=False
-                ),
-                "folio_hoja_carga": "Hoja",
-                "cliente": "Cliente",
-                "destino": "Destino",
-                "materiales": "Mat.",
-                "peso_total": "Peso",
-                "volumen_total": "Vol.",
-                "estatus": "Estatus"
-            },
-            disabled=[
-                "folio_hoja_carga",
-                "cliente",
-                "destino",
-                "materiales",
-                "peso_total",
-                "volumen_total",
-                "estatus"
-            ],
-            key="editor_hojas_carga"
-        )
+    df_seleccionadas = df_editor[
+        df_editor["seleccionar"] == True
+    ]
 
-        df_seleccionadas = df_editor[
-            df_editor["seleccionar"] == True
-        ]
+    peso_seleccionado = round(
+        df_seleccionadas["peso_total"].sum(),
+        2
+    ) if not df_seleccionadas.empty else 0
 
-        st.caption(
-            f"Hojas seleccionadas: {len(df_seleccionadas)}"
-        )
+    volumen_seleccionado = round(
+        df_seleccionadas["volumen_total"].sum(),
+        2
+    ) if not df_seleccionadas.empty else 0
 
-    with col2:
+    materiales_seleccionados = int(
+        df_seleccionadas["materiales"].sum()
+    ) if not df_seleccionadas.empty else 0
 
-        st.subheader("🚛 Transporte")
+    st.caption(
+        f"Hojas seleccionadas: {len(df_seleccionadas)}"
+    )
 
-        transporte_seleccionado = st.selectbox(
-            "Selecciona transporte",
-            df_transportes["codigo_transporte"]
-            .astype(str)
-            .tolist()
-        )
+    st.divider()
 
-        transporte = df_transportes[
-            df_transportes["codigo_transporte"]
-            .astype(str)
-            == str(transporte_seleccionado)
-        ].iloc[0]
+    # =====================================================
+    # TRANSPORTES SUGERIDOS
+    # =====================================================
 
-        st.markdown("---")
+    st.subheader("🚛 Transportes sugeridos")
 
-        st.write(f"**Transportista:** {transporte['transportista']}")
-        st.write(f"**Vehículo:** {transporte['vehiculo']}")
-        st.write(f"**Placas:** {transporte['placas']}")
-        st.write(f"**Operador:** {transporte['operador']}")
-        st.write(f"**Ruta:** {transporte.get('codigo_ruta', '')}")
-        st.write(f"**Cap. peso:** {transporte['capacidad_peso']}")
-        st.write(f"**Cap. volumen:** {transporte['capacidad_volumen']}")
+    df_transportes_eval = df_transportes.copy()
 
-    with col3:
+    df_transportes_eval["capacidad_peso"] = pd.to_numeric(
+        df_transportes_eval["capacidad_peso"],
+        errors="coerce"
+    ).fillna(0)
 
-        st.subheader("✅ Carga planeada")
+    df_transportes_eval["capacidad_volumen"] = pd.to_numeric(
+        df_transportes_eval["capacidad_volumen"],
+        errors="coerce"
+    ).fillna(0)
 
-        peso_seleccionado = round(
-            df_seleccionadas["peso_total"].sum(),
-            2
-        ) if not df_seleccionadas.empty else 0
-
-        volumen_seleccionado = round(
-            df_seleccionadas["volumen_total"].sum(),
-            2
-        ) if not df_seleccionadas.empty else 0
-
-        capacidad_peso = float(
-            transporte["capacidad_peso"]
-        )
-
-        capacidad_volumen = float(
-            transporte["capacidad_volumen"]
-        )
-
-        porcentaje_peso = round(
-            (peso_seleccionado / capacidad_peso) * 100,
+    df_transportes_eval["%_peso"] = df_transportes_eval.apply(
+        lambda row: round(
+            (peso_seleccionado / row["capacidad_peso"]) * 100,
             1
-        ) if capacidad_peso > 0 else 0
+        ) if row["capacidad_peso"] > 0 else 0,
+        axis=1
+    )
 
-        porcentaje_volumen = round(
-            (volumen_seleccionado / capacidad_volumen) * 100,
+    df_transportes_eval["%_volumen"] = df_transportes_eval.apply(
+        lambda row: round(
+            (volumen_seleccionado / row["capacidad_volumen"]) * 100,
             1
-        ) if capacidad_volumen > 0 else 0
+        ) if row["capacidad_volumen"] > 0 else 0,
+        axis=1
+    )
+
+    def validar_transporte(row):
+
+        if df_seleccionadas.empty:
+
+            return "⏳ Selecciona hojas"
+
+        if peso_seleccionado > row["capacidad_peso"]:
+
+            return "❌ NO"
+
+        if volumen_seleccionado > row["capacidad_volumen"]:
+
+            return "❌ NO"
+
+        if row["%_peso"] >= 90 or row["%_volumen"] >= 90:
+
+            return "⚠️ JUSTO"
+
+        return "✅ OK"
+
+    df_transportes_eval["validacion"] = df_transportes_eval.apply(
+        validar_transporte,
+        axis=1
+    )
+
+    columnas_transporte = [
+        "codigo_transporte",
+        "vehiculo",
+        "placas",
+        "operador",
+        "codigo_ruta",
+        "capacidad_peso",
+        "capacidad_volumen",
+        "%_peso",
+        "%_volumen",
+        "validacion"
+    ]
+
+    st.dataframe(
+        df_transportes_eval[columnas_transporte],
+        use_container_width=True,
+        hide_index=True,
+        height=260
+    )
+
+    transportes_validos = df_transportes_eval[
+        df_transportes_eval["validacion"].isin(
+            [
+                "✅ OK",
+                "⚠️ JUSTO"
+            ]
+        )
+    ]
+
+    st.divider()
+
+    # =====================================================
+    # RESUMEN Y CONFIRMACION
+    # =====================================================
+
+    col1, col2 = st.columns([4, 4])
+
+    with col1:
+
+        st.subheader("✅ Carga seleccionada")
 
         st.metric("📦 Hojas seleccionadas", len(df_seleccionadas))
+        st.metric("📋 Materiales", materiales_seleccionados)
         st.metric("⚖️ Peso seleccionado", peso_seleccionado)
         st.metric("📐 Volumen seleccionado", volumen_seleccionado)
 
-        st.markdown("---")
+    with col2:
 
-        st.write(f"**Capacidad peso:** {capacidad_peso}")
-        st.write(f"**Capacidad volumen:** {capacidad_volumen}")
-        st.write(f"**% ocupación peso:** {porcentaje_peso}%")
-        st.write(f"**% ocupación volumen:** {porcentaje_volumen}%")
-
-        st.markdown("---")
+        st.subheader("🚦 Transporte a utilizar")
 
         validacion_ok = True
 
@@ -512,56 +569,96 @@ def alta_embarque_app():
 
             validacion_ok = False
 
-        if peso_seleccionado > capacidad_peso:
+            transporte = None
+
+        elif transportes_validos.empty:
 
             st.error(
-                "❌ El peso excede la capacidad del transporte."
+                "❌ No hay transportes compatibles con la carga seleccionada."
             )
 
             validacion_ok = False
 
-        if volumen_seleccionado > capacidad_volumen:
+            transporte = None
 
-            st.error(
-                "❌ El volumen excede la capacidad del transporte."
+        else:
+
+            transporte_seleccionado = st.selectbox(
+                "Transporte recomendado",
+                transportes_validos["codigo_transporte"]
+                .astype(str)
+                .tolist(),
+                key="transporte_recomendado"
             )
 
-            validacion_ok = False
+            transporte = transportes_validos[
+                transportes_validos["codigo_transporte"]
+                .astype(str)
+                == str(transporte_seleccionado)
+            ].iloc[0]
 
-        if validacion_ok:
+            st.write(
+                f"**Transportista:** {transporte['transportista']}"
+            )
+
+            st.write(
+                f"**Vehículo:** {transporte['vehiculo']}"
+            )
+
+            st.write(
+                f"**Placas:** {transporte['placas']}"
+            )
+
+            st.write(
+                f"**Operador:** {transporte['operador']}"
+            )
+
+            st.write(
+                f"**Ruta:** {transporte.get('codigo_ruta', '')}"
+            )
+
+            st.write(
+                f"**Validación:** {transporte['validacion']}"
+            )
+
+            st.write(
+                f"**% Peso:** {transporte['%_peso']}%"
+            )
+
+            st.write(
+                f"**% Volumen:** {transporte['%_volumen']}%"
+            )
+
+    st.divider()
+
+    if st.button(
+        "🚀 Confirmar asignación",
+        use_container_width=True,
+        disabled=not validacion_ok
+    ):
+
+        try:
+
+            folios = crear_embarques_desde_hojas(
+                df_seleccionadas,
+                transporte
+            )
 
             st.success(
-                "✅ Transporte válido para la carga seleccionada."
+                "✅ Embarques creados correctamente"
             )
 
-        if st.button(
-            "🚀 Confirmar asignación",
-            use_container_width=True,
-            disabled=not validacion_ok
-        ):
+            st.write("Folios generados:")
 
-            try:
+            st.write(folios)
 
-                folios = crear_embarques_desde_hojas(
-                    df_seleccionadas,
-                    transporte
-                )
+        except Exception as e:
 
-                st.success(
-                    "✅ Embarques creados correctamente"
-                )
+            st.error(
+                "❌ Error creando embarques."
+            )
 
-                st.write("Folios generados:")
-
-                st.write(folios)
-
-            except Exception as e:
-
-                st.error(
-                    "❌ Error creando embarques."
-                )
-
-                st.exception(e)
+            st.exception(e)
 
 
 if __name__ == "__main__":
