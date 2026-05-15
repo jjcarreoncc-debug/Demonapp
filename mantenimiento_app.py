@@ -33,6 +33,51 @@ from carga_tablas_inicial_app import (
 )
 
 
+
+# =====================================================
+# ESTILO SIDEBAR
+# =====================================================
+
+st.markdown(
+    """
+    <style>
+
+    section[data-testid="stSidebar"] {
+        background-color: #dbeafe;
+    }
+
+    div.stButton > button {
+
+        background-color: #bfdbfe;
+
+        border: 1px solid #93c5fd;
+
+        color: #1e3a8a;
+
+        border-radius: 10px;
+
+        font-weight: 600;
+    }
+
+    div.stButton > button:hover {
+
+        background-color: #93c5fd;
+
+        color: #1e40af;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# =====================================================
+# BOTON MENU
+# =====================================================
+
+
+
 # =====================================================
 # BOTON MENU
 # =====================================================
