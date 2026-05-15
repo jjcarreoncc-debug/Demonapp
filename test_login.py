@@ -1,110 +1,158 @@
-import streamlit as st
-import pandas as pd
 import sqlite3
+import pandas as pd
+import streamlit as st
 
 from sigem_db import get_db_path
 
 
-def obtener_estructura(conn):
+def obtener_tablas(conn):
 
-    return pd.read_sql_query(
-        "PRAGMA table_info(movimientos_inventario)",
-        conn
-    )
+    query = """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+        ORDER BY name
+    """
+
+    return pd.read_sql_query(query, conn)
 
 
-def actualizar_movimientos_inventario_app():
+def obtener_columnas(conn, tabla):
 
-    st.title("🛠️ Actualizar estructura movimientos_inventario")
+    query = f"""
+        PRAGMA table_info({tabla})
+    """
 
-    db_path = get_db_path("inventarios")
+    return pd.read_sql_query(query, conn)
 
-    st.subheader("📂 Base utilizada")
-    st.code(str(db_path))
 
-    columnas_requeridas = [
-        ("folio_movimiento", "TEXT"),
-        ("tipo_documento", "TEXT"),
-        ("numero_documento", "TEXT"),
-        ("archivo_documento", "TEXT"),
-        ("referencia", "TEXT"),
-        ("comentarios", "TEXT"),
-        ("usuario", "TEXT"),
+def test_estructura_db_app():
+
+    st.markdown("## 🧪 Test estructura de base de datos")
+    st.caption("Revisa tablas, columnas y posibles diferencias de estructura.")
+
+    bases = [
+        "erp",
+        "inventarios",
+        "materiales",
+        "compras",
+        "logistica",
+        "wms"
     ]
+
+    base_sel = st.selectbox(
+        "Selecciona base de datos",
+        bases
+    )
 
     try:
 
+        db_path = get_db_path(base_sel)
+
+        st.info(f"📁 Base seleccionada: {db_path}")
+
         conn = sqlite3.connect(db_path)
-        cur = conn.cursor()
 
-        st.subheader("📋 Estructura actual")
+        tablas_df = obtener_tablas(conn)
 
-        df_actual = obtener_estructura(conn)
+        if tablas_df.empty:
 
-        if df_actual.empty:
-            st.error("❌ La tabla movimientos_inventario no existe.")
+            st.warning("⚠️ No se encontraron tablas en esta base.")
             conn.close()
             return
 
-        st.dataframe(df_actual, use_container_width=True)
+        st.markdown("### 📋 Tablas encontradas")
 
-        columnas_actuales = df_actual["name"].tolist()
+        st.dataframe(
+            tablas_df,
+            use_container_width=True
+        )
 
-        st.subheader("🔎 Validación columnas requeridas")
+        tabla_sel = st.selectbox(
+            "Selecciona tabla para revisar columnas",
+            tablas_df["name"].tolist()
+        )
 
-        faltantes = []
+        columnas_df = obtener_columnas(conn, tabla_sel)
 
-        for columna, tipo in columnas_requeridas:
+        st.markdown(f"### 🧱 Columnas de tabla: `{tabla_sel}`")
 
-            if columna in columnas_actuales:
-                st.success(f"✅ Existe: {columna}")
+        st.dataframe(
+            columnas_df,
+            use_container_width=True
+        )
+
+        st.markdown("### 🔎 Validación rápida usuarios / roles")
+
+        if tabla_sel == "usuarios":
+
+            columnas = columnas_df["name"].tolist()
+
+            requeridas = [
+                "id_usuario",
+                "usuario",
+                "nombre",
+                "email",
+                "password_hash",
+                "id_rol",
+                "estado",
+                "modulo_inicial",
+                "fecha_creacion",
+                "ultimo_login"
+            ]
+
+            faltantes = [
+                col
+                for col in requeridas
+                if col not in columnas
+            ]
+
+            if faltantes:
+
+                st.error("❌ Columnas faltantes en usuarios:")
+
+                st.write(faltantes)
+
             else:
-                st.error(f"❌ Falta: {columna}")
-                faltantes.append((columna, tipo))
 
-        if not faltantes:
-            st.success("✅ La tabla ya tiene toda la estructura requerida.")
+                st.success("✅ La tabla usuarios tiene las columnas principales.")
 
-        st.markdown("---")
+        if tabla_sel == "roles":
 
-        if st.button("🚀 Actualizar estructura"):
+            columnas = columnas_df["name"].tolist()
 
-            if not faltantes:
-                st.info("No hay columnas faltantes para agregar.")
+            requeridas = [
+                "id_rol",
+                "nombre_rol",
+                "descripcion",
+                "estado",
+                "fecha_creacion"
+            ]
+
+            faltantes = [
+                col
+                for col in requeridas
+                if col not in columnas
+            ]
+
+            if faltantes:
+
+                st.error("❌ Columnas faltantes en roles:")
+
+                st.write(faltantes)
+
             else:
 
-                for columna, tipo in faltantes:
-
-                    try:
-                        cur.execute(
-                            f"""
-                            ALTER TABLE movimientos_inventario
-                            ADD COLUMN {columna} {tipo}
-                            """
-                        )
-
-                        st.success(f"Columna agregada: {columna}")
-
-                    except sqlite3.OperationalError as e:
-                        st.warning(f"No se pudo agregar {columna}: {e}")
-
-                conn.commit()
-
-                st.success("✅ Actualización terminada.")
-
-            st.subheader("📋 Estructura final")
-
-            df_final = obtener_estructura(conn)
-
-            st.dataframe(df_final, use_container_width=True)
+                st.success("✅ La tabla roles tiene las columnas principales.")
 
         conn.close()
 
     except Exception as e:
 
-        st.error("Error actualizando movimientos_inventario")
+        st.error("❌ Error revisando estructura de base de datos.")
         st.exception(e)
 
 
 if __name__ == "__main__":
-    actualizar_movimientos_inventario_app()
+
+    test_estructura_db_app()
