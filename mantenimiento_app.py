@@ -1,4 +1,3 @@
-import streamlit as st
 from mantenimiento_auditoria_app import consultar_auditoria_app
 from crear_tablas_app import crear_tablas_app
 from revisar_estructura_db_app import revisar_estructura_db_app
@@ -33,174 +32,284 @@ from carga_tablas_inicial_app import (
 )
 
 
+# =====================================================
+# BOTON MENU
+# =====================================================
+
+def set_opcion_mantenimiento(
+    menu,
+    submenu,
+    opcion
+):
+
+    st.session_state.menu_mantenimiento = menu
+    st.session_state.submenu_mantenimiento = submenu
+    st.session_state.opcion_mantenimiento = opcion
+
+
+def boton_mantenimiento(
+    texto,
+    key,
+    menu,
+    submenu,
+    opcion
+):
+
+    st.button(
+        texto,
+        use_container_width=True,
+        key=key,
+        on_click=set_opcion_mantenimiento,
+        args=(menu, submenu, opcion)
+    )
+
+
+# =====================================================
+# PANTALLA INICIO
+# =====================================================
+
+def inicio_mantenimiento_app():
+
+    st.image(
+        "logomantenimiento.jpg",
+        use_container_width=True
+    )
+
+    st.success(
+        """
+        Bienvenido al módulo de mantenimiento SIGEM ERP.
+
+        Desde este módulo podrás administrar:
+
+        • Usuarios
+        • Roles
+        • Permisos
+        • Auditoría
+        • Configuración
+        • Módulos del sistema
+        """
+    )
+
+
+# =====================================================
+# APP PRINCIPAL
+# =====================================================
+
 def mantenimiento_app():
 
-    st.title("🛠️ Mantenimiento")
+    if "opcion_mantenimiento" not in st.session_state:
 
-    if "menu_mantenimiento" not in st.session_state:
-        st.session_state.menu_mantenimiento = "👥 Usuarios"
+        st.session_state.opcion_mantenimiento = "🏠 Inicio"
 
     with st.sidebar:
 
-        st.markdown("## 🛠️ Mantenimiento")
+        with st.expander(
+            "🏠 Inicio",
+            expanded=False
+        ):
 
-        menu = st.radio(
-            "Módulo",
-            [
-                "👥 Usuarios",
-                "🧩 Roles",
-                "🔐 Permisos",
-                "🧪 Copiar seguridad ERP",
-                "🧱 Módulos",
-                "📜 Auditoría",
-                "⚙️ Configuración"
-            ],
-            key="menu_mantenimiento"
-        )
-
-        if menu == "👥 Usuarios":
-
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Crear usuario",
-                    "Editar usuario",
-                    "Inactivar usuario",
-                    "Consultar usuarios"
-                ],
-                key="submenu_usuarios"
+            boton_mantenimiento(
+                "🏠 Inicio",
+                "mnt_inicio",
+                "Inicio",
+                "Inicio",
+                "🏠 Inicio"
             )
 
-        elif menu == "🧩 Roles":
+        with st.expander(
+            "👥 Usuarios",
+            expanded=False
+        ):
 
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Crear rol",
-                    "Editar rol",
-                    "Asignar usuarios"
-                ],
-                key="submenu_roles"
+            boton_mantenimiento(
+                "➕ Crear usuario",
+                "mnt_crear_usuario",
+                "Usuarios",
+                "Gestión usuarios",
+                "➕ Crear usuario"
             )
 
-        elif menu == "🔐 Permisos":
-
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Permisos por módulo",
-                    "Permisos por rol",
-                    "Acciones permitidas"
-                ],
-                key="submenu_permisos"
+            boton_mantenimiento(
+                "✏️ Editar usuario",
+                "mnt_editar_usuario",
+                "Usuarios",
+                "Gestión usuarios",
+                "✏️ Editar usuario"
             )
 
-        elif menu == "🧪 Copiar seguridad ERP":
-
-            submenu = "Copiar seguridad ERP"
-
-        elif menu == "🧱 Módulos":
-
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Administrar módulos"
-                ],
-                key="submenu_modulos"
+            boton_mantenimiento(
+                "📋 Consultar usuarios",
+                "mnt_consultar_usuario",
+                "Usuarios",
+                "Gestión usuarios",
+                "📋 Consultar usuarios"
             )
 
-        elif menu == "📜 Auditoría":
+        with st.expander(
+            "🧩 Roles",
+            expanded=False
+        ):
 
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Inicios sesión",
-                    "Cambios usuarios",
-                    "Eliminaciones",
-                    "Historial acciones"
-                ],
-                key="submenu_auditoria"
+            boton_mantenimiento(
+                "➕ Crear rol",
+                "mnt_crear_rol",
+                "Roles",
+                "Gestión roles",
+                "➕ Crear rol"
             )
 
-        elif menu == "⚙️ Configuración":
-
-            submenu = st.radio(
-                "Opciones",
-                [
-                    "Variables sistema",
-                    "Parámetros",
-                    "Colores",
-                    "Branding",
-                    "Actualización de tablas",
-                    "Carga tablas inicial",
-                    "🗄️ Crear tablas",
-                    "🔍 Revisar estructura DB"
-                ],
-                key="submenu_configuracion"
+            boton_mantenimiento(
+                "👥 Asignar usuarios",
+                "mnt_asignar_roles",
+                "Roles",
+                "Gestión roles",
+                "👥 Asignar usuarios"
             )
 
-        else:
+        with st.expander(
+            "🔐 Permisos",
+            expanded=False
+        ):
 
-            submenu = "General"
+            boton_mantenimiento(
+                "🔐 Permisos módulo",
+                "mnt_perm_modulo",
+                "Permisos",
+                "Permisos",
+                "🔐 Permisos módulo"
+            )
 
-    st.caption(f"{menu} / {submenu}")
+            boton_mantenimiento(
+                "🧩 Permisos rol",
+                "mnt_perm_rol",
+                "Permisos",
+                "Permisos",
+                "🧩 Permisos rol"
+            )
 
-    if menu == "👥 Usuarios" and submenu == "Crear usuario":
+        with st.expander(
+            "🧱 Módulos",
+            expanded=False
+        ):
+
+            boton_mantenimiento(
+                "🧱 Administrar módulos",
+                "mnt_modulos",
+                "Módulos",
+                "Módulos",
+                "🧱 Administrar módulos"
+            )
+
+        with st.expander(
+            "📜 Auditoría",
+            expanded=False
+        ):
+
+            boton_mantenimiento(
+                "📜 Historial acciones",
+                "mnt_auditoria",
+                "Auditoría",
+                "Auditoría",
+                "📜 Historial acciones"
+            )
+
+        with st.expander(
+            "⚙️ Configuración",
+            expanded=False
+        ):
+
+            boton_mantenimiento(
+                "⚙️ Actualización tablas",
+                "mnt_actualizacion",
+                "Configuración",
+                "Configuración",
+                "⚙️ Actualización tablas"
+            )
+
+            boton_mantenimiento(
+                "📦 Carga tablas inicial",
+                "mnt_carga",
+                "Configuración",
+                "Configuración",
+                "📦 Carga tablas inicial"
+            )
+
+            boton_mantenimiento(
+                "🗄️ Crear tablas",
+                "mnt_crear_tablas",
+                "Configuración",
+                "Configuración",
+                "🗄️ Crear tablas"
+            )
+
+            boton_mantenimiento(
+                "🔍 Revisar estructura DB",
+                "mnt_estructura",
+                "Configuración",
+                "Configuración",
+                "🔍 Revisar estructura DB"
+            )
+
+    opcion = st.session_state.opcion_mantenimiento
+
+    if opcion == "🏠 Inicio":
+
+        inicio_mantenimiento_app()
+
+    elif opcion == "➕ Crear usuario":
 
         alta_usuario_app()
 
-    elif menu == "👥 Usuarios" and submenu == "Editar usuario":
+    elif opcion == "✏️ Editar usuario":
 
         editar_usuario_app()
 
-    elif menu == "👥 Usuarios" and submenu == "Consultar usuarios":
+    elif opcion == "📋 Consultar usuarios":
 
         consultar_usuarios_app()
 
-    elif menu == "🧩 Roles" and submenu == "Asignar usuarios":
-
-        asignar_roles_app()
-
-    elif menu == "🧩 Roles" and submenu == "Crear rol":
+    elif opcion == "➕ Crear rol":
 
         crear_rol_app()
 
-    elif menu == "🔐 Permisos" and submenu == "Permisos por módulo":
+    elif opcion == "👥 Asignar usuarios":
+
+        asignar_roles_app()
+
+    elif opcion == "🔐 Permisos módulo":
 
         permisos_por_modulo_app()
 
-    elif menu == "🔐 Permisos" and submenu == "Permisos por rol":
+    elif opcion == "🧩 Permisos rol":
 
         permisos_por_rol_app()
 
-    elif menu == "🧪 Copiar seguridad ERP" and submenu == "Copiar seguridad ERP":
-
-        copiar_seguridad_desde_erp_app()
-
-    elif menu == "🧱 Módulos" and submenu == "Administrar módulos":
+    elif opcion == "🧱 Administrar módulos":
 
         administrar_modulos_app()
 
-    elif menu == "📜 Auditoría" and submenu == "Historial acciones":
+    elif opcion == "📜 Historial acciones":
 
         consultar_auditoria_app()
 
-    elif menu == "⚙️ Configuración" and submenu == "Actualización de tablas":
+    elif opcion == "⚙️ Actualización tablas":
 
         actualizacion_tablas_app()
 
-    elif menu == "⚙️ Configuración" and submenu == "Carga tablas inicial":
+    elif opcion == "📦 Carga tablas inicial":
 
         carga_tablas_inicial_app()
 
-    elif menu == "⚙️ Configuración" and submenu == "🗄️ Crear tablas":
+    elif opcion == "🗄️ Crear tablas":
 
         crear_tablas_app()
 
-    elif menu == "⚙️ Configuración" and submenu == "🔍 Revisar estructura DB":
+    elif opcion == "🔍 Revisar estructura DB":
 
         revisar_estructura_db_app()
 
     else:
 
-        st.info(f"Pantalla en construcción: {submenu}")
+        st.info(
+            f"Pantalla en construcción: {opcion}"
+        )
