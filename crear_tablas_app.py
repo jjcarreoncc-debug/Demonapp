@@ -12,6 +12,8 @@ from inventario_db import (
     crear_tabla_inventario_fisico
 )
 
+from seguridad_db import crear_tablas_seguridad
+
 
 def mostrar_estructura_tabla(db_path, tabla):
 
@@ -68,6 +70,9 @@ def obtener_db_por_modulo(modulo):
 
     if modulo_limpio == "logistica":
         return "logistica"
+
+    if modulo_limpio == "seguridad":
+        return "erp"
 
     return None
 
@@ -777,6 +782,30 @@ def crear_tablas_control_embarques():
     st.success("✅ Tablas de control de embarques creadas/actualizadas")
 
 
+def crear_tablas_seguridad_app():
+
+    crear_tablas_seguridad()
+
+    db_path = get_db_path("erp")
+
+    st.success("✅ Tablas de seguridad creadas/actualizadas")
+
+    tablas = [
+        "usuarios",
+        "roles",
+        "permisos",
+        "modulos",
+        "usuario_roles",
+        "rol_permisos",
+        "sesiones_usuario"
+    ]
+
+    for tabla in tablas:
+
+        st.subheader(f"📋 {tabla}")
+        mostrar_estructura_tabla(db_path, tabla)
+
+
 # =====================================================
 # APP
 # =====================================================
@@ -800,7 +829,8 @@ def crear_tablas_app():
         [
             "Compras",
             "Inventarios",
-            "Logística"
+            "Logística",
+            "Seguridad"
         ],
         key="crear_tablas_modulo"
     )
@@ -843,6 +873,19 @@ def crear_tablas_app():
             "incidencias"
         ]
 
+    elif modulo == "Seguridad":
+
+        tablas_disponibles = [
+            "Todas",
+            "usuarios",
+            "roles",
+            "permisos",
+            "modulos",
+            "usuario_roles",
+            "rol_permisos",
+            "sesiones_usuario"
+        ]
+
     tabla = st.selectbox(
         "Selecciona tabla",
         tablas_disponibles,
@@ -865,7 +908,11 @@ def crear_tablas_app():
 
             try:
 
-                if modulo_limpio == "compras":
+                if modulo_limpio == "seguridad":
+
+                    crear_tablas_seguridad_app()
+
+                elif modulo_limpio == "compras":
 
                     crear_tablas_compras()
 
@@ -965,7 +1012,11 @@ def crear_tablas_app():
 
                 st.info(f"Validando modificación: {modulo_limpio} / {tabla_limpia}")
 
-                if modulo_limpio == "inventarios" and tabla_limpia == "hoja_carga":
+                if modulo_limpio == "seguridad":
+
+                    crear_tablas_seguridad_app()
+
+                elif modulo_limpio == "inventarios" and tabla_limpia == "hoja_carga":
 
                     alterar_tabla_hoja_carga()
 
