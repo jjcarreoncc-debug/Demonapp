@@ -5,6 +5,7 @@ from Minventarios_app import inventarios_app
 from sidebar_analitico import analitico_app
 from mantenimiento_app import mantenimiento_app
 from Mlogistica_app import logistica_app
+from sidebar_dinamico import sidebar_dinamico
 
 
 # =====================================================
@@ -25,15 +26,7 @@ logout_app()
 
 
 # =====================================================
-# MODULO DEFAULT
-# =====================================================
-
-if "modulo_central" not in st.session_state:
-    st.session_state.modulo_central = "📦 Minventarios"
-
-
-# =====================================================
-# SIDEBAR FIJO
+# SIDEBAR DINAMICO
 # =====================================================
 
 with st.sidebar:
@@ -48,16 +41,9 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.session_state.modulo_central = st.radio(
-        "Módulos",
-        [
-            "📦 Minventarios",
-            "📦 Mlogistica",
-            "📊 Analíticos",
-            "🛠️ Mantenimiento"
-        ],
-        key="menu_central_sigem"
-    )
+ruta = sidebar_dinamico()
+
+with st.sidebar:
 
     st.markdown("---")
 
@@ -66,21 +52,25 @@ with st.sidebar:
 
 
 # =====================================================
-# ROUTER CENTRAL FIJO
+# ROUTER CENTRAL DINAMICO
 # =====================================================
 
-if st.session_state.modulo_central == "📦 Minventarios":
+if ruta == "inventarios":
 
     inventarios_app()
 
-elif st.session_state.modulo_central == "📦 Mlogistica":
+elif ruta == "logistica":
 
     logistica_app()
 
-elif st.session_state.modulo_central == "📊 Analíticos":
+elif ruta == "analitico":
 
     analitico_app()
 
-elif st.session_state.modulo_central == "🛠️ Mantenimiento":
+elif ruta == "mantenimiento":
 
     mantenimiento_app()
+
+else:
+
+    st.info("Selecciona una opción del menú.")
