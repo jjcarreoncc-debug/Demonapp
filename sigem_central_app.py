@@ -70,12 +70,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )    
     
-    st.image(
-        "logo1.png",
-        width=100
-    )
-
-    
+        
 
     st.markdown("---")
 
