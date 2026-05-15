@@ -61,9 +61,7 @@ def inicio_logistica_app():
 
     st.title("🚚 Bienvenido al módulo de Logística")
     
-    st.info(
-        "SIGEM ERP · Gestión logística corporativa"
-    )
+    
 
     st.image(
         "logologistica.jpg",
