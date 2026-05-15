@@ -52,9 +52,7 @@ with st.sidebar:
         width=100
     )
 
-    st.markdown("## 🏢 SIGEM")
-
-    st.caption("ERP Corporativo")
+    
 
     st.markdown("---")
 
