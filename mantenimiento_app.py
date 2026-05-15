@@ -2,6 +2,7 @@ import streamlit as st
 from mantenimiento_auditoria_app import consultar_auditoria_app
 from crear_tablas_app import crear_tablas_app
 from revisar_estructura_db_app import revisar_estructura_db_app
+from test_copiar_seguridad_desde_erp import copiar_seguridad_desde_erp_app
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
@@ -49,6 +50,7 @@ def mantenimiento_app():
                 "👥 Usuarios",
                 "🧩 Roles",
                 "🔐 Permisos",
+                "🧪 Copiar seguridad ERP",
                 "🧱 Módulos",
                 "📜 Auditoría",
                 "⚙️ Configuración"
@@ -150,6 +152,11 @@ def mantenimiento_app():
     elif menu == "🔐 Permisos" and submenu == "Permisos por rol":
         permisos_por_rol_app()
 
+    elif opcion == "🧪 Copiar seguridad ERP":
+
+        copiar_seguridad_desde_erp_app()
+        
+    
     elif menu == "🧱 Módulos" and submenu == "Administrar módulos":
         administrar_modulos_app()
 
