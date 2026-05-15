@@ -289,7 +289,7 @@ def sidebar_inventarios():
                         )
 
                 if st.button(
-                    "🚚 Entrada cancelación embarque"
+                    "🚚 Embarque"
                 ):
 
                     set_opcion(
@@ -357,7 +357,7 @@ def sidebar_inventarios():
                         )
 
                     if st.button(
-                        "Consultar embarques"
+                        "Embarques"
                     ):
 
                         set_opcion(
