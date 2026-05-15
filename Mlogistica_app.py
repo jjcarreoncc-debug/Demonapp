@@ -66,7 +66,7 @@ def inicio_logistica_app():
         <style>
     
         .block-container {
-            padding-top: 1rem;
+            padding-top: 2rem;
         }
     
         </style>
