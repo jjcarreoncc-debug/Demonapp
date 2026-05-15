@@ -6,6 +6,7 @@ from Minventarios_app import inventarios_app
 from sidebar_analitico import analitico_app
 from mantenimiento_app import mantenimiento_app
 from Mlogistica_app import logistica_app
+from menu_dinamico import sidebar_dinamico
 
 
 # =====================================================
