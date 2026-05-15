@@ -1,20 +1,19 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+from sigem_db import get_db_path
 import mantenimiento_auditoria_app as auditoria
 
+
+def alta_usuario_app():
+    
 db_path = get_db_path("seguridad")
 
 st.warning(f"Base usada: {db_path}")
 
 conn = sqlite3.connect(db_path)
 
-conn.row_factory = sqlite3.Row
-
-
-
-
-def alta_usuario_app():
+conn.row_factory = sqlite3.Row    
 
     st.markdown("### 📌 Información básica")
 
