@@ -1,271 +1,332 @@
 
 import streamlit as st
+import pandas as pd
 
-from compras_app import compras_app
-from inventarios_app import inventarios_app
-from logistica_app import logistica_app
-from dashboard_stock_app import dashboard_stock_app
-from wms_app import wms_app
+from mantenimiento_auditoria_app import registrar_auditoria
+from database import get_connection
 
 
-def simular_login():
+def administrar_roles_app():
 
-  st.session_state.autenticado = True
-  st.session_state.usuario = "JCERVANTES"
-  st.session_state.nombre = "JOSE JUANCERVANTES"
-  st.session_state.rol = 1
-  st.session_state.perfil = "ALL"
+    st.subheader("👥 Administrar roles")
 
+    conn = get_connection()
+    cursor = conn.cursor()
 
-def analitico_app():
+    # =====================================
+    # CREAR TABLA ROLES
+    # =====================================
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS roles (
 
-    simular_login()
+            id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
 
-    if "modulo_analitico" not in st.session_state:
-        st.session_state.modulo_analitico = "compras"
+            nombre_rol TEXT UNIQUE,
 
-    if "menu_compras" not in st.session_state:
-        st.session_state.menu_compras = "📊 Dashboard"
+            descripcion TEXT,
 
-    if "menu_logistica" not in st.session_state:
-        st.session_state.menu_logistica = "📊 Dashboard Ejecutivo"
+            activo INTEGER DEFAULT 1
+        )
+        """
+    )
 
-    if "menu_wms" not in st.session_state:
-        st.session_state.menu_wms = "📊 Dashboard Ejecutivo"
+    conn.commit()
 
-    if "menu_inventarios" not in st.session_state:
-        st.session_state.menu_inventarios = "📊 Dashboard General"
+    # =====================================
+    # TABS
+    # =====================================
+    tab_crear, tab_modificar, tab_consultar = st.tabs(
+        [
+            "➕ Crear rol",
+            "✏️ Modificar rol",
+            "🔎 Consultar roles"
+        ]
+    )
 
-    with st.sidebar:
+    # =====================================
+    # CREAR ROL
+    # =====================================
+    with tab_crear:
 
-        st.markdown("## 🏢 SIGEM")
-        st.markdown("### 📊 Analítico")
-        st.markdown("---")
+        st.markdown("### ➕ Crear rol")
 
-        # =========================
-        # COMPRAS
-        # =========================
-        with st.expander("🛒 Compras", expanded=True):
+        with st.form("crear_rol_form"):
 
-            if st.button(
-                "📊 Dashboard",
+            nombre_rol = st.text_input(
+                "Nombre rol"
+            )
+
+            descripcion = st.text_area(
+                "Descripción"
+            )
+
+            activo = st.checkbox(
+                "Activo",
+                value=True
+            )
+
+            guardar = st.form_submit_button(
+                "💾 Guardar rol"
+            )
+
+            if guardar:
+
+                if nombre_rol.strip() == "":
+
+                    st.warning(
+                        "Ingrese nombre rol"
+                    )
+
+                else:
+
+                    try:
+
+                        cursor.execute(
+                            """
+                            INSERT INTO roles (
+
+                                nombre_rol,
+                                descripcion,
+                                activo
+
+                            )
+                            VALUES (?, ?, ?)
+                            """,
+                            (
+                                nombre_rol.strip(),
+                                descripcion.strip(),
+                                1 if activo else 0
+                            )
+                        )
+
+                        conn.commit()
+
+                        registrar_auditoria(
+                            st.session_state.get("usuario", "SIN_USUARIO"),
+                            "Roles",
+                            "CREAR",
+                            f"Creó rol {nombre_rol.strip()}"
+                        )
+
+                        st.success(
+                            "✅ Rol creado correctamente"
+                        )
+
+                        st.rerun()
+
+                    except Exception as e:
+
+                        st.error(
+                            f"Error al crear rol: {e}"
+                        )
+
+    # =====================================
+    # MODIFICAR ROL
+    # =====================================
+    with tab_modificar:
+
+        st.markdown("### ✏️ Modificar rol")
+
+        roles_df = pd.read_sql_query(
+            """
+            SELECT
+                id_rol,
+                nombre_rol,
+                descripcion,
+                activo
+            FROM roles
+            ORDER BY nombre_rol
+            """,
+            conn
+        )
+
+        if roles_df.empty:
+
+            st.info(
+                "No existen roles para modificar"
+            )
+
+        else:
+
+            opciones_roles = {
+                f"{row['nombre_rol']}": row["id_rol"]
+                for _, row in roles_df.iterrows()
+            }
+
+            rol_seleccionado = st.selectbox(
+                "Seleccione rol",
+                list(opciones_roles.keys())
+            )
+
+            id_rol = opciones_roles[rol_seleccionado]
+
+            rol_actual = roles_df[
+                roles_df["id_rol"] == id_rol
+            ].iloc[0]
+
+            with st.form("modificar_rol_form"):
+
+                nuevo_nombre = st.text_input(
+                    "Nombre rol",
+                    value=str(rol_actual["nombre_rol"])
+                )
+
+                nueva_descripcion = st.text_area(
+                    "Descripción",
+                    value=str(rol_actual["descripcion"])
+                    if rol_actual["descripcion"] is not None
+                    else ""
+                )
+
+                nuevo_activo = st.checkbox(
+                    "Activo",
+                    value=bool(rol_actual["activo"])
+                )
+
+                guardar_cambios = st.form_submit_button(
+                    "💾 Guardar cambios"
+                )
+
+                if guardar_cambios:
+
+                    if nuevo_nombre.strip() == "":
+
+                        st.warning(
+                            "Ingrese nombre rol"
+                        )
+
+                    else:
+
+                        try:
+
+                            cursor.execute(
+                                """
+                                UPDATE roles
+                                SET
+                                    nombre_rol = ?,
+                                    descripcion = ?,
+                                    activo = ?
+                                WHERE id_rol = ?
+                                """,
+                                (
+                                    nuevo_nombre.strip(),
+                                    nueva_descripcion.strip(),
+                                    1 if nuevo_activo else 0,
+                                    id_rol
+                                )
+                            )
+
+                            conn.commit()
+
+                            registrar_auditoria(
+                                st.session_state.get("usuario", "SIN_USUARIO"),
+                                "Roles",
+                                "ACTUALIZAR",
+                                f"Actualizó rol {nuevo_nombre.strip()}"
+                            )
+
+                            st.success(
+                                "✅ Rol actualizado correctamente"
+                            )
+
+                            st.rerun()
+
+                        except Exception as e:
+
+                            st.error(
+                                f"Error al actualizar rol: {e}"
+                            )
+
+    # =====================================
+    # CONSULTAR ROLES
+    # =====================================
+    with tab_consultar:
+
+        st.markdown("### 🔎 Consultar roles")
+
+        col1, col2 = st.columns(
+            [3, 1]
+        )
+
+        with col1:
+
+            filtro = st.text_input(
+                "Buscar por nombre o descripción"
+            )
+
+        with col2:
+
+            filtro_activo = st.selectbox(
+                "Estado",
+                [
+                    "Todos",
+                    "Activos",
+                    "Inactivos"
+                ]
+            )
+
+        query = """
+            SELECT
+                id_rol,
+                nombre_rol,
+                descripcion,
+                CASE
+                    WHEN activo = 1 THEN 'Activo'
+                    ELSE 'Inactivo'
+                END AS estado
+            FROM roles
+            WHERE 1 = 1
+        """
+
+        params = []
+
+        if filtro.strip() != "":
+
+            query += """
+                AND (
+                    nombre_rol LIKE ?
+                    OR descripcion LIKE ?
+                )
+            """
+
+            params.extend(
+                [
+                    f"%{filtro.strip()}%",
+                    f"%{filtro.strip()}%"
+                ]
+            )
+
+        if filtro_activo == "Activos":
+
+            query += " AND activo = 1 "
+
+        elif filtro_activo == "Inactivos":
+
+            query += " AND activo = 0 "
+
+        query += """
+            ORDER BY nombre_rol
+        """
+
+        consulta_df = pd.read_sql_query(
+            query,
+            conn,
+            params=params
+        )
+
+        if consulta_df.empty:
+
+            st.info(
+                "No se encontraron roles"
+            )
+
+        else:
+
+            st.dataframe(
+                consulta_df,
                 use_container_width=True,
-                key="btn_compras_dashboard"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "📊 Dashboard"
-                st.rerun()
+                hide_index=True
+            )
 
-            if st.button(
-                "📦 Productos",
-                use_container_width=True,
-                key="btn_compras_productos"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "📦 Productos"
-                st.rerun()
-
-            if st.button(
-                "🏢 Proveedores",
-                use_container_width=True,
-                key="btn_compras_proveedores"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "🏢 Proveedores"
-                st.rerun()
-
-            if st.button(
-                "📈 Analítica",
-                use_container_width=True,
-                key="btn_compras_analitica"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "📈 Analítica"
-                st.rerun()
-
-            if st.button(
-                "🏬 Bodegas",
-                use_container_width=True,
-                key="btn_compras_bodegas"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "🏬 Bodegas"
-                st.rerun()
-
-            if st.button(
-                "💰 Costos",
-                use_container_width=True,
-                key="btn_compras_costos"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "💰 Costos"
-                st.rerun()
-
-            if st.button(
-                "📋 Detalle",
-                use_container_width=True,
-                key="btn_compras_detalle"
-            ):
-                st.session_state.modulo_analitico = "compras"
-                st.session_state.menu_compras = "📋 Detalle"
-                st.rerun()
-
-        # =========================
-        # LOGISTICA
-        # =========================
-        with st.expander("🚚 Logística", expanded=False):
-
-            if st.button(
-                "📊 Dashboard Ejecutivo",
-                use_container_width=True,
-                key="btn_logistica_dashboard"
-            ):
-                st.session_state.modulo_analitico = "logistica"
-                st.session_state.menu_logistica = "📊 Dashboard Ejecutivo"
-                st.rerun()
-
-            if st.button(
-                "📦 Operación",
-                use_container_width=True,
-                key="btn_logistica_operacion"
-            ):
-                st.session_state.modulo_analitico = "logistica"
-                st.session_state.menu_logistica = "📦 Operación"
-                st.rerun()
-
-            if st.button(
-                "⚠️ Riesgos",
-                use_container_width=True,
-                key="btn_logistica_riesgos"
-            ):
-                st.session_state.modulo_analitico = "logistica"
-                st.session_state.menu_logistica = "⚠️ Riesgos"
-                st.rerun()
-
-            if st.button(
-                "📈 Analítica",
-                use_container_width=True,
-                key="btn_logistica_analitica"
-            ):
-                st.session_state.modulo_analitico = "logistica"
-                st.session_state.menu_logistica = "📈 Analítica"
-                st.rerun()
-
-        # =========================
-        # INVENTARIOS
-        # =========================
-        with st.expander("📦 Inventarios", expanded=False):
-
-            if st.button(
-                "📊 Dashboard General",
-                use_container_width=True,
-                key="btn_inv_dashboard"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "📊 Dashboard General"
-                st.rerun()
-
-            if st.button(
-                "🚨 Críticos",
-                use_container_width=True,
-                key="btn_inv_criticos"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "🚨 Críticos"
-                st.rerun()
-
-            if st.button(
-                "⚠️ Sobrestock",
-                use_container_width=True,
-                key="btn_inv_sobrestock"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "⚠️ Sobrestock"
-                st.rerun()
-
-            if st.button(
-                "🔄 Rotación",
-                use_container_width=True,
-                key="btn_inv_rotacion"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "🔄 Rotación"
-                st.rerun()
-            
-            if st.button(
-                "🔎 Trazabilidad",
-                use_container_width=True,
-                key="btn_inv_trazabilidad"
-            ):
-                 st.session_state.modulo_analitico = "inventarios"
-                 st.session_state.menu_inventarios = "🔎 Trazabilidad"
-                 st.rerun()
-
-            if st.button(
-                "🤖 IA",
-                use_container_width=True,
-                key="btn_inv_ia"
-            ):
-                st.session_state.modulo_analitico = "inventarios"
-                st.session_state.menu_inventarios = "🤖 IA"
-                st.rerun()
-
-        # =========================
-        # WMS
-        # =========================
-        with st.expander("🏬 WMS", expanded=False):
-
-            if st.button(
-                "📊 Dashboard Ejecutivo",
-                use_container_width=True,
-                key="btn_wms_dashboard"
-            ):
-                st.session_state.modulo_analitico = "wms"
-                st.session_state.menu_wms = "📊 Dashboard Ejecutivo"
-                st.rerun()
-
-            if st.button(
-                "📦 Operación",
-                use_container_width=True,
-                key="btn_wms_operacion"
-            ):
-                st.session_state.modulo_analitico = "wms"
-                st.session_state.menu_wms = "📦 Operación"
-                st.rerun()
-
-            if st.button(
-                "⚠️ Riesgos",
-                use_container_width=True,
-                key="btn_wms_riesgos"
-            ):
-                st.session_state.modulo_analitico = "wms"
-                st.session_state.menu_wms = "⚠️ Riesgos"
-                st.rerun()
-
-            if st.button(
-                "📈 Analítica",
-                use_container_width=True,
-                key="btn_wms_analitica"
-            ):
-                st.session_state.modulo_analitico = "wms"
-                st.session_state.menu_wms = "📈 Analítica"
-                st.rerun()
-
-        st.markdown("---")
-        st.caption(f"👤 {st.session_state.nombre}")
-        st.caption("SIGEM ERP")
-
-    # =========================
-    # NAVEGACION
-    # =========================
-    if st.session_state.modulo_analitico == "compras":
-        compras_app()
-
-    elif st.session_state.modulo_analitico == "logistica":
-        logistica_app()
-
-    elif st.session_state.modulo_analitico == "inventarios":
-        dashboard_stock_app()
-
-    elif st.session_state.modulo_analitico == "wms":
-        wms_app()
+    conn.close()
