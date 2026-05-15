@@ -10,7 +10,39 @@ def obtener_cancelaciones_pendientes():
     conn = sqlite3.connect(
         get_db_path("logistica")
     )
+        conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS cancelaciones_embarque (
 
+            id_cancelacion INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_cancelacion TEXT,
+            folio_embarque TEXT,
+            folio_entrada_almacen TEXT,
+            codigo_transporte TEXT,
+            cliente TEXT,
+            destino TEXT,
+            motivo_cancelacion TEXT,
+            fecha_cancelacion TEXT,
+            estatus_inventarios TEXT DEFAULT 'Pendiente',
+            folio_movimiento_inventario TEXT,
+            fecha_confirmacion_inventario TEXT
+        )
+        """
+    )
+
+    conn.commit()
+
+
+
+
+
+
+
+
+
+
+
+    
     query = '''
         SELECT
             folio_cancelacion,
