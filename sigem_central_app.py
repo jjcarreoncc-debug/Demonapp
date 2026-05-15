@@ -47,28 +47,28 @@ if "ruta_central" not in st.session_state:
 
 with st.sidebar:
 
-st.markdown(
-    """
-    <style>
-
-    section[data-testid="stSidebar"] {
-        background-color: #dbeafe;
-    }
-
-    section[data-testid="stSidebar"] .block-container {
-        padding-top: 0.5rem;
-        padding-bottom: 0rem;
-    }
-
-    div.stButton > button {
-        padding-top: 0.3rem;
-        padding-bottom: 0.3rem;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)    
+    st.markdown(
+        """
+        <style>
+    
+        section[data-testid="stSidebar"] {
+            background-color: #dbeafe;
+        }
+    
+        section[data-testid="stSidebar"] .block-container {
+            padding-top: 0.5rem;
+            padding-bottom: 0rem;
+        }
+    
+        div.stButton > button {
+            padding-top: 0.3rem;
+            padding-bottom: 0.3rem;
+        }
+    
+        </style>
+        """,
+        unsafe_allow_html=True
+    )    
     
     st.image(
         "logo1.png",
