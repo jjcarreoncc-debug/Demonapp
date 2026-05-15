@@ -153,6 +153,7 @@ def mantenimiento_app():
         permisos_por_rol_app()
 
     elif menu == "🧪 Copiar seguridad ERP":
+          submenu = "Copiar seguridad ERP"
         copiar_seguridad_desde_erp_app()
         
     
