@@ -24,6 +24,10 @@ from consulta_embarques_inventario_app import (
     consulta_embarques_inventario_app
 )
 
+from confirmacion_cancelacion_embarque_app import (
+    confirmacion_cancelacion_embarque_app
+)
+
 # =========================
 # APP INVENTARIOS
 # =========================
@@ -60,6 +64,12 @@ def inventarios_app():
 
     elif opcion_limpia == "consultar entradas compra":
         consulta_entradas_compras_app()
+        
+    elif opcion_limpia == limpiar_opcion(
+        "Entrada cancelación embarque"
+       ):
+
+        confirmacion_cancelacion_embarque_app()
 
     # =========================
     # SALIDAS
