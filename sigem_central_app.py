@@ -68,19 +68,32 @@ with st.sidebar:
 # =====================================================
 # ROUTER CENTRAL FIJO
 # =====================================================
+# =====================================================
+# ROUTER CENTRAL DINÁMICO POR RUTA
+# =====================================================
 
-if st.session_state.modulo_central == "📦 Minventarios":
+ruta_central = st.session_state.get("ruta_central", "")
+
+if ruta_central == "inventarios":
 
     inventarios_app()
 
-elif st.session_state.modulo_central == "📦 Mlogistica":
+elif ruta_central == "logistica":
 
     logistica_app()
 
-elif st.session_state.modulo_central == "📊 Analíticos":
+elif ruta_central == "analitico":
 
     analitico_app()
 
-elif st.session_state.modulo_central == "🛠️ Mantenimiento":
+elif ruta_central == "mantenimiento":
 
     mantenimiento_app()
+
+else:
+
+    st.info("Selecciona un módulo del menú lateral para comenzar.")
+
+
+
+
