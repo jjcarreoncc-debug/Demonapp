@@ -111,19 +111,7 @@ def asegurar_tablas_logistica():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS solicitudes_baja_embarque (
-            id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
-            folio_solicitud TEXT UNIQUE,
-            folio_embarque TEXT,
-            fecha_solicitud TEXT,
-            usuario_solicitud TEXT,
-            motivo TEXT,
-            observaciones TEXT,
-            estatus_solicitud TEXT,
-            folio_notificacion_inventarios TEXT,
-            fecha_creacion TEXT,
-            folio_movimiento_inventario TEXT,
-            fecha_confirmacion_inventario TEXT,
-            usuario_confirmacion_inventario TEXT
+            ...
         )
         """
     )
@@ -131,21 +119,12 @@ def asegurar_tablas_logistica():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS notificaciones_inventario (
-            id_notificacion INTEGER PRIMARY KEY AUTOINCREMENT,
-            folio_notificacion TEXT UNIQUE,
-            origen TEXT,
-            tipo_documento TEXT,
-            folio_origen TEXT,
-            fecha_notificacion TEXT,
-            usuario_solicita TEXT,
-            estatus TEXT,
-            observaciones TEXT,
-            fecha_confirmacion TEXT,
-            usuario_confirmacion TEXT
+            ...
         )
         """
     )
-        columnas_solicitudes = obtener_columnas_tabla(
+
+    columnas_solicitudes = obtener_columnas_tabla(
         conn,
         "solicitudes_baja_embarque"
     )
@@ -176,10 +155,11 @@ def asegurar_tablas_logistica():
             ADD COLUMN usuario_confirmacion_inventario TEXT
             """
         )
-        
+
     conn.commit()
 
     conn.close()
+
 
 
 # =====================================================
