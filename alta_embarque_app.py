@@ -13,9 +13,6 @@ st.set_page_config(
     layout="wide"
 )
 
-st.warning(
-    "NUEVO ARCHIVO ALTA EMBARQUE - SIMULACIÓN 3D"
-)
 
 
 # =====================================================
