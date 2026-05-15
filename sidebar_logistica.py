@@ -36,14 +36,7 @@ def sidebar_logistica():
             unsafe_allow_html=True
         )
 
-        st.image(
-            "logo1.png",
-            width=140
-        )
-
-        st.caption("ERP Corporativo")
-
-        st.markdown("---")
+        
 
         if "menu_logistica" not in st.session_state:
             st.session_state.menu_logistica = "Embarques"
