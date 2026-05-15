@@ -295,7 +295,7 @@ def sidebar_inventarios():
                     set_opcion(
                         "Operaciones",
                         "Entradas",
-                        "Entrada cancelación embarque"
+                        "Embarque"
                     )
 
             with st.expander("📤 Salidas"):
