@@ -5,7 +5,6 @@ from Minventarios_app import inventarios_app
 from sidebar_analitico import analitico_app
 from mantenimiento_app import mantenimiento_app
 from Mlogistica_app import logistica_app
-from menu_dinamico import sidebar_dinamico
 
 
 # =====================================================
@@ -13,65 +12,75 @@ from menu_dinamico import sidebar_dinamico
 # =====================================================
 
 if "autenticado" not in st.session_state:
-
     st.session_state.autenticado = False
 
 if "rol" not in st.session_state:
-
     st.session_state.rol = None
 
 if not st.session_state.autenticado:
-
     login_app()
-
     st.stop()
-
 
 logout_app()
 
 
 # =====================================================
-# MENU DINAMICO
+# MODULO DEFAULT
 # =====================================================
 
-ruta = sidebar_dinamico()
-
-
-# =====================================================
-# DEBUG
-# =====================================================
-
-st.write("DEBUG ruta:", ruta)
-
-st.write("DEBUG rol:", st.session_state.get("rol"))
-
-st.write("DEBUG usuario:", st.session_state.get("usuario"))
+if "modulo_central" not in st.session_state:
+    st.session_state.modulo_central = "📦 Minventarios"
 
 
 # =====================================================
-# ROUTER CENTRAL
+# SIDEBAR FIJO
 # =====================================================
 
-if ruta == "inicio":
+with st.sidebar:
 
-    st.empty()
+    st.image(
+        "logo1.png",
+        width=100
+    )
 
-elif ruta == "inventarios":
+    st.markdown("## 🏢 SIGEM")
+    st.caption("ERP Corporativo")
+
+    st.markdown("---")
+
+    st.session_state.modulo_central = st.radio(
+        "Módulos",
+        [
+            "📦 Minventarios",
+            "📦 Mlogistica",
+            "📊 Analíticos",
+            "🛠️ Mantenimiento"
+        ],
+        key="menu_central_sigem"
+    )
+
+    st.markdown("---")
+
+    st.caption(f"👤 {st.session_state.get('nombre', '')}")
+    st.caption("SIGEM ERP")
+
+
+# =====================================================
+# ROUTER CENTRAL FIJO
+# =====================================================
+
+if st.session_state.modulo_central == "📦 Minventarios":
 
     inventarios_app()
 
-elif ruta == "logistica":
+elif st.session_state.modulo_central == "📦 Mlogistica":
 
     logistica_app()
 
-elif ruta == "analiticos":
+elif st.session_state.modulo_central == "📊 Analíticos":
 
     analitico_app()
 
-elif ruta == "mantenimiento":
+elif st.session_state.modulo_central == "🛠️ Mantenimiento":
 
     mantenimiento_app()
-
-else:
-
-    st.warning(f"Ruta no configurada: {ruta}")
