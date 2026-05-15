@@ -10,7 +10,7 @@ from eventos_embarque_app import eventos_embarque_app
 
 from alta_incidencia_app import alta_incidencia_app
 from dashboard_incidencias_app import dashboard_incidencias_app
-from baja_embarque_app import baja_embarque_app
+
 
 
 try:
@@ -51,6 +51,21 @@ except Exception:
     def dashboard_incidencias_app():
         st.subheader("📊 Dashboard incidencias")
         st.info("Módulo en construcción.")
+
+
+try:
+
+    from baja_embarque_app import (
+        baja_embarque_app
+    )
+
+except Exception as e:
+
+    st.error(
+        "Error cargando baja_embarque_app"
+    )
+
+    st.exception(e)
 
 
 def limpiar_opcion(texto):
