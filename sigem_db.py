@@ -10,6 +10,8 @@ DB_CONFIG = {
 
     "materiales": BASE_DIR / "materiales.db",
 
+    "seguridad": BASE_DIR / "seguridad.db",
+
     "compras": BASE_DIR / "compras.db",
 
     "inventarios": BASE_DIR / "inventarios.db",
