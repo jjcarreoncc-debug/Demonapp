@@ -60,19 +60,7 @@ def limpiar_opcion(texto):
 def inicio_logistica_app():
 
     st.title("🚚 Bienvenido al módulo de Logística")
-
-    st.success(
-        """
-        Desde este módulo podrás administrar:
-
-        • Embarques
-        • Transporte
-        • Rutas
-        • Seguimiento logístico
-        • Incidencias
-        """
-    )
-
+    
     st.info(
         "SIGEM ERP · Gestión logística corporativa"
     )
