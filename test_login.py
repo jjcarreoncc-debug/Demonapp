@@ -1,158 +1,231 @@
 import sqlite3
-import pandas as pd
+import shutil
+import os
 import streamlit as st
 
 from sigem_db import get_db_path
 
 
-def obtener_tablas(conn):
+# =====================================================
+# TABLAS DE SEGURIDAD
+# =====================================================
 
-    query = """
-        SELECT name
+TABLAS_SEGURIDAD = [
+
+    "usuarios",
+    "roles",
+    "modulos",
+    "permisos",
+    "usuario_roles",
+    "rol_permisos",
+    "sesiones_usuario"
+
+]
+
+
+# =====================================================
+# COPIAR TABLA
+# =====================================================
+
+def copiar_tabla(origen_db, destino_db, tabla):
+
+    conn_origen = sqlite3.connect(origen_db)
+    conn_destino = sqlite3.connect(destino_db)
+
+    cur_origen = conn_origen.cursor()
+    cur_destino = conn_destino.cursor()
+
+    # =========================
+    # LEER SQL ORIGINAL
+    # =========================
+
+    cur_origen.execute("""
+        SELECT sql
         FROM sqlite_master
         WHERE type = 'table'
-        ORDER BY name
-    """
+          AND name = ?
+    """, (tabla,))
 
-    return pd.read_sql_query(query, conn)
+    row = cur_origen.fetchone()
 
+    if row is None:
 
-def obtener_columnas(conn, tabla):
+        conn_origen.close()
+        conn_destino.close()
 
-    query = f"""
-        PRAGMA table_info({tabla})
-    """
+        raise Exception(
+            f"La tabla {tabla} no existe en ERP."
+        )
 
-    return pd.read_sql_query(query, conn)
+    sql_create = row[0]
 
+    # =========================
+    # ELIMINAR TABLA DESTINO
+    # =========================
 
-def test_estructura_db_app():
-
-    st.markdown("## 🧪 Test estructura de base de datos")
-    st.caption("Revisa tablas, columnas y posibles diferencias de estructura.")
-
-    bases = [
-        "erp",
-        "inventarios",
-        "materiales",
-        "compras",
-        "logistica",
-        "wms"
-    ]
-
-    base_sel = st.selectbox(
-        "Selecciona base de datos",
-        bases
+    cur_destino.execute(
+        f"DROP TABLE IF EXISTS {tabla}"
     )
 
-    try:
+    # =========================
+    # CREAR TABLA NUEVA
+    # =========================
 
-        db_path = get_db_path(base_sel)
+    cur_destino.execute(sql_create)
 
-        st.info(f"📁 Base seleccionada: {db_path}")
+    # =========================
+    # COPIAR DATOS
+    # =========================
 
-        conn = sqlite3.connect(db_path)
+    cur_origen.execute(
+        f"SELECT * FROM {tabla}"
+    )
 
-        tablas_df = obtener_tablas(conn)
+    filas = cur_origen.fetchall()
 
-        if tablas_df.empty:
+    columnas = [
+        col[0]
+        for col in cur_origen.description
+    ]
 
-            st.warning("⚠️ No se encontraron tablas en esta base.")
-            conn.close()
+    if filas:
+
+        placeholders = ",".join(
+            ["?"] * len(columnas)
+        )
+
+        columnas_sql = ",".join(columnas)
+
+        cur_destino.executemany(
+            f"""
+            INSERT INTO {tabla} (
+                {columnas_sql}
+            )
+            VALUES (
+                {placeholders}
+            )
+            """,
+            filas
+        )
+
+    conn_destino.commit()
+
+    conn_origen.close()
+    conn_destino.close()
+
+
+# =====================================================
+# APP TEST
+# =====================================================
+
+def copiar_tablas_seguridad_app():
+
+    st.markdown(
+        "## 🧪 Copiar tablas de seguridad"
+    )
+
+    st.caption(
+        "Copia tablas buenas desde ERP hacia la base real del sistema."
+    )
+
+    # =========================
+    # ORIGEN ERP
+    # =========================
+
+    origen_db = get_db_path("erp")
+
+    # =========================
+    # DESTINO REAL SIGEM
+    # =========================
+
+    destino_db = get_db_path("logistica")
+
+    st.info(f"📥 ERP origen: {origen_db}")
+
+    st.info(f"📤 Destino SIGEM: {destino_db}")
+
+    st.markdown(
+        "### 📋 Tablas a copiar"
+    )
+
+    st.write(TABLAS_SEGURIDAD)
+
+    confirmar = st.checkbox(
+        "Confirmo reemplazar tablas de seguridad"
+    )
+
+    # =========================
+    # COPIAR
+    # =========================
+
+    if st.button("📋 Copiar tablas"):
+
+        if not confirmar:
+
+            st.warning(
+                "⚠️ Debes confirmar el proceso."
+            )
+
             return
 
-        st.markdown("### 📋 Tablas encontradas")
+        try:
 
-        st.dataframe(
-            tablas_df,
-            use_container_width=True
-        )
+            # =========================
+            # BACKUP
+            # =========================
 
-        tabla_sel = st.selectbox(
-            "Selecciona tabla para revisar columnas",
-            tablas_df["name"].tolist()
-        )
+            backup_path = (
+                destino_db + ".backup"
+            )
 
-        columnas_df = obtener_columnas(conn, tabla_sel)
+            if os.path.exists(destino_db):
 
-        st.markdown(f"### 🧱 Columnas de tabla: `{tabla_sel}`")
+                shutil.copy2(
+                    destino_db,
+                    backup_path
+                )
 
-        st.dataframe(
-            columnas_df,
-            use_container_width=True
-        )
+                st.success(
+                    f"✅ Backup creado: {backup_path}"
+                )
 
-        st.markdown("### 🔎 Validación rápida usuarios / roles")
+            # =========================
+            # COPIAR TABLAS
+            # =========================
 
-        if tabla_sel == "usuarios":
+            for tabla in TABLAS_SEGURIDAD:
 
-            columnas = columnas_df["name"].tolist()
+                copiar_tabla(
+                    origen_db,
+                    destino_db,
+                    tabla
+                )
 
-            requeridas = [
-                "id_usuario",
-                "usuario",
-                "nombre",
-                "email",
-                "password_hash",
-                "id_rol",
-                "estado",
-                "modulo_inicial",
-                "fecha_creacion",
-                "ultimo_login"
-            ]
+                st.success(
+                    f"✅ Tabla copiada: {tabla}"
+                )
 
-            faltantes = [
-                col
-                for col in requeridas
-                if col not in columnas
-            ]
+            st.success(
+                "✅ Proceso terminado correctamente."
+            )
 
-            if faltantes:
+            st.info(
+                "Ahora cambia seguridad para usar get_db_path('logistica')"
+            )
 
-                st.error("❌ Columnas faltantes en usuarios:")
+        except Exception as e:
 
-                st.write(faltantes)
+            st.error(
+                "❌ Error copiando tablas."
+            )
 
-            else:
+            st.exception(e)
 
-                st.success("✅ La tabla usuarios tiene las columnas principales.")
 
-        if tabla_sel == "roles":
-
-            columnas = columnas_df["name"].tolist()
-
-            requeridas = [
-                "id_rol",
-                "nombre_rol",
-                "descripcion",
-                "estado",
-                "fecha_creacion"
-            ]
-
-            faltantes = [
-                col
-                for col in requeridas
-                if col not in columnas
-            ]
-
-            if faltantes:
-
-                st.error("❌ Columnas faltantes en roles:")
-
-                st.write(faltantes)
-
-            else:
-
-                st.success("✅ La tabla roles tiene las columnas principales.")
-
-        conn.close()
-
-    except Exception as e:
-
-        st.error("❌ Error revisando estructura de base de datos.")
-        st.exception(e)
-
+# =====================================================
+# MAIN
+# =====================================================
 
 if __name__ == "__main__":
 
-    test_estructura_db_app()
+    copiar_tablas_seguridad_app()
