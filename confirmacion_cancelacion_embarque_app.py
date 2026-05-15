@@ -10,7 +10,8 @@ def obtener_cancelaciones_pendientes():
     conn = sqlite3.connect(
         get_db_path("logistica")
     )
-        conn.execute(
+
+    conn.execute(
         """
         CREATE TABLE IF NOT EXISTS cancelaciones_embarque (
 
@@ -32,18 +33,7 @@ def obtener_cancelaciones_pendientes():
 
     conn.commit()
 
-
-
-
-
-
-
-
-
-
-
-    
-    query = '''
+    query = """
         SELECT
             folio_cancelacion,
             folio_embarque,
@@ -55,11 +45,9 @@ def obtener_cancelaciones_pendientes():
             fecha_cancelacion,
             estatus_inventarios
         FROM cancelaciones_embarque
-        WHERE estatus_inventarios IS NULL
-           OR estatus_inventarios = ''
-           OR estatus_inventarios = 'Pendiente'
-        ORDER BY fecha_cancelacion DESC
-    '''
+        WHERE IFNULL(estatus_inventarios, 'Pendiente') = 'Pendiente'
+        ORDER BY id_cancelacion DESC
+    """
 
     df = pd.read_sql_query(
         query,
