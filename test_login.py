@@ -138,7 +138,7 @@ def copiar_tablas_seguridad_app():
     # DESTINO REAL SIGEM
     # =========================
 
-    destino_db = get_db_path("logistica")
+    destino_db = get_db_path("seguridad")
 
     st.info(f"📥 ERP origen: {origen_db}")
 
@@ -210,7 +210,7 @@ def copiar_tablas_seguridad_app():
             )
 
             st.info(
-                "Ahora cambia seguridad para usar get_db_path('logistica')"
+                "Ahora cambia seguridad para usar get_db_path('seguridad')"
             )
 
         except Exception as e:
