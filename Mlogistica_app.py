@@ -60,8 +60,20 @@ def limpiar_opcion(texto):
 def inicio_logistica_app():
 
     st.title("🚚 Bienvenido al módulo de Logística")
+
+    st.markdown(
+        """
+        <style>
     
+        .block-container {
+            padding-top: 0rem;
+        }
     
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+        
 
     st.image(
         "logologistica.jpg",
