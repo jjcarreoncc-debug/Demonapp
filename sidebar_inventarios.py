@@ -288,19 +288,15 @@ def sidebar_inventarios():
                             "Consultar entradas ajuste"
                         )
 
-               with st.expander("Embarques"):    
-               
-                   if st.button(
+                if st.button(
+                    "🚚 Entrada cancelación embarque"
+                ):
+
+                    set_opcion(
+                        "Operaciones",
+                        "Entradas",
                         "Entrada cancelación embarque"
-                    ):
-
-                        set_opcion(
-                            "Operaciones",
-                            "Entradas",
-                            "Entrada cancelación embarque"
-                        )
-
-                           
+                    )
 
             with st.expander("📤 Salidas"):
 
@@ -347,10 +343,6 @@ def sidebar_inventarios():
                             "Salidas",
                             "Consultar mermas"
                         )
-
-                # =========================================
-                # EMBARQUES
-                # =========================================
 
                 with st.expander("Embarques"):
 
