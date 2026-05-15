@@ -12,6 +12,67 @@ from Mlogistica_app import logistica_app
 
 
 # =====================================================
+# ESTILO GLOBAL ERP
+# =====================================================
+
+st.markdown(
+    """
+    <style>
+
+    /* =====================================================
+       SIDEBAR
+    ===================================================== */
+
+    section[data-testid="stSidebar"] {
+        background-color: #dbeafe;
+    }
+
+    section[data-testid="stSidebar"] .block-container {
+        padding-top: 0.3rem;
+        padding-bottom: 0rem;
+    }
+
+    div.stButton > button {
+        padding-top: 0.1rem;
+        padding-bottom: 0.1rem;
+    }
+
+    hr {
+        margin-top: 0.3rem;
+        margin-bottom: 0.3rem;
+    }
+
+    /* =====================================================
+       DATAFRAMES / GRIDS
+    ===================================================== */
+
+    .stDataFrame thead tr th {
+
+        background-color: #dbeafe !important;
+
+        color: #1e293b !important;
+
+        font-weight: 700 !important;
+
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .stDataFrame tbody tr td {
+
+        background-color: white !important;
+
+        color: #334155 !important;
+
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# =====================================================
 # LOGIN
 # =====================================================
 
@@ -46,33 +107,6 @@ if "ruta_central" not in st.session_state:
 # =====================================================
 
 with st.sidebar:
-
-    st.markdown(
-        """
-        <style>
-    
-        section[data-testid="stSidebar"] {
-            background-color: #dbeafe;
-        }
-    
-        section[data-testid="stSidebar"] .block-container {
-            padding-top: 0.3rem;
-            padding-bottom: 0rem;
-        }
-    
-        div.stButton > button {
-            padding-top: 0.1rem;
-            padding-bottom: 0.1rem;
-        }
-    
-        </style>
-        """,
-        unsafe_allow_html=True
-    )    
-    
-        
-
-    st.markdown("---")
 
     # =================================================
     # CONEXION SEGURIDAD
