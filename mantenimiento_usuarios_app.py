@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import mantenimiento_auditoria_app as auditoria
+
 db_path = get_db_path("seguridad")
 
 st.warning(f"Base usada: {db_path}")
@@ -9,7 +11,7 @@ conn = sqlite3.connect(db_path)
 
 conn.row_factory = sqlite3.Row
 
-import mantenimiento_auditoria_app as auditoria
+
 
 
 def alta_usuario_app():
