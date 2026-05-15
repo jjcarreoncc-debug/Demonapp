@@ -298,10 +298,10 @@ if ruta == "inicio":
     st.empty()
 
 elif ruta == "minventarios":
-    Minventarios_app()
+    inventarios_app()
 
 elif ruta == "mlogistica":
-    Mlogistica_app()
+    logistica_app()
 
 elif ruta == "mantenimiento":
     st.title("🛠️ Mantenimiento")
