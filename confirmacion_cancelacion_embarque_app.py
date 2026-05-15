@@ -829,12 +829,7 @@ def confirmacion_cancelacion_embarque_app():
 
             st.markdown("### 🖨️ Documento para impresión")
 
-            mostrar_documento_impresion(
-                solicitud,
-                detalle_df,
-                resultado["folio_documento"]
-            )
-
+            
         except Exception as e:
 
             st.error(
