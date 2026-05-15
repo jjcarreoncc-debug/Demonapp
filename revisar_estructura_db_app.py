@@ -72,11 +72,44 @@ def revisar_estructura_db_app():
 
         tablas = sorted(tablas)
 
-        if "inventario_fisico" not in tablas:
-            tablas.append("inventario_fisico")
+        # =====================================================
+        # TABLAS ESPERADAS INVENTARIOS
+        # =====================================================
 
-        if "ajustes_inventario" not in tablas:
-            tablas.append("ajustes_inventario")
+        tablas_inventarios = [
+            "inventario_fisico",
+            "ajustes_inventario"
+        ]
+
+        # =====================================================
+        # TABLAS ESPERADAS SEGURIDAD
+        # =====================================================
+
+        tablas_seguridad = [
+            "usuarios",
+            "roles",
+            "permisos",
+            "modulos",
+            "usuario_roles",
+            "rol_permisos",
+            "sesiones_usuario"
+        ]
+
+        # =====================================================
+        # AGREGAR TABLAS FALTANTES VISUALMENTE
+        # =====================================================
+
+        for tabla in tablas_inventarios:
+
+            if tabla not in tablas:
+                tablas.append(f"❌ {tabla}")
+
+        for tabla in tablas_seguridad:
+
+            if tabla not in tablas:
+                tablas.append(f"❌ {tabla}")
+
+        tablas = sorted(tablas)
 
         if not tablas:
 
@@ -91,6 +124,35 @@ def revisar_estructura_db_app():
             tablas
         )
 
+        # =====================================================
+        # VALIDAR SI TABLA NO EXISTE
+        # =====================================================
+
+        if tabla_seleccionada.startswith("❌"):
+
+            tabla_real = (
+                tabla_seleccionada
+                .replace("❌", "")
+                .strip()
+            )
+
+            st.error(
+                f"La tabla '{tabla_real}' no existe "
+                f"en la base seleccionada."
+            )
+
+            st.info(
+                "Debe incluirse en el proceso "
+                "de Crear tablas."
+            )
+
+            conn.close()
+            return
+
+        # =====================================================
+        # ESTRUCTURA TABLA
+        # =====================================================
+
         st.subheader("🧱 Estructura tabla")
 
         df_estructura = pd.read_sql_query(
@@ -103,6 +165,10 @@ def revisar_estructura_db_app():
             use_container_width=True
         )
 
+        # =====================================================
+        # RESUMEN TABLA
+        # =====================================================
+
         st.subheader("📊 Resumen tabla")
 
         total_registros = pd.read_sql_query(
@@ -114,6 +180,10 @@ def revisar_estructura_db_app():
             "Registros",
             total_registros
         )
+
+        # =====================================================
+        # ÚLTIMOS REGISTROS
+        # =====================================================
 
         st.subheader("📦 Últimos registros")
 
