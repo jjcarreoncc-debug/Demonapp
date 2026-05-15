@@ -1,4 +1,8 @@
 import streamlit as st
+import pandas as pd
+import sqlite3
+
+from sigem_db import get_db_path
 
 from auth_app import login_app, logout_app
 from Minventarios_app import inventarios_app
@@ -12,13 +16,17 @@ from Mlogistica_app import logistica_app
 # =====================================================
 
 if "autenticado" not in st.session_state:
+
     st.session_state.autenticado = False
 
 if "rol" not in st.session_state:
+
     st.session_state.rol = None
 
 if not st.session_state.autenticado:
+
     login_app()
+
     st.stop()
 
 logout_app()
@@ -29,6 +37,7 @@ logout_app()
 # =====================================================
 
 if "ruta_central" not in st.session_state:
+
     st.session_state.ruta_central = "inventarios"
 
 
@@ -44,42 +53,128 @@ with st.sidebar:
     )
 
     st.markdown("## 🏢 SIGEM")
+
     st.caption("ERP Corporativo")
 
     st.markdown("---")
 
     # =================================================
-    # MODULOS PADRE
+    # CONEXION SEGURIDAD
     # =================================================
 
-    modulos_dict = {
-        "📦 Minventarios": "inventarios",
-        "📦 Mlogistica": "logistica",
-        "📊 Analíticos": "analitico",
-        "🛠️ Mantenimiento": "mantenimiento"
-    }
+    db_path = get_db_path("seguridad")
+
+    conn = sqlite3.connect(db_path)
+
+    usuario_actual = st.session_state.get(
+        "usuario",
+        ""
+    )
 
     # =================================================
-    # OBTENER LABEL ACTUAL
+    # MODULOS POR ROL
     # =================================================
 
-    label_actual = "📦 Minventarios"
+    query_modulos = """
+        SELECT DISTINCT
+
+            m.nombre_modulo,
+            m.ruta,
+            m.icono,
+            m.orden_menu
+
+        FROM usuarios u
+
+        INNER JOIN roles r
+            ON u.id_rol = r.id_rol
+
+        INNER JOIN permisos_roles pr
+            ON r.id_rol = pr.id_rol
+
+        INNER JOIN modulos m
+            ON pr.id_modulo = m.id_modulo
+
+        WHERE u.usuario = ?
+        AND m.activo = 1
+
+        ORDER BY m.orden_menu
+    """
+
+    modulos_df = pd.read_sql_query(
+        query_modulos,
+        conn,
+        params=(usuario_actual,)
+    )
+
+    conn.close()
+
+    # =================================================
+    # DICCIONARIO MODULOS
+    # =================================================
+
+    modulos_dict = {}
+
+    for _, row in modulos_df.iterrows():
+
+        label = f"{row['icono']} {row['nombre_modulo']}"
+
+        modulos_dict[label] = row["ruta"]
+
+    # =================================================
+    # VALIDAR MODULOS
+    # =================================================
+
+    if len(modulos_dict) == 0:
+
+        st.warning(
+            "No tienes módulos asignados."
+        )
+
+        st.stop()
+
+    # =================================================
+    # VALIDAR RUTA ACTUAL
+    # =================================================
+
+    rutas_disponibles = list(
+        modulos_dict.values()
+    )
+
+    if (
+        st.session_state.ruta_central
+        not in rutas_disponibles
+    ):
+
+        st.session_state.ruta_central = (
+            rutas_disponibles[0]
+        )
+
+    # =================================================
+    # LABEL ACTUAL
+    # =================================================
+
+    label_actual = list(
+        modulos_dict.keys()
+    )[0]
 
     for label, ruta in modulos_dict.items():
 
         if ruta == st.session_state.ruta_central:
 
             label_actual = label
+
             break
 
     # =================================================
-    # RADIO CENTRAL
+    # RADIO MODULOS
     # =================================================
 
     modulo_sel = st.radio(
         "Módulos",
         list(modulos_dict.keys()),
-        index=list(modulos_dict.keys()).index(label_actual),
+        index=list(modulos_dict.keys()).index(
+            label_actual
+        ),
         key="menu_central_sigem"
     )
 
@@ -87,9 +182,9 @@ with st.sidebar:
     # GUARDAR RUTA
     # =================================================
 
-    st.session_state.ruta_central = modulos_dict[
-        modulo_sel
-    ]
+    st.session_state.ruta_central = (
+        modulos_dict[modulo_sel]
+    )
 
     st.markdown("---")
 
