@@ -4,10 +4,10 @@ import base64
 import sqlite3
 from pathlib import Path
 
+from sigem_db import get_db_path
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = str(BASE_DIR / "erp.db")
 
 
 def hash_password(password):
@@ -22,9 +22,10 @@ def get_base64_image(image_path):
 
     with open(file_path, "rb") as img_file:
         return base64.b64encode(img_file.read()).decode()
-#
+
+
 def validar_login(usuario, password):
-    DB_PATH_LOGIN = Path(__file__).resolve().parent / "erp.db"
+    DB_PATH_LOGIN = get_db_path("seguridad")
 
     st.write("BD usada login:")
     st.code(str(DB_PATH_LOGIN))
@@ -60,6 +61,10 @@ def validar_login(usuario, password):
         st.error("❌ Usuario no encontrado")
         return None
 
+    if row["estado"] != "Activo":
+        st.error("❌ Usuario inactivo")
+        return None
+
     password_bd = str(row["password_hash"]).strip()
     password_ingresado = str(password).strip()
     password_hash = hash_password(password_ingresado)
@@ -72,28 +77,7 @@ def validar_login(usuario, password):
         "usuario": row["usuario"],
         "nombre": row["nombre"],
         "rol": str(row["id_rol"])
-    }    
-    password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
-
-    st.write("Usuario encontrado:", row["usuario"])
-    st.write("Password BD:", password_bd)
-    st.write("Password ingresado:", password_ingresado)
-
-    if password_bd != password_ingresado and password_bd != password_hash:
-        st.error("❌ Password no coincide")
-        return None
-
-    return row
-
-    password_bd = str(row["password_hash"]).strip()
-    password_hash = hash_password(password_normalizado)
-
-    if password_bd != password_normalizado and password_bd != password_hash:
-        return None
-
-    return row
+    }
 
 
 def login_app():
