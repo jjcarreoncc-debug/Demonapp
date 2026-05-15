@@ -10,6 +10,7 @@ from eventos_embarque_app import eventos_embarque_app
 
 from alta_incidencia_app import alta_incidencia_app
 from dashboard_incidencias_app import dashboard_incidencias_app
+from baja_embarque_app import baja_embarque_app
 
 
 try:
@@ -127,8 +128,7 @@ def logistica_app():
 
     elif opcion_limpia == limpiar_opcion("❌ Baja embarque"):
 
-        st.subheader("❌ Baja embarque")
-        st.info("Módulo en construcción.")
+        baja_embarque_app()
 
     elif opcion_limpia == limpiar_opcion("✏️ Editar embarque"):
 
