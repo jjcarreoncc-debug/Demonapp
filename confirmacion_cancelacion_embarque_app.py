@@ -101,15 +101,21 @@ def insertar_dinamico(conn, tabla, datos):
 # =====================================================
 # ASEGURAR TABLAS LOGISTICA
 # =====================================================
+
 def asegurar_tablas_logistica():
 
     conn = get_conn_logistica()
 
     cursor = conn.cursor()
 
+    # =====================================================
+    # SOLICITUDES BAJA EMBARQUE
+    # =====================================================
+
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS solicitudes_baja_embarque (
+
             id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_solicitud TEXT UNIQUE,
             folio_embarque TEXT,
@@ -123,13 +129,19 @@ def asegurar_tablas_logistica():
             folio_movimiento_inventario TEXT,
             fecha_confirmacion_inventario TEXT,
             usuario_confirmacion_inventario TEXT
+
         )
         """
     )
 
+    # =====================================================
+    # NOTIFICACIONES INVENTARIO
+    # =====================================================
+
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS notificaciones_inventario (
+
             id_notificacion INTEGER PRIMARY KEY AUTOINCREMENT,
             folio_notificacion TEXT UNIQUE,
             origen TEXT,
@@ -141,9 +153,14 @@ def asegurar_tablas_logistica():
             observaciones TEXT,
             fecha_confirmacion TEXT,
             usuario_confirmacion TEXT
+
         )
         """
     )
+
+    # =====================================================
+    # ALTER TABLE SOLICITUDES
+    # =====================================================
 
     try:
 
@@ -177,6 +194,36 @@ def asegurar_tablas_logistica():
             """
             ALTER TABLE solicitudes_baja_embarque
             ADD COLUMN usuario_confirmacion_inventario TEXT
+            """
+        )
+
+    except sqlite3.OperationalError:
+
+        pass
+
+    # =====================================================
+    # ALTER TABLE NOTIFICACIONES
+    # =====================================================
+
+    try:
+
+        cursor.execute(
+            """
+            ALTER TABLE notificaciones_inventario
+            ADD COLUMN fecha_confirmacion TEXT
+            """
+        )
+
+    except sqlite3.OperationalError:
+
+        pass
+
+    try:
+
+        cursor.execute(
+            """
+            ALTER TABLE notificaciones_inventario
+            ADD COLUMN usuario_confirmacion TEXT
             """
         )
 
