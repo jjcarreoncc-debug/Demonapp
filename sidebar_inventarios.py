@@ -288,6 +288,22 @@ def sidebar_inventarios():
                             "Consultar entradas ajuste"
                         )
 
+                    ######
+                    if st.button(
+                        "Entrada cancelación embarque"
+                    ):
+
+                        set_opcion(
+                            "Operaciones",
+                            "Entradas",
+                            "Entrada cancelación embarque"
+                        )
+
+                    ######
+
+
+            
+
             with st.expander("📤 Salidas"):
 
                 with st.expander("Venta"):
