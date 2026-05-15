@@ -99,15 +99,7 @@ def logistica_app():
         opcion_logistica
     )
     ##############################################3
-    if opcion_limpia != limpiar_opcion("🏠 Inicio"):
-
-        st.title("🚚 Logística")
-    
-        st.caption(
-            f"{menu_logistica} / {submenu_logistica} / {opcion_logistica}"
-        )
-    
-        st.divider()
+           
     #################################333
     if opcion_limpia == limpiar_opcion("🏠 Inicio"):
 
