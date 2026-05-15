@@ -1,38 +1,62 @@
 import streamlit as st
 
+from login_app import login_app, logout_app
+
 from Minventarios_app import inventarios_app
 from sidebar_analitico import analitico_app
 from mantenimiento_app import mantenimiento_app
 from Mlogistica_app import logistica_app
 
 
-def simular_login():
+# =====================================================
+# LOGIN
+# =====================================================
 
-    st.session_state.autenticado = True
-    st.session_state.usuario = "JCERVANTES"
-    st.session_state.nombre = "JOSE JUANCERVANTES"
-    st.session_state.rol = 1
-    st.session_state.perfil = "ALL"
+if "autenticado" not in st.session_state:
+
+    st.session_state.autenticado = False
+
+if "rol" not in st.session_state:
+
+    st.session_state.rol = None
 
 
-simular_login()
+if not st.session_state.autenticado:
 
+    login_app()
+
+    st.stop()
+
+
+logout_app()
+
+
+# =========================
+# MODULO DEFAULT
+# =========================
 
 if "modulo_central" not in st.session_state:
+
     st.session_state.modulo_central = "📦 Minventarios"
 
+
+# =========================
+# SIDEBAR
+# =========================
 
 with st.sidebar:
 
     # =========================
     # LOGO SIGEM
     # =========================
+
     st.image(
         "logo1.png",
         width=100
     )
 
     st.markdown("## 🏢 SIGEM")
+
     st.caption("ERP Corporativo")
 
     st.markdown("---")
@@ -40,6 +64,7 @@ with st.sidebar:
     # =========================
     # MENU CENTRAL
     # =========================
+
     st.session_state.modulo_central = st.radio(
         "Módulos",
         [
@@ -54,17 +79,19 @@ with st.sidebar:
     st.markdown("---")
 
     st.caption(f"👤 {st.session_state.nombre}")
+
     st.caption("SIGEM ERP")
 
 
 # =========================
 # ROUTER CENTRAL
 # =========================
+
 if st.session_state.modulo_central == "📦 Minventarios":
 
     inventarios_app()
 
-if st.session_state.modulo_central == "📦 Mlogistica":
+elif st.session_state.modulo_central == "📦 Mlogistica":
 
     logistica_app()
 
