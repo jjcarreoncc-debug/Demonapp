@@ -19,12 +19,14 @@ except Exception:
         st.subheader("❌ Baja incidencia")
         st.info("Módulo en construcción.")
 
+
 try:
     from consulta_incidencia_app import consulta_incidencia_app
 except Exception:
     def consulta_incidencia_app():
         st.subheader("📋 Consulta incidencia")
         st.info("Módulo en construcción.")
+
 
 try:
     from actualizar_incidencia_app import actualizar_incidencia_app
@@ -33,12 +35,14 @@ except Exception:
         st.subheader("✏️ Actualizar incidencia")
         st.info("Módulo en construcción.")
 
+
 try:
     from cerrar_incidencia_app import cerrar_incidencia_app
 except Exception:
     def cerrar_incidencia_app():
         st.subheader("✅ Cerrar incidencia")
         st.info("Módulo en construcción.")
+
 
 try:
     from dashboard_incidencias_app import dashboard_incidencias_app
@@ -49,21 +53,53 @@ except Exception:
 
 
 def limpiar_opcion(texto):
+
     return str(texto).strip().lower()
+
+
+def inicio_logistica_app():
+
+    st.image(
+        "logologistica.jpg",
+        use_container_width=True
+    )
+
+    st.title("🚚 Bienvenido al módulo de Logística")
+
+    st.success(
+        """
+        Desde este módulo podrás administrar:
+
+        • Embarques
+        • Transporte
+        • Rutas
+        • Seguimiento logístico
+        • Incidencias
+        """
+    )
+
+    st.info(
+        "SIGEM ERP · Gestión logística corporativa"
+    )
 
 
 def logistica_app():
 
     if "opcion_logistica" not in st.session_state:
-        st.session_state.opcion_logistica = "➕ Alta embarque"
+
+        st.session_state.opcion_logistica = "🏠 Inicio"
 
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
     if opcion_logistica is not None:
+
         st.session_state.opcion_logistica = opcion_logistica
 
     opcion_logistica = st.session_state.opcion_logistica
-    opcion_limpia = limpiar_opcion(opcion_logistica)
+
+    opcion_limpia = limpiar_opcion(
+        opcion_logistica
+    )
 
     st.title("🚚 Logística")
 
@@ -73,7 +109,11 @@ def logistica_app():
 
     st.divider()
 
-    if opcion_limpia == limpiar_opcion("➕ Alta embarque"):
+    if opcion_limpia == limpiar_opcion("🏠 Inicio"):
+
+        inicio_logistica_app()
+
+    elif opcion_limpia == limpiar_opcion("➕ Alta embarque"):
 
         alta_embarque_app()
 
