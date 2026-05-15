@@ -1,16 +1,15 @@
 
 import streamlit as st
-import sqlite3
 import pandas as pd
+import sqlite3
 from datetime import datetime
 from io import BytesIO
-import base64
 
 from sigem_db import get_db_path
 
 
 # =====================================================
-# CONEXIONES
+# UTILIDADES
 # =====================================================
 
 def get_conn_logistica():
@@ -24,87 +23,30 @@ def get_conn_logistica():
     return conn
 
 
-def get_conn_inventarios():
-
-    conn = sqlite3.connect(
-        get_db_path("inventarios")
-    )
-
-    conn.row_factory = sqlite3.Row
-
-    return conn
-
-
-# =====================================================
-# UTILIDADES DB
-# =====================================================
-
 def obtener_columnas_tabla(conn, tabla):
 
-    try:
-
-        df_cols = pd.read_sql_query(
-            f"PRAGMA table_info({tabla})",
-            conn
-        )
-
-        return df_cols["name"].tolist()
-
-    except Exception:
-
-        return []
-
-
-def insertar_dinamico(conn, tabla, datos):
-
-    columnas_tabla = obtener_columnas_tabla(
-        conn,
-        tabla
+    df_cols = pd.read_sql_query(
+        f"PRAGMA table_info({tabla})",
+        conn
     )
 
-    datos_filtrados = {
-        k: v
-        for k, v in datos.items()
-        if k in columnas_tabla
-    }
-
-    if not datos_filtrados:
-        return False
-
-    columnas = list(datos_filtrados.keys())
-
-    placeholders = ",".join(["?"] * len(columnas))
-
-    sql = f"""
-        INSERT INTO {tabla} (
-            {','.join(columnas)}
-        )
-        VALUES (
-            {placeholders}
-        )
-    """
-
-    valores = [
-        datos_filtrados[col]
-        for col in columnas
-    ]
-
-    conn.execute(
-        sql,
-        valores
-    )
-
-    return True
+    return df_cols["name"].tolist()
 
 
-# =====================================================
-# ASEGURAR TABLAS ORIGINALES LOGISTICA
-# =====================================================
-
-def asegurar_tablas_logistica():
+def crear_tablas_baja_embarque():
 
     conn = get_conn_logistica()
     cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS motivos_baja_embarque (
+            id_motivo INTEGER PRIMARY KEY AUTOINCREMENT,
+            motivo TEXT UNIQUE,
+            activo INTEGER DEFAULT 1
+        )
+        """
+    )
 
     cursor.execute(
         """
@@ -118,10 +60,7 @@ def asegurar_tablas_logistica():
             observaciones TEXT,
             estatus_solicitud TEXT,
             folio_notificacion_inventarios TEXT,
-            fecha_creacion TEXT,
-            folio_movimiento_inventario TEXT,
-            fecha_confirmacion_inventario TEXT,
-            usuario_confirmacion_inventario TEXT
+            fecha_creacion TEXT
         )
         """
     )
@@ -137,65 +76,141 @@ def asegurar_tablas_logistica():
             fecha_notificacion TEXT,
             usuario_solicita TEXT,
             estatus TEXT,
-            observaciones TEXT,
-            fecha_confirmacion TEXT,
-            usuario_confirmacion TEXT
+            observaciones TEXT
         )
         """
     )
+
+    motivos_base = [
+        "Error en captura del embarque",
+        "Cliente cancela pedido",
+        "Material no requerido",
+        "Duplicidad de embarque",
+        "Cambio de ruta o destino",
+        "Reproceso operativo",
+        "Otro"
+    ]
+
+    for motivo in motivos_base:
+
+        cursor.execute(
+            """
+            INSERT OR IGNORE INTO motivos_baja_embarque (
+                motivo,
+                activo
+            )
+            VALUES (?, 1)
+            """,
+            (motivo,)
+        )
 
     conn.commit()
     conn.close()
 
 
-# =====================================================
-# OBTENER SOLICITUDES PENDIENTES DESDE TABLAS ORIGINALES
-# =====================================================
+def generar_folio_solicitud_baja():
 
-def obtener_solicitudes_pendientes():
+    fecha = datetime.now().strftime("%Y%m%d%H%M%S")
 
-    asegurar_tablas_logistica()
+    return f"SOL-BE-{fecha}"
+
+
+def generar_folio_notificacion_inventarios():
+
+    fecha = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    return f"NINV-BE-{fecha}"
+
+
+def obtener_motivos_baja():
 
     conn = get_conn_logistica()
 
-    query = """
+    df = pd.read_sql_query(
+        """
+        SELECT motivo
+        FROM motivos_baja_embarque
+        WHERE activo = 1
+        ORDER BY motivo
+        """,
+        conn
+    )
+
+    conn.close()
+
+    return df["motivo"].tolist()
+
+
+def obtener_embarques_disponibles_baja():
+
+    conn = get_conn_logistica()
+
+    columnas = obtener_columnas_tabla(
+        conn,
+        "embarques"
+    )
+
+    columnas_select = []
+
+    columnas_deseadas = [
+        "folio_embarque",
+        "folio_hoja_carga",
+        "pedido",
+        "cliente",
+        "destino",
+        "codigo_transporte",
+        "transportista",
+        "vehiculo",
+        "placas",
+        "operador",
+        "estatus",
+        "fecha",
+        "fecha_creacion"
+    ]
+
+    for col in columnas_deseadas:
+
+        if col in columnas:
+
+            columnas_select.append(col)
+
+    if not columnas_select:
+
+        conn.close()
+        return pd.DataFrame()
+
+    sql = f"""
         SELECT
-            s.folio_solicitud,
-            s.folio_embarque,
-            s.fecha_solicitud,
-            s.usuario_solicitud,
-            s.motivo,
-            s.observaciones,
-            s.estatus_solicitud,
-            s.folio_notificacion_inventarios,
+            {', '.join(columnas_select)}
+        FROM embarques
+        WHERE 1 = 1
+    """
 
-            e.folio_hoja_carga,
-            e.pedido,
-            e.cliente,
-            e.destino,
-            e.codigo_transporte,
-            e.transportista,
-            e.vehiculo,
-            e.placas,
-            e.operador,
-            e.estatus AS estatus_embarque
+    if "estatus" in columnas:
 
-        FROM solicitudes_baja_embarque s
+        sql += """
+            AND IFNULL(estatus, '') NOT IN (
+                'Cancelado',
+                'Solicitud Cancelación',
+                'Pendiente Inventarios'
+            )
+        """
 
-        LEFT JOIN embarques e
-            ON s.folio_embarque = e.folio_embarque
+    if "codigo_transporte" in columnas:
 
-        WHERE IFNULL(s.estatus_solicitud, '') IN (
-            'Pendiente Inventarios',
-            'Solicitud Cancelación',
-            'Pendiente'
-        )
+        sql += """
+            AND (
+                codigo_transporte IS NULL
+                OR TRIM(codigo_transporte) = ''
+            )
+        """
 
-        ORDER BY s.id_solicitud DESC
+    sql += """
+        ORDER BY folio_embarque DESC
     """
 
     df = pd.read_sql_query(
-        query,
+        sql,
         conn
     )
 
@@ -204,65 +219,52 @@ def obtener_solicitudes_pendientes():
     return df
 
 
-# =====================================================
-# BUSCAR SOLICITUD POR FOLIO / CODIGO DE BARRAS
-# =====================================================
-
-def buscar_solicitud_por_folio(folio):
-
-    asegurar_tablas_logistica()
+def obtener_embarques_bloqueados_transporte():
 
     conn = get_conn_logistica()
 
-    query = """
-        SELECT
-            s.folio_solicitud,
-            s.folio_embarque,
-            s.fecha_solicitud,
-            s.usuario_solicitud,
-            s.motivo,
-            s.observaciones,
-            s.estatus_solicitud,
-            s.folio_notificacion_inventarios,
+    columnas = obtener_columnas_tabla(
+        conn,
+        "embarques"
+    )
 
-            e.folio_hoja_carga,
-            e.pedido,
-            e.cliente,
-            e.destino,
-            e.codigo_transporte,
-            e.transportista,
-            e.vehiculo,
-            e.placas,
-            e.operador,
-            e.estatus AS estatus_embarque
+    if "codigo_transporte" not in columnas:
 
-        FROM solicitudes_baja_embarque s
+        conn.close()
+        return pd.DataFrame()
 
-        LEFT JOIN embarques e
-            ON s.folio_embarque = e.folio_embarque
-
-        WHERE s.folio_solicitud = ?
-           OR s.folio_notificacion_inventarios = ?
-           OR s.folio_embarque = ?
-
-        ORDER BY s.id_solicitud DESC
-        LIMIT 1
-    """
+    columnas_mostrar = [
+        col
+        for col in [
+            "folio_embarque",
+            "cliente",
+            "destino",
+            "codigo_transporte",
+            "transportista",
+            "vehiculo",
+            "placas",
+            "estatus"
+        ]
+        if col in columnas
+    ]
 
     df = pd.read_sql_query(
-        query,
-        conn,
-        params=(folio, folio, folio)
+        f"""
+        SELECT
+            {', '.join(columnas_mostrar)}
+        FROM embarques
+        WHERE codigo_transporte IS NOT NULL
+          AND TRIM(codigo_transporte) <> ''
+          AND IFNULL(estatus, '') NOT IN ('Cancelado')
+        ORDER BY folio_embarque DESC
+        """,
+        conn
     )
 
     conn.close()
 
     return df
 
-
-# =====================================================
-# OBTENER DETALLE EMBARQUE
-# =====================================================
 
 def obtener_detalle_embarque(folio_embarque):
 
@@ -272,17 +274,7 @@ def obtener_detalle_embarque(folio_embarque):
 
         df = pd.read_sql_query(
             """
-            SELECT
-                folio_embarque,
-                folio_hoja_carga,
-                pedido,
-                codigo_material,
-                descripcion,
-                cantidad_embarcar,
-                peso,
-                volumen,
-                bodega,
-                ubicacion
+            SELECT *
             FROM detalle_embarque
             WHERE folio_embarque = ?
             """,
@@ -299,14 +291,84 @@ def obtener_detalle_embarque(folio_embarque):
     return df
 
 
-# =====================================================
-# GENERAR EXCEL
-# =====================================================
+def existe_solicitud_activa(folio_embarque):
 
-def generar_excel_confirmacion(
-    solicitud,
+    conn = get_conn_logistica()
+
+    row = conn.execute(
+        """
+        SELECT folio_solicitud
+        FROM solicitudes_baja_embarque
+        WHERE folio_embarque = ?
+          AND estatus_solicitud IN (
+              'Pendiente Inventarios',
+              'Solicitud Cancelación'
+          )
+        ORDER BY id_solicitud DESC
+        LIMIT 1
+        """,
+        (folio_embarque,)
+    ).fetchone()
+
+    conn.close()
+
+    return row
+
+
+def actualizar_estatus_embarque(conn, folio_embarque, estatus):
+
+    columnas = obtener_columnas_tabla(
+        conn,
+        "embarques"
+    )
+
+    campos = []
+    valores = []
+
+    if "estatus" in columnas:
+
+        campos.append("estatus = ?")
+        valores.append(estatus)
+
+    if "fecha_estatus" in columnas:
+
+        campos.append("fecha_estatus = ?")
+        valores.append(
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+
+    if "usuario_estatus" in columnas:
+
+        campos.append("usuario_estatus = ?")
+        valores.append(
+            st.session_state.get("usuario", "SIN_USUARIO")
+        )
+
+    if not campos:
+
+        return
+
+    valores.append(folio_embarque)
+
+    sql = f"""
+        UPDATE embarques
+        SET {', '.join(campos)}
+        WHERE folio_embarque = ?
+    """
+
+    conn.execute(
+        sql,
+        valores
+    )
+
+
+def generar_excel_baja(
+    embarque,
     detalle_df,
-    folio_documento
+    folio_solicitud,
+    folio_notificacion,
+    motivo,
+    observaciones
 ):
 
     salida = BytesIO()
@@ -314,20 +376,23 @@ def generar_excel_confirmacion(
     resumen = pd.DataFrame(
         [
             {
-                "folio_documento_entrada": folio_documento,
-                "tipo_movimiento": "ENTRADA POR CANCELACION DE EMBARQUE",
-                "folio_solicitud": solicitud.get("folio_solicitud", ""),
-                "folio_notificacion_inventarios": solicitud.get("folio_notificacion_inventarios", ""),
-                "folio_embarque": solicitud.get("folio_embarque", ""),
-                "folio_hoja_carga": solicitud.get("folio_hoja_carga", ""),
-                "pedido": solicitud.get("pedido", ""),
-                "cliente": solicitud.get("cliente", ""),
-                "destino": solicitud.get("destino", ""),
-                "codigo_transporte": solicitud.get("codigo_transporte", ""),
-                "motivo": solicitud.get("motivo", ""),
-                "usuario_logistica": solicitud.get("usuario_solicitud", ""),
-                "usuario_inventarios": st.session_state.get("usuario", "SIN_USUARIO"),
-                "fecha_confirmacion": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "folio_solicitud": folio_solicitud,
+                "folio_notificacion_inventarios": folio_notificacion,
+                "folio_embarque": embarque.get("folio_embarque", ""),
+                "folio_hoja_carga": embarque.get("folio_hoja_carga", ""),
+                "pedido": embarque.get("pedido", ""),
+                "cliente": embarque.get("cliente", ""),
+                "destino": embarque.get("destino", ""),
+                "motivo": motivo,
+                "observaciones": observaciones,
+                "estatus_solicitud": "Pendiente Inventarios",
+                "usuario_solicitud": st.session_state.get(
+                    "usuario",
+                    "SIN_USUARIO"
+                ),
+                "fecha_solicitud": datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
             }
         ]
     )
@@ -339,7 +404,7 @@ def generar_excel_confirmacion(
 
         resumen.to_excel(
             writer,
-            sheet_name="Documento entrada",
+            sheet_name="Solicitud baja",
             index=False
         )
 
@@ -347,7 +412,7 @@ def generar_excel_confirmacion(
 
             detalle_df.to_excel(
                 writer,
-                sheet_name="Materiales",
+                sheet_name="Detalle embarque",
                 index=False
             )
 
@@ -356,224 +421,21 @@ def generar_excel_confirmacion(
     return salida.getvalue()
 
 
-# =====================================================
-# GENERAR BARCODE BASE64 OPCIONAL
-# =====================================================
-
-def generar_barcode_base64(folio_documento):
-
-    try:
-
-        import barcode
-        from barcode.writer import ImageWriter
-
-        buffer = BytesIO()
-
-        code128 = barcode.get(
-            "code128",
-            folio_documento,
-            writer=ImageWriter()
-        )
-
-        code128.write(
-            buffer,
-            options={
-                "write_text": True,
-                "module_height": 12,
-                "font_size": 9,
-                "quiet_zone": 2
-            }
-        )
-
-        buffer.seek(0)
-
-        return base64.b64encode(
-            buffer.read()
-        ).decode()
-
-    except Exception:
-
-        return None
-
-
-# =====================================================
-# DOCUMENTO IMPRIMIBLE
-# =====================================================
-
-def mostrar_documento_impresion(
-    solicitud,
-    detalle_df,
-    folio_documento
+def registrar_solicitud_baja(
+    embarque,
+    motivo,
+    observaciones
 ):
 
-    barcode_b64 = generar_barcode_base64(
-        folio_documento
-    )
+    conn = get_conn_logistica()
 
-    filas_materiales = ""
-
-    if detalle_df is not None and not detalle_df.empty:
-
-        for _, row in detalle_df.iterrows():
-
-            filas_materiales += f"""
-            <tr>
-                <td>{row.get('codigo_material', '')}</td>
-                <td>{row.get('descripcion', '')}</td>
-                <td>{row.get('cantidad_embarcar', '')}</td>
-                <td>{row.get('bodega', '')}</td>
-                <td>{row.get('ubicacion', '')}</td>
-            </tr>
-            """
-
-    barcode_html = ""
-
-    if barcode_b64:
-
-        barcode_html = f"""
-        <img
-            src="data:image/png;base64,{barcode_b64}"
-            style="width:320px; height:auto;"
-        />
-        """
-
-    else:
-
-        barcode_html = f"""
-        <div style="
-            border:1px solid #111;
-            padding:12px;
-            font-size:22px;
-            font-weight:700;
-            letter-spacing:2px;
-            text-align:center;
-        ">
-            {folio_documento}
-        </div>
-        """
-
-    st.markdown(
-        f"""
-        <div style="
-            border: 1px solid #CBD5E1;
-            border-radius: 14px;
-            padding: 24px;
-            background: white;
-            color: #0f172a;
-            font-family: Arial, sans-serif;
-        ">
-
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div>
-                    <h2 style="margin-bottom:0;">SIGEM ERP</h2>
-                    <h3 style="margin-top:4px; color:#334155;">
-                        Documento de Entrada a Inventario
-                    </h3>
-                    <p style="margin-top:0;">
-                        <b>Tipo:</b> Entrada por cancelación de embarque
-                    </p>
-                </div>
-
-                <div style="text-align:center;">
-                    {barcode_html}
-                    <div style="font-size:13px; margin-top:6px;">
-                        {folio_documento}
-                    </div>
-                </div>
-            </div>
-
-            <hr>
-
-            <table style="width:100%; font-size:14px; border-collapse:collapse;">
-                <tr>
-                    <td><b>Folio solicitud:</b> {solicitud.get('folio_solicitud', '')}</td>
-                    <td><b>Folio notificación:</b> {solicitud.get('folio_notificacion_inventarios', '')}</td>
-                </tr>
-                <tr>
-                    <td><b>Folio embarque:</b> {solicitud.get('folio_embarque', '')}</td>
-                    <td><b>Hoja carga:</b> {solicitud.get('folio_hoja_carga', '')}</td>
-                </tr>
-                <tr>
-                    <td><b>Cliente:</b> {solicitud.get('cliente', '')}</td>
-                    <td><b>Destino:</b> {solicitud.get('destino', '')}</td>
-                </tr>
-                <tr>
-                    <td><b>Transporte:</b> {solicitud.get('codigo_transporte', '')}</td>
-                    <td><b>Fecha confirmación:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td>
-                </tr>
-                <tr>
-                    <td><b>Usuario logística:</b> {solicitud.get('usuario_solicitud', '')}</td>
-                    <td><b>Usuario inventarios:</b> {st.session_state.get('usuario', 'SIN_USUARIO')}</td>
-                </tr>
-            </table>
-
-            <p style="margin-top:16px;">
-                <b>Motivo cancelación:</b> {solicitud.get('motivo', '')}
-            </p>
-
-            <p>
-                <b>Observaciones:</b> {solicitud.get('observaciones', '')}
-            </p>
-
-            <h4>Detalle de materiales</h4>
-
-            <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                <thead>
-                    <tr style="background:#dbeafe; color:#1e293b;">
-                        <th style="border:1px solid #cbd5e1; padding:6px;">Código</th>
-                        <th style="border:1px solid #cbd5e1; padding:6px;">Descripción</th>
-                        <th style="border:1px solid #cbd5e1; padding:6px;">Cantidad</th>
-                        <th style="border:1px solid #cbd5e1; padding:6px;">Bodega</th>
-                        <th style="border:1px solid #cbd5e1; padding:6px;">Ubicación</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filas_materiales}
-                </tbody>
-            </table>
-
-            <br><br>
-
-            <table style="width:100%; text-align:center; font-size:13px;">
-                <tr>
-                    <td>______________________________</td>
-                    <td>______________________________</td>
-                </tr>
-                <tr>
-                    <td>Firma Inventarios</td>
-                    <td>Firma Supervisión</td>
-                </tr>
-            </table>
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-# =====================================================
-# CONFIRMAR ENTRADA
-# =====================================================
-
-def confirmar_entrada_cancelacion(
-    solicitud,
-    detalle_df
-):
-
-    folio_documento = solicitud.get(
-        "folio_notificacion_inventarios",
+    folio_embarque = embarque.get(
+        "folio_embarque",
         ""
     )
 
-    if not folio_documento:
-
-        folio_documento = solicitud.get(
-            "folio_solicitud",
-            ""
-        )
-
-    conn_inv = get_conn_inventarios()
-    conn_log = get_conn_logistica()
+    folio_solicitud = generar_folio_solicitud_baja()
+    folio_notificacion = generar_folio_notificacion_inventarios()
 
     fecha_actual = datetime.now().strftime(
         "%Y-%m-%d %H:%M:%S"
@@ -586,314 +448,320 @@ def confirmar_entrada_cancelacion(
 
     try:
 
-        for _, row in detalle_df.iterrows():
-
-            datos_mov = {
-                "tipo_movimiento": "ENTRADA",
-                "tipo": "ENTRADA",
-                "motivo": "ENTRADA POR CANCELACION DE EMBARQUE",
-                "concepto": "ENTRADA POR CANCELACION DE EMBARQUE",
-                "folio_documento": folio_documento,
-                "folio_origen": solicitud.get("folio_embarque", ""),
-                "referencia": solicitud.get("folio_solicitud", ""),
-                "codigo_material": row.get("codigo_material", ""),
-                "descripcion": row.get("descripcion", ""),
-                "cantidad": row.get("cantidad_embarcar", 0),
-                "bodega": row.get("bodega", ""),
-                "almacen": row.get("bodega", ""),
-                "ubicacion": row.get("ubicacion", ""),
-                "usuario": usuario,
-                "fecha": fecha_actual,
-                "fecha_movimiento": fecha_actual,
-                "observaciones": "Entrada por cancelación de embarque"
-            }
-
-            insertado = insertar_dinamico(
-                conn_inv,
-                "movimientos_inventario",
-                datos_mov
-            )
-
-            if not insertado:
-
-                raise Exception(
-                    "No se pudo insertar movimiento. Revisa columnas de movimientos_inventario."
-                )
-
-        conn_log.execute(
+        conn.execute(
             """
-            UPDATE solicitudes_baja_embarque
-            SET
-                estatus_solicitud = 'Confirmado Inventarios',
-                folio_movimiento_inventario = ?,
-                fecha_confirmacion_inventario = ?,
-                usuario_confirmacion_inventario = ?
-            WHERE folio_solicitud = ?
+            INSERT INTO solicitudes_baja_embarque (
+                folio_solicitud,
+                folio_embarque,
+                fecha_solicitud,
+                usuario_solicitud,
+                motivo,
+                observaciones,
+                estatus_solicitud,
+                folio_notificacion_inventarios,
+                fecha_creacion
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                folio_documento,
+                folio_solicitud,
+                folio_embarque,
                 fecha_actual,
                 usuario,
-                solicitud.get("folio_solicitud", "")
+                motivo,
+                observaciones,
+                "Pendiente Inventarios",
+                folio_notificacion,
+                fecha_actual
             )
         )
 
-        conn_log.execute(
+        conn.execute(
             """
-            UPDATE notificaciones_inventario
-            SET
-                estatus = 'Confirmado Inventarios',
-                fecha_confirmacion = ?,
-                usuario_confirmacion = ?
-            WHERE folio_notificacion = ?
+            INSERT INTO notificaciones_inventario (
+                folio_notificacion,
+                origen,
+                tipo_documento,
+                folio_origen,
+                fecha_notificacion,
+                usuario_solicita,
+                estatus,
+                observaciones
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
+                folio_notificacion,
+                "Logistica",
+                "Solicitud baja embarque",
+                folio_embarque,
                 fecha_actual,
                 usuario,
-                solicitud.get("folio_notificacion_inventarios", "")
+                "Pendiente Inventarios",
+                observaciones
             )
         )
 
-        conn_log.execute(
-            """
-            UPDATE embarques
-            SET
-                estatus = 'Cancelado',
-                fecha_estatus = ?,
-                usuario_estatus = ?
-            WHERE folio_embarque = ?
-            """,
-            (
-                fecha_actual,
-                usuario,
-                solicitud.get("folio_embarque", "")
-            )
+        actualizar_estatus_embarque(
+            conn,
+            folio_embarque,
+            "Pendiente Inventarios"
         )
 
-        conn_inv.commit()
-        conn_log.commit()
-
-        conn_inv.close()
-        conn_log.close()
-
-        excel = generar_excel_confirmacion(
-            solicitud,
-            detalle_df,
-            folio_documento
-        )
-
-        return {
-            "folio_documento": folio_documento,
-            "excel": excel
-        }
+        conn.commit()
 
     except Exception as e:
 
-        conn_inv.rollback()
-        conn_log.rollback()
-
-        conn_inv.close()
-        conn_log.close()
-
+        conn.rollback()
+        conn.close()
         raise e
 
+    conn.close()
 
-# =====================================================
-# APP
-# =====================================================
-
-def confirmacion_cancelacion_embarque_app():
-
-    st.title(
-        "✅ Confirmación cancelación embarque"
+    detalle_df = obtener_detalle_embarque(
+        folio_embarque
     )
 
-    st.caption(
-        "Inventarios confirma entrada por cancelación de embarque generada por Logística."
+    excel = generar_excel_baja(
+        embarque,
+        detalle_df,
+        folio_solicitud,
+        folio_notificacion,
+        motivo,
+        observaciones
+    )
+
+    return {
+        "folio_solicitud": folio_solicitud,
+        "folio_notificacion": folio_notificacion,
+        "excel": excel
+    }
+
+
+# =====================================================
+# APP BAJA EMBARQUE
+# =====================================================
+
+def baja_embarque_app():
+
+    crear_tablas_baja_embarque()
+
+    st.subheader("❌ Solicitud de baja de embarque")
+
+    st.info(
+        """
+        Logística solo genera la solicitud de baja.
+        Inventarios debe validar el material y cerrar la cancelación.
+        """
     )
 
     st.divider()
 
-    tab_manual, tab_barcode = st.tabs(
-        [
-            "📋 Pendientes",
-            "🔎 Código de barras"
-        ]
+    try:
+
+        df_embarques = obtener_embarques_disponibles_baja()
+        motivos = obtener_motivos_baja()
+
+    except Exception as e:
+
+        st.error(
+            "❌ Error cargando embarques disponibles para baja."
+        )
+
+        st.exception(e)
+
+        return
+
+    if df_embarques.empty:
+
+        st.warning(
+            "No existen embarques disponibles para solicitud de baja directa."
+        )
+
+        st.caption(
+            "Los embarques asignados a transporte primero deben liberarse desde el proceso de transporte."
+        )
+
+        bloqueados = obtener_embarques_bloqueados_transporte()
+
+        if not bloqueados.empty:
+
+            st.markdown(
+                "### 🚛 Embarques bloqueados por transporte"
+            )
+
+            st.dataframe(
+                bloqueados,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        return
+
+    df_embarques = df_embarques.copy()
+    df_embarques["seleccionar"] = False
+
+    columnas = [
+        "seleccionar"
+    ] + [
+        c for c in df_embarques.columns
+        if c != "seleccionar"
+    ]
+
+    st.markdown("### 📦 Selecciona embarque")
+
+    df_editor = st.data_editor(
+        df_embarques[columnas],
+        hide_index=True,
+        use_container_width=True,
+        height=360,
+        column_config={
+            "seleccionar": st.column_config.CheckboxColumn(
+                "Sel.",
+                default=False
+            )
+        },
+        disabled=[
+            c for c in columnas
+            if c != "seleccionar"
+        ],
+        key="editor_baja_embarque"
     )
 
-    solicitud = None
+    seleccionados = df_editor[
+        df_editor["seleccionar"] == True
+    ]
 
-    with tab_manual:
+    if len(seleccionados) == 0:
 
-        df_solicitudes = obtener_solicitudes_pendientes()
+        st.info(
+            "Selecciona un embarque para generar solicitud de baja."
+        )
 
-        if df_solicitudes.empty:
+        return
+
+    if len(seleccionados) > 1:
+
+        st.warning(
+            "Selecciona solo un embarque por solicitud."
+        )
+
+        return
+
+    folio_embarque = seleccionados.iloc[0][
+        "folio_embarque"
+    ]
+
+    solicitud_existente = existe_solicitud_activa(
+        folio_embarque
+    )
+
+    if solicitud_existente:
+
+        st.warning(
+            f"El embarque ya tiene una solicitud activa: {solicitud_existente['folio_solicitud']}"
+        )
+
+        return
+
+    embarque = seleccionados.iloc[0].to_dict()
+
+    st.divider()
+
+    st.markdown("### 🧾 Datos de solicitud")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        motivo = st.selectbox(
+            "Motivo de baja *",
+            motivos
+        )
+
+    with col2:
+
+        confirmar = st.checkbox(
+            "Confirmo que el embarque no está asignado a transporte"
+        )
+
+    observaciones = st.text_area(
+        "Observaciones",
+        placeholder="Describe el motivo operativo de la solicitud..."
+    )
+
+    detalle_df = obtener_detalle_embarque(
+        folio_embarque
+    )
+
+    with st.expander(
+        "📋 Detalle del embarque",
+        expanded=False
+    ):
+
+        if detalle_df.empty:
 
             st.info(
-                "No existen cancelaciones pendientes."
+                "No se encontró detalle del embarque."
             )
 
         else:
 
-            df_solicitudes = df_solicitudes.copy()
-            df_solicitudes["seleccionar"] = False
-
-            columnas = [
-                "seleccionar",
-                "folio_solicitud",
-                "folio_notificacion_inventarios",
-                "folio_embarque",
-                "folio_hoja_carga",
-                "cliente",
-                "destino",
-                "codigo_transporte",
-                "motivo",
-                "fecha_solicitud",
-                "estatus_solicitud"
-            ]
-
-            columnas = [
-                c for c in columnas
-                if c in df_solicitudes.columns
-            ]
-
-            df_editor = st.data_editor(
-                df_solicitudes[columnas],
-                hide_index=True,
+            st.dataframe(
+                detalle_df,
                 use_container_width=True,
-                height=380,
-                column_config={
-                    "seleccionar": st.column_config.CheckboxColumn(
-                        "Sel.",
-                        default=False
-                    )
-                },
-                disabled=[
-                    c for c in columnas
-                    if c != "seleccionar"
-                ],
-                key="editor_confirmacion_cancelacion_embarque"
+                hide_index=True
             )
-
-            df_sel = df_editor[
-                df_editor["seleccionar"] == True
-            ]
-
-            if len(df_sel) > 1:
-
-                st.warning(
-                    "Selecciona solo un folio."
-                )
-
-            elif len(df_sel) == 1:
-
-                solicitud = df_sel.iloc[0].to_dict()
-
-    with tab_barcode:
-
-        folio_scan = st.text_input(
-            "Escanea o captura folio",
-            placeholder="Ejemplo: NINV-BE-20260515225201"
-        )
-
-        if folio_scan:
-
-            df_scan = buscar_solicitud_por_folio(
-                folio_scan.strip()
-            )
-
-            if df_scan.empty:
-
-                st.warning(
-                    "No se encontró el folio capturado."
-                )
-
-            else:
-
-                solicitud = df_scan.iloc[0].to_dict()
-
-                st.success(
-                    "Folio encontrado."
-                )
-
-                st.dataframe(
-                    df_scan,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-    if solicitud is None:
-
-        return
 
     st.divider()
 
-    st.markdown("### 📦 Detalle de materiales")
-
-    detalle_df = obtener_detalle_embarque(
-        solicitud.get("folio_embarque", "")
-    )
-
-    if detalle_df.empty:
-
-        st.warning(
-            "No se encontró detalle del embarque."
-        )
-
-        return
-
-    st.dataframe(
-        detalle_df,
+    if st.button(
+        "📨 Generar solicitud a Inventarios",
         use_container_width=True,
-        hide_index=True
-    )
+        disabled=not confirmar
+    ):
 
-    st.divider()
+        if not motivo:
 
-    st.markdown("### 🧾 Confirmación")
+            st.warning(
+                "Selecciona un motivo de baja."
+            )
 
-    confirmar_check = st.checkbox(
-        "Confirmo que el material fue recibido en inventario"
-    )
-
-    confirmar = st.button(
-        "✅ Confirmar entrada a inventario",
-        use_container_width=True,
-        disabled=not confirmar_check
-    )
-
-    if confirmar:
+            return
 
         try:
 
-            resultado = confirmar_entrada_cancelacion(
-                solicitud,
-                detalle_df
+            resultado = registrar_solicitud_baja(
+                embarque,
+                motivo,
+                observaciones
             )
 
             st.success(
-                f"✅ Entrada confirmada. Documento: {resultado['folio_documento']}"
+                "✅ Solicitud de baja generada correctamente."
+            )
+
+            st.write(
+                "Folio solicitud:",
+                resultado["folio_solicitud"]
+            )
+
+            st.write(
+                "Folio notificación inventarios:",
+                resultado["folio_notificacion"]
             )
 
             st.download_button(
-                label="📥 Descargar Excel documento entrada",
+                label="📥 Descargar Excel solicitud baja",
                 data=resultado["excel"],
-                file_name=f"{resultado['folio_documento']}.xlsx",
+                file_name=f"{resultado['folio_solicitud']}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-
-            st.markdown("### 🖨️ Documento para impresión")
-
-            mostrar_documento_impresion(
-                solicitud,
-                detalle_df,
-                resultado["folio_documento"]
             )
 
         except Exception as e:
 
             st.error(
-                "❌ Error confirmando entrada por cancelación."
+                "❌ Error generando solicitud de baja."
             )
 
             st.exception(e)
@@ -901,4 +769,4 @@ def confirmacion_cancelacion_embarque_app():
 
 if __name__ == "__main__":
 
-    confirmacion_cancelacion_embarque_app()
+    baja_embarque_app()
