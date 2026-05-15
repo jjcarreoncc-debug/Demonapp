@@ -101,7 +101,6 @@ def insertar_dinamico(conn, tabla, datos):
 # =====================================================
 # ASEGURAR TABLAS LOGISTICA
 # =====================================================
-
 def asegurar_tablas_logistica():
 
     conn = get_conn_logistica()
@@ -111,7 +110,19 @@ def asegurar_tablas_logistica():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS solicitudes_baja_embarque (
-            ...
+            id_solicitud INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_solicitud TEXT UNIQUE,
+            folio_embarque TEXT,
+            fecha_solicitud TEXT,
+            usuario_solicitud TEXT,
+            motivo TEXT,
+            observaciones TEXT,
+            estatus_solicitud TEXT,
+            folio_notificacion_inventarios TEXT,
+            fecha_creacion TEXT,
+            folio_movimiento_inventario TEXT,
+            fecha_confirmacion_inventario TEXT,
+            usuario_confirmacion_inventario TEXT
         )
         """
     )
@@ -119,17 +130,22 @@ def asegurar_tablas_logistica():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS notificaciones_inventario (
-            ...
+            id_notificacion INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_notificacion TEXT UNIQUE,
+            origen TEXT,
+            tipo_documento TEXT,
+            folio_origen TEXT,
+            fecha_notificacion TEXT,
+            usuario_solicita TEXT,
+            estatus TEXT,
+            observaciones TEXT,
+            fecha_confirmacion TEXT,
+            usuario_confirmacion TEXT
         )
         """
     )
 
-    columnas_solicitudes = obtener_columnas_tabla(
-        conn,
-        "solicitudes_baja_embarque"
-    )
-
-    if "folio_movimiento_inventario" not in columnas_solicitudes:
+    try:
 
         cursor.execute(
             """
@@ -138,7 +154,11 @@ def asegurar_tablas_logistica():
             """
         )
 
-    if "fecha_confirmacion_inventario" not in columnas_solicitudes:
+    except sqlite3.OperationalError:
+
+        pass
+
+    try:
 
         cursor.execute(
             """
@@ -147,7 +167,11 @@ def asegurar_tablas_logistica():
             """
         )
 
-    if "usuario_confirmacion_inventario" not in columnas_solicitudes:
+    except sqlite3.OperationalError:
+
+        pass
+
+    try:
 
         cursor.execute(
             """
@@ -156,12 +180,13 @@ def asegurar_tablas_logistica():
             """
         )
 
+    except sqlite3.OperationalError:
+
+        pass
+
     conn.commit()
 
     conn.close()
-
-
-
 # =====================================================
 # OBTENER SOLICITUDES PENDIENTES
 # =====================================================
