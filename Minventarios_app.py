@@ -65,10 +65,8 @@ def inventarios_app():
     elif opcion_limpia == "consultar entradas compra":
         consulta_entradas_compras_app()
         
-    elif opcion_limpia == limpiar_opcion(
-        "Entrada cancelación embarque"
-       ):
-
+    elif opcion_limpia == "Entrada cancelación embarque":
+        
         confirmacion_cancelacion_embarque_app()
 
     # =========================
