@@ -1,3 +1,4 @@
+import streamlit as st
 from mantenimiento_auditoria_app import consultar_auditoria_app
 from crear_tablas_app import crear_tablas_app
 from revisar_estructura_db_app import revisar_estructura_db_app
