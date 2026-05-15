@@ -6,14 +6,16 @@ import mantenimiento_auditoria_app as auditoria
 
 
 def alta_usuario_app():
-    
-db_path = get_db_path("seguridad")
 
-st.warning(f"Base usada: {db_path}")
+    db_path = get_db_path("seguridad")
 
-conn = sqlite3.connect(db_path)
+    st.warning(f"Base usada: {db_path}")
 
-conn.row_factory = sqlite3.Row    
+    conn = sqlite3.connect(db_path)
+
+    conn.row_factory = sqlite3.Row
+
+    cursor = conn.cursor()
 
     st.markdown("### 📌 Información básica")
 
@@ -92,6 +94,7 @@ conn.row_factory = sqlite3.Row
         limpiar = st.button("🔄 Limpiar")
 
     if limpiar:
+        conn.close()
         st.rerun()
 
     if guardar:
@@ -112,8 +115,12 @@ conn.row_factory = sqlite3.Row
 
         else:
 
-            conn = get_connection()
-            cursor = conn.cursor()
+            roles_debug = cursor.execute("""
+                SELECT *
+                FROM roles
+            """).fetchall()
+
+            st.write("DEBUG ROLES:", roles_debug)
 
             rol_row = cursor.execute(
                 """
@@ -126,7 +133,10 @@ conn.row_factory = sqlite3.Row
 
             if rol_row is None:
 
-                st.error("❌ El rol seleccionado no existe en la base de datos.")
+                st.error(
+                    "❌ El rol seleccionado no existe en la base de datos."
+                )
+
                 conn.close()
                 return
 
@@ -158,22 +168,28 @@ conn.row_factory = sqlite3.Row
 
                 conn.commit()
 
-                st.success("✅ Usuario guardado correctamente en la base de datos.")
+                st.success(
+                    "✅ Usuario guardado correctamente."
+                )
+
                 auditoria.registrar_auditoria(
                     usuario=usuario,
                     modulo="Usuarios",
                     accion="Crear usuario",
                     descripcion=f"Se creó el usuario {usuario}"
-                    ) 
+                )
+
             except Exception as e:
-         
-                st.error("❌ No se pudo guardar el usuario. Puede que ya exista.")
+
+                st.error(
+                    "❌ No se pudo guardar el usuario."
+                )
+
                 st.exception(e)
 
             finally:
 
-                conn.close()
-                
+                conn.close()                
 def editar_usuario_app():
 
     st.markdown("## ✏️ Editar usuario")
