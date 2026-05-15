@@ -1,7 +1,7 @@
 import streamlit as st
 
-from login_app import login_app, logout_app
 
+from auth_app import login_app, logout_app
 from Minventarios_app import inventarios_app
 from sidebar_analitico import analitico_app
 from mantenimiento_app import mantenimiento_app
