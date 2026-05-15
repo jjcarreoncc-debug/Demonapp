@@ -25,16 +25,19 @@ if not st.session_state.autenticado:
 logout_app()
 
 
-# =====================================================
-# MENU DINAMICO
-# =====================================================
-
-ruta = sidebar_dinamico()
-
-
-# =====================================================
-# ROUTER CENTRAL
-# =====================================================
+    # =====================================================
+    # MENU DINAMICO
+    # =====================================================
+    
+    ruta = sidebar_dinamico()
+    
+    
+    # =====================================================
+    # ROUTER CENTRAL
+    # =====================================================
+st.write("DEBUG ruta:", ruta)
+st.write("DEBUG rol:", st.session_state.get("rol"))
+st.write("DEBUG usuario:", st.session_state.get("usuario"))
 
 if ruta == "inicio":
 
