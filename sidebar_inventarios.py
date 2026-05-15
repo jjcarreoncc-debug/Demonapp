@@ -289,7 +289,7 @@ def sidebar_inventarios():
                         )
 
                 if st.button(
-                    "🚚 Embarque"
+                    "🚚 embarque"
                 ):
 
                     set_opcion(
