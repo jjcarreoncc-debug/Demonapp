@@ -207,7 +207,6 @@ def asignar_roles_app():
         try:
 
             conn = get_conn_seguridad()
-
             cur = conn.cursor()
 
             cur.execute(
@@ -244,308 +243,330 @@ def crear_rol_app():
     admin_css()
 
     admin_header(
-        "🧩 Crear Rol",
-        "Administración y creación de nuevos roles del sistema."
+        "🧩 Mantenimiento de Roles",
+        "Crear, modificar y consultar roles del sistema."
     )
 
     st.divider()
 
-    st.markdown("### 📌 Información del rol")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        nombre_rol = st.text_input(
-            "Nombre del rol *"
-        )
-
-    with col2:
-
-        estado = st.selectbox(
-            "Estado",
-            [
-                "Activo",
-                "Inactivo"
-            ]
-        )
-
-    descripcion = st.text_area(
-        "Descripción del rol"
+    tab_crear, tab_modificar, tab_consultar = st.tabs(
+        [
+            "➕ Crear rol",
+            "✏️ Modificar rol",
+            "🔎 Consultar roles"
+        ]
     )
 
-    st.divider()
+    # =====================================
+    # CREAR ROL
+    # =====================================
+    with tab_crear:
 
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
+        st.markdown("### 📌 Información del rol")
 
-    with col_btn1:
+        col1, col2 = st.columns(2)
 
-        guardar = st.button(
-            "💾 Guardar rol"
+        with col1:
+
+            nombre_rol = st.text_input(
+                "Nombre del rol *",
+                key="crear_nombre_rol"
+            )
+
+        with col2:
+
+            estado = st.selectbox(
+                "Estado",
+                [
+                    "Activo",
+                    "Inactivo"
+                ],
+                key="crear_estado_rol"
+            )
+
+        descripcion = st.text_area(
+            "Descripción del rol",
+            key="crear_descripcion_rol"
         )
 
-    with col_btn2:
+        st.divider()
 
-        limpiar = st.button(
-            "🔄 Limpiar"
-        )
+        col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
 
-    if limpiar:
+        with col_btn1:
 
-        st.rerun()
-
-    if guardar:
-
-        if not nombre_rol.strip():
-
-            st.warning(
-                "⚠️ El nombre del rol es obligatorio."
+            guardar = st.button(
+                "💾 Guardar rol",
+                key="btn_guardar_rol"
             )
 
-            return
+        with col_btn2:
 
-        try:
-
-            conn = get_conn_seguridad()
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                INSERT INTO roles (
-                    nombre_rol,
-                    descripcion,
-                    estado
-                )
-                VALUES (?, ?, ?)
-                """,
-                (
-                    nombre_rol.strip(),
-                    descripcion.strip(),
-                    estado
-                )
+            limpiar = st.button(
+                "🔄 Limpiar",
+                key="btn_limpiar_rol"
             )
 
-            conn.commit()
-            conn.close()
-
-            st.success(
-                f"✅ Rol '{nombre_rol}' creado correctamente."
-            )
+        if limpiar:
 
             st.rerun()
 
-        except Exception as e:
+        if guardar:
 
-            st.error(
-                "❌ No se pudo guardar el rol. Puede que ya exista."
+            if not nombre_rol.strip():
+
+                st.warning(
+                    "⚠️ El nombre del rol es obligatorio."
+                )
+
+                return
+
+            try:
+
+                conn = get_conn_seguridad()
+                cur = conn.cursor()
+
+                cur.execute(
+                    """
+                    INSERT INTO roles (
+                        nombre_rol,
+                        descripcion,
+                        estado
+                    )
+                    VALUES (?, ?, ?)
+                    """,
+                    (
+                        nombre_rol.strip(),
+                        descripcion.strip(),
+                        estado
+                    )
+                )
+
+                conn.commit()
+                conn.close()
+
+                st.success(
+                    f"✅ Rol '{nombre_rol}' creado correctamente."
+                )
+
+                st.rerun()
+
+            except Exception as e:
+
+                st.error(
+                    "❌ No se pudo guardar el rol. Puede que ya exista."
+                )
+
+                st.exception(e)
+
+    # =====================================
+    # MODIFICAR ROL
+    # =====================================
+    with tab_modificar:
+
+        st.markdown("### ✏️ Modificar rol")
+
+        roles_df = obtener_roles()
+
+        if roles_df.empty:
+
+            st.warning("⚠️ No hay roles registrados.")
+
+        else:
+
+            roles_lista = roles_df["nombre_rol"].tolist()
+
+            rol_sel = st.selectbox(
+                "Selecciona rol a modificar",
+                roles_lista,
+                key="modificar_rol_sel"
             )
 
-            st.exception(e)
+            rol_actual = roles_df[
+                roles_df["nombre_rol"] == rol_sel
+            ].iloc[0]
+
+            st.markdown("### 📌 Datos del rol")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+
+                nuevo_nombre = st.text_input(
+                    "Nombre del rol *",
+                    value=str(rol_actual["nombre_rol"]),
+                    key="modificar_nombre_rol"
+                )
+
+            with col2:
+
+                estado_actual = str(rol_actual["estado"])
+
+                if estado_actual == "Inactivo":
+
+                    index_estado = 1
+
+                else:
+
+                    index_estado = 0
+
+                nuevo_estado = st.selectbox(
+                    "Estado",
+                    [
+                        "Activo",
+                        "Inactivo"
+                    ],
+                    index=index_estado,
+                    key="modificar_estado_rol"
+                )
+
+            nueva_descripcion = st.text_area(
+                "Descripción del rol",
+                value=str(rol_actual["descripcion"])
+                if rol_actual["descripcion"] is not None
+                else "",
+                key="modificar_descripcion_rol"
+            )
+
+            st.divider()
+
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
+
+            with col_btn1:
+
+                guardar_cambios = st.button(
+                    "💾 Guardar cambios",
+                    key="btn_guardar_cambios_rol"
+                )
+
+            with col_btn2:
+
+                limpiar_modificar = st.button(
+                    "🔄 Limpiar",
+                    key="btn_limpiar_modificar_rol"
+                )
+
+            if limpiar_modificar:
+
+                st.rerun()
+
+            if guardar_cambios:
+
+                if not nuevo_nombre.strip():
+
+                    st.warning(
+                        "⚠️ El nombre del rol es obligatorio."
+                    )
+
+                    return
+
+                try:
+
+                    conn = get_conn_seguridad()
+                    cur = conn.cursor()
+
+                    cur.execute(
+                        """
+                        UPDATE roles
+                        SET
+                            nombre_rol = ?,
+                            descripcion = ?,
+                            estado = ?
+                        WHERE id_rol = ?
+                        """,
+                        (
+                            nuevo_nombre.strip(),
+                            nueva_descripcion.strip(),
+                            nuevo_estado,
+                            int(rol_actual["id_rol"])
+                        )
+                    )
+
+                    conn.commit()
+                    conn.close()
+
+                    st.success(
+                        f"✅ Rol '{nuevo_nombre}' actualizado correctamente."
+                    )
+
+                    st.rerun()
+
+                except Exception as e:
+
+                    st.error(
+                        "❌ No se pudo actualizar el rol."
+                    )
+
+                    st.exception(e)
+
+    # =====================================
+    # CONSULTAR ROLES
+    # =====================================
+    with tab_consultar:
+
+        st.markdown("### 🔎 Consultar roles")
+
+        roles_df = obtener_roles()
+
+        if roles_df.empty:
+
+            st.info("No hay roles registrados.")
+
+        else:
+
+            col1, col2 = st.columns([3, 1])
+
+            with col1:
+
+                filtro = st.text_input(
+                    "Buscar por nombre o descripción",
+                    key="consulta_filtro_roles"
+                )
+
+            with col2:
+
+                filtro_estado = st.selectbox(
+                    "Estado",
+                    [
+                        "Todos",
+                        "Activo",
+                        "Inactivo"
+                    ],
+                    key="consulta_estado_roles"
+                )
+
+            consulta_df = roles_df.copy()
+
+            if filtro.strip():
+
+                filtro_limpio = filtro.strip().lower()
+
+                consulta_df = consulta_df[
+                    consulta_df["nombre_rol"].astype(str).str.lower().str.contains(filtro_limpio)
+                    |
+                    consulta_df["descripcion"].astype(str).str.lower().str.contains(filtro_limpio)
+                ]
+
+            if filtro_estado != "Todos":
+
+                consulta_df = consulta_df[
+                    consulta_df["estado"] == filtro_estado
+                ]
+
+            st.markdown("### 📋 Roles registrados")
+
+            st.dataframe(
+                consulta_df,
+                use_container_width=True,
+                hide_index=True
+            )
 
 
 def modificar_rol_app():
 
-    validar_tabla_roles()
-
-    admin_css()
-
-    admin_header(
-        "✏️ Modificar Rol",
-        "Actualización de roles del sistema."
-    )
-
-    st.divider()
-
-    roles_df = obtener_roles()
-
-    if roles_df.empty:
-
-        st.warning("⚠️ No hay roles registrados.")
-        return
-
-    roles_lista = roles_df["nombre_rol"].tolist()
-
-    rol_sel = st.selectbox(
-        "Selecciona rol a modificar",
-        roles_lista
-    )
-
-    rol_actual = roles_df[
-        roles_df["nombre_rol"] == rol_sel
-    ].iloc[0]
-
-    st.markdown("### 📌 Datos del rol")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        nuevo_nombre = st.text_input(
-            "Nombre del rol *",
-            value=str(rol_actual["nombre_rol"])
-        )
-
-    with col2:
-
-        estado_actual = str(rol_actual["estado"])
-
-        if estado_actual == "Inactivo":
-
-            index_estado = 1
-
-        else:
-
-            index_estado = 0
-
-        nuevo_estado = st.selectbox(
-            "Estado",
-            [
-                "Activo",
-                "Inactivo"
-            ],
-            index=index_estado
-        )
-
-    nueva_descripcion = st.text_area(
-        "Descripción del rol",
-        value=str(rol_actual["descripcion"])
-        if rol_actual["descripcion"] is not None
-        else ""
-    )
-
-    st.divider()
-
-    col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
-
-    with col_btn1:
-
-        guardar = st.button(
-            "💾 Guardar cambios"
-        )
-
-    with col_btn2:
-
-        limpiar = st.button(
-            "🔄 Limpiar"
-        )
-
-    if limpiar:
-
-        st.rerun()
-
-    if guardar:
-
-        if not nuevo_nombre.strip():
-
-            st.warning(
-                "⚠️ El nombre del rol es obligatorio."
-            )
-
-            return
-
-        try:
-
-            conn = get_conn_seguridad()
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                UPDATE roles
-                SET
-                    nombre_rol = ?,
-                    descripcion = ?,
-                    estado = ?
-                WHERE id_rol = ?
-                """,
-                (
-                    nuevo_nombre.strip(),
-                    nueva_descripcion.strip(),
-                    nuevo_estado,
-                    int(rol_actual["id_rol"])
-                )
-            )
-
-            conn.commit()
-            conn.close()
-
-            st.success(
-                f"✅ Rol '{nuevo_nombre}' actualizado correctamente."
-            )
-
-            st.rerun()
-
-        except Exception as e:
-
-            st.error(
-                "❌ No se pudo actualizar el rol."
-            )
-
-            st.exception(e)
+    crear_rol_app()
 
 
 def consultar_roles_app():
 
-    validar_tabla_roles()
-
-    admin_css()
-
-    admin_header(
-        "🔎 Consultar Roles",
-        "Consulta de roles registrados en el sistema."
-    )
-
-    st.divider()
-
-    roles_df = obtener_roles()
-
-    if roles_df.empty:
-
-        st.info("No hay roles registrados.")
-        return
-
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
-
-        filtro = st.text_input(
-            "Buscar por nombre o descripción"
-        )
-
-    with col2:
-
-        filtro_estado = st.selectbox(
-            "Estado",
-            [
-                "Todos",
-                "Activo",
-                "Inactivo"
-            ]
-        )
-
-    consulta_df = roles_df.copy()
-
-    if filtro.strip():
-
-        filtro_limpio = filtro.strip().lower()
-
-        consulta_df = consulta_df[
-            consulta_df["nombre_rol"].astype(str).str.lower().str.contains(filtro_limpio)
-            |
-            consulta_df["descripcion"].astype(str).str.lower().str.contains(filtro_limpio)
-        ]
-
-    if filtro_estado != "Todos":
-
-        consulta_df = consulta_df[
-            consulta_df["estado"] == filtro_estado
-        ]
-
-    st.markdown("### 📋 Roles registrados")
-
-    st.dataframe(
-        consulta_df,
-        use_container_width=True,
-        hide_index=True
-    )
+    crear_rol_app()
