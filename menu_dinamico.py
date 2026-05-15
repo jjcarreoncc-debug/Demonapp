@@ -16,11 +16,24 @@ def get_conn_seguridad():
     return conn
 
 
+def normalizar_rol(rol_usuario):
+
+    rol_usuario = str(rol_usuario).strip()
+
+    if rol_usuario == "1":
+        return "Admin"
+
+    if rol_usuario == "4":
+        return "Logistica"
+
+    return rol_usuario
+
+
 def sidebar_dinamico():
 
-    rol_usuario = str(
+    rol_usuario = normalizar_rol(
         st.session_state.get("rol", "")
-    ).strip()
+    )
 
     if not rol_usuario:
 
@@ -78,10 +91,6 @@ def sidebar_dinamico():
         .astype(str)
         .str.strip()
     )
-
-    if "orden_menu" not in menu_df.columns:
-
-        menu_df["orden_menu"] = 999
 
     menu_df = (
         menu_df
