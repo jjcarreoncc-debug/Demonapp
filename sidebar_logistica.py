@@ -21,10 +21,7 @@ def sidebar_logistica():
 
     with st.sidebar:
 
-        st.markdown("## 🏢 SIGEM")
-        st.markdown("### 🚚 Logística")
-        st.markdown("---")
-
+        
         if "menu_logistica" not in st.session_state:
             st.session_state.menu_logistica = "Embarques"
 
