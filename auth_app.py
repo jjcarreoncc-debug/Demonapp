@@ -297,21 +297,11 @@ ruta = sidebar_dinamico()
 if ruta == "inicio":
     st.empty()
 
-elif ruta == "inventarios":
-    st.title("📦 Inventarios")
-    inventarios_app()
+elif ruta == "minventarios":
+    Minventarios_app()
 
-elif ruta == "compras":
-    st.title("🛒 Compras")
-    compras_app()
-
-elif ruta == "logistica":
-    st.title("🚚 Logística")
-    logistica_app()
-
-elif ruta == "wms":
-    st.title("🏬 WMS")
-    wms_app()
+elif ruta == "mlogistica":
+    Mlogistica_app()
 
 elif ruta == "mantenimiento":
     st.title("🛠️ Mantenimiento")
