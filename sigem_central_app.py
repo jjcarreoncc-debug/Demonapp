@@ -28,12 +28,12 @@ logout_app()
 # MODULO DEFAULT
 # =====================================================
 
-if "modulo_central" not in st.session_state:
-    st.session_state.modulo_central = "📦 Minventarios"
+if "ruta_central" not in st.session_state:
+    st.session_state.ruta_central = "inventarios"
 
 
 # =====================================================
-# SIDEBAR FIJO TEMPORAL
+# SIDEBAR CENTRAL
 # =====================================================
 
 with st.sidebar:
@@ -48,31 +48,66 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.session_state.modulo_central = st.radio(
+    # =================================================
+    # MODULOS PADRE
+    # =================================================
+
+    modulos_dict = {
+        "📦 Minventarios": "inventarios",
+        "📦 Mlogistica": "logistica",
+        "📊 Analíticos": "analitico",
+        "🛠️ Mantenimiento": "mantenimiento"
+    }
+
+    # =================================================
+    # OBTENER LABEL ACTUAL
+    # =================================================
+
+    label_actual = "📦 Minventarios"
+
+    for label, ruta in modulos_dict.items():
+
+        if ruta == st.session_state.ruta_central:
+
+            label_actual = label
+            break
+
+    # =================================================
+    # RADIO CENTRAL
+    # =================================================
+
+    modulo_sel = st.radio(
         "Módulos",
-        [
-            "📦 Minventarios",
-            "📦 Mlogistica",
-            "📊 Analíticos",
-            "🛠️ Mantenimiento"
-        ],
+        list(modulos_dict.keys()),
+        index=list(modulos_dict.keys()).index(label_actual),
         key="menu_central_sigem"
     )
 
+    # =================================================
+    # GUARDAR RUTA
+    # =================================================
+
+    st.session_state.ruta_central = modulos_dict[
+        modulo_sel
+    ]
+
     st.markdown("---")
 
-    st.caption(f"👤 {st.session_state.get('nombre', '')}")
+    st.caption(
+        f"👤 {st.session_state.get('nombre', '')}"
+    )
+
     st.caption("SIGEM ERP")
 
 
 # =====================================================
-# ROUTER CENTRAL FIJO
-# =====================================================
-# =====================================================
-# ROUTER CENTRAL DINÁMICO POR RUTA
+# ROUTER CENTRAL
 # =====================================================
 
-ruta_central = st.session_state.get("ruta_central", "")
+ruta_central = st.session_state.get(
+    "ruta_central",
+    ""
+)
 
 if ruta_central == "inventarios":
 
@@ -92,8 +127,6 @@ elif ruta_central == "mantenimiento":
 
 else:
 
-    st.info("Selecciona un módulo del menú lateral para comenzar.")
-
-
-
-
+    st.info(
+        "Selecciona un módulo del menú lateral para comenzar."
+    )
