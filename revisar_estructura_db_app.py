@@ -6,9 +6,14 @@ from pathlib import Path
 from sigem_db import DB_CONFIG, get_db_path
 
 
+# =========================================================
+# TAMAÑO DB
+# =========================================================
+
 def obtener_tamano_kb(db_path):
 
     try:
+
         path = Path(db_path)
 
         if path.exists():
@@ -19,6 +24,10 @@ def obtener_tamano_kb(db_path):
     except:
         return 0
 
+
+# =========================================================
+# OBTENER TABLAS REALES
+# =========================================================
 
 def obtener_tablas(conn):
 
@@ -34,11 +43,67 @@ def obtener_tablas(conn):
     return df["name"].tolist()
 
 
+# =========================================================
+# TABLAS POR MODULO
+# =========================================================
+
+TABLAS_MODULOS = {
+
+    "Seguridad": [
+        "usuarios",
+        "roles",
+        "permisos",
+        "modulos",
+        "usuario_roles",
+        "rol_permisos",
+        "sesiones_usuario"
+    ],
+
+    "Inventarios": [
+        "materiales",
+        "movimientos_inventario",
+        "inventario_fisico",
+        "ajustes_inventario"
+    ],
+
+    "Compras": [
+        "proveedores",
+        "ordenes_compra",
+        "detalle_orden_compra",
+        "recepciones_compra"
+    ],
+
+    "Logística": [
+        "embarques",
+        "detalle_embarque",
+        "transportes",
+        "rutas",
+        "puntos_ruta",
+        "eventos_embarque"
+    ],
+
+    "WMS": [
+        "ubicaciones_wms",
+        "movimientos_wms"
+    ]
+}
+
+
+# =========================================================
+# APP
+# =========================================================
+
 def revisar_estructura_db_app():
 
     st.title("🔍 Revisar estructura DB")
 
-    st.caption("Configuración / Revisar estructura DB")
+    st.caption(
+        "Configuración / Revisar estructura DB"
+    )
+
+    # =====================================================
+    # BASES
+    # =====================================================
 
     bases_disponibles = list(DB_CONFIG.keys())
 
@@ -49,84 +114,99 @@ def revisar_estructura_db_app():
 
     db_path = get_db_path(base_seleccionada)
 
+    # =====================================================
+    # INFO DB
+    # =====================================================
+
     st.subheader("📂 Información base")
 
     c1, c2 = st.columns(2)
 
     with c1:
+
         st.write("Base:")
         st.code(base_seleccionada)
 
     with c2:
+
         st.write("Tamaño KB:")
-        st.code(str(obtener_tamano_kb(db_path)))
+        st.code(
+            str(
+                obtener_tamano_kb(db_path)
+            )
+        )
 
     st.write("Ruta:")
     st.code(str(db_path))
+
+    # =====================================================
+    # CONEXION
+    # =====================================================
 
     try:
 
         conn = sqlite3.connect(db_path)
 
-        tablas = obtener_tablas(conn)
+        tablas_reales = obtener_tablas(conn)
 
-        tablas = sorted(tablas)
+        tablas_reales = sorted(tablas_reales)
 
-        # =====================================================
-        # TABLAS ESPERADAS INVENTARIOS
-        # =====================================================
+        # =================================================
+        # MODULO
+        # =================================================
 
-        tablas_inventarios = [
-            "inventario_fisico",
-            "ajustes_inventario"
-        ]
+        st.subheader("🧩 Selección módulo")
 
-        # =====================================================
-        # TABLAS ESPERADAS SEGURIDAD
-        # =====================================================
+        modulos_disponibles = list(
+            TABLAS_MODULOS.keys()
+        )
 
-        tablas_seguridad = [
-            "usuarios",
-            "roles",
-            "permisos",
-            "modulos",
-            "usuario_roles",
-            "rol_permisos",
-            "sesiones_usuario"
-        ]
+        modulo_seleccionado = st.selectbox(
+            "Selecciona módulo",
+            modulos_disponibles
+        )
 
-        # =====================================================
-        # AGREGAR TABLAS FALTANTES VISUALMENTE
-        # =====================================================
+        tablas_modulo = TABLAS_MODULOS.get(
+            modulo_seleccionado,
+            []
+        )
 
-        for tabla in tablas_inventarios:
+        tablas_visualizar = []
 
-            if tabla not in tablas:
-                tablas.append(f"❌ {tabla}")
+        # =================================================
+        # VALIDAR EXISTENCIA
+        # =================================================
 
-        for tabla in tablas_seguridad:
+        for tabla in tablas_modulo:
 
-            if tabla not in tablas:
-                tablas.append(f"❌ {tabla}")
+            if tabla in tablas_reales:
 
-        tablas = sorted(tablas)
+                tablas_visualizar.append(tabla)
 
-        if not tablas:
+            else:
 
-            st.warning("Esta base no tiene tablas.")
-            conn.close()
-            return
+                tablas_visualizar.append(
+                    f"❌ {tabla}"
+                )
+
+        tablas_visualizar = sorted(
+            tablas_visualizar
+        )
+
+        # =================================================
+        # TABLAS DISPONIBLES
+        # =================================================
 
         st.subheader("📋 Tablas disponibles")
 
         tabla_seleccionada = st.selectbox(
             "Selecciona tabla",
-            tablas
+            tablas_visualizar
         )
 
-        # =====================================================
-        # VALIDAR SI TABLA NO EXISTE
-        # =====================================================
+        # =================================================
+        # TABLA NO EXISTE
+        # =================================================
 
         if tabla_seleccionada.startswith("❌"):
 
@@ -137,21 +217,21 @@ def revisar_estructura_db_app():
             )
 
             st.error(
-                f"La tabla '{tabla_real}' no existe "
-                f"en la base seleccionada."
+                f"La tabla '{tabla_real}' "
+                f"no existe."
             )
 
             st.info(
-                "Debe incluirse en el proceso "
-                "de Crear tablas."
+                "Debe incluirse en el "
+                "proceso de Crear tablas."
             )
 
             conn.close()
             return
 
-        # =====================================================
-        # ESTRUCTURA TABLA
-        # =====================================================
+        # =================================================
+        # ESTRUCTURA
+        # =================================================
 
         st.subheader("🧱 Estructura tabla")
 
@@ -165,14 +245,17 @@ def revisar_estructura_db_app():
             use_container_width=True
         )
 
-        # =====================================================
-        # RESUMEN TABLA
-        # =====================================================
+        # =================================================
+        # TOTAL REGISTROS
+        # =================================================
 
         st.subheader("📊 Resumen tabla")
 
         total_registros = pd.read_sql_query(
-            f"SELECT COUNT(*) AS total FROM {tabla_seleccionada}",
+            f"""
+            SELECT COUNT(*) AS total
+            FROM {tabla_seleccionada}
+            """,
             conn
         )["total"].iloc[0]
 
@@ -181,14 +264,18 @@ def revisar_estructura_db_app():
             total_registros
         )
 
-        # =====================================================
-        # ÚLTIMOS REGISTROS
-        # =====================================================
+        # =================================================
+        # ULTIMOS REGISTROS
+        # =================================================
 
         st.subheader("📦 Últimos registros")
 
         df_datos = pd.read_sql_query(
-            f"SELECT * FROM {tabla_seleccionada} LIMIT 50",
+            f"""
+            SELECT *
+            FROM {tabla_seleccionada}
+            LIMIT 50
+            """,
             conn
         )
 
@@ -201,9 +288,17 @@ def revisar_estructura_db_app():
 
     except Exception as e:
 
-        st.error("Error revisando estructura de la base.")
+        st.error(
+            "Error revisando estructura de la base."
+        )
+
         st.exception(e)
 
 
+# =========================================================
+# MAIN
+# =========================================================
+
 if __name__ == "__main__":
+
     revisar_estructura_db_app()
