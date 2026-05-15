@@ -59,11 +59,6 @@ def limpiar_opcion(texto):
 
 def inicio_logistica_app():
 
-    st.image(
-        "logologistica.jpg",
-        use_container_width=True
-    )
-
     st.title("🚚 Bienvenido al módulo de Logística")
 
     st.success(
@@ -82,7 +77,12 @@ def inicio_logistica_app():
         "SIGEM ERP · Gestión logística corporativa"
     )
 
+    st.image(
+        "logologistica.jpg",
+        use_container_width=True
+    )
 
+    
 def logistica_app():
 
     if "opcion_logistica" not in st.session_state:
