@@ -706,7 +706,7 @@ def carga_tablas_inicial_app():
             .duplicated(keep=False)
         ]
 
-        if duplicados.any():
+        if not duplicados.empty:
 
             st.warning(
                 "⚠️ Hay nombre_rol duplicados en el archivo"
@@ -753,7 +753,7 @@ def carga_tablas_inicial_app():
             .duplicated(keep=False)
         ]
 
-        if duplicados.any():
+        if not duplicados.empty:
 
             st.warning(
                 "⚠️ Hay rutas duplicadas en el archivo"
@@ -788,7 +788,7 @@ def carga_tablas_inicial_app():
             ["id_usuario", "id_rol"]
         ].duplicated(keep=False)
 
-        if duplicados.any():
+        if not duplicados.empty:
 
             st.warning(
                 "⚠️ Hay asignaciones usuario/rol duplicadas en el archivo"
@@ -840,7 +840,7 @@ def carga_tablas_inicial_app():
             ["id_rol", "id_modulo"]
         ].duplicated(keep=False)
 
-        if duplicados.any():
+        if not duplicados.empty:
 
             st.warning(
                 "⚠️ Hay permisos duplicados por rol/módulo en el archivo"
