@@ -145,7 +145,38 @@ def asegurar_tablas_logistica():
         )
         """
     )
+        columnas_solicitudes = obtener_columnas_tabla(
+        conn,
+        "solicitudes_baja_embarque"
+    )
 
+    if "folio_movimiento_inventario" not in columnas_solicitudes:
+
+        cursor.execute(
+            """
+            ALTER TABLE solicitudes_baja_embarque
+            ADD COLUMN folio_movimiento_inventario TEXT
+            """
+        )
+
+    if "fecha_confirmacion_inventario" not in columnas_solicitudes:
+
+        cursor.execute(
+            """
+            ALTER TABLE solicitudes_baja_embarque
+            ADD COLUMN fecha_confirmacion_inventario TEXT
+            """
+        )
+
+    if "usuario_confirmacion_inventario" not in columnas_solicitudes:
+
+        cursor.execute(
+            """
+            ALTER TABLE solicitudes_baja_embarque
+            ADD COLUMN usuario_confirmacion_inventario TEXT
+            """
+        )
+        
     conn.commit()
 
     conn.close()
