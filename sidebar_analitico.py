@@ -10,11 +10,11 @@ from wms_app import wms_app
 
 #def simular_login():
 
- #   st.session_state.autenticado = True
- #   st.session_state.usuario = "JCERVANTES"
- #   st.session_state.nombre = "JOSE JUANCERVANTES"
- #   st.session_state.rol = 1
- #   st.session_state.perfil = "ALL"
+   st.session_state.autenticado = True
+   st.session_state.usuario = "JCERVANTES"
+   st.session_state.nombre = "JOSE JUANCERVANTES"
+   st.session_state.rol = 1
+   st.session_state.perfil = "ALL"
 
 
 def analitico_app():
