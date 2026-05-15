@@ -1,39 +1,71 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
 
-from database import get_connection
+from sigem_db import get_db_path
+
+
+def get_conn_seguridad():
+
+    db_path = get_db_path("seguridad")
+
+    conn = sqlite3.connect(db_path)
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
 
 
 def sidebar_dinamico():
 
-    conn = get_connection()
+    rol_usuario = str(
+        st.session_state.get("rol", "")
+    ).strip()
 
-    menu_df = pd.read_sql_query(
-        """
-        SELECT DISTINCT
-            m.nombre_modulo,
-            m.icono,
-            m.ruta,
-            m.orden_menu
-        FROM permisos_roles pr
-        INNER JOIN roles r
-            ON pr.id_rol = r.id_rol
-        INNER JOIN modulos m
-            ON pr.id_modulo = m.id_modulo
-        WHERE r.nombre_rol = ?
-        AND pr.puede_ver = 1
-        AND m.activo = 1
-        ORDER BY m.orden_menu
-        """,
-        conn,
-        params=(st.session_state.rol,)
-    )
+    if not rol_usuario:
 
-    conn.close()
+        st.sidebar.warning("No hay rol asignado al usuario.")
+        return "inicio"
+
+    try:
+
+        conn = get_conn_seguridad()
+
+        menu_df = pd.read_sql_query(
+            """
+            SELECT DISTINCT
+                m.nombre_modulo,
+                m.ruta,
+                m.orden_menu
+            FROM rol_permisos rp
+            INNER JOIN roles r
+                ON rp.id_rol = r.id_rol
+            INNER JOIN modulos m
+                ON rp.id_modulo = m.id_modulo
+            WHERE r.nombre_rol = ?
+              AND rp.puede_ver = 1
+              AND IFNULL(m.estado, 'Activo') = 'Activo'
+            ORDER BY m.orden_menu
+            """,
+            conn,
+            params=(rol_usuario,)
+        )
+
+        conn.close()
+
+    except Exception as e:
+
+        st.sidebar.error("Error leyendo menú dinámico.")
+        st.sidebar.exception(e)
+        return "inicio"
 
     if menu_df.empty:
-        st.sidebar.warning("No hay módulos asignados")
-        return "inventarios"
+
+        st.sidebar.warning(
+            f"No hay módulos asignados para el rol: {rol_usuario}"
+        )
+
+        return "inicio"
 
     menu_df["nombre_modulo"] = (
         menu_df["nombre_modulo"]
@@ -47,6 +79,10 @@ def sidebar_dinamico():
         .str.strip()
     )
 
+    if "orden_menu" not in menu_df.columns:
+
+        menu_df["orden_menu"] = 999
+
     menu_df = (
         menu_df
         .sort_values("orden_menu")
@@ -56,9 +92,11 @@ def sidebar_dinamico():
     opciones = menu_df["nombre_modulo"].tolist()
 
     if "menu" not in st.session_state:
+
         st.session_state.menu = opciones[0]
 
     if st.session_state.menu not in opciones:
+
         st.session_state.menu = opciones[0]
 
     with st.sidebar:
