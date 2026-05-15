@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-conn = get_connection()
+from sigem_db import DB_CONFIG, get_db_path
 import mantenimiento_auditoria_app as auditoria
 
 
