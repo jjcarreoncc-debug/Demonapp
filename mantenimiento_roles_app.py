@@ -141,7 +141,8 @@ def asignar_roles_app():
 
     usuario_sel = st.selectbox(
         "Selecciona usuario",
-        usuarios_df["usuario"].tolist()
+        usuarios_df["usuario"].tolist(),
+        key="asignar_usuario_sel"
     )
 
     usuario_actual = usuarios_df[
@@ -175,7 +176,8 @@ def asignar_roles_app():
     rol_sel = st.selectbox(
         "Selecciona rol",
         roles_lista,
-        index=index_rol
+        index=index_rol,
+        key="asignar_rol_sel"
     )
 
     rol_nuevo = roles_df[
@@ -189,13 +191,15 @@ def asignar_roles_app():
     with col1:
 
         guardar = st.button(
-            "💾 Asignar rol"
+            "💾 Asignar rol",
+            key="btn_asignar_rol"
         )
 
     with col2:
 
         limpiar = st.button(
-            "🔄 Limpiar"
+            "🔄 Limpiar",
+            key="btn_limpiar_asignar_rol"
         )
 
     if limpiar:
@@ -374,17 +378,23 @@ def crear_rol_app():
 
         else:
 
-            roles_lista = roles_df["nombre_rol"].tolist()
+            roles_df["label_rol"] = (
+                roles_df["nombre_rol"].astype(str)
+                + " | ID: "
+                + roles_df["id_rol"].astype(str)
+            )
 
-            rol_sel = st.selectbox(
+            rol_label_sel = st.selectbox(
                 "Selecciona rol a modificar",
-                roles_lista,
-                key="modificar_rol_sel"
+                roles_df["label_rol"].tolist(),
+                key="modificar_rol_label_sel"
             )
 
             rol_actual = roles_df[
-                roles_df["nombre_rol"] == rol_sel
+                roles_df["label_rol"] == rol_label_sel
             ].iloc[0]
+
+            id_rol_actual = int(rol_actual["id_rol"])
 
             st.markdown("### 📌 Datos del rol")
 
@@ -395,7 +405,7 @@ def crear_rol_app():
                 nuevo_nombre = st.text_input(
                     "Nombre del rol *",
                     value=str(rol_actual["nombre_rol"]),
-                    key="modificar_nombre_rol"
+                    key=f"modificar_nombre_rol_{id_rol_actual}"
                 )
 
             with col2:
@@ -417,7 +427,7 @@ def crear_rol_app():
                         "Inactivo"
                     ],
                     index=index_estado,
-                    key="modificar_estado_rol"
+                    key=f"modificar_estado_rol_{id_rol_actual}"
                 )
 
             nueva_descripcion = st.text_area(
@@ -425,7 +435,7 @@ def crear_rol_app():
                 value=str(rol_actual["descripcion"])
                 if rol_actual["descripcion"] is not None
                 else "",
-                key="modificar_descripcion_rol"
+                key=f"modificar_descripcion_rol_{id_rol_actual}"
             )
 
             st.divider()
@@ -436,14 +446,14 @@ def crear_rol_app():
 
                 guardar_cambios = st.button(
                     "💾 Guardar cambios",
-                    key="btn_guardar_cambios_rol"
+                    key=f"btn_guardar_cambios_rol_{id_rol_actual}"
                 )
 
             with col_btn2:
 
                 limpiar_modificar = st.button(
                     "🔄 Limpiar",
-                    key="btn_limpiar_modificar_rol"
+                    key=f"btn_limpiar_modificar_rol_{id_rol_actual}"
                 )
 
             if limpiar_modificar:
@@ -478,7 +488,7 @@ def crear_rol_app():
                             nuevo_nombre.strip(),
                             nueva_descripcion.strip(),
                             nuevo_estado,
-                            int(rol_actual["id_rol"])
+                            id_rol_actual
                         )
                     )
 
