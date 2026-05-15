@@ -21,6 +21,45 @@ def get_conn_seguridad():
     return conn
 
 
+def validar_tabla_roles():
+
+    conn = get_conn_seguridad()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS roles (
+            id_rol INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre_rol TEXT UNIQUE,
+            descripcion TEXT,
+            estado TEXT DEFAULT 'Activo'
+        )
+        """
+    )
+
+    cur.execute("PRAGMA table_info(roles)")
+    columnas = [col[1] for col in cur.fetchall()]
+
+    if "descripcion" not in columnas:
+        cur.execute(
+            """
+            ALTER TABLE roles
+            ADD COLUMN descripcion TEXT
+            """
+        )
+
+    if "estado" not in columnas:
+        cur.execute(
+            """
+            ALTER TABLE roles
+            ADD COLUMN estado TEXT DEFAULT 'Activo'
+            """
+        )
+
+    conn.commit()
+    conn.close()
+
+
 def obtener_usuarios():
 
     conn = get_conn_seguridad()
@@ -44,6 +83,8 @@ def obtener_usuarios():
 
 
 def obtener_roles():
+
+    validar_tabla_roles()
 
     conn = get_conn_seguridad()
 
@@ -181,22 +222,7 @@ def asignar_roles_app():
                 )
             )
 
-            cur.execute(
-                """
-                INSERT INTO usuario_roles (
-                    id_usuario,
-                    id_rol
-                )
-                VALUES (?, ?)
-                """,
-                (
-                    int(usuario_actual["id_usuario"]),
-                    int(rol_nuevo["id_rol"])
-                )
-            )
-
             conn.commit()
-
             conn.close()
 
             st.success(
@@ -212,6 +238,8 @@ def asignar_roles_app():
 
 
 def crear_rol_app():
+
+    validar_tabla_roles()
 
     admin_css()
 
@@ -299,7 +327,6 @@ def crear_rol_app():
             )
 
             conn.commit()
-
             conn.close()
 
             st.success(
@@ -315,3 +342,210 @@ def crear_rol_app():
             )
 
             st.exception(e)
+
+
+def modificar_rol_app():
+
+    validar_tabla_roles()
+
+    admin_css()
+
+    admin_header(
+        "✏️ Modificar Rol",
+        "Actualización de roles del sistema."
+    )
+
+    st.divider()
+
+    roles_df = obtener_roles()
+
+    if roles_df.empty:
+
+        st.warning("⚠️ No hay roles registrados.")
+        return
+
+    roles_lista = roles_df["nombre_rol"].tolist()
+
+    rol_sel = st.selectbox(
+        "Selecciona rol a modificar",
+        roles_lista
+    )
+
+    rol_actual = roles_df[
+        roles_df["nombre_rol"] == rol_sel
+    ].iloc[0]
+
+    st.markdown("### 📌 Datos del rol")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        nuevo_nombre = st.text_input(
+            "Nombre del rol *",
+            value=str(rol_actual["nombre_rol"])
+        )
+
+    with col2:
+
+        estado_actual = str(rol_actual["estado"])
+
+        if estado_actual == "Inactivo":
+
+            index_estado = 1
+
+        else:
+
+            index_estado = 0
+
+        nuevo_estado = st.selectbox(
+            "Estado",
+            [
+                "Activo",
+                "Inactivo"
+            ],
+            index=index_estado
+        )
+
+    nueva_descripcion = st.text_area(
+        "Descripción del rol",
+        value=str(rol_actual["descripcion"])
+        if rol_actual["descripcion"] is not None
+        else ""
+    )
+
+    st.divider()
+
+    col_btn1, col_btn2, col_btn3 = st.columns([1, 1, 3])
+
+    with col_btn1:
+
+        guardar = st.button(
+            "💾 Guardar cambios"
+        )
+
+    with col_btn2:
+
+        limpiar = st.button(
+            "🔄 Limpiar"
+        )
+
+    if limpiar:
+
+        st.rerun()
+
+    if guardar:
+
+        if not nuevo_nombre.strip():
+
+            st.warning(
+                "⚠️ El nombre del rol es obligatorio."
+            )
+
+            return
+
+        try:
+
+            conn = get_conn_seguridad()
+
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                UPDATE roles
+                SET
+                    nombre_rol = ?,
+                    descripcion = ?,
+                    estado = ?
+                WHERE id_rol = ?
+                """,
+                (
+                    nuevo_nombre.strip(),
+                    nueva_descripcion.strip(),
+                    nuevo_estado,
+                    int(rol_actual["id_rol"])
+                )
+            )
+
+            conn.commit()
+            conn.close()
+
+            st.success(
+                f"✅ Rol '{nuevo_nombre}' actualizado correctamente."
+            )
+
+            st.rerun()
+
+        except Exception as e:
+
+            st.error(
+                "❌ No se pudo actualizar el rol."
+            )
+
+            st.exception(e)
+
+
+def consultar_roles_app():
+
+    validar_tabla_roles()
+
+    admin_css()
+
+    admin_header(
+        "🔎 Consultar Roles",
+        "Consulta de roles registrados en el sistema."
+    )
+
+    st.divider()
+
+    roles_df = obtener_roles()
+
+    if roles_df.empty:
+
+        st.info("No hay roles registrados.")
+        return
+
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+
+        filtro = st.text_input(
+            "Buscar por nombre o descripción"
+        )
+
+    with col2:
+
+        filtro_estado = st.selectbox(
+            "Estado",
+            [
+                "Todos",
+                "Activo",
+                "Inactivo"
+            ]
+        )
+
+    consulta_df = roles_df.copy()
+
+    if filtro.strip():
+
+        filtro_limpio = filtro.strip().lower()
+
+        consulta_df = consulta_df[
+            consulta_df["nombre_rol"].astype(str).str.lower().str.contains(filtro_limpio)
+            |
+            consulta_df["descripcion"].astype(str).str.lower().str.contains(filtro_limpio)
+        ]
+
+    if filtro_estado != "Todos":
+
+        consulta_df = consulta_df[
+            consulta_df["estado"] == filtro_estado
+        ]
+
+    st.markdown("### 📋 Roles registrados")
+
+    st.dataframe(
+        consulta_df,
+        use_container_width=True,
+        hide_index=True
+    )
