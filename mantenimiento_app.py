@@ -59,6 +59,7 @@ def mantenimiento_app():
         )
 
         if menu == "👥 Usuarios":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -71,6 +72,7 @@ def mantenimiento_app():
             )
 
         elif menu == "🧩 Roles":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -82,6 +84,7 @@ def mantenimiento_app():
             )
 
         elif menu == "🔐 Permisos":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -92,7 +95,12 @@ def mantenimiento_app():
                 key="submenu_permisos"
             )
 
+        elif menu == "🧪 Copiar seguridad ERP":
+
+            submenu = "Copiar seguridad ERP"
+
         elif menu == "🧱 Módulos":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -102,6 +110,7 @@ def mantenimiento_app():
             )
 
         elif menu == "📜 Auditoría":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -114,6 +123,7 @@ def mantenimiento_app():
             )
 
         elif menu == "⚙️ Configuración":
+
             submenu = st.radio(
                 "Opciones",
                 [
@@ -129,51 +139,68 @@ def mantenimiento_app():
                 key="submenu_configuracion"
             )
 
+        else:
+
+            submenu = "General"
+
     st.caption(f"{menu} / {submenu}")
 
     if menu == "👥 Usuarios" and submenu == "Crear usuario":
+
         alta_usuario_app()
 
     elif menu == "👥 Usuarios" and submenu == "Editar usuario":
+
         editar_usuario_app()
 
     elif menu == "👥 Usuarios" and submenu == "Consultar usuarios":
+
         consultar_usuarios_app()
 
     elif menu == "🧩 Roles" and submenu == "Asignar usuarios":
+
         asignar_roles_app()
 
     elif menu == "🧩 Roles" and submenu == "Crear rol":
+
         crear_rol_app()
 
     elif menu == "🔐 Permisos" and submenu == "Permisos por módulo":
+
         permisos_por_modulo_app()
 
     elif menu == "🔐 Permisos" and submenu == "Permisos por rol":
+
         permisos_por_rol_app()
 
-    elif menu == "🧪 Copiar seguridad ERP":
-        submenu = "Copiar seguridad ERP"
+    elif menu == "🧪 Copiar seguridad ERP" and submenu == "Copiar seguridad ERP":
+
         copiar_seguridad_desde_erp_app()
-        
-    
+
     elif menu == "🧱 Módulos" and submenu == "Administrar módulos":
+
         administrar_modulos_app()
 
     elif menu == "📜 Auditoría" and submenu == "Historial acciones":
+
         consultar_auditoria_app()
 
     elif menu == "⚙️ Configuración" and submenu == "Actualización de tablas":
+
         actualizacion_tablas_app()
 
     elif menu == "⚙️ Configuración" and submenu == "Carga tablas inicial":
+
         carga_tablas_inicial_app()
 
     elif menu == "⚙️ Configuración" and submenu == "🗄️ Crear tablas":
+
         crear_tablas_app()
 
     elif menu == "⚙️ Configuración" and submenu == "🔍 Revisar estructura DB":
+
         revisar_estructura_db_app()
-    
+
     else:
+
         st.info(f"Pantalla en construcción: {submenu}")
