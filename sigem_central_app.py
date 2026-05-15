@@ -13,31 +13,44 @@ from menu_dinamico import sidebar_dinamico
 # =====================================================
 
 if "autenticado" not in st.session_state:
+
     st.session_state.autenticado = False
 
 if "rol" not in st.session_state:
+
     st.session_state.rol = None
 
 if not st.session_state.autenticado:
+
     login_app()
+
     st.stop()
+
 
 logout_app()
 
 
-    # =====================================================
-    # MENU DINAMICO
-    # =====================================================
-    
-    ruta = sidebar_dinamico()
-    
-    
-    # =====================================================
-    # ROUTER CENTRAL
-    # =====================================================
+# =====================================================
+# MENU DINAMICO
+# =====================================================
+
+ruta = sidebar_dinamico()
+
+
+# =====================================================
+# DEBUG
+# =====================================================
+
 st.write("DEBUG ruta:", ruta)
+
 st.write("DEBUG rol:", st.session_state.get("rol"))
+
 st.write("DEBUG usuario:", st.session_state.get("usuario"))
+
+
+# =====================================================
+# ROUTER CENTRAL
+# =====================================================
 
 if ruta == "inicio":
 
