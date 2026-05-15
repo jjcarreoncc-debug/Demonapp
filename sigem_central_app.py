@@ -56,13 +56,13 @@ with st.sidebar:
         }
     
         section[data-testid="stSidebar"] .block-container {
-            padding-top: 0.5rem;
+            padding-top: 0.3rem;
             padding-bottom: 0rem;
         }
     
         div.stButton > button {
-            padding-top: 0.3rem;
-            padding-bottom: 0.3rem;
+            padding-top: 0.1rem;
+            padding-bottom: 0.1rem;
         }
     
         </style>
@@ -72,7 +72,7 @@ with st.sidebar:
     
     st.image(
         "logo1.png",
-        width=150
+        width=100
     )
 
     
