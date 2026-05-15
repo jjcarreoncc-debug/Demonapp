@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
-from database import get_connection
+import sqlite3
+
+from sigem_db import get_db_path
 
 from ui_admin import (
     admin_css,
@@ -9,11 +11,25 @@ from ui_admin import (
 
 
 # =====================================
+# CONEXION SEGURIDAD
+# =====================================
+def get_conn_seguridad():
+
+    db_path = get_db_path("seguridad")
+
+    conn = sqlite3.connect(db_path)
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+
+# =====================================
 # VALIDAR TABLAS
 # =====================================
 def validar_tablas_permisos():
 
-    conn = get_connection()
+    conn = get_conn_seguridad()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -69,7 +85,7 @@ def validar_tablas_permisos():
 # =====================================
 def obtener_roles():
 
-    conn = get_connection()
+    conn = get_conn_seguridad()
 
     df = pd.read_sql_query(
         """
@@ -95,7 +111,7 @@ def obtener_roles():
 # =====================================
 def obtener_modulos_activos():
 
-    conn = get_connection()
+    conn = get_conn_seguridad()
 
     df = pd.read_sql_query(
         """
@@ -123,7 +139,7 @@ def obtener_modulos_activos():
 # =====================================
 def obtener_permisos_rol(id_rol):
 
-    conn = get_connection()
+    conn = get_conn_seguridad()
 
     df = pd.read_sql_query(
         """
@@ -261,7 +277,7 @@ def permisos_por_modulo_app():
 
             try:
 
-                conn = get_connection()
+                conn = get_conn_seguridad()
                 cursor = conn.cursor()
 
                 cursor.execute(
@@ -393,7 +409,7 @@ def permisos_por_modulo_app():
 
             try:
 
-                conn = get_connection()
+                conn = get_conn_seguridad()
                 cursor = conn.cursor()
 
                 cursor.execute(
@@ -521,7 +537,7 @@ def permisos_por_modulo_app():
 
 
 # =====================================
-# COMPATIBILIDAD CON MENÚ ANTERIOR
+# COMPATIBILIDAD MENÚ ANTERIOR
 # =====================================
 def permisos_por_rol_app():
 
