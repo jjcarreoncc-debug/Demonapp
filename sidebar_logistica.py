@@ -2,12 +2,14 @@ import streamlit as st
 
 
 def set_opcion_logistica(menu, submenu, opcion):
+
     st.session_state.menu_logistica = menu
     st.session_state.submenu_logistica = submenu
     st.session_state.opcion_logistica = opcion
 
 
 def boton_logistica(texto, key, menu, submenu, opcion):
+
     st.button(
         texto,
         use_container_width=True,
@@ -21,7 +23,28 @@ def sidebar_logistica():
 
     with st.sidebar:
 
-        
+        st.markdown(
+            """
+            <style>
+
+            section[data-testid="stSidebar"] {
+                background-color: #dbeafe;
+            }
+
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        st.image(
+            "logo1.png",
+            width=140
+        )
+
+        st.caption("ERP Corporativo")
+
+        st.markdown("---")
+
         if "menu_logistica" not in st.session_state:
             st.session_state.menu_logistica = "Embarques"
 
@@ -29,7 +52,7 @@ def sidebar_logistica():
             st.session_state.submenu_logistica = "Gestión de embarques"
 
         if "opcion_logistica" not in st.session_state:
-            st.session_state.opcion_logistica = "➕ Alta embarque"
+            st.session_state.opcion_logistica = "🏠 Inicio"
 
         boton_logistica(
             "🏠 Inicio",
