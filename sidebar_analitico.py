@@ -3,6 +3,7 @@ import pandas as pd
 
 from mantenimiento_auditoria_app import registrar_auditoria
 from database import get_connection
+from sidebar_analitico import analitico_app
 
 
 def administrar_roles_app():
