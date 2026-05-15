@@ -1,15 +1,31 @@
 import streamlit as st
 import pandas as pd
+import sqlite3
+
+from sigem_db import get_db_path
 
 from mantenimiento_auditoria_app import registrar_auditoria
-from database import get_connection
+
+
+# =====================================
+# CONEXION SEGURIDAD
+# =====================================
+def get_conn_seguridad():
+
+    db_path = get_db_path("seguridad")
+
+    conn = sqlite3.connect(db_path)
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
 
 
 def administrar_modulos_app():
 
     st.subheader("🧱 Administrar módulos")
 
-    conn = get_connection()
+    conn = get_conn_seguridad()
     cursor = conn.cursor()
 
     # =====================================
@@ -127,7 +143,10 @@ def administrar_modulos_app():
                         conn.commit()
 
                         registrar_auditoria(
-                            st.session_state.get("usuario", "SIN_USUARIO"),
+                            st.session_state.get(
+                                "usuario",
+                                "SIN_USUARIO"
+                            ),
                             "Módulos",
                             "CREAR",
                             f"Creó módulo {nombre_modulo.strip()}"
@@ -176,7 +195,8 @@ def administrar_modulos_app():
         else:
 
             opciones_modulos = {
-                f"{row['icono']} {row['nombre_modulo']} - {row['ruta']}": row["id_modulo"]
+                f"{row['icono']} {row['nombre_modulo']} - {row['ruta']}":
+                row["id_modulo"]
                 for _, row in modulos_df.iterrows()
             }
 
@@ -185,7 +205,9 @@ def administrar_modulos_app():
                 list(opciones_modulos.keys())
             )
 
-            id_modulo = opciones_modulos[modulo_seleccionado]
+            id_modulo = opciones_modulos[
+                modulo_seleccionado
+            ]
 
             modulo_actual = modulos_df[
                 modulos_df["id_modulo"] == id_modulo
@@ -195,28 +217,38 @@ def administrar_modulos_app():
 
                 nuevo_nombre = st.text_input(
                     "Nombre módulo",
-                    value=str(modulo_actual["nombre_modulo"])
+                    value=str(
+                        modulo_actual["nombre_modulo"]
+                    )
                 )
 
                 nueva_ruta = st.text_input(
                     "Ruta",
-                    value=str(modulo_actual["ruta"])
+                    value=str(
+                        modulo_actual["ruta"]
+                    )
                 )
 
                 nuevo_icono = st.text_input(
                     "Icono",
-                    value=str(modulo_actual["icono"])
+                    value=str(
+                        modulo_actual["icono"]
+                    )
                 )
 
                 nuevo_orden = st.number_input(
                     "Orden menú",
                     min_value=1,
-                    value=int(modulo_actual["orden_menu"])
+                    value=int(
+                        modulo_actual["orden_menu"]
+                    )
                 )
 
                 nuevo_activo = st.checkbox(
                     "Activo",
-                    value=bool(modulo_actual["activo"])
+                    value=bool(
+                        modulo_actual["activo"]
+                    )
                 )
 
                 guardar_cambios = st.form_submit_button(
@@ -265,7 +297,10 @@ def administrar_modulos_app():
                             conn.commit()
 
                             registrar_auditoria(
-                                st.session_state.get("usuario", "SIN_USUARIO"),
+                                st.session_state.get(
+                                    "usuario",
+                                    "SIN_USUARIO"
+                                ),
                                 "Módulos",
                                 "ACTUALIZAR",
                                 f"Actualizó módulo {nuevo_nombre.strip()}"
