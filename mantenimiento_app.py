@@ -6,7 +6,6 @@ from test_copiar_seguridad_desde_erp import copiar_seguridad_desde_erp_app
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
-    consultar_usuario_app,
     editar_usuario_app
 )
 
@@ -153,7 +152,7 @@ def mantenimiento_app():
 
         editar_usuario_app()
 
-    elif menu == "👥 Usuarios" and submenu == "Consultar usuarios":
+    elif menu == "📋 Consultar usuarios":
 
         consultar_usuario_app()
 
