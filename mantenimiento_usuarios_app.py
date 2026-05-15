@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from database import get_connection
+conn = get_connection()
 import mantenimiento_auditoria_app as auditoria
 
 
