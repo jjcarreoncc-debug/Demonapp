@@ -156,6 +156,36 @@ COLUMNAS_MINIMAS = {
         "usuario_cierre",
         "observaciones",
         "fecha_creacion"
+    ],
+
+    "roles": [
+        "nombre_rol",
+        "descripcion",
+        "estatus",
+        "estado"
+    ],
+
+    "modulos": [
+        "nombre_modulo",
+        "ruta",
+        "icono",
+        "orden_menu",
+        "activo",
+        "estado"
+    ],
+
+    "usuario_roles": [
+        "id_usuario",
+        "id_rol"
+    ],
+
+    "rol_permisos": [
+        "id_rol",
+        "id_modulo",
+        "puede_ver",
+        "puede_crear",
+        "puede_editar",
+        "puede_borrar"
     ]
 }
 
@@ -190,7 +220,15 @@ DB_POR_TABLA = {
 
     "detalle_embarque": "logistica",
 
-    "incidencias": "logistica"
+    "incidencias": "logistica",
+
+    "roles": "seguridad",
+
+    "modulos": "seguridad",
+
+    "usuario_roles": "seguridad",
+
+    "rol_permisos": "seguridad"
 }
 
 
@@ -211,7 +249,8 @@ def carga_tablas_inicial_app():
         [
             "Inventarios",
             "Compras",
-            "Logística"
+            "Logística",
+            "Seguridad"
         ],
         key="carga_modulo"
     )
@@ -242,6 +281,15 @@ def carga_tablas_inicial_app():
             "embarques",
             "detalle_embarque",
             "incidencias"
+        ]
+
+    elif modulo == "Seguridad":
+
+        tablas_disponibles = [
+            "roles",
+            "modulos",
+            "usuario_roles",
+            "rol_permisos"
         ]
 
     tabla = st.selectbox(
@@ -631,6 +679,175 @@ def carga_tablas_inicial_app():
 
             st.dataframe(
                 duplicados,
+                use_container_width=True
+            )
+
+            return
+
+    # =====================================================
+    # VALIDACIONES ESPECIALES SEGURIDAD
+    # =====================================================
+
+    if tabla == "roles":
+
+        if df["nombre_rol"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin nombre_rol"
+            )
+
+            return
+
+        duplicados = df[
+            df["nombre_rol"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .duplicated(keep=False)
+        ]
+
+        if duplicados.any():
+
+            st.warning(
+                "⚠️ Hay nombre_rol duplicados en el archivo"
+            )
+
+            st.dataframe(
+                df[duplicados],
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "modulos":
+
+        if df["nombre_modulo"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin nombre_modulo"
+            )
+
+            return
+
+        if df["ruta"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin ruta"
+            )
+
+            return
+
+        if df["orden_menu"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin orden_menu"
+            )
+
+            return
+
+        duplicados = df[
+            df["ruta"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .duplicated(keep=False)
+        ]
+
+        if duplicados.any():
+
+            st.warning(
+                "⚠️ Hay rutas duplicadas en el archivo"
+            )
+
+            st.dataframe(
+                df[duplicados],
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "usuario_roles":
+
+        if df["id_usuario"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin id_usuario"
+            )
+
+            return
+
+        if df["id_rol"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin id_rol"
+            )
+
+            return
+
+        duplicados = df[
+            ["id_usuario", "id_rol"]
+        ].duplicated(keep=False)
+
+        if duplicados.any():
+
+            st.warning(
+                "⚠️ Hay asignaciones usuario/rol duplicadas en el archivo"
+            )
+
+            st.dataframe(
+                df[duplicados],
+                use_container_width=True
+            )
+
+            return
+
+    if tabla == "rol_permisos":
+
+        if df["id_rol"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin id_rol"
+            )
+
+            return
+
+        if df["id_modulo"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin id_modulo"
+            )
+
+            return
+
+        columnas_permiso = [
+            "puede_ver",
+            "puede_crear",
+            "puede_editar",
+            "puede_borrar"
+        ]
+
+        for columna in columnas_permiso:
+
+            if df[columna].isna().any():
+
+                st.error(
+                    f"❌ Hay registros sin {columna}"
+                )
+
+                return
+
+        duplicados = df[
+            ["id_rol", "id_modulo"]
+        ].duplicated(keep=False)
+
+        if duplicados.any():
+
+            st.warning(
+                "⚠️ Hay permisos duplicados por rol/módulo en el archivo"
+            )
+
+            st.dataframe(
+                df[duplicados],
                 use_container_width=True
             )
 
