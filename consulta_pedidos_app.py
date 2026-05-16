@@ -673,13 +673,8 @@ def consulta_pedidos_app():
     # LAYOUT HORIZONTAL ESTILO KARDEX
     # ======================================================
 
-    col_filtros, col_contenido = st.columns(
-        [
-            0.85,
-            5.3
-        ]
-    )
-
+    col_filtros, col_contenido = st.columns([0.85, 5.3])
+    
     # ======================================================
     # FILTROS IZQUIERDA
     # ======================================================
