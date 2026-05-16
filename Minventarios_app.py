@@ -18,6 +18,7 @@ from consulta_ajustes_app import consulta_ajustes_app
 from diferencias_valorizadas_app import diferencias_valorizadas_app
 from consulta_pedidos_app import consulta_pedidos_app
 from crear_entrega_app import pantalla_crear_entrega
+from cancelacion_entrega_app import cancelacion_entrega_app
 
 from embarques_inventario_app import (
     embarques_inventario_app
@@ -169,6 +170,9 @@ def inventarios_app():
 
     elif opcion_limpia == "creación de entregas":
         pantalla_crear_entrega()
+
+    elif ruta == "cancelacion_entrega":
+        cancelacion_entrega_app()
     
     # =========================
     # KARDEX
