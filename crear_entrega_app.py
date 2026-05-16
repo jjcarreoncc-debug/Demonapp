@@ -123,6 +123,7 @@ def generar_folio_entrega():
 # OBTENER PEDIDOS PARA CREAR ENTREGA
 # ============================================================
 def obtener_pedidos_para_entrega():
+
     logistica_path = get_db_path("logistica")
     inventarios_path = get_db_path("inventarios")
 
@@ -130,14 +131,18 @@ def obtener_pedidos_para_entrega():
     cur = conn.cursor()
 
     try:
-        cur.execute(f"ATTACH DATABASE '{inventarios_path}' AS invdb")
+
+        cur.execute(
+            f"ATTACH DATABASE '{inventarios_path}' AS invdb"
+        )
 
         query = """
-            WITH stock AS (
+
+            WITH stock_bodega AS (
+
                 SELECT
                     codigo_material,
                     bodega,
-                    ubicacion,
 
                     SUM(
                         CASE
@@ -156,13 +161,41 @@ def obtener_pedidos_para_entrega():
                     ) AS stock_reservado
 
                 FROM invdb.movimientos_inventario
+
                 GROUP BY
                     codigo_material,
-                    bodega,
-                    ubicacion
+                    bodega
+            ),
+
+            stock_total AS (
+
+                SELECT
+                    codigo_material,
+
+                    SUM(
+                        CASE
+                            WHEN tipo_movimiento <> 'RESERVA'
+                            THEN cantidad
+                            ELSE 0
+                        END
+                    ) AS stock_total,
+
+                    SUM(
+                        CASE
+                            WHEN tipo_movimiento = 'RESERVA'
+                            THEN cantidad
+                            ELSE 0
+                        END
+                    ) AS reservado_total
+
+                FROM invdb.movimientos_inventario
+
+                GROUP BY
+                    codigo_material
             )
 
             SELECT
+
                 p.pedido,
                 p.fecha,
                 p.cliente,
@@ -175,19 +208,35 @@ def obtener_pedidos_para_entrega():
                 d.bodega,
                 d.ubicacion,
 
-                COALESCE(s.stock_actual, 0) AS stock_actual,
-                COALESCE(s.stock_reservado, 0) AS stock_reservado,
-                COALESCE(s.stock_actual, 0) - COALESCE(s.stock_reservado, 0) AS stock_disponible
+                COALESCE(sb.stock_actual, 0)
+                AS stock_actual,
+
+                COALESCE(sb.stock_reservado, 0)
+                AS stock_reservado,
+
+                (
+                    COALESCE(sb.stock_actual, 0)
+                    -
+                    COALESCE(sb.stock_reservado, 0)
+                ) AS stock_disponible,
+
+                (
+                    COALESCE(st.stock_total, 0)
+                    -
+                    COALESCE(st.reservado_total, 0)
+                ) AS stock_total_disponible
 
             FROM pedidos p
 
             INNER JOIN detalle_pedido d
                 ON p.pedido = d.pedido
 
-            LEFT JOIN stock s
-                ON d.codigo_material = s.codigo_material
-                AND COALESCE(d.bodega, '') = COALESCE(s.bodega, '')
-                AND COALESCE(d.ubicacion, '') = COALESCE(s.ubicacion, '')
+            LEFT JOIN stock_bodega sb
+                ON d.codigo_material = sb.codigo_material
+                AND d.bodega = sb.bodega
+
+            LEFT JOIN stock_total st
+                ON d.codigo_material = st.codigo_material
 
             WHERE p.estatus IN (
                 'Pendiente',
@@ -198,12 +247,17 @@ def obtener_pedidos_para_entrega():
                 p.fecha,
                 p.pedido,
                 d.codigo_material
+
         """
 
         df = pd.read_sql_query(query, conn)
 
     except Exception as e:
-        st.error(f"Error al consultar pedidos: {e}")
+
+        st.error(
+            f"Error al consultar pedidos: {e}"
+        )
+
         df = pd.DataFrame()
 
     conn.close()
@@ -212,11 +266,24 @@ def obtener_pedidos_para_entrega():
         return df
 
     def calcular_semaforo(row):
-        if row["stock_disponible"] >= row["cantidad_pedida"]:
-            return "🟢 Listo"
-        return "🔴 Sin inventario"
 
-    df["semaforo"] = df.apply(calcular_semaforo, axis=1)
+        disponible_bodega = row["stock_disponible"]
+        disponible_total = row["stock_total_disponible"]
+        cantidad = row["cantidad_pedida"]
+
+        if disponible_bodega >= cantidad:
+            return "🟢 Listo"
+
+        elif disponible_total >= cantidad:
+            return "🟡 Requiere transferencia"
+
+        else:
+            return "🔴 Sin inventario"
+
+    df["semaforo"] = df.apply(
+        calcular_semaforo,
+        axis=1
+    )
 
     return df
 
@@ -345,7 +412,7 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
                 item["bodega"],
                 item["ubicacion"],
                 folio,
-                "Reserva generada por creación de entrega",
+                "Reserva generada por creación de entrega virtual",
                 usuario,
                 folio,
                 "ENTREGA",
@@ -421,12 +488,12 @@ def pantalla_crear_entrega():
     crear_tabla_movimientos_reserva()
 
     st.markdown(
-        '<div class="titulo-entrega">🚚 Creación de Entregas</div>',
+        '<div class="titulo-entrega">🚚 Creación de Entregas Virtuales</div>',
         unsafe_allow_html=True
     )
 
     st.markdown(
-        '<div class="subtitulo-entrega">Selecciona pedidos listos para reservar inventario y generar un folio de entrega.</div>',
+        '<div class="subtitulo-entrega">Selecciona pedidos con inventario disponible en la misma bodega para reservar producto y generar folio de entrega.</div>',
         unsafe_allow_html=True
     )
 
@@ -439,20 +506,24 @@ def pantalla_crear_entrega():
     total_lineas = len(df)
     total_pedidos = df["pedido"].nunique()
     listos = len(df[df["semaforo"] == "🟢 Listo"])
+    transferencia = len(df[df["semaforo"] == "🟡 Requiere transferencia"])
     sin_inventario = len(df[df["semaforo"] == "🔴 Sin inventario"])
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
         st.metric("Pedidos", total_pedidos)
 
     with col2:
-        st.metric("Líneas listas", listos)
+        st.metric("Listos", listos)
 
     with col3:
-        st.metric("Sin inventario", sin_inventario)
+        st.metric("Transferencia", transferencia)
 
     with col4:
+        st.metric("Sin inventario", sin_inventario)
+
+    with col5:
         st.metric("Total líneas", total_lineas)
 
     st.divider()
@@ -476,7 +547,12 @@ def pantalla_crear_entrega():
     with colf3:
         filtro_semaforo = st.selectbox(
             "Semáforo",
-            ["Todos", "🟢 Listo", "🔴 Sin inventario"]
+            [
+                "Todos",
+                "🟢 Listo",
+                "🟡 Requiere transferencia",
+                "🔴 Sin inventario"
+            ]
         )
 
     with colf4:
@@ -511,13 +587,13 @@ def pantalla_crear_entrega():
 
     st.divider()
 
-    st.subheader("📋 Pedidos disponibles para entrega")
+    st.subheader("📋 Pedidos disponibles para entrega virtual")
 
     df_editor = df_filtrado.copy()
     df_editor.insert(0, "seleccionar", False)
 
     df_editor["bloqueado"] = df_editor["semaforo"].apply(
-        lambda x: "Sí" if x != "🟢 Listo" else "No"
+        lambda x: "No" if x == "🟢 Listo" else "Sí"
     )
 
     columnas_mostrar = [
@@ -534,6 +610,7 @@ def pantalla_crear_entrega():
         "stock_actual",
         "stock_reservado",
         "stock_disponible",
+        "stock_total_disponible",
         "bodega",
         "ubicacion",
         "bloqueado"
@@ -557,9 +634,10 @@ def pantalla_crear_entrega():
             "codigo_material": st.column_config.TextColumn("Material"),
             "descripcion": st.column_config.TextColumn("Descripción"),
             "cantidad_pedida": st.column_config.NumberColumn("Cantidad"),
-            "stock_actual": st.column_config.NumberColumn("Stock físico"),
-            "stock_reservado": st.column_config.NumberColumn("Reservado"),
-            "stock_disponible": st.column_config.NumberColumn("Disponible"),
+            "stock_actual": st.column_config.NumberColumn("Stock bodega"),
+            "stock_reservado": st.column_config.NumberColumn("Reservado bodega"),
+            "stock_disponible": st.column_config.NumberColumn("Disponible bodega"),
+            "stock_total_disponible": st.column_config.NumberColumn("Disponible total"),
             "bodega": st.column_config.TextColumn("Bodega"),
             "ubicacion": st.column_config.TextColumn("Ubicación"),
             "bloqueado": st.column_config.TextColumn("Bloqueado")
@@ -577,6 +655,7 @@ def pantalla_crear_entrega():
             "stock_actual",
             "stock_reservado",
             "stock_disponible",
+            "stock_total_disponible",
             "bodega",
             "ubicacion",
             "bloqueado"
@@ -610,15 +689,17 @@ def pantalla_crear_entrega():
         st.metric("No válidas", len(seleccionados_invalidos))
 
     if not seleccionados_invalidos.empty:
-        st.warning("Hay líneas seleccionadas sin inventario. No se tomarán para crear la entrega.")
+        st.warning(
+            "Hay líneas seleccionadas que requieren transferencia o no tienen inventario. No se tomarán para crear la entrega."
+        )
 
-    observaciones = st.text_area("Observaciones de la entrega")
+    observaciones = st.text_area("Observaciones de la entrega virtual")
 
     folio = generar_folio_entrega()
 
     st.info(f"Folio a generar: {folio}")
 
-    if st.button("🚚 Generar entrega seleccionada", use_container_width=True):
+    if st.button("🚚 Generar entrega virtual seleccionada", use_container_width=True):
 
         if seleccionados_validos.empty:
             st.error("Debes seleccionar al menos una línea con semáforo 🟢 Listo.")
@@ -634,11 +715,11 @@ def pantalla_crear_entrega():
         )
 
         if ok:
-            st.success(f"Entrega creada correctamente con folio: {resultado}")
+            st.success(f"Entrega virtual creada correctamente con folio: {resultado}")
             st.balloons()
             st.rerun()
         else:
-            st.error(f"Error al crear entrega: {resultado}")
+            st.error(f"Error al crear entrega virtual: {resultado}")
 
 
 # ============================================================
