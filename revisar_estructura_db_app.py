@@ -72,16 +72,32 @@ TABLAS_MODULOS = {
         "detalle_orden_compra",
         "recepciones_compra"
     ],
-
+    #
     "Logística": [
+
+        "clientes",
+    
+        "pedidos",
+    
+        "detalle_pedido",
+    
+        "hoja_carga",
+    
+        "detalle_hoja_carga",
+    
         "embarques",
+    
         "detalle_embarque",
+    
         "transportes",
+    
         "rutas",
+    
         "puntos_ruta",
+    
         "eventos_embarque"
     ],
-
+    #
     "WMS": [
         "ubicaciones_wms",
         "movimientos_wms"
