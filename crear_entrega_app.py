@@ -528,7 +528,7 @@ def pantalla_crear_entrega():
 
     st.divider()
 
-    col_filtros, col_contenido = st.columns([0.85, 5.3])
+    col_filtros, col_contenido = st.columns([1.05, 5])
 
     with col_filtros:
 
@@ -558,9 +558,7 @@ def pantalla_crear_entrega():
             "Buscar pedido/material"
         )
 
-    with col_contenido:
-
-        df_filtrado = df.copy()
+    df_filtrado = df.copy()
 
     if filtro_cliente != "Todos":
         df_filtrado = df_filtrado[
@@ -587,9 +585,9 @@ def pantalla_crear_entrega():
             | df_filtrado["cliente"].astype(str).str.lower().str.contains(texto, na=False)
         ]
 
-        st.divider()
+    st.divider()
 
-        st.subheader("📋 Pedidos disponibles para entrega virtual")
+    st.subheader("📋 Pedidos disponibles para entrega virtual")
 
     df_editor = df_filtrado.copy()
     df_editor.insert(0, "seleccionar", False)
