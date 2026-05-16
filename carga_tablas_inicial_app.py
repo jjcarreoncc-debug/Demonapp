@@ -233,6 +233,146 @@ DB_POR_TABLA = {
 
 
 # =====================================================
+# CAMPOS NUEVOS MATERIALES
+# =====================================================
+
+CAMPOS_LOGISTICOS_MATERIALES = {
+
+    "tipo_manejo": "TEXT",
+    "unidad_logistica": "TEXT",
+
+    "piezas_por_caja": "REAL",
+    "cajas_por_tarima": "REAL",
+    "piezas_por_tarima": "REAL",
+
+    "peso_unitario": "REAL",
+    "volumen_unitario": "REAL",
+
+    "largo": "REAL",
+    "ancho": "REAL",
+    "alto": "REAL",
+
+    "requiere_tarima": "TEXT",
+    "requiere_lote": "TEXT",
+    "requiere_serie": "TEXT",
+    "control_caducidad": "TEXT",
+
+    "codigo_barras": "TEXT",
+    "codigo_qr": "TEXT",
+
+    "observaciones_logisticas": "TEXT"
+}
+
+
+# =====================================================
+# UTILIDADES ALTER TABLE
+# =====================================================
+
+def obtener_columnas_tabla(conn, tabla):
+
+    try:
+
+        df_cols = pd.read_sql_query(
+            f"PRAGMA table_info({tabla})",
+            conn
+        )
+
+        return df_cols["name"].tolist()
+
+    except Exception:
+
+        return []
+
+
+def agregar_columna_si_no_existe(
+    conn,
+    tabla,
+    columna,
+    tipo_dato
+):
+
+    columnas_actuales = obtener_columnas_tabla(
+        conn,
+        tabla
+    )
+
+    if columna in columnas_actuales:
+
+        return "YA_EXISTE"
+
+    cursor = conn.cursor()
+
+    cursor.execute(
+        f"""
+        ALTER TABLE {tabla}
+        ADD COLUMN {columna} {tipo_dato}
+        """
+    )
+
+    return "AGREGADA"
+
+
+def alterar_tabla_materiales_logistica():
+
+    db_path = get_db_path("materiales")
+
+    conn = sqlite3.connect(db_path)
+
+    resultados = []
+
+    try:
+
+        for columna, tipo_dato in CAMPOS_LOGISTICOS_MATERIALES.items():
+
+            resultado = agregar_columna_si_no_existe(
+                conn,
+                "materiales",
+                columna,
+                tipo_dato
+            )
+
+            resultados.append(
+                {
+                    "campo": columna,
+                    "tipo": tipo_dato,
+                    "resultado": resultado
+                }
+            )
+
+        conn.commit()
+
+    except Exception as e:
+
+        conn.rollback()
+        conn.close()
+
+        raise e
+
+    conn.close()
+
+    return pd.DataFrame(resultados)
+
+
+def mostrar_estructura_tabla(
+    db_nombre,
+    tabla
+):
+
+    db_path = get_db_path(db_nombre)
+
+    conn = sqlite3.connect(db_path)
+
+    df = pd.read_sql_query(
+        f"PRAGMA table_info({tabla})",
+        conn
+    )
+
+    conn.close()
+
+    return df
+
+
+# =====================================================
 # APP
 # =====================================================
 
@@ -297,6 +437,88 @@ def carga_tablas_inicial_app():
         tablas_disponibles,
         key="carga_tabla"
     )
+
+    # =====================================================
+    # MODIFICAR ESTRUCTURA MATERIALES
+    # =====================================================
+
+    if modulo == "Inventarios" and tabla == "materiales":
+
+        st.markdown("---")
+
+        st.subheader("🛠️ Estructura logística de materiales")
+
+        st.info(
+            "Este proceso agrega campos logísticos a la tabla materiales sin borrar información existente."
+        )
+
+        with st.expander("👀 Campos que se agregarán"):
+
+            st.dataframe(
+                pd.DataFrame(
+                    [
+                        {
+                            "campo": campo,
+                            "tipo": tipo
+                        }
+                        for campo, tipo in CAMPOS_LOGISTICOS_MATERIALES.items()
+                    ]
+                ),
+                use_container_width=True,
+                hide_index=True
+            )
+
+        if st.button(
+            "🛠️ Modificar estructura materiales",
+            key="btn_alter_materiales_logistica"
+        ):
+
+            try:
+
+                resultado_alter = alterar_tabla_materiales_logistica()
+
+                st.success(
+                    "✅ Estructura de materiales actualizada correctamente."
+                )
+
+                st.dataframe(
+                    resultado_alter,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            except Exception as e:
+
+                st.error(
+                    "❌ Error modificando estructura de materiales."
+                )
+
+                st.exception(e)
+
+        with st.expander("📋 Ver estructura actual de materiales"):
+
+            try:
+
+                estructura = mostrar_estructura_tabla(
+                    "materiales",
+                    "materiales"
+                )
+
+                st.dataframe(
+                    estructura,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            except Exception as e:
+
+                st.error(
+                    "❌ Error leyendo estructura de materiales."
+                )
+
+                st.exception(e)
+
+    st.markdown("---")
 
     st.subheader("📋 Columnas mínimas requeridas")
 
