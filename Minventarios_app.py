@@ -171,7 +171,7 @@ def inventarios_app():
     elif opcion_limpia == "creación de entregas":
         pantalla_crear_entrega()
 
-    elif ruta == "cancelacion_entrega":
+    elif opcion_limpia == "cancelacion_entrega":
         cancelacion_entrega_app()
     
     # =========================
