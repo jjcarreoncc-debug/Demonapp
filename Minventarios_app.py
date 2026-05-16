@@ -173,7 +173,7 @@ def inventarios_app():
 
 
 
-    elif opcion_limpia == "cancelación de entregas":
+    elif opcion_limpia == "Consulta de entregas":
         cancelacion_entrega_app()
     
     # =========================
