@@ -16,6 +16,7 @@ from inventario_fisico_app import inventario_fisico_app
 from ajuste_inventario_fisico_app import ajuste_inventario_fisico_app
 from consulta_ajustes_app import consulta_ajustes_app
 from diferencias_valorizadas_app import diferencias_valorizadas_app
+from consulta_pedidos_app import consulta_pedidos_app
 
 from embarques_inventario_app import (
     embarques_inventario_app
@@ -158,6 +159,13 @@ def inventarios_app():
     elif opcion_limpia == "consultar embarques":
         consulta_embarques_inventario_app()
 
+# =========================
+# CREACION DE ENTREGAS
+# =========================
+    
+    elif opcion_limpia == "consulta de pedidos":
+        consulta_pedidos_app()
+    
     # =========================
     # KARDEX
     # =========================
