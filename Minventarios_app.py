@@ -167,7 +167,7 @@ def inventarios_app():
     elif opcion_limpia == "consulta de pedidos":
         consulta_pedidos_app()
 
-    elif opcion_limpia == "creación de entrega":
+    elif opcion_limpia == "creación de entregas":
         pantalla_crear_entrega()
     
     # =========================
