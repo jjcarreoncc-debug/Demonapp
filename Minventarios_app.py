@@ -29,6 +29,23 @@ from confirmacion_cancelacion_embarque_app import (
     confirmacion_cancelacion_embarque_app
 )
 
+#######################
+# QUITAR ESPACIOS EN LA PARTE DE ARRIBA
+###################################
+
+st.markdown(
+    """
+    <style>
+
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================
 # INICIO INVENTARIOS
