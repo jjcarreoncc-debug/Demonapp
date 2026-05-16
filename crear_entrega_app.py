@@ -66,27 +66,35 @@ def crear_tablas_entregas():
 
 
 # ============================================================
-# ASEGURAR STOCK RESERVADO EN INVENTARIOS
+# CREAR / ASEGURAR MOVIMIENTOS INVENTARIO
 # ============================================================
-def asegurar_stock_reservado():
+def crear_tabla_movimientos_reserva():
     conn = get_connection_inventarios()
     cur = conn.cursor()
 
-    try:
-        cur.execute("PRAGMA table_info(inventarios)")
-        columnas = [row[1] for row in cur.fetchall()]
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS movimientos_inventario (
+            id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT,
+            tipo_movimiento TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad REAL,
+            costo_unitario REAL DEFAULT 0,
+            total REAL DEFAULT 0,
+            bodega TEXT,
+            ubicacion TEXT,
+            referencia TEXT,
+            comentarios TEXT,
+            usuario TEXT,
+            folio_movimiento TEXT,
+            tipo_documento TEXT,
+            numero_documento TEXT,
+            archivo_documento TEXT
+        )
+    """)
 
-        if "stock_reservado" not in columnas:
-            cur.execute("""
-                ALTER TABLE inventarios
-                ADD COLUMN stock_reservado REAL DEFAULT 0
-            """)
-
-        conn.commit()
-
-    except Exception:
-        pass
-
+    conn.commit()
     conn.close()
 
 
@@ -106,7 +114,6 @@ def generar_folio_entrega():
     """, (f"ENT-{fecha}-%",))
 
     consecutivo = cur.fetchone()[0] + 1
-
     conn.close()
 
     return f"ENT-{fecha}-{consecutivo:04d}"
@@ -126,6 +133,35 @@ def obtener_pedidos_para_entrega():
         cur.execute(f"ATTACH DATABASE '{inventarios_path}' AS invdb")
 
         query = """
+            WITH stock AS (
+                SELECT
+                    codigo_material,
+                    bodega,
+                    ubicacion,
+
+                    SUM(
+                        CASE
+                            WHEN tipo_movimiento <> 'RESERVA'
+                            THEN cantidad
+                            ELSE 0
+                        END
+                    ) AS stock_actual,
+
+                    SUM(
+                        CASE
+                            WHEN tipo_movimiento = 'RESERVA'
+                            THEN cantidad
+                            ELSE 0
+                        END
+                    ) AS stock_reservado
+
+                FROM invdb.movimientos_inventario
+                GROUP BY
+                    codigo_material,
+                    bodega,
+                    ubicacion
+            )
+
             SELECT
                 p.pedido,
                 p.fecha,
@@ -139,17 +175,19 @@ def obtener_pedidos_para_entrega():
                 d.bodega,
                 d.ubicacion,
 
-                COALESCE(i.stock_actual, 0) AS stock_actual,
-                COALESCE(i.stock_reservado, 0) AS stock_reservado,
-                COALESCE(i.stock_actual, 0) - COALESCE(i.stock_reservado, 0) AS stock_disponible
+                COALESCE(s.stock_actual, 0) AS stock_actual,
+                COALESCE(s.stock_reservado, 0) AS stock_reservado,
+                COALESCE(s.stock_actual, 0) - COALESCE(s.stock_reservado, 0) AS stock_disponible
 
             FROM pedidos p
 
             INNER JOIN detalle_pedido d
                 ON p.pedido = d.pedido
 
-            LEFT JOIN invdb.inventarios i
-                ON d.codigo_material = i.codigo_material
+            LEFT JOIN stock s
+                ON d.codigo_material = s.codigo_material
+                AND COALESCE(d.bodega, '') = COALESCE(s.bodega, '')
+                AND COALESCE(d.ubicacion, '') = COALESCE(s.ubicacion, '')
 
             WHERE p.estatus IN (
                 'Pendiente',
@@ -176,7 +214,6 @@ def obtener_pedidos_para_entrega():
     def calcular_semaforo(row):
         if row["stock_disponible"] >= row["cantidad_pedida"]:
             return "🟢 Listo"
-
         return "🔴 Sin inventario"
 
     df["semaforo"] = df.apply(calcular_semaforo, axis=1)
@@ -198,9 +235,7 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
         cur.execute(f"ATTACH DATABASE '{inventarios_path}' AS invdb")
 
         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
         pedidos = df_seleccionados["pedido"].dropna().astype(str).unique()
-
         pedido_texto = ", ".join(pedidos)
 
         cliente = ", ".join(
@@ -279,17 +314,43 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
                 observaciones
             ))
 
-            # =====================================================
-            # RESERVA INVENTARIO
-            # NO DESCUENTA STOCK FÍSICO
-            # =====================================================
             cur.execute("""
-                UPDATE invdb.inventarios
-                SET stock_reservado = COALESCE(stock_reservado, 0) + ?
-                WHERE codigo_material = ?
+                INSERT INTO invdb.movimientos_inventario (
+                    fecha,
+                    tipo_movimiento,
+                    codigo_material,
+                    descripcion,
+                    cantidad,
+                    costo_unitario,
+                    total,
+                    bodega,
+                    ubicacion,
+                    referencia,
+                    comentarios,
+                    usuario,
+                    folio_movimiento,
+                    tipo_documento,
+                    numero_documento,
+                    archivo_documento
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
+                fecha_actual,
+                "RESERVA",
+                item["codigo_material"],
+                item["descripcion"],
                 cantidad,
-                item["codigo_material"]
+                0,
+                0,
+                item["bodega"],
+                item["ubicacion"],
+                folio,
+                "Reserva generada por creación de entrega",
+                usuario,
+                folio,
+                "ENTREGA",
+                item["pedido"],
+                ""
             ))
 
         for pedido in pedidos:
@@ -310,7 +371,6 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
     except Exception as e:
         conn.rollback()
         conn.close()
-
         return False, str(e)
 
 
@@ -358,7 +418,7 @@ def aplicar_estilos():
 def pantalla_crear_entrega():
     aplicar_estilos()
     crear_tablas_entregas()
-    asegurar_stock_reservado()
+    crear_tabla_movimientos_reserva()
 
     st.markdown(
         '<div class="titulo-entrega">🚚 Creación de Entregas</div>',
@@ -487,10 +547,7 @@ def pantalla_crear_entrega():
         hide_index=True,
         height=430,
         column_config={
-            "seleccionar": st.column_config.CheckboxColumn(
-                "Seleccionar",
-                help="Selecciona las líneas listas para crear entrega"
-            ),
+            "seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
             "semaforo": st.column_config.TextColumn("Semáforo"),
             "pedido": st.column_config.TextColumn("Pedido"),
             "fecha": st.column_config.TextColumn("Fecha"),
@@ -553,9 +610,7 @@ def pantalla_crear_entrega():
         st.metric("No válidas", len(seleccionados_invalidos))
 
     if not seleccionados_invalidos.empty:
-        st.warning(
-            "Hay líneas seleccionadas sin inventario. No se tomarán para crear la entrega."
-        )
+        st.warning("Hay líneas seleccionadas sin inventario. No se tomarán para crear la entrega.")
 
     observaciones = st.text_area("Observaciones de la entrega")
 
