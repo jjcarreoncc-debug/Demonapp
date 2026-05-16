@@ -502,6 +502,161 @@ def alterar_tabla_clientes():
     mostrar_estructura_tabla(db_path, "clientes")
 
 
+
+
+def crear_tabla_entregas(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS entregas (
+            id_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_entrega TEXT UNIQUE NOT NULL,
+            pedido TEXT,
+            cliente TEXT,
+            destino TEXT,
+            fecha_entrega TEXT,
+            fecha_programada TEXT,
+            prioridad TEXT,
+            estatus_entrega TEXT DEFAULT 'Pendiente',
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_detalle_entrega(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_entrega (
+            id_detalle_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_entrega TEXT NOT NULL,
+            pedido TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad_pedida REAL,
+            cantidad_reservada REAL,
+            cantidad_surtida REAL DEFAULT 0,
+            bodega TEXT,
+            ubicacion TEXT,
+            peso REAL DEFAULT 0,
+            volumen REAL DEFAULT 0,
+            tarimas REAL DEFAULT 0,
+            estatus_detalle TEXT DEFAULT 'Pendiente',
+            observaciones TEXT
+        )
+    """)
+
+
+def crear_tablas_entregas_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_tabla_entregas(cur)
+    crear_tabla_detalle_entrega(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tablas entregas / detalle_entrega creadas o actualizadas")
+
+    st.subheader("📋 Entregas")
+    mostrar_estructura_tabla(db_path, "entregas")
+
+    st.subheader("📋 Detalle entrega")
+    mostrar_estructura_tabla(db_path, "detalle_entrega")
+
+
+def alterar_tabla_entregas():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual entregas")
+    mostrar_estructura_tabla(db_path, "entregas")
+
+    crear_tabla_entregas(cur)
+
+    columnas_entregas = [
+        ("pedido", "TEXT"),
+        ("cliente", "TEXT"),
+        ("destino", "TEXT"),
+        ("fecha_entrega", "TEXT"),
+        ("fecha_programada", "TEXT"),
+        ("prioridad", "TEXT"),
+        ("estatus_entrega", "TEXT DEFAULT 'Pendiente'"),
+        ("observaciones", "TEXT"),
+        ("usuario", "TEXT"),
+        ("fecha_creacion", "TEXT DEFAULT CURRENT_TIMESTAMP")
+    ]
+
+    st.subheader("🔧 Actualizando tabla entregas")
+
+    for nombre_columna, tipo_columna in columnas_entregas:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "entregas",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final entregas")
+    mostrar_estructura_tabla(db_path, "entregas")
+
+
+def alterar_tabla_detalle_entrega():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual detalle_entrega")
+    mostrar_estructura_tabla(db_path, "detalle_entrega")
+
+    crear_tabla_detalle_entrega(cur)
+
+    columnas_detalle_entrega = [
+        ("pedido", "TEXT"),
+        ("codigo_material", "TEXT"),
+        ("descripcion", "TEXT"),
+        ("cantidad_pedida", "REAL"),
+        ("cantidad_reservada", "REAL"),
+        ("cantidad_surtida", "REAL DEFAULT 0"),
+        ("bodega", "TEXT"),
+        ("ubicacion", "TEXT"),
+        ("peso", "REAL DEFAULT 0"),
+        ("volumen", "REAL DEFAULT 0"),
+        ("tarimas", "REAL DEFAULT 0"),
+        ("estatus_detalle", "TEXT DEFAULT 'Pendiente'"),
+        ("observaciones", "TEXT")
+    ]
+
+    st.subheader("🔧 Actualizando tabla detalle_entrega")
+
+    for nombre_columna, tipo_columna in columnas_detalle_entrega:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "detalle_entrega",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final detalle_entrega")
+    mostrar_estructura_tabla(db_path, "detalle_entrega")
+
 def crear_catalogo_estatus_embarque(cur):
 
     cur.execute("""
@@ -787,6 +942,9 @@ def crear_tablas_logistica():
         )
     """)
 
+    crear_tabla_entregas(cur)
+    crear_tabla_detalle_entrega(cur)
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS embarques (
             id_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1053,6 +1211,8 @@ def crear_tablas_app():
             "clientes",
             "pedidos",
             "detalle_pedido",
+            "entregas",
+            "detalle_entrega",
             "embarques",
             "detalle_embarque",
             "estatus_embarque",
@@ -1162,6 +1322,13 @@ def crear_tablas_app():
                         crear_tablas_logistica()
 
                     elif tabla_limpia in [
+                        "entregas",
+                        "detalle_entrega"
+                    ]:
+
+                        crear_tablas_entregas_logistica()
+
+                    elif tabla_limpia in [
                         "estatus_embarque",
                         "historial_estatus_embarque",
                         "eventos_embarque"
@@ -1234,6 +1401,14 @@ def crear_tablas_app():
 
                     alterar_tabla_clientes()
 
+                elif modulo_limpio == "logistica" and tabla_limpia == "entregas":
+
+                    alterar_tabla_entregas()
+
+                elif modulo_limpio == "logistica" and tabla_limpia == "detalle_entrega":
+
+                    alterar_tabla_detalle_entrega()
+
                 elif modulo_limpio == "logistica" and tabla_limpia == "embarques":
 
                     alterar_tabla_embarques()
@@ -1249,6 +1424,8 @@ def crear_tablas_app():
                 elif modulo_limpio == "logistica" and tabla_limpia == "todas":
 
                     alterar_tabla_clientes()
+                    alterar_tabla_entregas()
+                    alterar_tabla_detalle_entrega()
                     alterar_tabla_embarques()
                     alterar_tabla_detalle_embarque()
                     alterar_tabla_incidencias()
