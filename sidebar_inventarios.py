@@ -26,12 +26,11 @@ def sidebar_inventarios():
         if "menu_inv" not in st.session_state:
 
             set_opcion(
-                "Maestros",
-                "Productos",
-                "Maestro de materiales"
+                "Inicio",
+                "Inicio",
+                "🏠 Inicio"
             )
-
-        # =================================================
+        ######
         # MAESTROS
         # =================================================
 
