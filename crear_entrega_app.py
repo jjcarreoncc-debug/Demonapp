@@ -503,31 +503,11 @@ def pantalla_crear_entrega():
         st.warning("No hay pedidos pendientes o parciales disponibles para crear entregas.")
         return
 
-    total_lineas = len(df)
-    total_pedidos = df["pedido"].nunique()
-    listos = len(df[df["semaforo"] == "🟢 Listo"])
-    transferencia = len(df[df["semaforo"] == "🟡 Requiere transferencia"])
-    sin_inventario = len(df[df["semaforo"] == "🔴 Sin inventario"])
-
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    with col1:
-        st.metric("Pedidos", total_pedidos)
-
-    with col2:
-        st.metric("Listos", listos)
-
-    with col3:
-        st.metric("Transferencia", transferencia)
-
-    with col4:
-        st.metric("Sin inventario", sin_inventario)
-
-    with col5:
-        st.metric("Total líneas", total_lineas)
-
     st.divider()
 
+    # ========================================================
+    # LAYOUT HORIZONTAL ESTILO CONSULTA DE PEDIDOS
+    # ========================================================
     col_filtros, col_contenido = st.columns([1.05, 5])
 
     with col_filtros:
@@ -558,6 +538,9 @@ def pantalla_crear_entrega():
             "Buscar pedido/material"
         )
 
+    # ========================================================
+    # APLICAR FILTROS
+    # ========================================================
     df_filtrado = df.copy()
 
     if filtro_cliente != "Todos":
@@ -585,64 +568,47 @@ def pantalla_crear_entrega():
             | df_filtrado["cliente"].astype(str).str.lower().str.contains(texto, na=False)
         ]
 
-    st.divider()
+    # ========================================================
+    # CONTENIDO PRINCIPAL A LA DERECHA
+    # ========================================================
+    with col_contenido:
 
-    st.subheader("📋 Pedidos disponibles para entrega virtual")
+        total_lineas = len(df_filtrado)
+        total_pedidos = df_filtrado["pedido"].nunique()
+        listos = len(df_filtrado[df_filtrado["semaforo"] == "🟢 Listo"])
+        transferencia = len(df_filtrado[df_filtrado["semaforo"] == "🟡 Requiere transferencia"])
+        sin_inventario = len(df_filtrado[df_filtrado["semaforo"] == "🔴 Sin inventario"])
 
-    df_editor = df_filtrado.copy()
-    df_editor.insert(0, "seleccionar", False)
+        col1, col2, col3, col4, col5 = st.columns(5)
 
-    df_editor["bloqueado"] = df_editor["semaforo"].apply(
-        lambda x: "No" if x == "🟢 Listo" else "Sí"
-    )
+        with col1:
+            st.metric("Pedidos", total_pedidos)
 
-    columnas_mostrar = [
-        "seleccionar",
-        "semaforo",
-        "pedido",
-        "fecha",
-        "cliente",
-        "destino",
-        "estatus",
-        "codigo_material",
-        "descripcion",
-        "cantidad_pedida",
-        "stock_actual",
-        "stock_reservado",
-        "stock_disponible",
-        "stock_total_disponible",
-        "bodega",
-        "ubicacion",
-        "bloqueado"
-    ]
+        with col2:
+            st.metric("Listos", listos)
 
-    df_editor = df_editor[columnas_mostrar]
+        with col3:
+            st.metric("Transferencia", transferencia)
 
-    editado = st.data_editor(
-        df_editor,
-        use_container_width=True,
-        hide_index=True,
-        height=430,
-        column_config={
-            "seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
-            "semaforo": st.column_config.TextColumn("Semáforo"),
-            "pedido": st.column_config.TextColumn("Pedido"),
-            "fecha": st.column_config.TextColumn("Fecha"),
-            "cliente": st.column_config.TextColumn("Cliente"),
-            "destino": st.column_config.TextColumn("Destino"),
-            "estatus": st.column_config.TextColumn("Estatus"),
-            "codigo_material": st.column_config.TextColumn("Material"),
-            "descripcion": st.column_config.TextColumn("Descripción"),
-            "cantidad_pedida": st.column_config.NumberColumn("Cantidad"),
-            "stock_actual": st.column_config.NumberColumn("Stock bodega"),
-            "stock_reservado": st.column_config.NumberColumn("Reservado bodega"),
-            "stock_disponible": st.column_config.NumberColumn("Disponible bodega"),
-            "stock_total_disponible": st.column_config.NumberColumn("Disponible total"),
-            "bodega": st.column_config.TextColumn("Bodega"),
-            "ubicacion": st.column_config.TextColumn("Ubicación"),
-            "bloqueado": st.column_config.TextColumn("Bloqueado")
-        },
-        disabled=[
+        with col4:
+            st.metric("Sin inventario", sin_inventario)
+
+        with col5:
+            st.metric("Total líneas", total_lineas)
+
+        st.divider()
+
+        st.subheader("📋 Pedidos disponibles para entrega virtual")
+
+        df_editor = df_filtrado.copy()
+        df_editor.insert(0, "seleccionar", False)
+
+        df_editor["bloqueado"] = df_editor["semaforo"].apply(
+            lambda x: "No" if x == "🟢 Listo" else "Sí"
+        )
+
+        columnas_mostrar = [
+            "seleccionar",
             "semaforo",
             "pedido",
             "fecha",
@@ -659,67 +625,112 @@ def pantalla_crear_entrega():
             "bodega",
             "ubicacion",
             "bloqueado"
-        ],
-        key="tabla_creacion_entregas"
-    )
+        ]
 
-    seleccionados = editado[editado["seleccionar"] == True].copy()
+        df_editor = df_editor[columnas_mostrar]
 
-    seleccionados_validos = seleccionados[
-        seleccionados["semaforo"] == "🟢 Listo"
-    ].copy()
-
-    seleccionados_invalidos = seleccionados[
-        seleccionados["semaforo"] != "🟢 Listo"
-    ].copy()
-
-    st.divider()
-
-    st.subheader("📦 Resumen de creación")
-
-    colr1, colr2, colr3 = st.columns(3)
-
-    with colr1:
-        st.metric("Líneas seleccionadas", len(seleccionados))
-
-    with colr2:
-        st.metric("Válidas para entrega", len(seleccionados_validos))
-
-    with colr3:
-        st.metric("No válidas", len(seleccionados_invalidos))
-
-    if not seleccionados_invalidos.empty:
-        st.warning(
-            "Hay líneas seleccionadas que requieren transferencia o no tienen inventario. No se tomarán para crear la entrega."
+        editado = st.data_editor(
+            df_editor,
+            use_container_width=True,
+            hide_index=True,
+            height=430,
+            column_config={
+                "seleccionar": st.column_config.CheckboxColumn("Seleccionar"),
+                "semaforo": st.column_config.TextColumn("Semáforo"),
+                "pedido": st.column_config.TextColumn("Pedido"),
+                "fecha": st.column_config.TextColumn("Fecha"),
+                "cliente": st.column_config.TextColumn("Cliente"),
+                "destino": st.column_config.TextColumn("Destino"),
+                "estatus": st.column_config.TextColumn("Estatus"),
+                "codigo_material": st.column_config.TextColumn("Material"),
+                "descripcion": st.column_config.TextColumn("Descripción"),
+                "cantidad_pedida": st.column_config.NumberColumn("Cantidad"),
+                "stock_actual": st.column_config.NumberColumn("Stock bodega"),
+                "stock_reservado": st.column_config.NumberColumn("Reservado bodega"),
+                "stock_disponible": st.column_config.NumberColumn("Disponible bodega"),
+                "stock_total_disponible": st.column_config.NumberColumn("Disponible total"),
+                "bodega": st.column_config.TextColumn("Bodega"),
+                "ubicacion": st.column_config.TextColumn("Ubicación"),
+                "bloqueado": st.column_config.TextColumn("Bloqueado")
+            },
+            disabled=[
+                "semaforo",
+                "pedido",
+                "fecha",
+                "cliente",
+                "destino",
+                "estatus",
+                "codigo_material",
+                "descripcion",
+                "cantidad_pedida",
+                "stock_actual",
+                "stock_reservado",
+                "stock_disponible",
+                "stock_total_disponible",
+                "bodega",
+                "ubicacion",
+                "bloqueado"
+            ],
+            key="tabla_creacion_entregas"
         )
 
-    observaciones = st.text_area("Observaciones de la entrega virtual")
+        seleccionados = editado[editado["seleccionar"] == True].copy()
 
-    folio = generar_folio_entrega()
+        seleccionados_validos = seleccionados[
+            seleccionados["semaforo"] == "🟢 Listo"
+        ].copy()
 
-    st.info(f"Folio a generar: {folio}")
+        seleccionados_invalidos = seleccionados[
+            seleccionados["semaforo"] != "🟢 Listo"
+        ].copy()
 
-    if st.button("🚚 Generar entrega virtual seleccionada", use_container_width=True):
+        st.divider()
 
-        if seleccionados_validos.empty:
-            st.error("Debes seleccionar al menos una línea con semáforo 🟢 Listo.")
-            return
+        st.subheader("📦 Resumen de creación")
 
-        usuario = st.session_state.get("usuario", "usuario_desarrollo")
+        colr1, colr2, colr3 = st.columns(3)
 
-        ok, resultado = guardar_entrega_desde_pedidos(
-            folio=folio,
-            df_seleccionados=seleccionados_validos,
-            observaciones=observaciones,
-            usuario=usuario
-        )
+        with colr1:
+            st.metric("Líneas seleccionadas", len(seleccionados))
 
-        if ok:
-            st.success(f"Entrega virtual creada correctamente con folio: {resultado}")
-            st.balloons()
-            st.rerun()
-        else:
-            st.error(f"Error al crear entrega virtual: {resultado}")
+        with colr2:
+            st.metric("Válidas para entrega", len(seleccionados_validos))
+
+        with colr3:
+            st.metric("No válidas", len(seleccionados_invalidos))
+
+        if not seleccionados_invalidos.empty:
+            st.warning(
+                "Hay líneas seleccionadas que requieren transferencia o no tienen inventario. No se tomarán para crear la entrega."
+            )
+
+        observaciones = st.text_area("Observaciones de la entrega virtual")
+
+        folio = generar_folio_entrega()
+
+        st.info(f"Folio a generar: {folio}")
+
+        if st.button("🚚 Generar entrega virtual seleccionada", use_container_width=True):
+
+            if seleccionados_validos.empty:
+                st.error("Debes seleccionar al menos una línea con semáforo 🟢 Listo.")
+                return
+
+            usuario = st.session_state.get("usuario", "usuario_desarrollo")
+
+            ok, resultado = guardar_entrega_desde_pedidos(
+                folio=folio,
+                df_seleccionados=seleccionados_validos,
+                observaciones=observaciones,
+                usuario=usuario
+            )
+
+            if ok:
+                st.success(f"Entrega virtual creada correctamente con folio: {resultado}")
+                st.balloons()
+                st.rerun()
+            else:
+                st.error(f"Error al crear entrega virtual: {resultado}")
 
 
 # ============================================================
