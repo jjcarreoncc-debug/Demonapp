@@ -67,14 +67,34 @@ COLUMNAS_MINIMAS = {
         "cantidad",
         "costo_unitario"
     ],
+    #
 
+        "pedidos": [
+        "pedido",
+        "fecha",
+        "cliente",
+        "destino",
+        "estatus"
+    ],
+
+    "detalle_pedido": [
+        "pedido",
+        "codigo_material",
+        "descripcion",
+        "cantidad_pedida",
+        "bodega",
+        "ubicacion",
+        "peso",
+        "volumen"
+    ],
+    #
     "rutas": [
         "codigo_ruta",
         "descripcion",
         "origen",
         "destino"
     ],
-
+    #
     "puntos_ruta": [
         "codigo_ruta",
         "secuencia",
@@ -207,6 +227,10 @@ DB_POR_TABLA = {
     "entradas_compras": "compras",
 
     "entradas_compras_detalle": "compras",
+
+    "pedidos": "logistica",
+
+    "detalle_pedido": "logistica",
 
     "rutas": "logistica",
 
@@ -412,17 +436,30 @@ def carga_tablas_inicial_app():
         ]
 
     elif modulo == "Logística":
-
+        #
         tablas_disponibles = [
+
+            "clientes",
+        
+            "pedidos",
+        
+            "detalle_pedido",
+        
             "rutas",
+        
             "puntos_ruta",
+        
             "transportes",
+        
             "detalle_transporte",
+        
             "embarques",
+        
             "detalle_embarque",
+        
             "incidencias"
         ]
-
+        #
     elif modulo == "Seguridad":
 
         tablas_disponibles = [
