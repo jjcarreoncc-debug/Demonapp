@@ -1,498 +1,21 @@
 import streamlit as st
-import pandas as pd
 import sqlite3
+import pandas as pd
 
 from sigem_db import get_db_path
 
+from compras_db import crear_tablas_compras
 
-# =====================================================
-# COLUMNAS MINIMAS
-# =====================================================#####
+from inventario_db import (
+    crear_tablas_inventario,
+    crear_tabla_movimientos_inventario,
+    crear_tabla_inventario_fisico
+)
 
-COLUMNAS_MINIMAS = {
+from seguridad_db import crear_tablas_seguridad
 
-    "materiales": [
-        "codigo_material",
-        "descripcion",
-        "categoria",
-        "familia",
-        "unidad_base",
-        "estatus"
-    ],
 
-    "movimientos_inventario": [
-        "fecha",
-        "tipo_movimiento",
-        "codigo_material",
-        "descripcion",
-        "cantidad"
-    ],
-
-    "hoja_carga": [
-        "folio_hoja_carga",
-        "fecha",
-        "pedido",
-        "cliente",
-        "destino",
-        "bodega_origen",
-        "estatus",
-        "responsable_surtido"
-    ],
-
-    "detalle_hoja_carga": [
-        "folio_hoja_carga",
-        "pedido",
-        "codigo_material",
-        "descripcion",
-        "cantidad_pedido",
-        "cantidad_surtida",
-        "bodega",
-        "ubicacion",
-        "peso",
-        "volumen"
-    ],
-
-    "entradas_compras": [
-        "proveedor",
-        "factura",
-        "fecha_factura",
-        "fecha_recepcion",
-        "moneda"
-    ],
-
-    "entradas_compras_detalle": [
-        "id_entrada",
-        "codigo_material",
-        "descripcion",
-        "cantidad",
-        "costo_unitario"
-    ],
-
-    "clientes": [
-        "codigo_cliente",
-        "nombre_cliente",
-        "direccion_entrega",
-        "ciudad",
-        "estado",
-        "ruta",
-        "estatus"
-    ],
-
-    "rutas": [
-        "codigo_ruta",
-        "descripcion",
-        "origen",
-        "destino"
-    ],
-
-    "puntos_ruta": [
-        "codigo_ruta",
-        "secuencia",
-        "tipo_punto",
-        "ubicacion"
-    ],
-
-    "transportes": [
-        "codigo_transporte",
-        "descripcion",
-        "tipo_transporte",
-        "transportista",
-        "vehiculo",
-        "placas",
-        "operador"
-    ],
-
-    "detalle_transporte": [
-        "codigo_transporte",
-        "folio_embarque",
-        "codigo_ruta",
-        "fecha_salida",
-        "estatus"
-    ],
-
-    "embarques": [
-        "folio_embarque",
-        "pedido",
-        "fecha",
-        "cliente",
-        "destino",
-        "transportista",
-        "vehiculo",
-        "operador",
-        "ruta"
-    ],
-
-    "detalle_embarque": [
-        "folio_embarque",
-        "pedido",
-        "codigo_material",
-        "descripcion",
-        "cantidad_pedida",
-        "cantidad_embarcar",
-        "peso",
-        "volumen",
-        "bodega"
-    ],
-
-    "incidencias": [
-        "folio_incidencia",
-        "fecha",
-        "modulo",
-        "proceso",
-        "tipo_incidencia",
-        "prioridad",
-        "estatus",
-        "folio_referencia",
-        "folio_embarque",
-        "folio_hoja_carga",
-        "pedido",
-        "codigo_material",
-        "descripcion",
-        "cantidad",
-        "cliente",
-        "destino",
-        "bodega",
-        "ubicacion",
-        "transportista",
-        "vehiculo",
-        "placas",
-        "operador",
-        "responsable",
-        "descripcion_incidencia",
-        "causa",
-        "solucion",
-        "fecha_solucion",
-        "usuario_registro",
-        "usuario_cierre",
-        "observaciones",
-        "fecha_creacion"
-    ],
-
-    "roles": [
-        "nombre_rol",
-        "descripcion",
-        "estatus",
-        "estado"
-    ],
-
-    "modulos": [
-        "nombre_modulo",
-        "ruta",
-        "icono",
-        "orden_menu",
-        "activo",
-        "estado"
-    ],
-
-    "usuario_roles": [
-        "id_usuario",
-        "id_rol"
-    ],
-
-    "rol_permisos": [
-        "id_rol",
-        "id_modulo",
-        "puede_ver",
-        "puede_crear",
-        "puede_editar",
-        "puede_borrar"
-    ]
-}
-
-
-# =====================================================
-# BASES POR TABLA
-# =====================================================
-
-DB_POR_TABLA = {
-
-    "materiales": "materiales",
-
-    "movimientos_inventario": "inventarios",
-
-    "hoja_carga": "inventarios",
-
-    "detalle_hoja_carga": "inventarios",
-
-    "entradas_compras": "compras",
-
-    "entradas_compras_detalle": "compras",
-
-    "clientes": "logistica",
-
-    "rutas": "logistica",
-
-    "puntos_ruta": "logistica",
-
-    "transportes": "logistica",
-
-    "detalle_transporte": "logistica",
-
-    "embarques": "logistica",
-
-    "detalle_embarque": "logistica",
-
-    "incidencias": "logistica",
-
-    "roles": "seguridad",
-
-    "modulos": "seguridad",
-
-    "usuario_roles": "seguridad",
-
-    "rol_permisos": "seguridad"
-}
-
-
-# =====================================================
-# CAMPOS NUEVOS MATERIALES
-# =====================================================
-
-CAMPOS_LOGISTICOS_MATERIALES = {
-
-    "tipo_manejo": "TEXT",
-    "unidad_logistica": "TEXT",
-
-    "piezas_por_caja": "REAL",
-    "cajas_por_tarima": "REAL",
-    "piezas_por_tarima": "REAL",
-
-    "peso_unitario": "REAL",
-    "volumen_unitario": "REAL",
-
-    "largo": "REAL",
-    "ancho": "REAL",
-    "alto": "REAL",
-
-    "requiere_tarima": "TEXT",
-    "requiere_lote": "TEXT",
-    "requiere_serie": "TEXT",
-    "control_caducidad": "TEXT",
-
-    "codigo_barras": "TEXT",
-    "codigo_qr": "TEXT",
-
-    "vida_entrega_dias": "INTEGER",
-
-    "observaciones_logisticas": "TEXT"
-}
-
-
-# =====================================================
-# CAMPOS CLIENTES
-# =====================================================
-
-CAMPOS_CLIENTES = {
-
-    "codigo_cliente": "TEXT",
-    "nombre_cliente": "TEXT",
-    "razon_social": "TEXT",
-    "rfc": "TEXT",
-    "estatus": "TEXT",
-    "tipo_cliente": "TEXT",
-
-    "direccion_entrega": "TEXT",
-    "colonia": "TEXT",
-    "ciudad": "TEXT",
-    "estado": "TEXT",
-    "pais": "TEXT",
-    "codigo_postal": "TEXT",
-
-    "latitud": "REAL",
-    "longitud": "REAL",
-
-    "ruta": "TEXT",
-    "secuencia_ruta": "INTEGER",
-
-    "dias_entrega_permitidos": "TEXT",
-    "hora_inicio_recepcion": "TEXT",
-    "hora_fin_recepcion": "TEXT",
-
-    "requiere_cita": "TEXT",
-    "permite_entrega_parcial": "TEXT",
-
-    "restriccion_unidad": "TEXT",
-    "tipo_unidad_permitida": "TEXT",
-
-    "tiempo_descarga_min": "INTEGER",
-
-    "peso_max_tarima": "REAL",
-    "altura_max_tarima": "REAL",
-
-    "permite_tarima_mixta": "TEXT",
-    "requiere_emplaye": "TEXT",
-    "requiere_etiqueta": "TEXT",
-
-    "tipo_tarima": "TEXT",
-
-    "contacto_entrega": "TEXT",
-    "telefono_contacto": "TEXT",
-    "correo_contacto": "TEXT",
-
-    "requiere_foto_entrega": "TEXT",
-    "requiere_firma": "TEXT",
-    "requiere_sello": "TEXT",
-
-    "gps_obligatorio": "TEXT",
-
-    "requiere_oc": "TEXT",
-    "requiere_factura_impresa": "TEXT",
-    "requiere_documento_fisico": "TEXT",
-
-    "prioridad_ruta": "TEXT",
-    "cliente_critico": "TEXT",
-    "nivel_servicio": "TEXT",
-
-    "observaciones_logisticas": "TEXT"
-}
-
-
-# =====================================================
-# UTILIDADES ALTER TABLE
-# =====================================================
-
-def obtener_columnas_tabla(conn, tabla):
-
-    try:
-
-        df_cols = pd.read_sql_query(
-            f"PRAGMA table_info({tabla})",
-            conn
-        )
-
-        return df_cols["name"].tolist()
-
-    except Exception:
-
-        return []
-
-
-def agregar_columna_si_no_existe(
-    conn,
-    tabla,
-    columna,
-    tipo_dato
-):
-
-    columnas_actuales = obtener_columnas_tabla(
-        conn,
-        tabla
-    )
-
-    if columna in columnas_actuales:
-
-        return "YA_EXISTE"
-
-    cursor = conn.cursor()
-
-    cursor.execute(
-        f"""
-        ALTER TABLE {tabla}
-        ADD COLUMN {columna} {tipo_dato}
-        """
-    )
-
-    return "AGREGADA"
-
-
-def alterar_tabla_materiales_logistica():
-
-    db_path = get_db_path("materiales")
-
-    conn = sqlite3.connect(db_path)
-
-    resultados = []
-
-    try:
-
-        for columna, tipo_dato in CAMPOS_LOGISTICOS_MATERIALES.items():
-
-            resultado = agregar_columna_si_no_existe(
-                conn,
-                "materiales",
-                columna,
-                tipo_dato
-            )
-
-            resultados.append(
-                {
-                    "campo": columna,
-                    "tipo": tipo_dato,
-                    "resultado": resultado
-                }
-            )
-
-        conn.commit()
-
-    except Exception as e:
-
-        conn.rollback()
-        conn.close()
-
-        raise e
-
-    conn.close()
-
-    return pd.DataFrame(resultados)
-
-
-def alterar_tabla_clientes():
-
-    db_path = get_db_path("logistica")
-
-    conn = sqlite3.connect(db_path)
-
-    resultados = []
-
-    try:
-
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS clientes (
-                id_cliente INTEGER PRIMARY KEY AUTOINCREMENT
-            )
-            """
-        )
-
-        for columna, tipo_dato in CAMPOS_CLIENTES.items():
-
-            resultado = agregar_columna_si_no_existe(
-                conn,
-                "clientes",
-                columna,
-                tipo_dato
-            )
-
-            resultados.append(
-                {
-                    "campo": columna,
-                    "tipo": tipo_dato,
-                    "resultado": resultado
-                }
-            )
-
-        conn.commit()
-
-    except Exception as e:
-
-        conn.rollback()
-        conn.close()
-
-        raise e
-
-    conn.close()
-
-    return pd.DataFrame(resultados)
-
-
-def mostrar_estructura_tabla(
-    db_nombre,
-    tabla
-):
-
-    db_path = get_db_path(db_nombre)
+def mostrar_estructura_tabla(db_path, tabla):
 
     conn = sqlite3.connect(db_path)
 
@@ -503,912 +26,1120 @@ def mostrar_estructura_tabla(
 
     conn.close()
 
-    return df
+    if df.empty:
+        st.warning(f"No se encontró estructura para la tabla {tabla}.")
+    else:
+        st.dataframe(df, use_container_width=True)
+
+
+def agregar_columna_si_no_existe(cur, tabla, columna, tipo):
+
+    try:
+
+        cur.execute(
+            f"""
+            ALTER TABLE {tabla}
+            ADD COLUMN {columna} {tipo}
+            """
+        )
+
+        st.success(f"✅ Columna agregada en {tabla}: {columna}")
+
+    except sqlite3.OperationalError as e:
+
+        if "duplicate column name" in str(e).lower():
+            st.info(f"ℹ️ La columna ya existe en {tabla}: {columna}")
+        else:
+            raise e
+
+
+def normalizar_texto(texto):
+
+    return str(texto).strip().lower().replace("í", "i")
+
+
+def obtener_db_por_modulo(modulo):
+
+    modulo_limpio = normalizar_texto(modulo)
+
+    if modulo_limpio == "compras":
+        return "compras"
+
+    if modulo_limpio == "inventarios":
+        return "inventarios"
+
+    if modulo_limpio == "logistica":
+        return "logistica"
+
+    if modulo_limpio == "seguridad":
+        return "erp"
+
+    return None
+
+
+def borrar_tabla(modulo, tabla):
+
+    db_nombre = obtener_db_por_modulo(modulo)
+
+    if db_nombre is None:
+        raise Exception(
+            "No se encontró base de datos para el módulo seleccionado."
+        )
+
+    db_path = get_db_path(db_nombre)
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute(
+        f"DROP TABLE IF EXISTS {tabla}"
+    )
+
+    conn.commit()
+    conn.close()
+
+    return db_path
+
+
+# =====================================================
+# INVENTARIOS
+# =====================================================
+
+def crear_tabla_ajustes_inventario():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ajustes_inventario (
+            id_ajuste INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_ajuste TEXT,
+            fecha TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            tipo_ajuste TEXT,
+            cantidad REAL,
+            stock_anterior REAL,
+            stock_nuevo REAL,
+            comentarios TEXT,
+            usuario TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def crear_tablas_hoja_carga():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS hoja_carga (
+            id_hoja_carga INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_hoja_carga TEXT UNIQUE NOT NULL,
+            fecha TEXT,
+            pedido TEXT,
+            cliente TEXT,
+            destino TEXT,
+            prioridad TEXT,
+            ruta_sugerida TEXT,
+            estatus_hoja_carga TEXT,
+            peso_total REAL DEFAULT 0,
+            volumen_total REAL DEFAULT 0,
+            transportista_sugerido TEXT,
+            tipo_transporte TEXT,
+            fecha_entrega TEXT,
+            bodega_origen TEXT,
+            estatus TEXT,
+            responsable_surtido TEXT,
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_hoja_carga (
+            id_detalle_hoja INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_hoja_carga TEXT NOT NULL,
+            pedido TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad_pedido REAL,
+            cantidad_surtida REAL,
+            bodega TEXT,
+            ubicacion TEXT,
+            peso REAL DEFAULT 0,
+            volumen REAL DEFAULT 0,
+            observaciones TEXT
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+def alterar_tabla_hoja_carga():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual hoja_carga")
+    mostrar_estructura_tabla(db_path, "hoja_carga")
+
+    columnas_hoja = [
+        ("prioridad", "TEXT"),
+        ("ruta_sugerida", "TEXT"),
+        ("estatus_hoja_carga", "TEXT"),
+        ("peso_total", "REAL DEFAULT 0"),
+        ("volumen_total", "REAL DEFAULT 0"),
+        ("transportista_sugerido", "TEXT"),
+        ("tipo_transporte", "TEXT"),
+        ("fecha_entrega", "TEXT"),
+        ("bodega_origen", "TEXT"),
+        ("estatus", "TEXT"),
+        ("responsable_surtido", "TEXT"),
+        ("observaciones", "TEXT"),
+        ("usuario", "TEXT"),
+        ("fecha_creacion", "TEXT")
+    ]
+
+    st.subheader("🔧 Actualizando tabla hoja_carga")
+
+    for nombre_columna, tipo_columna in columnas_hoja:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "hoja_carga",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final hoja_carga")
+    mostrar_estructura_tabla(db_path, "hoja_carga")
+
+
+def alterar_tabla_detalle_hoja_carga():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual detalle_hoja_carga")
+    mostrar_estructura_tabla(db_path, "detalle_hoja_carga")
+
+    columnas_detalle = [
+        ("pedido", "TEXT"),
+        ("codigo_material", "TEXT"),
+        ("descripcion", "TEXT"),
+        ("cantidad_pedido", "REAL"),
+        ("cantidad_surtida", "REAL"),
+        ("bodega", "TEXT"),
+        ("ubicacion", "TEXT"),
+        ("peso", "REAL DEFAULT 0"),
+        ("volumen", "REAL DEFAULT 0"),
+        ("observaciones", "TEXT")
+    ]
+
+    st.subheader("🔧 Actualizando tabla detalle_hoja_carga")
+
+    for nombre_columna, tipo_columna in columnas_detalle:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "detalle_hoja_carga",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final detalle_hoja_carga")
+    mostrar_estructura_tabla(db_path, "detalle_hoja_carga")
+
+
+def alterar_movimientos_inventario():
+
+    db_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual movimientos_inventario")
+    mostrar_estructura_tabla(db_path, "movimientos_inventario")
+
+    columnas_nuevas = [
+        ("folio_movimiento", "TEXT"),
+        ("tipo_documento", "TEXT"),
+        ("numero_documento", "TEXT"),
+        ("archivo_documento", "TEXT"),
+        ("referencia", "TEXT"),
+        ("comentarios", "TEXT"),
+        ("usuario", "TEXT"),
+    ]
+
+    st.subheader("🔧 Columnas a validar/agregar")
+
+    for nombre_columna, tipo_columna in columnas_nuevas:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "movimientos_inventario",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final movimientos_inventario")
+    mostrar_estructura_tabla(db_path, "movimientos_inventario")
+
+
+# =====================================================
+# LOGISTICA
+# =====================================================
+
+def crear_catalogo_estatus_embarque(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS estatus_embarque (
+            id_estatus INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_estatus TEXT UNIQUE NOT NULL,
+            descripcion TEXT NOT NULL,
+            secuencia INTEGER DEFAULT 0,
+            activo INTEGER DEFAULT 1,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    estatus_base = [
+        ("PEN", "Pendiente", 0, 1),
+        ("ALM", "En almacén", 1, 1),
+        ("PAT", "En patio", 2, 1),
+        ("SAL", "Ya salió", 3, 1),
+        ("TRA", "En tránsito", 4, 1),
+        ("ENT", "Entregado", 5, 1),
+        ("CAN", "Cancelado", 99, 1),
+    ]
+
+    cur.executemany("""
+        INSERT OR IGNORE INTO estatus_embarque (
+            codigo_estatus,
+            descripcion,
+            secuencia,
+            activo
+        )
+        VALUES (?, ?, ?, ?)
+    """, estatus_base)
+
+
+def crear_tabla_historial_estatus_embarque(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS historial_estatus_embarque (
+            id_historial INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_embarque TEXT NOT NULL,
+            estatus_anterior TEXT,
+            estatus_nuevo TEXT NOT NULL,
+            fecha_cambio TEXT DEFAULT CURRENT_TIMESTAMP,
+            usuario TEXT,
+            observaciones TEXT
+        )
+    """)
+
+
+def crear_tabla_eventos_embarque(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS eventos_embarque (
+            id_evento INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_embarque TEXT NOT NULL,
+            codigo_transporte TEXT,
+            fecha_evento TEXT NOT NULL,
+            tipo_evento TEXT,
+            estatus TEXT,
+            ubicacion TEXT,
+            comentarios TEXT,
+            usuario TEXT,
+            latitud REAL DEFAULT 0,
+            longitud REAL DEFAULT 0,
+            fecha_registro TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_rutas(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS rutas (
+            id_ruta INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_ruta TEXT UNIQUE NOT NULL,
+            descripcion TEXT,
+            origen TEXT,
+            destino TEXT,
+            distancia_km REAL DEFAULT 0,
+            tiempo_estimado REAL DEFAULT 0,
+            activo INTEGER DEFAULT 1,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_puntos_ruta(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS puntos_ruta (
+            id_punto INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_ruta TEXT NOT NULL,
+            secuencia INTEGER DEFAULT 0,
+            tipo_punto TEXT,
+            ubicacion TEXT,
+            ciudad TEXT,
+            estado TEXT,
+            latitud REAL DEFAULT 0,
+            longitud REAL DEFAULT 0,
+            tiempo_estimado REAL DEFAULT 0,
+            activo INTEGER DEFAULT 1,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_transportes(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS transportes (
+            id_transporte INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_transporte TEXT UNIQUE NOT NULL,
+            descripcion TEXT,
+            tipo_transporte TEXT,
+            transportista TEXT,
+            vehiculo TEXT,
+            placas TEXT,
+            operador TEXT,
+            telefono_operador TEXT,
+            codigo_ruta TEXT,
+            capacidad_peso REAL DEFAULT 0,
+            capacidad_volumen REAL DEFAULT 0,
+            estatus TEXT DEFAULT 'Disponible',
+            activo INTEGER DEFAULT 1,
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_detalle_transporte(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_transporte (
+            id_detalle_transporte INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_transporte TEXT NOT NULL,
+            folio_embarque TEXT,
+            folio_hoja_carga TEXT,
+            pedido TEXT,
+            codigo_ruta TEXT,
+            fecha_salida TEXT,
+            fecha_llegada TEXT,
+            operador TEXT,
+            ayudante TEXT,
+            kilometraje_salida REAL DEFAULT 0,
+            kilometraje_llegada REAL DEFAULT 0,
+            combustible REAL DEFAULT 0,
+            casetas REAL DEFAULT 0,
+            viaticos REAL DEFAULT 0,
+            estatus TEXT DEFAULT 'Activo',
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tabla_incidencias(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS incidencias (
+            id_incidencia INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_incidencia TEXT UNIQUE NOT NULL,
+            fecha TEXT,
+            modulo TEXT DEFAULT 'Logística',
+            proceso TEXT,
+            tipo_incidencia TEXT,
+            prioridad TEXT DEFAULT 'Media',
+            estatus TEXT DEFAULT 'Abierta',
+            folio_referencia TEXT,
+            folio_embarque TEXT,
+            folio_hoja_carga TEXT,
+            pedido TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad REAL DEFAULT 0,
+            cliente TEXT,
+            destino TEXT,
+            bodega TEXT,
+            ubicacion TEXT,
+            transportista TEXT,
+            vehiculo TEXT,
+            placas TEXT,
+            operador TEXT,
+            responsable TEXT,
+            descripcion_incidencia TEXT,
+            causa TEXT,
+            solucion TEXT,
+            fecha_solucion TEXT,
+            usuario_registro TEXT,
+            usuario_cierre TEXT,
+            observaciones TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tablas_incidencias_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_tabla_incidencias(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tabla incidencias creada o actualizada")
+
+    st.subheader("📋 Incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
+
+
+def crear_tablas_rutas_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
+    crear_tabla_detalle_transporte(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tablas de rutas / transportes creadas o actualizadas")
+
+    st.subheader("📋 Rutas")
+    mostrar_estructura_tabla(db_path, "rutas")
+
+    st.subheader("📋 Puntos ruta")
+    mostrar_estructura_tabla(db_path, "puntos_ruta")
+
+    st.subheader("📋 Transportes")
+    mostrar_estructura_tabla(db_path, "transportes")
+
+    st.subheader("📋 Detalle transporte")
+    mostrar_estructura_tabla(db_path, "detalle_transporte")
+
+
+def crear_tablas_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id_pedido INTEGER PRIMARY KEY AUTOINCREMENT,
+            pedido TEXT UNIQUE NOT NULL,
+            fecha TEXT,
+            cliente TEXT,
+            destino TEXT,
+            estatus TEXT,
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_pedido (
+            id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
+            pedido TEXT NOT NULL,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad_pedida REAL,
+            peso REAL DEFAULT 0,
+            volumen REAL DEFAULT 0,
+            bodega TEXT,
+            ubicacion TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS embarques (
+            id_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_embarque TEXT UNIQUE NOT NULL,
+            folio_hoja_carga TEXT,
+            folio_ruta TEXT,
+            origen_captura TEXT,
+            pedido TEXT,
+            fecha TEXT,
+            cliente TEXT,
+            destino TEXT,
+            transportista TEXT,
+            vehiculo TEXT,
+            placas TEXT,
+            operador TEXT,
+            ruta TEXT,
+            estatus TEXT DEFAULT 'En almacén',
+            fecha_estatus TEXT,
+            usuario_estatus TEXT,
+            observaciones_estatus TEXT,
+            observaciones TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT
+        )
+    """)
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS detalle_embarque (
+            id_detalle_embarque INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_embarque TEXT NOT NULL,
+            folio_hoja_carga TEXT,
+            folio_ruta TEXT,
+            pedido TEXT,
+            codigo_material TEXT,
+            descripcion TEXT,
+            cantidad_pedida REAL,
+            cantidad_embarcar REAL,
+            peso REAL DEFAULT 0,
+            volumen REAL DEFAULT 0,
+            bodega TEXT,
+            ubicacion TEXT
+        )
+    """)
+
+    crear_catalogo_estatus_embarque(cur)
+    crear_tabla_historial_estatus_embarque(cur)
+    crear_tabla_eventos_embarque(cur)
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
+    crear_tabla_detalle_transporte(cur)
+    crear_tabla_incidencias(cur)
+
+    conn.commit()
+    conn.close()
+
+
+def alterar_tabla_embarques():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual embarques")
+    mostrar_estructura_tabla(db_path, "embarques")
+
+    columnas_embarques = [
+        ("folio_hoja_carga", "TEXT"),
+        ("folio_ruta", "TEXT"),
+        ("origen_captura", "TEXT"),
+        ("placas", "TEXT"),
+        ("fecha_estatus", "TEXT"),
+        ("usuario_estatus", "TEXT"),
+        ("observaciones_estatus", "TEXT"),
+        ("codigo_transporte", "TEXT"),
+        ("codigo_ruta", "TEXT"),
+    ]
+
+    st.subheader("🔧 Actualizando tabla embarques")
+
+    for nombre_columna, tipo_columna in columnas_embarques:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "embarques",
+            nombre_columna,
+            tipo_columna
+        )
+
+    cur.execute("""
+        UPDATE embarques
+        SET estatus = 'En almacén'
+        WHERE estatus IS NULL OR TRIM(estatus) = ''
+    """)
+
+    crear_catalogo_estatus_embarque(cur)
+    crear_tabla_historial_estatus_embarque(cur)
+    crear_tabla_eventos_embarque(cur)
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
+    crear_tabla_detalle_transporte(cur)
+    crear_tabla_incidencias(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final embarques")
+    mostrar_estructura_tabla(db_path, "embarques")
+
+
+def alterar_tabla_detalle_embarque():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual detalle_embarque")
+    mostrar_estructura_tabla(db_path, "detalle_embarque")
+
+    columnas_detalle = [
+        ("folio_hoja_carga", "TEXT"),
+        ("folio_ruta", "TEXT"),
+    ]
+
+    st.subheader("🔧 Actualizando tabla detalle_embarque")
+
+    for nombre_columna, tipo_columna in columnas_detalle:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "detalle_embarque",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final detalle_embarque")
+    mostrar_estructura_tabla(db_path, "detalle_embarque")
+
+
+def alterar_tabla_incidencias():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
+
+    crear_tabla_incidencias(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final incidencias")
+    mostrar_estructura_tabla(db_path, "incidencias")
+
+
+def crear_tablas_control_embarques():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_catalogo_estatus_embarque(cur)
+    crear_tabla_historial_estatus_embarque(cur)
+    crear_tabla_eventos_embarque(cur)
+    crear_tabla_rutas(cur)
+    crear_tabla_puntos_ruta(cur)
+    crear_tabla_transportes(cur)
+    crear_tabla_detalle_transporte(cur)
+    crear_tabla_incidencias(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tablas de control de embarques creadas/actualizadas")
+
+
+def crear_tablas_seguridad_app():
+
+    crear_tablas_seguridad()
+
+    db_path = get_db_path("erp")
+
+    st.success("✅ Tablas de seguridad creadas/actualizadas")
+
+    tablas = [
+        "usuarios",
+        "roles",
+        "permisos",
+        "modulos",
+        "usuario_roles",
+        "rol_permisos",
+        "sesiones_usuario"
+    ]
+
+    for tabla in tablas:
+
+        st.subheader(f"📋 {tabla}")
+        mostrar_estructura_tabla(db_path, tabla)
 
 
 # =====================================================
 # APP
 # =====================================================
 
-def carga_tablas_inicial_app():
+def crear_tablas_app():
 
-    st.title("📥 Carga tablas inicial")
+    st.title("🗄️ Crear / modificar / borrar tablas")
 
-    st.caption(
-        "⚙️ Configuración / Carga inicial"
+    tipo_proceso = st.selectbox(
+        "Tipo proceso",
+        [
+            "Crear tabla",
+            "Modificar estructura",
+            "Borrar tabla"
+        ],
+        key="tipo_proceso_tablas"
     )
 
     modulo = st.selectbox(
-        "Módulo",
+        "Selecciona módulo",
         [
-            "Inventarios",
             "Compras",
+            "Inventarios",
             "Logística",
             "Seguridad"
         ],
-        key="carga_modulo"
+        key="crear_tablas_modulo"
     )
 
-    if modulo == "Inventarios":
+    if modulo == "Compras":
 
         tablas_disponibles = [
-            "materiales",
-            "movimientos_inventario",
-            "hoja_carga",
-            "detalle_hoja_carga"
-        ]
-
-    elif modulo == "Compras":
-
-        tablas_disponibles = [
+            "Todas",
             "entradas_compras",
             "entradas_compras_detalle"
+        ]
+
+    elif modulo == "Inventarios":
+
+        tablas_disponibles = [
+            "Todas",
+            "materiales",
+            "movimientos_inventario",
+            "inventario_fisico",
+            "ajustes_inventario",
+            "hoja_carga",
+            "detalle_hoja_carga"
         ]
 
     elif modulo == "Logística":
 
         tablas_disponibles = [
-            "clientes",
+            "Todas",
+            "pedidos",
+            "detalle_pedido",
+            "embarques",
+            "detalle_embarque",
+            "estatus_embarque",
+            "historial_estatus_embarque",
+            "eventos_embarque",
             "rutas",
             "puntos_ruta",
             "transportes",
             "detalle_transporte",
-            "embarques",
-            "detalle_embarque",
             "incidencias"
         ]
 
     elif modulo == "Seguridad":
 
         tablas_disponibles = [
+            "Todas",
+            "usuarios",
             "roles",
+            "permisos",
             "modulos",
             "usuario_roles",
-            "rol_permisos"
+            "rol_permisos",
+            "sesiones_usuario"
         ]
 
     tabla = st.selectbox(
-        "Tabla destino",
+        "Selecciona tabla",
         tablas_disponibles,
-        key="carga_tabla"
+        key="crear_tablas_tabla"
     )
 
-    # =====================================================
-    # MODIFICAR ESTRUCTURA MATERIALES
-    # =====================================================
+    tabla_limpia = normalizar_texto(tabla)
+    modulo_limpio = normalizar_texto(modulo)
 
-    if modulo == "Inventarios" and tabla == "materiales":
-
-        st.markdown("---")
-
-        st.subheader("🛠️ Estructura logística de materiales")
+    if tipo_proceso == "Crear tabla":
 
         st.info(
-            "Este proceso agrega campos logísticos a la tabla materiales sin borrar información existente."
+            "Este proceso crea únicamente la tabla seleccionada si no existe."
         )
 
-        with st.expander("👀 Campos que se agregarán"):
-
-            st.dataframe(
-                pd.DataFrame(
-                    [
-                        {
-                            "campo": campo,
-                            "tipo": tipo
-                        }
-                        for campo, tipo in CAMPOS_LOGISTICOS_MATERIALES.items()
-                    ]
-                ),
-                use_container_width=True,
-                hide_index=True
-            )
-
         if st.button(
-            "🛠️ Modificar estructura materiales",
-            key="btn_alter_materiales_logistica"
+            "🚀 Crear tablas",
+            key="btn_crear_tablas"
         ):
 
             try:
 
-                resultado_alter = alterar_tabla_materiales_logistica()
+                if modulo_limpio == "seguridad":
+
+                    crear_tablas_seguridad_app()
+
+                elif modulo_limpio == "compras":
+
+                    crear_tablas_compras()
+
+                elif modulo_limpio == "inventarios":
+
+                    if tabla_limpia == "todas":
+
+                        crear_tablas_inventario()
+                        crear_tabla_movimientos_inventario()
+                        crear_tabla_inventario_fisico()
+                        crear_tabla_ajustes_inventario()
+                        crear_tablas_hoja_carga()
+
+                    elif tabla_limpia == "materiales":
+
+                        crear_tablas_inventario()
+
+                    elif tabla_limpia == "movimientos_inventario":
+
+                        crear_tabla_movimientos_inventario()
+
+                    elif tabla_limpia == "inventario_fisico":
+
+                        crear_tabla_inventario_fisico()
+
+                    elif tabla_limpia == "ajustes_inventario":
+
+                        crear_tabla_ajustes_inventario()
+
+                    elif tabla_limpia == "hoja_carga":
+
+                        crear_tablas_hoja_carga()
+
+                    elif tabla_limpia == "detalle_hoja_carga":
+
+                        crear_tablas_hoja_carga()
+
+                elif modulo_limpio == "logistica":
+
+                    if tabla_limpia == "todas":
+
+                        crear_tablas_logistica()
+
+                    elif tabla_limpia in [
+                        "pedidos",
+                        "detalle_pedido",
+                        "embarques",
+                        "detalle_embarque"
+                    ]:
+
+                        crear_tablas_logistica()
+
+                    elif tabla_limpia in [
+                        "estatus_embarque",
+                        "historial_estatus_embarque",
+                        "eventos_embarque"
+                    ]:
+
+                        crear_tablas_control_embarques()
+
+                    elif tabla_limpia in [
+                        "rutas",
+                        "puntos_ruta",
+                        "transportes",
+                        "detalle_transporte"
+                    ]:
+
+                        crear_tablas_rutas_logistica()
+
+                    elif tabla_limpia == "incidencias":
+
+                        crear_tablas_incidencias_logistica()
 
                 st.success(
-                    "✅ Estructura de materiales actualizada correctamente."
-                )
-
-                st.dataframe(
-                    resultado_alter,
-                    use_container_width=True,
-                    hide_index=True
+                    f"✅ Tabla(s) creadas correctamente para {modulo}"
                 )
 
             except Exception as e:
 
                 st.error(
-                    "❌ Error modificando estructura de materiales."
+                    f"❌ Error creando tablas del módulo {modulo}"
                 )
-
                 st.exception(e)
 
-        with st.expander("📋 Ver estructura actual de materiales"):
+    elif tipo_proceso == "Modificar estructura":
 
-            try:
-
-                estructura = mostrar_estructura_tabla(
-                    "materiales",
-                    "materiales"
-                )
-
-                st.dataframe(
-                    estructura,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-            except Exception as e:
-
-                st.error(
-                    "❌ Error leyendo estructura de materiales."
-                )
-
-                st.exception(e)
-
-    # =====================================================
-    # CREAR / MODIFICAR ESTRUCTURA CLIENTES
-    # =====================================================
-
-    if modulo == "Logística" and tabla == "clientes":
-
-        st.markdown("---")
-
-        st.subheader("🛠️ Estructura logística de clientes")
-
-        st.info(
-            "Este proceso crea o actualiza la tabla clientes sin borrar información existente."
+        st.warning(
+            "Este proceso modifica la estructura de una tabla existente sin borrar datos."
         )
 
-        with st.expander("👀 Campos que se agregarán"):
-
-            st.dataframe(
-                pd.DataFrame(
-                    [
-                        {
-                            "campo": campo,
-                            "tipo": tipo
-                        }
-                        for campo, tipo in CAMPOS_CLIENTES.items()
-                    ]
-                ),
-                use_container_width=True,
-                hide_index=True
-            )
-
         if st.button(
-            "🛠️ Crear / modificar estructura clientes",
-            key="btn_alter_clientes_logistica"
+            "🛠️ Modificar estructura",
+            key=f"btn_modificar_{modulo_limpio}_{tabla_limpia}"
         ):
 
             try:
 
-                resultado_alter = alterar_tabla_clientes()
+                st.info(f"Validando modificación: {modulo_limpio} / {tabla_limpia}")
+
+                if modulo_limpio == "seguridad":
+
+                    crear_tablas_seguridad_app()
+
+                elif modulo_limpio == "inventarios" and tabla_limpia == "hoja_carga":
+
+                    alterar_tabla_hoja_carga()
+
+                elif modulo_limpio == "inventarios" and tabla_limpia == "detalle_hoja_carga":
+
+                    alterar_tabla_detalle_hoja_carga()
+
+                elif modulo_limpio == "inventarios" and tabla_limpia == "movimientos_inventario":
+
+                    alterar_movimientos_inventario()
+
+                elif modulo_limpio == "inventarios" and tabla_limpia == "todas":
+
+                    alterar_tabla_hoja_carga()
+                    alterar_tabla_detalle_hoja_carga()
+                    alterar_movimientos_inventario()
+
+                elif modulo_limpio == "logistica" and tabla_limpia == "embarques":
+
+                    alterar_tabla_embarques()
+
+                elif modulo_limpio == "logistica" and tabla_limpia == "detalle_embarque":
+
+                    alterar_tabla_detalle_embarque()
+
+                elif modulo_limpio == "logistica" and tabla_limpia == "incidencias":
+
+                    alterar_tabla_incidencias()
+
+                elif modulo_limpio == "logistica" and tabla_limpia == "todas":
+
+                    alterar_tabla_embarques()
+                    alterar_tabla_detalle_embarque()
+                    alterar_tabla_incidencias()
+                    crear_tablas_control_embarques()
+                    crear_tablas_rutas_logistica()
+
+                elif modulo_limpio == "logistica" and tabla_limpia in [
+                    "estatus_embarque",
+                    "historial_estatus_embarque",
+                    "eventos_embarque"
+                ]:
+
+                    crear_tablas_control_embarques()
+
+                elif modulo_limpio == "logistica" and tabla_limpia in [
+                    "rutas",
+                    "puntos_ruta",
+                    "transportes",
+                    "detalle_transporte"
+                ]:
+
+                    crear_tablas_rutas_logistica()
+
+                else:
+
+                    st.warning(
+                        f"No hay modificación configurada para: {modulo} / {tabla}"
+                    )
+                    st.stop()
 
                 st.success(
-                    "✅ Estructura de clientes actualizada correctamente."
-                )
-
-                st.dataframe(
-                    resultado_alter,
-                    use_container_width=True,
-                    hide_index=True
+                    f"✅ Estructura actualizada: {modulo} / {tabla}"
                 )
 
             except Exception as e:
 
                 st.error(
-                    "❌ Error modificando estructura de clientes."
+                    f"❌ Error modificando estructura: {modulo} / {tabla}"
                 )
-
                 st.exception(e)
 
-        with st.expander("📋 Ver estructura actual de clientes"):
-
-            try:
-
-                estructura = mostrar_estructura_tabla(
-                    "logistica",
-                    "clientes"
-                )
-
-                st.dataframe(
-                    estructura,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-            except Exception as e:
-
-                st.warning(
-                    "La tabla clientes todavía no existe. Presiona el botón para crearla."
-                )
-
-    st.markdown("---")
-
-    st.subheader("📋 Columnas mínimas requeridas")
-
-    st.write(
-        COLUMNAS_MINIMAS.get(
-            tabla,
-            []
-        )
-    )
-
-    archivo = st.file_uploader(
-        "Selecciona archivo CSV o Excel",
-        type=["csv", "xlsx"],
-        key="archivo_carga_inicial"
-    )
-
-    if archivo is None:
-
-        st.info(
-            "Carga un archivo CSV o Excel para iniciar."
-        )
-
-        return
-
-    try:
-
-        if archivo.name.lower().endswith(".csv"):
-
-            df = pd.read_csv(archivo)
-
-        else:
-
-            df = pd.read_excel(archivo)
-
-    except Exception as e:
-
-        st.error("❌ Error leyendo archivo")
-        st.exception(e)
-
-        return
-
-    df.columns = (
-        df.columns
-        .astype(str)
-        .str.strip()
-    )
-
-    st.success(
-        f"✅ Archivo leído correctamente: {len(df)} registros"
-    )
-
-    st.subheader("👀 Vista previa")
-
-    st.dataframe(
-        df.head(20),
-        use_container_width=True
-    )
-
-    columnas_minimas = COLUMNAS_MINIMAS.get(
-        tabla,
-        []
-    )
-
-    st.subheader("✅ Validación columnas mínimas")
-
-    columnas_faltantes = [
-
-        col
-
-        for col in columnas_minimas
-
-        if col not in df.columns
-
-    ]
-
-    if columnas_faltantes:
+    elif tipo_proceso == "Borrar tabla":
 
         st.error(
-            "❌ Faltan columnas obligatorias"
+            "⚠️ Este proceso elimina completamente la tabla y toda su información."
         )
 
-        st.write(columnas_faltantes)
-
-        st.info(
-            "Columnas mínimas requeridas:"
+        st.warning(
+            "⚠️ Esta acción no se puede deshacer."
         )
 
-        st.write(columnas_minimas)
-
-        return
-
-    st.success(
-        "✅ Columnas mínimas correctas"
-    )
-
-    # =====================================================
-    # VALIDACIONES ESPECIALES CLIENTES
-    # =====================================================
-
-    if tabla == "clientes":
-
-        if df["codigo_cliente"].isna().any():
+        if tabla_limpia == "todas":
 
             st.error(
-                "❌ Hay registros sin codigo_cliente"
+                "Por seguridad no se permite borrar 'Todas'. Selecciona una tabla específica."
             )
+            st.stop()
 
-            return
+        confirmar_borrado = st.checkbox(
+            f"Confirmo borrar la tabla: {tabla}",
+            key=f"confirmar_borrado_{modulo_limpio}_{tabla_limpia}"
+        )
 
-        if df["nombre_cliente"].isna().any():
+        if not confirmar_borrado:
 
-            st.error(
-                "❌ Hay registros sin nombre_cliente"
+            st.info(
+                "Marca la confirmación para habilitar el borrado."
             )
+            st.stop()
 
-            return
+        if st.button(
+            "🗑️ Borrar tabla",
+            key=f"btn_borrar_{modulo_limpio}_{tabla_limpia}"
+        ):
 
-        duplicados = df[
-            df["codigo_cliente"]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .duplicated(keep=False)
-        ]
+            try:
 
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay codigo_cliente duplicados en el archivo"
-            )
-
-            st.dataframe(
-                df[duplicados],
-                use_container_width=True
-            )
-
-            return
-
-    # =====================================================
-    # VALIDACIONES ESPECIALES INVENTARIOS
-    # =====================================================
-
-    if tabla == "hoja_carga":
-
-        if df["folio_hoja_carga"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin folio_hoja_carga"
-            )
-
-            return
-
-        if df["cliente"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin cliente"
-            )
-
-            return
-
-        if df["destino"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin destino"
-            )
-
-            return
-
-        duplicados = df[
-            df["folio_hoja_carga"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay folio_hoja_carga duplicados en el archivo"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "detalle_hoja_carga":
-
-        if df["folio_hoja_carga"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin folio_hoja_carga"
-            )
-
-            return
-
-        if df["codigo_material"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_material"
-            )
-
-            return
-
-        if df["cantidad_pedido"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin cantidad_pedido"
-            )
-
-            return
-
-    # =====================================================
-    # VALIDACIONES ESPECIALES LOGISTICA
-    # =====================================================
-
-    if tabla == "rutas":
-
-        if df["codigo_ruta"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_ruta"
-            )
-
-            return
-
-        duplicados = df[
-            df["codigo_ruta"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay codigo_ruta duplicados"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "puntos_ruta":
-
-        if df["codigo_ruta"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_ruta"
-            )
-
-            return
-
-        if df["secuencia"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin secuencia"
-            )
-
-            return
-
-    if tabla == "transportes":
-
-        if df["codigo_transporte"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_transporte"
-            )
-
-            return
-
-        duplicados = df[
-            df["codigo_transporte"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay codigo_transporte duplicados"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "detalle_transporte":
-
-        if df["codigo_transporte"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_transporte"
-            )
-
-            return
-
-        if df["folio_embarque"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin folio_embarque"
-            )
-
-            return
-
-        if df["codigo_ruta"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_ruta"
-            )
-
-            return
-
-    if tabla == "embarques":
-
-        if df["folio_embarque"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin folio_embarque"
-            )
-
-            return
-
-        duplicados = df[
-            df["folio_embarque"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay folio_embarque duplicados"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "detalle_embarque":
-
-        if df["folio_embarque"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin folio_embarque"
-            )
-
-            return
-
-        if df["codigo_material"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin codigo_material"
-            )
-
-            return
-
-    if tabla == "incidencias":
-
-        if df["folio_incidencia"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin folio_incidencia"
-            )
-
-            return
-
-        if df["fecha"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin fecha"
-            )
-
-            return
-
-        if df["tipo_incidencia"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin tipo_incidencia"
-            )
-
-            return
-
-        if df["prioridad"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin prioridad"
-            )
-
-            return
-
-        if df["estatus"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin estatus"
-            )
-
-            return
-
-        if df["descripcion_incidencia"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin descripcion_incidencia"
-            )
-
-            return
-
-        duplicados = df[
-            df["folio_incidencia"]
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay folio_incidencia duplicados"
-            )
-
-            st.dataframe(
-                duplicados,
-                use_container_width=True
-            )
-
-            return
-
-    # =====================================================
-    # VALIDACIONES ESPECIALES SEGURIDAD
-    # =====================================================
-
-    if tabla == "roles":
-
-        if df["nombre_rol"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin nombre_rol"
-            )
-
-            return
-
-        duplicados = df[
-            df["nombre_rol"]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay nombre_rol duplicados en el archivo"
-            )
-
-            st.dataframe(
-                df[duplicados],
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "modulos":
-
-        if df["nombre_modulo"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin nombre_modulo"
-            )
-
-            return
-
-        if df["ruta"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin ruta"
-            )
-
-            return
-
-        if df["orden_menu"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin orden_menu"
-            )
-
-            return
-
-        duplicados = df[
-            df["ruta"]
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .duplicated(keep=False)
-        ]
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay rutas duplicadas en el archivo"
-            )
-
-            st.dataframe(
-                df[duplicados],
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "usuario_roles":
-
-        if df["id_usuario"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin id_usuario"
-            )
-
-            return
-
-        if df["id_rol"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin id_rol"
-            )
-
-            return
-
-        duplicados = df[
-            ["id_usuario", "id_rol"]
-        ].duplicated(keep=False)
-
-        if not duplicados.empty:
-
-            st.warning(
-                "⚠️ Hay asignaciones usuario/rol duplicadas en el archivo"
-            )
-
-            st.dataframe(
-                df[duplicados],
-                use_container_width=True
-            )
-
-            return
-
-    if tabla == "rol_permisos":
-
-        if df["id_rol"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin id_rol"
-            )
-
-            return
-
-        if df["id_modulo"].isna().any():
-
-            st.error(
-                "❌ Hay registros sin id_modulo"
-            )
-
-            return
-
-        columnas_permiso = [
-            "puede_ver",
-            "puede_crear",
-            "puede_editar",
-            "puede_borrar"
-        ]
-
-        for columna in columnas_permiso:
-
-            if df[columna].isna().any():
-
-                st.error(
-                    f"❌ Hay registros sin {columna}"
+                db_path = borrar_tabla(
+                    modulo,
+                    tabla
                 )
 
-                return
+                st.success(
+                    f"✅ Tabla eliminada correctamente: {tabla}"
+                )
 
-        duplicados = df[
-            ["id_rol", "id_modulo"]
-        ].duplicated(keep=False)
+                st.write("📂 Base afectada:")
+                st.code(str(db_path))
 
-        if not duplicados.empty:
+            except Exception as e:
 
-            st.warning(
-                "⚠️ Hay permisos duplicados por rol/módulo en el archivo"
-            )
-
-            st.dataframe(
-                df[duplicados],
-                use_container_width=True
-            )
-
-            return
-
-    db_nombre = DB_POR_TABLA[tabla]
-
-    db_path = get_db_path(db_nombre)
-
-    st.markdown("---")
-
-    st.write("📂 Base destino:")
-
-    st.code(str(db_path))
-
-    st.write("📋 Tabla destino:")
-
-    st.code(tabla)
-
-    confirmar = st.checkbox(
-        "Confirmo que deseo agregar esta información",
-        key="confirmar_carga_inicial"
-    )
-
-    if not confirmar:
-
-        st.info(
-            "Marca la confirmación para habilitar la carga."
-        )
-
-        return
-
-    if st.button(
-        "🚀 Ejecutar carga",
-        key="btn_ejecutar_carga_inicial"
-    ):
-
-        try:
-
-            conn = sqlite3.connect(db_path)
-
-            df.to_sql(
-                tabla,
-                conn,
-                if_exists="append",
-                index=False
-            )
-
-            total = pd.read_sql_query(
-                f"""
-                SELECT COUNT(*) AS total
-                FROM {tabla}
-                """,
-                conn
-            )["total"].iloc[0]
-
-            conn.close()
-
-            st.success(
-                "✅ Información cargada correctamente"
-            )
-
-            st.write(
-                "📊 Registros cargados desde archivo:"
-            )
-
-            st.write(len(df))
-
-            st.write(
-                "📦 Total registros actuales en tabla:"
-            )
-
-            st.write(total)
-
-        except Exception as e:
-
-            st.error(
-                "❌ Error cargando información"
-            )
-
-            st.exception(e)
-
-
-if __name__ == "__main__":
-
-    carga_tablas_inicial_app()
+                st.error(
+                    f"❌ Error borrando tabla: {tabla}"
+                )
+                st.exception(e)
