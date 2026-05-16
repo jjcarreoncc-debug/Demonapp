@@ -412,67 +412,67 @@ def sidebar_inventarios():
                         )
 
 
-        # =================================================
-        # CREACIÓN DE ENTREGAS
-        # =================================================
+            # =================================================
+            # CREACIÓN DE ENTREGAS
+            # =================================================
 
-        with st.expander("📋 Creación de entregas"):
+            with st.expander("📋 Creación de entregas"):
 
-            if st.button(
-                "🔎 Consulta de pedidos"
-            ):
+                if st.button(
+                    "🔎 Consulta de pedidos"
+                ):
 
-                set_opcion(
-                    "Creación de entregas",
-                    "Pedidos",
-                    "Consulta de pedidos"
-                )
+                    set_opcion(
+                        "Operaciones",
+                        "Creación de entregas",
+                        "Consulta de pedidos"
+                    )
 
-            if st.button(
-                "➕ Creación de entregas"
-            ):
+                if st.button(
+                    "➕ Creación de entregas"
+                ):
 
-                set_opcion(
-                    "Creación de entregas",
-                    "Entregas",
-                    "Creación de entregas"
-                )
+                    set_opcion(
+                        "Operaciones",
+                        "Creación de entregas",
+                        "Creación de entregas"
+                    )
 
-            if st.button(
-                "🔍 Consulta de entregas"
-            ):
+                if st.button(
+                    "🔍 Consulta de entregas"
+                ):
 
-                set_opcion(
-                    "Creación de entregas",
-                    "Entregas",
-                    "Consulta de entregas"
-                )
+                    set_opcion(
+                        "Operaciones",
+                        "Creación de entregas",
+                        "Consulta de entregas"
+                    )
 
-        # =================================================
-        # HOJA DE CARGA
-        # =================================================
+            # =================================================
+            # HOJA DE CARGA
+            # =================================================
 
-        with st.expander("🚚 Hoja de carga"):
+            with st.expander("🚚 Hoja de carga"):
 
-            if st.button(
-                "➕ Creación hoja de carga"
-            ):
+                if st.button(
+                    "➕ Creación hoja de carga"
+                ):
 
-                set_opcion(
-                    "Hoja de carga",
-                    "Hoja de carga",
-                    "Creación hoja de carga"
-                )
+                    set_opcion(
+                        "Operaciones",
+                        "Hoja de carga",
+                        "Creación hoja de carga"
+                    )
 
-            if st.button(
-                "🔍 Consulta hoja de carga"
-            ):
+                if st.button(
+                    "🔍 Consulta hoja de carga"
+                ):
 
-                set_opcion(
-                    "Hoja de carga",
-                    "Hoja de carga",
-                    "Consulta hoja de carga"
-                )
+                    set_opcion(
+                        "Operaciones",
+                        "Hoja de carga",
+                        "Consulta hoja de carga"
+                    )
 
 
         # =================================================
