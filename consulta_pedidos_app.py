@@ -634,8 +634,18 @@ def mostrar_comparativos(df):
                 y="cantidad_pedida"
             )
 
+################################
+############
+# Reemplaza SOLO la función `consulta_pedidos_app()` por esta versión
+
+```python
 
 def consulta_pedidos_app():
+
+    st.set_page_config(
+        page_title="Consulta de pedidos",
+        layout="wide"
+    )
 
     st.title("📋 Consulta de pedidos")
 
@@ -659,13 +669,26 @@ def consulta_pedidos_app():
 
         return
 
-    st.markdown(
-        "### 🔎 Filtros generales"
+    # ======================================================
+    # LAYOUT HORIZONTAL ESTILO KARDEX
+    # ======================================================
+
+    col_filtros, col_contenido = st.columns(
+        [
+            0.85,
+            5.3
+        ]
     )
 
-    col1, col2, col3, col4 = st.columns(4)
+    # ======================================================
+    # FILTROS IZQUIERDA
+    # ======================================================
 
-    with col1:
+    with col_filtros:
+
+        st.markdown(
+            "### 🔎 Filtros"
+        )
 
         clientes = sorted(
             df["cliente"]
@@ -680,8 +703,6 @@ def consulta_pedidos_app():
             ["Todos"] + clientes
         )
 
-    with col2:
-
         pedidos = sorted(
             df["pedido"]
             .dropna()
@@ -694,8 +715,6 @@ def consulta_pedidos_app():
             "Pedido",
             ["Todos"] + pedidos
         )
-
-    with col3:
 
         estatus = sorted(
             df["estatus_pedido"]
@@ -710,8 +729,6 @@ def consulta_pedidos_app():
             ["Todos"] + estatus
         )
 
-    with col4:
-
         decisiones = sorted(
             df["decision_operativa"]
             .dropna()
@@ -724,6 +741,10 @@ def consulta_pedidos_app():
             "Decisión",
             ["Todos"] + decisiones
         )
+
+    # ======================================================
+    # FILTROS
+    # ======================================================
 
     df_filtrado = df.copy()
 
@@ -751,112 +772,114 @@ def consulta_pedidos_app():
             df_filtrado["decision_operativa"].astype(str) == decision_sel
         ]
 
-    st.divider()
+    # ======================================================
+    # CONTENIDO PRINCIPAL
+    # ======================================================
 
-    mostrar_indicadores(df_filtrado)
+    with col_contenido:
 
-    st.divider()
+        mostrar_indicadores(df_filtrado)
 
-    (
-        tab_general,
-        tab_detalle,
-        tab_pendientes,
-        tab_listos,
-        tab_sin_inv,
-        tab_comparativos
-    ) = st.tabs(
-        [
-            "📄 Vista general",
-            "📦 Detalle pedido",
-            "⏳ Pendientes / parciales",
-            "✅ Listos",
-            "⚠️ Sin inventario",
-            "📊 Comparativos"
-        ]
-    )
+        st.divider()
 
-    with tab_general:
-
-        columnas = mostrar_grid(
-            df_filtrado,
-            "Base general de pedidos"
+        (
+            tab_general,
+            tab_detalle,
+            tab_pendientes,
+            tab_listos,
+            tab_sin_inv,
+            tab_comparativos
+        ) = st.tabs(
+            [
+                "📄 Vista general",
+                "📦 Detalle pedido",
+                "⏳ Pendientes / parciales",
+                "✅ Listos",
+                "⚠️ Sin inventario",
+                "📊 Comparativos"
+            ]
         )
 
-        st.download_button(
-            "📥 Descargar vista general CSV",
-            data=df_filtrado[columnas]
-            .to_csv(index=False)
-            .encode("utf-8"),
-            file_name=f"consulta_pedidos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv",
-            use_container_width=True
-        )
+        with tab_general:
 
-    with tab_detalle:
-
-        mostrar_detalle_pedido(df_filtrado)
-
-    with tab_pendientes:
-
-        df_pendientes = df_filtrado[
-            df_filtrado["decision_operativa"] == "Parcial / requiere decisión"
-        ].copy()
-
-        if df_pendientes.empty:
-
-            st.success(
-                "No hay pedidos parciales o pendientes de decisión en el filtro actual."
+            columnas = mostrar_grid(
+                df_filtrado,
+                "Base general de pedidos"
             )
 
-        else:
-
-            mostrar_grid(
-                df_pendientes,
-                "Pedidos pendientes / parciales"
+            st.download_button(
+                "📥 Descargar vista general CSV",
+                data=df_filtrado[columnas]
+                .to_csv(index=False)
+                .encode("utf-8"),
+                file_name=f"consulta_pedidos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                use_container_width=True
             )
 
-    with tab_listos:
+        with tab_detalle:
 
-        df_listos = df_filtrado[
-            df_filtrado["decision_operativa"] == "Disponible para entrega"
-        ].copy()
+            mostrar_detalle_pedido(df_filtrado)
 
-        if df_listos.empty:
+        with tab_pendientes:
 
-            st.info(
-                "No hay pedidos listos para entrega en el filtro actual."
-            )
+            df_pendientes = df_filtrado[
+                df_filtrado["decision_operativa"] == "Parcial / requiere decisión"
+            ].copy()
 
-        else:
+            if df_pendientes.empty:
 
-            mostrar_grid(
-                df_listos,
-                "Pedidos listos para crear entrega"
-            )
+                st.success(
+                    "No hay pedidos parciales o pendientes de decisión en el filtro actual."
+                )
 
-    with tab_sin_inv:
+            else:
 
-        df_sin_inv = df_filtrado[
-            df_filtrado["decision_operativa"] == "Sin inventario"
-        ].copy()
+                mostrar_grid(
+                    df_pendientes,
+                    "Pedidos pendientes / parciales"
+                )
 
-        if df_sin_inv.empty:
+        with tab_listos:
 
-            st.success(
-                "No hay pedidos sin inventario en el filtro actual."
-            )
+            df_listos = df_filtrado[
+                df_filtrado["decision_operativa"] == "Disponible para entrega"
+            ].copy()
 
-        else:
+            if df_listos.empty:
 
-            mostrar_grid(
-                df_sin_inv,
-                "Pedidos sin inventario"
-            )
+                st.info(
+                    "No hay pedidos listos para entrega en el filtro actual."
+                )
 
-    with tab_comparativos:
+            else:
 
-        mostrar_comparativos(df_filtrado)
+                mostrar_grid(
+                    df_listos,
+                    "Pedidos listos para crear entrega"
+                )
+
+        with tab_sin_inv:
+
+            df_sin_inv = df_filtrado[
+                df_filtrado["decision_operativa"] == "Sin inventario"
+            ].copy()
+
+            if df_sin_inv.empty:
+
+                st.success(
+                    "No hay pedidos sin inventario en el filtro actual."
+                )
+
+            else:
+
+                mostrar_grid(
+                    df_sin_inv,
+                    "Pedidos sin inventario"
+                )
+
+        with tab_comparativos:
+
+            mostrar_comparativos(df_filtrado)
 
 
-if __name__ == "__main__":
-    consulta_pedidos_app()
