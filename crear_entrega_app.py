@@ -3,49 +3,61 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 
-
-DB_NAME = "sigem.db"
-
-
-# ============================================================
-# CONEXIÓN
-# ============================================================
-def get_connection():
-    return sqlite3.connect(DB_NAME)
+from sigem_db import get_db_path
 
 
 # ============================================================
-# CREAR TABLAS DE ENTREGAS
+# CONEXIONES
+# ============================================================
+def get_connection_logistica():
+    return sqlite3.connect(get_db_path("logistica"))
+
+
+def get_connection_inventarios():
+    return sqlite3.connect(get_db_path("inventarios"))
+
+
+# ============================================================
+# CREAR TABLAS DE ENTREGAS EN LOGÍSTICA
 # ============================================================
 def crear_tablas_entregas():
-    conn = get_connection()
+    conn = get_connection_logistica()
     cur = conn.cursor()
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS entregas (
             id_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
-            folio_entrega TEXT UNIQUE,
-            fecha_entrega TEXT,
+            folio_entrega TEXT UNIQUE NOT NULL,
+            pedido TEXT,
             cliente TEXT,
             destino TEXT,
+            fecha_entrega TEXT,
+            fecha_programada TEXT,
+            prioridad TEXT,
+            estatus_entrega TEXT DEFAULT 'Pendiente',
             observaciones TEXT,
-            estatus TEXT,
-            usuario_creacion TEXT,
-            fecha_creacion TEXT
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS entregas_detalle (
-            id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
-            id_entrega INTEGER,
+        CREATE TABLE IF NOT EXISTS detalle_entrega (
+            id_detalle_entrega INTEGER PRIMARY KEY AUTOINCREMENT,
+            folio_entrega TEXT NOT NULL,
             pedido TEXT,
             codigo_material TEXT,
             descripcion TEXT,
-            cantidad REAL,
-            unidad_medida TEXT,
+            cantidad_pedida REAL,
+            cantidad_reservada REAL,
+            cantidad_surtida REAL DEFAULT 0,
+            bodega TEXT,
             ubicacion TEXT,
-            FOREIGN KEY(id_entrega) REFERENCES entregas(id_entrega)
+            peso REAL DEFAULT 0,
+            volumen REAL DEFAULT 0,
+            tarimas REAL DEFAULT 0,
+            estatus_detalle TEXT DEFAULT 'Pendiente',
+            observaciones TEXT
         )
     """)
 
@@ -57,7 +69,7 @@ def crear_tablas_entregas():
 # ASEGURAR STOCK RESERVADO EN INVENTARIOS
 # ============================================================
 def asegurar_stock_reservado():
-    conn = get_connection()
+    conn = get_connection_inventarios()
     cur = conn.cursor()
 
     try:
@@ -82,7 +94,7 @@ def asegurar_stock_reservado():
 # GENERAR FOLIO
 # ============================================================
 def generar_folio_entrega():
-    conn = get_connection()
+    conn = get_connection_logistica()
     cur = conn.cursor()
 
     fecha = datetime.now().strftime("%Y%m%d")
@@ -94,6 +106,7 @@ def generar_folio_entrega():
     """, (f"ENT-{fecha}-%",))
 
     consecutivo = cur.fetchone()[0] + 1
+
     conn.close()
 
     return f"ENT-{fecha}-{consecutivo:04d}"
@@ -103,47 +116,54 @@ def generar_folio_entrega():
 # OBTENER PEDIDOS PARA CREAR ENTREGA
 # ============================================================
 def obtener_pedidos_para_entrega():
-    conn = get_connection()
+    logistica_path = get_db_path("logistica")
+    inventarios_path = get_db_path("inventarios")
 
-    query = """
-        SELECT
-            p.pedido,
-            p.fecha,
-            p.cliente,
-            p.destino,
-            p.estatus,
-
-            d.codigo_material,
-            d.descripcion,
-            d.cantidad_pedida,
-            d.bodega,
-            d.ubicacion,
-
-            COALESCE(i.stock_actual, 0) AS stock_actual,
-            COALESCE(i.stock_reservado, 0) AS stock_reservado,
-            COALESCE(i.stock_actual, 0) - COALESCE(i.stock_reservado, 0) AS stock_disponible
-
-        FROM pedidos_venta p
-
-        INNER JOIN pedidos_venta_detalle d
-            ON p.pedido = d.pedido
-
-        LEFT JOIN inventarios i
-            ON d.codigo_material = i.codigo_material
-
-        WHERE p.estatus IN (
-            'Pendiente',
-            'Parcial'
-        )
-
-        ORDER BY
-            p.fecha,
-            p.pedido,
-            d.codigo_material
-    """
+    conn = sqlite3.connect(logistica_path)
+    cur = conn.cursor()
 
     try:
+        cur.execute(f"ATTACH DATABASE '{inventarios_path}' AS invdb")
+
+        query = """
+            SELECT
+                p.pedido,
+                p.fecha,
+                p.cliente,
+                p.destino,
+                p.estatus,
+
+                d.codigo_material,
+                d.descripcion,
+                d.cantidad_pedida,
+                d.bodega,
+                d.ubicacion,
+
+                COALESCE(i.stock_actual, 0) AS stock_actual,
+                COALESCE(i.stock_reservado, 0) AS stock_reservado,
+                COALESCE(i.stock_actual, 0) - COALESCE(i.stock_reservado, 0) AS stock_disponible
+
+            FROM pedidos p
+
+            INNER JOIN detalle_pedido d
+                ON p.pedido = d.pedido
+
+            LEFT JOIN invdb.inventarios i
+                ON d.codigo_material = i.codigo_material
+
+            WHERE p.estatus IN (
+                'Pendiente',
+                'Parcial'
+            )
+
+            ORDER BY
+                p.fecha,
+                p.pedido,
+                d.codigo_material
+        """
+
         df = pd.read_sql_query(query, conn)
+
     except Exception as e:
         st.error(f"Error al consultar pedidos: {e}")
         df = pd.DataFrame()
@@ -168,11 +188,20 @@ def obtener_pedidos_para_entrega():
 # GUARDAR ENTREGA DESDE PEDIDOS
 # ============================================================
 def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuario):
-    conn = get_connection()
+    logistica_path = get_db_path("logistica")
+    inventarios_path = get_db_path("inventarios")
+
+    conn = sqlite3.connect(logistica_path)
     cur = conn.cursor()
 
     try:
+        cur.execute(f"ATTACH DATABASE '{inventarios_path}' AS invdb")
+
         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        pedidos = df_seleccionados["pedido"].dropna().astype(str).unique()
+
+        pedido_texto = ", ".join(pedidos)
 
         cliente = ", ".join(
             df_seleccionados["cliente"].dropna().astype(str).unique()
@@ -185,49 +214,69 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
         cur.execute("""
             INSERT INTO entregas (
                 folio_entrega,
-                fecha_entrega,
+                pedido,
                 cliente,
                 destino,
+                fecha_entrega,
+                fecha_programada,
+                prioridad,
+                estatus_entrega,
                 observaciones,
-                estatus,
-                usuario_creacion,
+                usuario,
                 fecha_creacion
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             folio,
-            fecha_actual,
+            pedido_texto,
             cliente,
             destino,
+            fecha_actual,
+            "",
+            "Normal",
+            "Reservada",
             observaciones,
-            "RESERVADA",
             usuario,
             fecha_actual
         ))
 
-        id_entrega = cur.lastrowid
-
         for _, item in df_seleccionados.iterrows():
 
+            cantidad = float(item["cantidad_pedida"])
+
             cur.execute("""
-                INSERT INTO entregas_detalle (
-                    id_entrega,
+                INSERT INTO detalle_entrega (
+                    folio_entrega,
                     pedido,
                     codigo_material,
                     descripcion,
-                    cantidad,
-                    unidad_medida,
-                    ubicacion
+                    cantidad_pedida,
+                    cantidad_reservada,
+                    cantidad_surtida,
+                    bodega,
+                    ubicacion,
+                    peso,
+                    volumen,
+                    tarimas,
+                    estatus_detalle,
+                    observaciones
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
-                id_entrega,
+                folio,
                 item["pedido"],
                 item["codigo_material"],
                 item["descripcion"],
-                float(item["cantidad_pedida"]),
-                "",
-                item["ubicacion"]
+                cantidad,
+                cantidad,
+                0,
+                item["bodega"],
+                item["ubicacion"],
+                0,
+                0,
+                0,
+                "Reservado",
+                observaciones
             ))
 
             # =====================================================
@@ -235,19 +284,17 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
             # NO DESCUENTA STOCK FÍSICO
             # =====================================================
             cur.execute("""
-                UPDATE inventarios
+                UPDATE invdb.inventarios
                 SET stock_reservado = COALESCE(stock_reservado, 0) + ?
                 WHERE codigo_material = ?
             """, (
-                float(item["cantidad_pedida"]),
+                cantidad,
                 item["codigo_material"]
             ))
 
-        pedidos = df_seleccionados["pedido"].dropna().astype(str).unique()
-
         for pedido in pedidos:
             cur.execute("""
-                UPDATE pedidos_venta
+                UPDATE pedidos
                 SET estatus = ?
                 WHERE pedido = ?
             """, (
@@ -257,11 +304,13 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
 
         conn.commit()
         conn.close()
+
         return True, folio
 
     except Exception as e:
         conn.rollback()
         conn.close()
+
         return False, str(e)
 
 
