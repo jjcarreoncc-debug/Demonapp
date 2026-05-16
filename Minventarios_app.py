@@ -43,7 +43,7 @@ def inicio_inventarios_app():
 
     try:
         st.image(
-            "logoinventarios.png",
+            "logoinventarios.jpg",
             use_container_width=True
         )
     except Exception:
