@@ -313,6 +313,195 @@ def alterar_movimientos_inventario():
 # LOGISTICA
 # =====================================================
 
+
+def crear_tabla_clientes(cur):
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_cliente TEXT UNIQUE NOT NULL,
+            nombre_cliente TEXT,
+            razon_social TEXT,
+            rfc TEXT,
+            estatus TEXT DEFAULT 'Activo',
+            tipo_cliente TEXT,
+
+            direccion_entrega TEXT,
+            colonia TEXT,
+            ciudad TEXT,
+            estado TEXT,
+            pais TEXT,
+            codigo_postal TEXT,
+
+            latitud REAL DEFAULT 0,
+            longitud REAL DEFAULT 0,
+
+            ruta TEXT,
+            secuencia_ruta INTEGER DEFAULT 0,
+
+            dias_entrega_permitidos TEXT,
+            hora_inicio_recepcion TEXT,
+            hora_fin_recepcion TEXT,
+
+            requiere_cita TEXT,
+            permite_entrega_parcial TEXT,
+
+            restriccion_unidad TEXT,
+            tipo_unidad_permitida TEXT,
+
+            tiempo_descarga_min INTEGER DEFAULT 0,
+
+            peso_max_tarima REAL DEFAULT 0,
+            altura_max_tarima REAL DEFAULT 0,
+
+            permite_tarima_mixta TEXT,
+            requiere_emplaye TEXT,
+            requiere_etiqueta TEXT,
+
+            tipo_tarima TEXT,
+
+            contacto_entrega TEXT,
+            telefono_contacto TEXT,
+            correo_contacto TEXT,
+
+            requiere_foto_entrega TEXT,
+            requiere_firma TEXT,
+            requiere_sello TEXT,
+
+            gps_obligatorio TEXT,
+
+            requiere_oc TEXT,
+            requiere_factura_impresa TEXT,
+            requiere_documento_fisico TEXT,
+
+            prioridad_ruta TEXT,
+            cliente_critico TEXT,
+            nivel_servicio TEXT,
+
+            observaciones_logisticas TEXT,
+            usuario TEXT,
+            fecha_creacion TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+
+def crear_tablas_clientes_logistica():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    crear_tabla_clientes(cur)
+
+    conn.commit()
+    conn.close()
+
+    st.success("✅ Tabla clientes creada o actualizada")
+
+    st.subheader("📋 Clientes")
+    mostrar_estructura_tabla(db_path, "clientes")
+
+
+def alterar_tabla_clientes():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    st.subheader("📋 Estructura actual clientes")
+    mostrar_estructura_tabla(db_path, "clientes")
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS clientes (
+            id_cliente INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo_cliente TEXT UNIQUE NOT NULL
+        )
+    """)
+
+    columnas_clientes = [
+        ("nombre_cliente", "TEXT"),
+        ("razon_social", "TEXT"),
+        ("rfc", "TEXT"),
+        ("estatus", "TEXT DEFAULT 'Activo'"),
+        ("tipo_cliente", "TEXT"),
+
+        ("direccion_entrega", "TEXT"),
+        ("colonia", "TEXT"),
+        ("ciudad", "TEXT"),
+        ("estado", "TEXT"),
+        ("pais", "TEXT"),
+        ("codigo_postal", "TEXT"),
+
+        ("latitud", "REAL DEFAULT 0"),
+        ("longitud", "REAL DEFAULT 0"),
+
+        ("ruta", "TEXT"),
+        ("secuencia_ruta", "INTEGER DEFAULT 0"),
+
+        ("dias_entrega_permitidos", "TEXT"),
+        ("hora_inicio_recepcion", "TEXT"),
+        ("hora_fin_recepcion", "TEXT"),
+
+        ("requiere_cita", "TEXT"),
+        ("permite_entrega_parcial", "TEXT"),
+
+        ("restriccion_unidad", "TEXT"),
+        ("tipo_unidad_permitida", "TEXT"),
+
+        ("tiempo_descarga_min", "INTEGER DEFAULT 0"),
+
+        ("peso_max_tarima", "REAL DEFAULT 0"),
+        ("altura_max_tarima", "REAL DEFAULT 0"),
+
+        ("permite_tarima_mixta", "TEXT"),
+        ("requiere_emplaye", "TEXT"),
+        ("requiere_etiqueta", "TEXT"),
+
+        ("tipo_tarima", "TEXT"),
+
+        ("contacto_entrega", "TEXT"),
+        ("telefono_contacto", "TEXT"),
+        ("correo_contacto", "TEXT"),
+
+        ("requiere_foto_entrega", "TEXT"),
+        ("requiere_firma", "TEXT"),
+        ("requiere_sello", "TEXT"),
+
+        ("gps_obligatorio", "TEXT"),
+
+        ("requiere_oc", "TEXT"),
+        ("requiere_factura_impresa", "TEXT"),
+        ("requiere_documento_fisico", "TEXT"),
+
+        ("prioridad_ruta", "TEXT"),
+        ("cliente_critico", "TEXT"),
+        ("nivel_servicio", "TEXT"),
+
+        ("observaciones_logisticas", "TEXT"),
+        ("usuario", "TEXT"),
+        ("fecha_creacion", "TEXT DEFAULT CURRENT_TIMESTAMP")
+    ]
+
+    st.subheader("🔧 Actualizando tabla clientes")
+
+    for nombre_columna, tipo_columna in columnas_clientes:
+
+        agregar_columna_si_no_existe(
+            cur,
+            "clientes",
+            nombre_columna,
+            tipo_columna
+        )
+
+    conn.commit()
+    conn.close()
+
+    st.subheader("📋 Estructura final clientes")
+    mostrar_estructura_tabla(db_path, "clientes")
+
+
 def crear_catalogo_estatus_embarque(cur):
 
     cur.execute("""
@@ -567,6 +756,8 @@ def crear_tablas_logistica():
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
+
+    crear_tabla_clientes(cur)
 
     cur.execute("""
         CREATE TABLE IF NOT EXISTS pedidos (
@@ -859,6 +1050,7 @@ def crear_tablas_app():
 
         tablas_disponibles = [
             "Todas",
+            "clientes",
             "pedidos",
             "detalle_pedido",
             "embarques",
@@ -956,6 +1148,10 @@ def crear_tablas_app():
 
                         crear_tablas_logistica()
 
+                    elif tabla_limpia == "clientes":
+
+                        crear_tablas_clientes_logistica()
+
                     elif tabla_limpia in [
                         "pedidos",
                         "detalle_pedido",
@@ -1034,6 +1230,10 @@ def crear_tablas_app():
                     alterar_tabla_detalle_hoja_carga()
                     alterar_movimientos_inventario()
 
+                elif modulo_limpio == "logistica" and tabla_limpia == "clientes":
+
+                    alterar_tabla_clientes()
+
                 elif modulo_limpio == "logistica" and tabla_limpia == "embarques":
 
                     alterar_tabla_embarques()
@@ -1048,6 +1248,7 @@ def crear_tablas_app():
 
                 elif modulo_limpio == "logistica" and tabla_limpia == "todas":
 
+                    alterar_tabla_clientes()
                     alterar_tabla_embarques()
                     alterar_tabla_detalle_embarque()
                     alterar_tabla_incidencias()
