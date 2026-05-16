@@ -616,7 +616,7 @@ def mostrar_detalle_entrega(df):
 # ============================================================
 # APP PRINCIPAL
 # ============================================================
-def cancelacion_app():
+def cancelacion_entrega_app():
     aplicar_estilos_cancelacion()
     crear_tablas_cancelacion()
 
