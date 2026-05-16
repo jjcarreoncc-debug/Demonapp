@@ -54,7 +54,7 @@ def crear_tablas_entregas():
 
 
 # ============================================================
-# VALIDAR / AGREGAR COLUMNA STOCK_RESERVADO EN INVENTARIOS
+# ASEGURAR STOCK RESERVADO EN INVENTARIOS
 # ============================================================
 def asegurar_stock_reservado():
     conn = get_connection()
@@ -111,22 +111,35 @@ def obtener_pedidos_para_entrega():
             p.fecha,
             p.cliente,
             p.destino,
-            p.estatus_pedido,
+            p.estatus,
+
             d.codigo_material,
             d.descripcion,
-            d.cantidad,
-            COALESCE(d.unidad_medida, '') AS unidad_medida,
-            COALESCE(i.ubicacion, '') AS ubicacion,
+            d.cantidad_pedida,
+            d.bodega,
+            d.ubicacion,
+
             COALESCE(i.stock_actual, 0) AS stock_actual,
             COALESCE(i.stock_reservado, 0) AS stock_reservado,
             COALESCE(i.stock_actual, 0) - COALESCE(i.stock_reservado, 0) AS stock_disponible
-        FROM pedidos p
-        INNER JOIN pedidos_detalle d
+
+        FROM pedidos_venta p
+
+        INNER JOIN pedidos_venta_detalle d
             ON p.pedido = d.pedido
+
         LEFT JOIN inventarios i
             ON d.codigo_material = i.codigo_material
-        WHERE p.estatus_pedido IN ('Pendiente', 'Parcial')
-        ORDER BY p.fecha, p.pedido, d.codigo_material
+
+        WHERE p.estatus IN (
+            'Pendiente',
+            'Parcial'
+        )
+
+        ORDER BY
+            p.fecha,
+            p.pedido,
+            d.codigo_material
     """
 
     try:
@@ -141,8 +154,9 @@ def obtener_pedidos_para_entrega():
         return df
 
     def calcular_semaforo(row):
-        if row["stock_disponible"] >= row["cantidad"]:
+        if row["stock_disponible"] >= row["cantidad_pedida"]:
             return "🟢 Listo"
+
         return "🔴 Sin inventario"
 
     df["semaforo"] = df.apply(calcular_semaforo, axis=1)
@@ -160,8 +174,13 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
     try:
         fecha_actual = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        cliente = ", ".join(df_seleccionados["cliente"].dropna().astype(str).unique())
-        destino = ", ".join(df_seleccionados["destino"].dropna().astype(str).unique())
+        cliente = ", ".join(
+            df_seleccionados["cliente"].dropna().astype(str).unique()
+        )
+
+        destino = ", ".join(
+            df_seleccionados["destino"].dropna().astype(str).unique()
+        )
 
         cur.execute("""
             INSERT INTO entregas (
@@ -206,19 +225,21 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
                 item["pedido"],
                 item["codigo_material"],
                 item["descripcion"],
-                float(item["cantidad"]),
-                item["unidad_medida"],
+                float(item["cantidad_pedida"]),
+                "",
                 item["ubicacion"]
             ))
 
+            # =====================================================
             # RESERVA INVENTARIO
             # NO DESCUENTA STOCK FÍSICO
+            # =====================================================
             cur.execute("""
                 UPDATE inventarios
                 SET stock_reservado = COALESCE(stock_reservado, 0) + ?
                 WHERE codigo_material = ?
             """, (
-                float(item["cantidad"]),
+                float(item["cantidad_pedida"]),
                 item["codigo_material"]
             ))
 
@@ -226,8 +247,8 @@ def guardar_entrega_desde_pedidos(folio, df_seleccionados, observaciones, usuari
 
         for pedido in pedidos:
             cur.execute("""
-                UPDATE pedidos
-                SET estatus_pedido = ?
+                UPDATE pedidos_venta
+                SET estatus = ?
                 WHERE pedido = ?
             """, (
                 "Asignado a entrega",
@@ -257,32 +278,24 @@ def aplicar_estilos():
         }
 
         .titulo-entrega {
-            font-size: 32px;
-            font-weight: 800;
+            font-size: 34px;
+            font-weight: 900;
             color: #1F4E79;
             margin-bottom: 0px;
         }
 
         .subtitulo-entrega {
-            font-size: 15px;
+            font-size: 16px;
             color: #666666;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
-        .card-resumen {
+        div[data-testid="stMetric"] {
             background: linear-gradient(135deg, #ffffff, #f4f8fb);
-            padding: 18px;
+            padding: 16px;
             border-radius: 16px;
             border: 1px solid #dce6ef;
             box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .seccion {
-            background-color: #ffffff;
-            padding: 18px;
-            border-radius: 16px;
-            border: 1px solid #e5e7eb;
-            margin-top: 15px;
         }
         </style>
         """,
@@ -335,7 +348,7 @@ def pantalla_crear_entrega():
 
     st.divider()
 
-    st.subheader("Filtros de búsqueda")
+    st.subheader("🔎 Filtros")
 
     colf1, colf2, colf3, colf4 = st.columns(4)
 
@@ -363,16 +376,23 @@ def pantalla_crear_entrega():
     df_filtrado = df.copy()
 
     if filtro_cliente != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["cliente"].astype(str) == filtro_cliente]
+        df_filtrado = df_filtrado[
+            df_filtrado["cliente"].astype(str) == filtro_cliente
+        ]
 
     if filtro_destino != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["destino"].astype(str) == filtro_destino]
+        df_filtrado = df_filtrado[
+            df_filtrado["destino"].astype(str) == filtro_destino
+        ]
 
     if filtro_semaforo != "Todos":
-        df_filtrado = df_filtrado[df_filtrado["semaforo"] == filtro_semaforo]
+        df_filtrado = df_filtrado[
+            df_filtrado["semaforo"] == filtro_semaforo
+        ]
 
     if buscar.strip():
         texto = buscar.strip().lower()
+
         df_filtrado = df_filtrado[
             df_filtrado["pedido"].astype(str).str.lower().str.contains(texto, na=False)
             | df_filtrado["codigo_material"].astype(str).str.lower().str.contains(texto, na=False)
@@ -382,7 +402,7 @@ def pantalla_crear_entrega():
 
     st.divider()
 
-    st.subheader("Pedidos disponibles para entrega")
+    st.subheader("📋 Pedidos disponibles para entrega")
 
     df_editor = df_filtrado.copy()
     df_editor.insert(0, "seleccionar", False)
@@ -398,13 +418,15 @@ def pantalla_crear_entrega():
         "fecha",
         "cliente",
         "destino",
-        "estatus_pedido",
+        "estatus",
         "codigo_material",
         "descripcion",
-        "cantidad",
+        "cantidad_pedida",
         "stock_actual",
         "stock_reservado",
         "stock_disponible",
+        "bodega",
+        "ubicacion",
         "bloqueado"
     ]
 
@@ -414,7 +436,7 @@ def pantalla_crear_entrega():
         df_editor,
         use_container_width=True,
         hide_index=True,
-        height=420,
+        height=430,
         column_config={
             "seleccionar": st.column_config.CheckboxColumn(
                 "Seleccionar",
@@ -425,13 +447,15 @@ def pantalla_crear_entrega():
             "fecha": st.column_config.TextColumn("Fecha"),
             "cliente": st.column_config.TextColumn("Cliente"),
             "destino": st.column_config.TextColumn("Destino"),
-            "estatus_pedido": st.column_config.TextColumn("Estatus"),
+            "estatus": st.column_config.TextColumn("Estatus"),
             "codigo_material": st.column_config.TextColumn("Material"),
             "descripcion": st.column_config.TextColumn("Descripción"),
-            "cantidad": st.column_config.NumberColumn("Cantidad"),
+            "cantidad_pedida": st.column_config.NumberColumn("Cantidad"),
             "stock_actual": st.column_config.NumberColumn("Stock físico"),
             "stock_reservado": st.column_config.NumberColumn("Reservado"),
             "stock_disponible": st.column_config.NumberColumn("Disponible"),
+            "bodega": st.column_config.TextColumn("Bodega"),
+            "ubicacion": st.column_config.TextColumn("Ubicación"),
             "bloqueado": st.column_config.TextColumn("Bloqueado")
         },
         disabled=[
@@ -440,13 +464,15 @@ def pantalla_crear_entrega():
             "fecha",
             "cliente",
             "destino",
-            "estatus_pedido",
+            "estatus",
             "codigo_material",
             "descripcion",
-            "cantidad",
+            "cantidad_pedida",
             "stock_actual",
             "stock_reservado",
             "stock_disponible",
+            "bodega",
+            "ubicacion",
             "bloqueado"
         ],
         key="tabla_creacion_entregas"
@@ -464,7 +490,7 @@ def pantalla_crear_entrega():
 
     st.divider()
 
-    st.subheader("Resumen de creación")
+    st.subheader("📦 Resumen de creación")
 
     colr1, colr2, colr3 = st.columns(3)
 
@@ -478,7 +504,9 @@ def pantalla_crear_entrega():
         st.metric("No válidas", len(seleccionados_invalidos))
 
     if not seleccionados_invalidos.empty:
-        st.warning("Hay líneas seleccionadas sin inventario. No se tomarán para crear la entrega.")
+        st.warning(
+            "Hay líneas seleccionadas sin inventario. No se tomarán para crear la entrega."
+        )
 
     observaciones = st.text_area("Observaciones de la entrega")
 
@@ -487,6 +515,7 @@ def pantalla_crear_entrega():
     st.info(f"Folio a generar: {folio}")
 
     if st.button("🚚 Generar entrega seleccionada", use_container_width=True):
+
         if seleccionados_validos.empty:
             st.error("Debes seleccionar al menos una línea con semáforo 🟢 Listo.")
             return
