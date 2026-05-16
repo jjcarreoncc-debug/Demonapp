@@ -2,6 +2,7 @@
 # IMPORTS APPS
 # =========================
 import streamlit as st
+from datetime import datetime
 from sidebar_inventarios import sidebar_inventarios
 
 from alta_material_app import alta_material_app
@@ -28,6 +29,55 @@ from confirmacion_cancelacion_embarque_app import (
     confirmacion_cancelacion_embarque_app
 )
 
+
+# =========================
+# INICIO INVENTARIOS
+# =========================
+def inicio_inventarios_app():
+
+    st.title("📦 Inventarios")
+
+    st.caption(
+        "Gestión integral de materiales, entradas, salidas, kardex e inventario físico."
+    )
+
+    try:
+        st.image(
+            "logoinventarios.png",
+            use_container_width=True
+        )
+    except Exception:
+        st.info(
+            "Imagen de inicio no encontrada. Verifica que exista el archivo logoinventarios.png"
+        )
+
+    st.divider()
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Módulo",
+            "Inventarios"
+        )
+
+    with col2:
+        st.metric(
+            "Usuario",
+            st.session_state.get("usuario", "SIN_USUARIO")
+        )
+
+    with col3:
+        st.metric(
+            "Fecha",
+            datetime.now().strftime("%Y-%m-%d")
+        )
+
+    st.info(
+        "Selecciona una opción del menú lateral para comenzar."
+    )
+
+
 # =========================
 # APP INVENTARIOS
 # =========================
@@ -40,9 +90,20 @@ def inventarios_app():
     opcion_limpia = str(opcion_inv).strip().lower()
 
     # =========================
+    # INICIO
+    # =========================
+    if opcion_limpia in [
+        "inicio",
+        "inicio inventarios",
+        "🏠 inicio",
+        "🏠 inicio inventarios"
+    ]:
+        inicio_inventarios_app()
+
+    # =========================
     # MATERIALES
     # =========================
-    if opcion_limpia == "alta de material":
+    elif opcion_limpia == "alta de material":
         alta_material_app()
 
     elif opcion_limpia == "baja de material":
@@ -64,9 +125,8 @@ def inventarios_app():
 
     elif opcion_limpia == "consultar entradas compra":
         consulta_entradas_compras_app()
-        
+
     elif opcion_limpia == "embarque":
-        
         confirmacion_cancelacion_embarque_app()
 
     # =========================
@@ -76,11 +136,9 @@ def inventarios_app():
         salidas_inventario_app()
 
     elif opcion_limpia == "embarques":
-
         embarques_inventario_app()
 
     elif opcion_limpia == "consultar embarques":
-
         consulta_embarques_inventario_app()
 
     # =========================
@@ -111,8 +169,7 @@ def inventarios_app():
         diferencias_valorizadas_app()
 
     elif opcion_limpia == "diferencias valorizadas":
-               diferencias_valorizadas_app()
-
+        diferencias_valorizadas_app()
 
     # =========================
     # SKU
@@ -130,7 +187,7 @@ def inventarios_app():
     # DEFAULT
     # =========================
     else:
-        st.title(opcion_inv)
+        inicio_inventarios_app()
 
 
 # =========================
