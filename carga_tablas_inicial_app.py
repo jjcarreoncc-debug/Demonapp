@@ -232,6 +232,12 @@ DB_POR_TABLA = {
 
     "detalle_pedido": "logistica",
 
+    "clientes": "logistica",
+
+    "pedidos": "logistica",
+
+    "detalle_pedido": "logistica",
+    
     "rutas": "logistica",
 
     "puntos_ruta": "logistica",
