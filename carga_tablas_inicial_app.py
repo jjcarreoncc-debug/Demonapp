@@ -68,6 +68,16 @@ COLUMNAS_MINIMAS = {
         "costo_unitario"
     ],
 
+    "clientes": [
+        "codigo_cliente",
+        "nombre_cliente",
+        "direccion_entrega",
+        "ciudad",
+        "estado",
+        "ruta",
+        "estatus"
+    ],
+
     "rutas": [
         "codigo_ruta",
         "descripcion",
@@ -208,6 +218,8 @@ DB_POR_TABLA = {
 
     "entradas_compras_detalle": "compras",
 
+    "clientes": "logistica",
+
     "rutas": "logistica",
 
     "puntos_ruta": "logistica",
@@ -259,6 +271,77 @@ CAMPOS_LOGISTICOS_MATERIALES = {
 
     "codigo_barras": "TEXT",
     "codigo_qr": "TEXT",
+
+    "vida_entrega_dias": "INTEGER",
+
+    "observaciones_logisticas": "TEXT"
+}
+
+
+# =====================================================
+# CAMPOS CLIENTES
+# =====================================================
+
+CAMPOS_CLIENTES = {
+
+    "codigo_cliente": "TEXT",
+    "nombre_cliente": "TEXT",
+    "razon_social": "TEXT",
+    "rfc": "TEXT",
+    "estatus": "TEXT",
+    "tipo_cliente": "TEXT",
+
+    "direccion_entrega": "TEXT",
+    "colonia": "TEXT",
+    "ciudad": "TEXT",
+    "estado": "TEXT",
+    "pais": "TEXT",
+    "codigo_postal": "TEXT",
+
+    "latitud": "REAL",
+    "longitud": "REAL",
+
+    "ruta": "TEXT",
+    "secuencia_ruta": "INTEGER",
+
+    "dias_entrega_permitidos": "TEXT",
+    "hora_inicio_recepcion": "TEXT",
+    "hora_fin_recepcion": "TEXT",
+
+    "requiere_cita": "TEXT",
+    "permite_entrega_parcial": "TEXT",
+
+    "restriccion_unidad": "TEXT",
+    "tipo_unidad_permitida": "TEXT",
+
+    "tiempo_descarga_min": "INTEGER",
+
+    "peso_max_tarima": "REAL",
+    "altura_max_tarima": "REAL",
+
+    "permite_tarima_mixta": "TEXT",
+    "requiere_emplaye": "TEXT",
+    "requiere_etiqueta": "TEXT",
+
+    "tipo_tarima": "TEXT",
+
+    "contacto_entrega": "TEXT",
+    "telefono_contacto": "TEXT",
+    "correo_contacto": "TEXT",
+
+    "requiere_foto_entrega": "TEXT",
+    "requiere_firma": "TEXT",
+    "requiere_sello": "TEXT",
+
+    "gps_obligatorio": "TEXT",
+
+    "requiere_oc": "TEXT",
+    "requiere_factura_impresa": "TEXT",
+    "requiere_documento_fisico": "TEXT",
+
+    "prioridad_ruta": "TEXT",
+    "cliente_critico": "TEXT",
+    "nivel_servicio": "TEXT",
 
     "observaciones_logisticas": "TEXT"
 }
@@ -353,6 +436,57 @@ def alterar_tabla_materiales_logistica():
     return pd.DataFrame(resultados)
 
 
+def alterar_tabla_clientes():
+
+    db_path = get_db_path("logistica")
+
+    conn = sqlite3.connect(db_path)
+
+    resultados = []
+
+    try:
+
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS clientes (
+                id_cliente INTEGER PRIMARY KEY AUTOINCREMENT
+            )
+            """
+        )
+
+        for columna, tipo_dato in CAMPOS_CLIENTES.items():
+
+            resultado = agregar_columna_si_no_existe(
+                conn,
+                "clientes",
+                columna,
+                tipo_dato
+            )
+
+            resultados.append(
+                {
+                    "campo": columna,
+                    "tipo": tipo_dato,
+                    "resultado": resultado
+                }
+            )
+
+        conn.commit()
+
+    except Exception as e:
+
+        conn.rollback()
+        conn.close()
+
+        raise e
+
+    conn.close()
+
+    return pd.DataFrame(resultados)
+
+
 def mostrar_estructura_tabla(
     db_nombre,
     tabla
@@ -414,6 +548,7 @@ def carga_tablas_inicial_app():
     elif modulo == "Logística":
 
         tablas_disponibles = [
+            "clientes",
             "rutas",
             "puntos_ruta",
             "transportes",
@@ -518,6 +653,84 @@ def carga_tablas_inicial_app():
 
                 st.exception(e)
 
+    # =====================================================
+    # CREAR / MODIFICAR ESTRUCTURA CLIENTES
+    # =====================================================
+
+    if modulo == "Logística" and tabla == "clientes":
+
+        st.markdown("---")
+
+        st.subheader("🛠️ Estructura logística de clientes")
+
+        st.info(
+            "Este proceso crea o actualiza la tabla clientes sin borrar información existente."
+        )
+
+        with st.expander("👀 Campos que se agregarán"):
+
+            st.dataframe(
+                pd.DataFrame(
+                    [
+                        {
+                            "campo": campo,
+                            "tipo": tipo
+                        }
+                        for campo, tipo in CAMPOS_CLIENTES.items()
+                    ]
+                ),
+                use_container_width=True,
+                hide_index=True
+            )
+
+        if st.button(
+            "🛠️ Crear / modificar estructura clientes",
+            key="btn_alter_clientes_logistica"
+        ):
+
+            try:
+
+                resultado_alter = alterar_tabla_clientes()
+
+                st.success(
+                    "✅ Estructura de clientes actualizada correctamente."
+                )
+
+                st.dataframe(
+                    resultado_alter,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            except Exception as e:
+
+                st.error(
+                    "❌ Error modificando estructura de clientes."
+                )
+
+                st.exception(e)
+
+        with st.expander("📋 Ver estructura actual de clientes"):
+
+            try:
+
+                estructura = mostrar_estructura_tabla(
+                    "logistica",
+                    "clientes"
+                )
+
+                st.dataframe(
+                    estructura,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+            except Exception as e:
+
+                st.warning(
+                    "La tabla clientes todavía no existe. Presiona el botón para crearla."
+                )
+
     st.markdown("---")
 
     st.subheader("📋 Columnas mínimas requeridas")
@@ -613,6 +826,49 @@ def carga_tablas_inicial_app():
     st.success(
         "✅ Columnas mínimas correctas"
     )
+
+    # =====================================================
+    # VALIDACIONES ESPECIALES CLIENTES
+    # =====================================================
+
+    if tabla == "clientes":
+
+        if df["codigo_cliente"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin codigo_cliente"
+            )
+
+            return
+
+        if df["nombre_cliente"].isna().any():
+
+            st.error(
+                "❌ Hay registros sin nombre_cliente"
+            )
+
+            return
+
+        duplicados = df[
+            df["codigo_cliente"]
+            .astype(str)
+            .str.strip()
+            .str.lower()
+            .duplicated(keep=False)
+        ]
+
+        if not duplicados.empty:
+
+            st.warning(
+                "⚠️ Hay codigo_cliente duplicados en el archivo"
+            )
+
+            st.dataframe(
+                df[duplicados],
+                use_container_width=True
+            )
+
+            return
 
     # =====================================================
     # VALIDACIONES ESPECIALES INVENTARIOS
