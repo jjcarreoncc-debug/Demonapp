@@ -828,7 +828,86 @@ def confirmacion_cancelacion_embarque_app():
             )
 
             st.markdown("### 🖨️ Documento para impresión")
+                        st.markdown("### 🖨️ Documento para impresión")
 
+            st.info(
+                f"""
+DOCUMENTO DE ENTRADA GENERADO
+
+Folio documento entrada:
+{resultado['folio_documento']}
+
+La hoja de carga queda CANCELADA automáticamente.
+                """
+            )
+
+            pdf_texto = f"""
+==================================================
+           DOCUMENTO DE ENTRADA
+==================================================
+
+FOLIO DOCUMENTO:
+{resultado['folio_documento']}
+
+TIPO MOVIMIENTO:
+ENTRADA POR CANCELACION DE EMBARQUE
+
+FOLIO SOLICITUD:
+{solicitud.get('folio_solicitud', '')}
+
+FOLIO EMBARQUE:
+{solicitud.get('folio_embarque', '')}
+
+FOLIO HOJA CARGA:
+{solicitud.get('folio_hoja_carga', '')}
+
+CLIENTE:
+{solicitud.get('cliente', '')}
+
+DESTINO:
+{solicitud.get('destino', '')}
+
+TRANSPORTE:
+{solicitud.get('codigo_transporte', '')}
+
+USUARIO INVENTARIOS:
+{st.session_state.get('usuario', '')}
+
+FECHA CONFIRMACION:
+{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+==================================================
+DETALLE DE MATERIALES
+==================================================
+
+"""
+
+            for _, row in detalle_df.iterrows():
+
+                pdf_texto += f"""
+MATERIAL: {row.get('codigo_material', '')}
+DESCRIPCION: {row.get('descripcion', '')}
+CANTIDAD: {row.get('cantidad_embarcar', 0)}
+BODEGA: {row.get('bodega', '')}
+UBICACION: {row.get('ubicacion', '')}
+--------------------------------------------------
+"""
+
+            pdf_texto += """
+
+==================================================
+ESTATUS FINAL:
+HOJA DE CARGA CANCELADA
+ENTRADA A INVENTARIO CONFIRMADA
+==================================================
+"""
+
+            st.download_button(
+                label="📄 Descargar documento entrada",
+                data=pdf_texto,
+                file_name=f"{resultado['folio_documento']}.txt",
+                mime="text/plain"
+            ) 
             
         except Exception as e:
 
