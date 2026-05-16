@@ -355,10 +355,34 @@ def mostrar_kpis_superiores(df):
             "registros"
         )
 
-
 def mostrar_graficas_horizontales(df):
 
-    c1, c2, c3 = st.columns([2, 1, 1])
+    st.markdown(
+        """
+        <style>
+        .grafica-scroll {
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .grafica-ancha {
+            min-width: 1450px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<div class='grafica-scroll'><div class='grafica-ancha'>",
+        unsafe_allow_html=True
+    )
+
+    c1, c2, c3, c4 = st.columns([2.6, 1.2, 1.2, 1.2])
+
+    # =========================================================
+    # TENDENCIA OPERATIVA
+    # =========================================================
 
     with c1:
 
@@ -372,27 +396,39 @@ def mostrar_graficas_horizontales(df):
             ]
             .sum()
             .reset_index()
-            .rename(columns={"fecha": "fecha"})
         )
 
-        st.subheader("📈 Comportamiento en el tiempo")
+        tendencia["rotacion"] = (
+            tendencia["entrada"]
+            +
+            tendencia["salida"]
+        )
+
+        st.subheader("📈 Tendencia operativa")
 
         if not tendencia.empty:
 
-            st.line_chart(
+            st.area_chart(
                 tendencia,
                 x="fecha",
                 y=[
                     "entrada",
-                    "salida",
-                    "reserva"
+                    "salida"
                 ],
-                height=250
+                height=320
+            )
+
+            st.caption(
+                "Visualiza comportamiento operativo y presión diaria del inventario."
             )
 
         else:
 
-            st.info("No hay datos para graficar tendencia.")
+            st.info("No hay datos para tendencia.")
+
+    # =========================================================
+    # MOVIMIENTOS
+    # =========================================================
 
     with c2:
 
@@ -406,9 +442,13 @@ def mostrar_graficas_horizontales(df):
                     "cantidad": "movimientos"
                 }
             )
+            .sort_values(
+                "movimientos",
+                ascending=False
+            )
         )
 
-        st.subheader("📊 Tipo de movimiento")
+        st.subheader("📦 Operación")
 
         if not resumen_tipo.empty:
 
@@ -416,12 +456,22 @@ def mostrar_graficas_horizontales(df):
                 resumen_tipo,
                 x="tipo",
                 y="movimientos",
-                height=250
+                height=320
+            )
+
+            tipo_top = resumen_tipo.iloc[0]["tipo"]
+
+            st.success(
+                f"Mayor actividad: {tipo_top}"
             )
 
         else:
 
             st.info("Sin movimientos.")
+
+    # =========================================================
+    # DOCUMENTOS
+    # =========================================================
 
     with c3:
 
@@ -439,10 +489,10 @@ def mostrar_graficas_horizontales(df):
                 "movimientos",
                 ascending=False
             )
-            .head(8)
+            .head(10)
         )
 
-        st.subheader("📄 Por documento")
+        st.subheader("📄 Documentos")
 
         if not resumen_doc.empty:
 
@@ -450,73 +500,83 @@ def mostrar_graficas_horizontales(df):
                 resumen_doc,
                 x="documento",
                 y="movimientos",
-                height=250
+                height=320
+            )
+
+            doc_top = resumen_doc.iloc[0]["documento"]
+
+            st.info(
+                f"Documento dominante: {doc_top}"
             )
 
         else:
 
             st.info("Sin documentos.")
 
+    # =========================================================
+    # MATERIALES CALIENTES
+    # =========================================================
 
-def mostrar_grid_movimientos(df):
+    with c4:
 
-    st.subheader("📋 Movimientos")
+        materiales = (
+            df.groupby(
+                [
+                    "codigo_material",
+                    "descripcion"
+                ]
+            )[
+                [
+                    "salida",
+                    "reserva"
+                ]
+            ]
+            .sum()
+            .reset_index()
+        )
 
-    df_grid = df.copy()
+        materiales["presion"] = (
+            materiales["salida"]
+            +
+            materiales["reserva"]
+        )
 
-    df_grid = df_grid.sort_values(
-        by=[
-            "fecha",
-            "id_movimiento"
-        ],
-        ascending=[
-            False,
-            False
-        ]
+        materiales["material"] = (
+            materiales["codigo_material"].astype(str)
+            + " - "
+            + materiales["descripcion"].astype(str).str[:15]
+        )
+
+        materiales = materiales.sort_values(
+            "presion",
+            ascending=False
+        ).head(8)
+
+        st.subheader("🔥 Materiales calientes")
+
+        if not materiales.empty:
+
+            st.bar_chart(
+                materiales,
+                x="material",
+                y="presion",
+                height=320
+            )
+
+            top_material = materiales.iloc[0]["material"]
+
+            st.warning(
+                f"Mayor presión: {top_material}"
+            )
+
+        else:
+
+            st.info("Sin materiales críticos.")
+
+    st.markdown(
+        "</div></div>",
+        unsafe_allow_html=True
     )
-
-    columnas = [
-        "fecha",
-        "tipo_movimiento",
-        "tipo_documento",
-        "numero_documento",
-        "folio_movimiento",
-        "codigo_material",
-        "descripcion",
-        "entrada",
-        "salida",
-        "reserva",
-        "impacto_stock",
-        "saldo_material_bodega",
-        "bodega",
-        "ubicacion",
-        "referencia",
-        "usuario"
-    ]
-
-    columnas_existentes = [
-        col for col in columnas if col in df_grid.columns
-    ]
-
-    st.dataframe(
-        df_grid[columnas_existentes],
-        use_container_width=True,
-        hide_index=True,
-        height=420
-    )
-
-    csv = df_grid[columnas_existentes].to_csv(
-        index=False
-    ).encode("utf-8")
-
-    st.download_button(
-        "📥 Descargar Kardex filtrado CSV",
-        data=csv,
-        file_name="kardex_inventario_filtrado.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
-
 
 def mostrar_subtotales_inferiores(df):
 
