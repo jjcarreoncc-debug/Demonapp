@@ -356,97 +356,106 @@ def mostrar_kpis_superiores(df):
         )
 
 
+def mostrar_graficas_horizontales(df):
 
-def mostrar_panel_graficos_derecha(df):
+    c1, c2, c3 = st.columns([2, 1, 1])
 
-    st.subheader("📊 Panel operativo")
+    with c1:
 
-    resumen_bodega = (
-        df.groupby("bodega")[
-            [
-                "entrada",
-                "salida",
-                "reserva",
-                "impacto_stock"
+        tendencia = (
+            df.groupby(df["fecha"].dt.date)[
+                [
+                    "entrada",
+                    "salida",
+                    "reserva"
+                ]
             ]
-        ]
-        .sum()
-        .reset_index()
-    )
-
-    if not resumen_bodega.empty:
-
-        resumen_bodega["disponible"] = (
-            resumen_bodega["impacto_stock"]
-            -
-            resumen_bodega["reserva"]
+            .sum()
+            .reset_index()
+            .rename(columns={"fecha": "fecha"})
         )
 
-        st.markdown("##### Disponible por bodega")
+        st.subheader("📈 Comportamiento en el tiempo")
 
-        st.bar_chart(
-            resumen_bodega,
-            x="bodega",
-            y="disponible",
-            height=180
+        if not tendencia.empty:
+
+            st.line_chart(
+                tendencia,
+                x="fecha",
+                y=[
+                    "entrada",
+                    "salida",
+                    "reserva"
+                ],
+                height=250
+            )
+
+        else:
+
+            st.info("No hay datos para graficar tendencia.")
+
+    with c2:
+
+        resumen_tipo = (
+            df.groupby("tipo_movimiento_norm")["cantidad"]
+            .count()
+            .reset_index()
+            .rename(
+                columns={
+                    "tipo_movimiento_norm": "tipo",
+                    "cantidad": "movimientos"
+                }
+            )
         )
 
-        st.markdown("##### Reservado por bodega")
+        st.subheader("📊 Tipo de movimiento")
 
-        st.bar_chart(
-            resumen_bodega,
-            x="bodega",
-            y="reserva",
-            height=180
-        )
+        if not resumen_tipo.empty:
 
-    top_materiales = (
-        df.groupby(
-            [
-                "codigo_material",
-                "descripcion"
-            ]
-        )[
-            [
-                "salida",
-                "reserva"
-            ]
-        ]
-        .sum()
-        .reset_index()
-    )
+            st.bar_chart(
+                resumen_tipo,
+                x="tipo",
+                y="movimientos",
+                height=250
+            )
 
-    if not top_materiales.empty:
+        else:
 
-        top_materiales["movimiento_total"] = (
-            top_materiales["salida"]
-            +
-            top_materiales["reserva"]
-        )
+            st.info("Sin movimientos.")
 
-        top_materiales["material"] = (
-            top_materiales["codigo_material"].astype(str)
-            + " - "
-            + top_materiales["descripcion"].astype(str).str[:18]
-        )
+    with c3:
 
-        top_materiales = (
-            top_materiales
+        resumen_doc = (
+            df.groupby("tipo_documento")["cantidad"]
+            .count()
+            .reset_index()
+            .rename(
+                columns={
+                    "tipo_documento": "documento",
+                    "cantidad": "movimientos"
+                }
+            )
             .sort_values(
-                "movimiento_total",
+                "movimientos",
                 ascending=False
             )
             .head(8)
         )
 
-        st.markdown("##### Top materiales críticos")
+        st.subheader("📄 Por documento")
 
-        st.bar_chart(
-            top_materiales,
-            x="material",
-            y="movimiento_total",
-            height=220
-        )
+        if not resumen_doc.empty:
+
+            st.bar_chart(
+                resumen_doc,
+                x="documento",
+                y="movimientos",
+                height=250
+            )
+
+        else:
+
+            st.info("Sin documentos.")
 
 
 def mostrar_grid_movimientos(df):
@@ -629,7 +638,12 @@ def kardex_inventario_app():
             st.warning("No hay movimientos válidos para mostrar.")
             return
 
-        col_filtros, col_contenido, col_graficos = st.columns([1.15, 3.8, 1.6])
+        col_filtros, col_contenido = st.columns(
+            [
+                1.15,
+                5
+            ]
+        )
 
         with col_filtros:
 
@@ -656,11 +670,6 @@ def kardex_inventario_app():
             st.divider()
 
             mostrar_subtotales_inferiores(df_filtrado)
-
-        with col_graficos:
-
-            if not df_filtrado.empty:
-                mostrar_panel_graficos_derecha(df_filtrado)
 
     except Exception as e:
         st.error("Error consultando Kardex")
