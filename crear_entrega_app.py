@@ -528,23 +528,22 @@ def pantalla_crear_entrega():
 
     st.divider()
 
-    st.subheader("🔎 Filtros")
+    col_filtros, col_contenido = st.columns([0.85, 5.3])
 
-    colf1, colf2, colf3, colf4 = st.columns(4)
+    with col_filtros:
 
-    with colf1:
+        st.subheader("🔎 Filtros")
+
         filtro_cliente = st.selectbox(
             "Cliente",
             ["Todos"] + sorted(df["cliente"].dropna().astype(str).unique().tolist())
         )
 
-    with colf2:
         filtro_destino = st.selectbox(
             "Destino",
             ["Todos"] + sorted(df["destino"].dropna().astype(str).unique().tolist())
         )
 
-    with colf3:
         filtro_semaforo = st.selectbox(
             "Semáforo",
             [
@@ -555,10 +554,13 @@ def pantalla_crear_entrega():
             ]
         )
 
-    with colf4:
-        buscar = st.text_input("Buscar pedido/material")
+        buscar = st.text_input(
+            "Buscar pedido/material"
+        )
 
-    df_filtrado = df.copy()
+    with col_contenido:
+
+        df_filtrado = df.copy()
 
     if filtro_cliente != "Todos":
         df_filtrado = df_filtrado[
@@ -585,9 +587,9 @@ def pantalla_crear_entrega():
             | df_filtrado["cliente"].astype(str).str.lower().str.contains(texto, na=False)
         ]
 
-    st.divider()
+        st.divider()
 
-    st.subheader("📋 Pedidos disponibles para entrega virtual")
+        st.subheader("📋 Pedidos disponibles para entrega virtual")
 
     df_editor = df_filtrado.copy()
     df_editor.insert(0, "seleccionar", False)
