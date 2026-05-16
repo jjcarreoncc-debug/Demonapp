@@ -108,10 +108,6 @@ def asegurar_tablas_logistica():
 
     cursor = conn.cursor()
 
-    # =====================================================
-    # SOLICITUDES BAJA EMBARQUE
-    # =====================================================
-
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS solicitudes_baja_embarque (
@@ -134,10 +130,6 @@ def asegurar_tablas_logistica():
         """
     )
 
-    # =====================================================
-    # NOTIFICACIONES INVENTARIO
-    # =====================================================
-
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS notificaciones_inventario (
@@ -158,84 +150,13 @@ def asegurar_tablas_logistica():
         """
     )
 
-    # =====================================================
-    # ALTER TABLE SOLICITUDES
-    # =====================================================
-
-    try:
-
-        cursor.execute(
-            """
-            ALTER TABLE solicitudes_baja_embarque
-            ADD COLUMN folio_movimiento_inventario TEXT
-            """
-        )
-
-    except sqlite3.OperationalError:
-
-        pass
-
-    try:
-
-        cursor.execute(
-            """
-            ALTER TABLE solicitudes_baja_embarque
-            ADD COLUMN fecha_confirmacion_inventario TEXT
-            """
-        )
-
-    except sqlite3.OperationalError:
-
-        pass
-
-    try:
-
-        cursor.execute(
-            """
-            ALTER TABLE solicitudes_baja_embarque
-            ADD COLUMN usuario_confirmacion_inventario TEXT
-            """
-        )
-
-    except sqlite3.OperationalError:
-
-        pass
-
-    # =====================================================
-    # ALTER TABLE NOTIFICACIONES
-    # =====================================================
-
-    try:
-
-        cursor.execute(
-            """
-            ALTER TABLE notificaciones_inventario
-            ADD COLUMN fecha_confirmacion TEXT
-            """
-        )
-
-    except sqlite3.OperationalError:
-
-        pass
-
-    try:
-
-        cursor.execute(
-            """
-            ALTER TABLE notificaciones_inventario
-            ADD COLUMN usuario_confirmacion TEXT
-            """
-        )
-
-    except sqlite3.OperationalError:
-
-        pass
-
     conn.commit()
 
     conn.close()
+
+
 # =====================================================
-# OBTENER SOLICITUDES PENDIENTES
+# OBTENER SOLICITUDES
 # =====================================================
 
 def obtener_solicitudes_pendientes():
@@ -292,64 +213,7 @@ def obtener_solicitudes_pendientes():
 
 
 # =====================================================
-# BUSCAR SOLICITUD POR FOLIO / CODIGO DE BARRAS
-# =====================================================
-
-def buscar_solicitud_por_folio(folio):
-
-    asegurar_tablas_logistica()
-
-    conn = get_conn_logistica()
-
-    query = """
-        SELECT
-
-            s.folio_solicitud,
-            s.folio_embarque,
-            s.fecha_solicitud,
-            s.usuario_solicitud,
-            s.motivo,
-            s.observaciones,
-            s.estatus_solicitud,
-            s.folio_notificacion_inventarios,
-
-            e.folio_hoja_carga,
-            e.pedido,
-            e.cliente,
-            e.destino,
-            e.codigo_transporte,
-            e.transportista,
-            e.vehiculo,
-            e.placas,
-            e.operador,
-            e.estatus AS estatus_embarque
-
-        FROM solicitudes_baja_embarque s
-
-        LEFT JOIN embarques e
-            ON s.folio_embarque = e.folio_embarque
-
-        WHERE s.folio_solicitud = ?
-           OR s.folio_notificacion_inventarios = ?
-           OR s.folio_embarque = ?
-
-        ORDER BY s.id_solicitud DESC
-        LIMIT 1
-    """
-
-    df = pd.read_sql_query(
-        query,
-        conn,
-        params=(folio, folio, folio)
-    )
-
-    conn.close()
-
-    return df
-
-
-# =====================================================
-# OBTENER DETALLE EMBARQUE
+# DETALLE EMBARQUE
 # =====================================================
 
 def obtener_detalle_embarque(folio_embarque):
@@ -405,19 +269,10 @@ def generar_excel_confirmacion(
                 "folio_documento_entrada": folio_documento,
                 "tipo_movimiento": "ENTRADA POR CANCELACION DE EMBARQUE",
                 "folio_solicitud": solicitud.get("folio_solicitud", ""),
-                "folio_notificacion_inventarios": solicitud.get(
-                    "folio_notificacion_inventarios",
-                    ""
-                ),
                 "folio_embarque": solicitud.get("folio_embarque", ""),
-                "folio_hoja_carga": solicitud.get("folio_hoja_carga", ""),
-                "pedido": solicitud.get("pedido", ""),
                 "cliente": solicitud.get("cliente", ""),
                 "destino": solicitud.get("destino", ""),
-                "codigo_transporte": solicitud.get("codigo_transporte", ""),
-                "motivo": solicitud.get("motivo", ""),
-                "usuario_logistica": solicitud.get("usuario_solicitud", ""),
-                "usuario_inventarios": st.session_state.get(
+                "usuario": st.session_state.get(
                     "usuario",
                     "SIN_USUARIO"
                 ),
@@ -451,50 +306,6 @@ def generar_excel_confirmacion(
 
     return salida.getvalue()
 
-
-# =====================================================
-# GENERAR BARCODE BASE64 OPCIONAL
-# =====================================================
-
-def generar_barcode_base64(folio_documento):
-
-    try:
-
-        import barcode
-        from barcode.writer import ImageWriter
-
-        buffer = BytesIO()
-
-        code128 = barcode.get(
-            "code128",
-            folio_documento,
-            writer=ImageWriter()
-        )
-
-        code128.write(
-            buffer,
-            options={
-                "write_text": True,
-                "module_height": 12,
-                "font_size": 9,
-                "quiet_zone": 2
-            }
-        )
-
-        buffer.seek(0)
-
-        return base64.b64encode(
-            buffer.read()
-        ).decode()
-
-    except Exception:
-
-        return None
-
-
-# =====================================================
-# DOCUMENTO IMPRIMIBLE
-# =====================================================
 
 # =====================================================
 # CONFIRMAR ENTRADA
@@ -537,81 +348,31 @@ def confirmar_entrada_cancelacion(
                 "tipo_movimiento": "ENTRADA",
                 "tipo": "ENTRADA",
                 "motivo": "ENTRADA POR CANCELACION DE EMBARQUE",
-                "concepto": "ENTRADA POR CANCELACION DE EMBARQUE",
                 "folio_documento": folio_documento,
                 "folio_origen": solicitud.get("folio_embarque", ""),
-                "referencia": solicitud.get("folio_solicitud", ""),
                 "codigo_material": row.get("codigo_material", ""),
                 "descripcion": row.get("descripcion", ""),
                 "cantidad": row.get("cantidad_embarcar", 0),
                 "bodega": row.get("bodega", ""),
-                "almacen": row.get("bodega", ""),
                 "ubicacion": row.get("ubicacion", ""),
                 "usuario": usuario,
-                "fecha": fecha_actual,
-                "fecha_movimiento": fecha_actual,
-                "observaciones": "Entrada por cancelación de embarque"
+                "fecha": fecha_actual
             }
 
-            insertado = insertar_dinamico(
+            insertar_dinamico(
                 conn_inv,
                 "movimientos_inventario",
                 datos_mov
             )
 
-            if not insertado:
-
-                raise Exception(
-                    "No se pudo insertar movimiento. Revisa columnas de movimientos_inventario."
-                )
-
-        conn_log.execute(
-            """
-            UPDATE solicitudes_baja_embarque
-            SET
-                estatus_solicitud = 'Confirmado Inventarios',
-                folio_movimiento_inventario = ?,
-                fecha_confirmacion_inventario = ?,
-                usuario_confirmacion_inventario = ?
-            WHERE folio_solicitud = ?
-            """,
-            (
-                folio_documento,
-                fecha_actual,
-                usuario,
-                solicitud.get("folio_solicitud", "")
-            )
-        )
-
-        conn_log.execute(
-            """
-            UPDATE notificaciones_inventario
-            SET
-                estatus = 'Confirmado Inventarios',
-                fecha_confirmacion = ?,
-                usuario_confirmacion = ?
-            WHERE folio_notificacion = ?
-            """,
-            (
-                fecha_actual,
-                usuario,
-                solicitud.get("folio_notificacion_inventarios", "")
-            )
-        )
-
         conn_log.execute(
             """
             UPDATE embarques
-            SET
-                estatus = 'Cancelado',
-                fecha_estatus = ?,
-                usuario_estatus = ?
+            SET estatus = 'Cancelado'
             WHERE folio_embarque = ?
             """,
             (
-                fecha_actual,
-                usuario,
-                solicitud.get("folio_embarque", "")
+                solicitud.get("folio_embarque", ""),
             )
         )
 
@@ -653,139 +414,40 @@ def confirmacion_cancelacion_embarque_app():
         "✅ Confirmación cancelación embarque"
     )
 
-    st.caption(
-        "Inventarios confirma entrada por cancelación de embarque generada por Logística."
-    )
-
     st.divider()
 
-    tab_manual, tab_barcode = st.tabs(
-        [
-            "📋 Pendientes",
-            "🔎 Código de barras"
-        ]
-    )
+    df_solicitudes = obtener_solicitudes_pendientes()
 
-    solicitud = None
+    if df_solicitudes.empty:
 
-    with tab_manual:
-
-        df_solicitudes = obtener_solicitudes_pendientes()
-
-        if df_solicitudes.empty:
-
-            st.info(
-                "No existen cancelaciones pendientes."
-            )
-
-        else:
-
-            df_solicitudes = df_solicitudes.copy()
-            df_solicitudes["seleccionar"] = False
-
-            columnas = [
-                "seleccionar",
-                "folio_solicitud",
-                "folio_notificacion_inventarios",
-                "folio_embarque",
-                "folio_hoja_carga",
-                "cliente",
-                "destino",
-                "codigo_transporte",
-                "motivo",
-                "fecha_solicitud",
-                "estatus_solicitud"
-            ]
-
-            columnas = [
-                c for c in columnas
-                if c in df_solicitudes.columns
-            ]
-
-            df_editor = st.data_editor(
-                df_solicitudes[columnas],
-                hide_index=True,
-                use_container_width=True,
-                height=380,
-                column_config={
-                    "seleccionar": st.column_config.CheckboxColumn(
-                        "Sel.",
-                        default=False
-                    )
-                },
-                disabled=[
-                    c for c in columnas
-                    if c != "seleccionar"
-                ],
-                key="editor_confirmacion_cancelacion_embarque"
-            )
-
-            df_sel = df_editor[
-                df_editor["seleccionar"] == True
-            ]
-
-            if len(df_sel) > 1:
-
-                st.warning(
-                    "Selecciona solo un folio."
-                )
-
-            elif len(df_sel) == 1:
-
-                solicitud = df_sel.iloc[0].to_dict()
-
-    with tab_barcode:
-
-        folio_scan = st.text_input(
-            "Escanea o captura folio",
-            placeholder="Ejemplo: NINV-BE-20260515225201"
+        st.info(
+            "No existen cancelaciones pendientes."
         )
-
-        if folio_scan:
-
-            df_scan = buscar_solicitud_por_folio(
-                folio_scan.strip()
-            )
-
-            if df_scan.empty:
-
-                st.warning(
-                    "No se encontró el folio capturado."
-                )
-
-            else:
-
-                solicitud = df_scan.iloc[0].to_dict()
-
-                st.success(
-                    "Folio encontrado."
-                )
-
-                st.dataframe(
-                    df_scan,
-                    use_container_width=True,
-                    hide_index=True
-                )
-
-    if solicitud is None:
 
         return
 
-    st.divider()
+    folio_sel = st.selectbox(
+        "Selecciona solicitud",
+        df_solicitudes["folio_solicitud"].tolist()
+    )
 
-    st.markdown("### 📦 Detalle de materiales")
+    solicitud = df_solicitudes[
+        df_solicitudes["folio_solicitud"] == folio_sel
+    ].iloc[0].to_dict()
+
+    st.dataframe(
+        pd.DataFrame([solicitud]),
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.divider()
 
     detalle_df = obtener_detalle_embarque(
         solicitud.get("folio_embarque", "")
     )
 
-    if detalle_df.empty:
-
-        st.warning(
-            "No se encontró detalle del embarque."
-        )
-
-        return
+    st.markdown("### 📦 Materiales")
 
     st.dataframe(
         detalle_df,
@@ -793,18 +455,9 @@ def confirmacion_cancelacion_embarque_app():
         hide_index=True
     )
 
-    st.divider()
-
-    st.markdown("### 🧾 Confirmación")
-
-    confirmar_check = st.checkbox(
-        "Confirmo que el material fue recibido en inventario"
-    )
-
     confirmar = st.button(
-        "✅ Confirmar entrada a inventario",
-        use_container_width=True,
-        disabled=not confirmar_check
+        "✅ Confirmar entrada inventario",
+        use_container_width=True
     )
 
     if confirmar:
@@ -817,49 +470,31 @@ def confirmacion_cancelacion_embarque_app():
             )
 
             st.success(
-                f"✅ Entrada confirmada. Documento: {resultado['folio_documento']}"
+                f"Documento generado: {resultado['folio_documento']}"
             )
 
             st.download_button(
-                label="📥 Descargar Excel documento entrada",
+                label="📥 Descargar Excel",
                 data=resultado["excel"],
                 file_name=f"{resultado['folio_documento']}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
             st.markdown("### 🖨️ Documento para impresión")
-                        st.markdown("### 🖨️ Documento para impresión")
 
-            st.info(
-                f"""
-DOCUMENTO DE ENTRADA GENERADO
-
-Folio documento entrada:
-{resultado['folio_documento']}
-
-La hoja de carga queda CANCELADA automáticamente.
-                """
-            )
-
-            pdf_texto = f"""
+            documento = f"""
 ==================================================
-           DOCUMENTO DE ENTRADA
+DOCUMENTO DE ENTRADA
 ==================================================
 
-FOLIO DOCUMENTO:
+FOLIO:
 {resultado['folio_documento']}
 
-TIPO MOVIMIENTO:
+TIPO:
 ENTRADA POR CANCELACION DE EMBARQUE
-
-FOLIO SOLICITUD:
-{solicitud.get('folio_solicitud', '')}
 
 FOLIO EMBARQUE:
 {solicitud.get('folio_embarque', '')}
-
-FOLIO HOJA CARGA:
-{solicitud.get('folio_hoja_carga', '')}
 
 CLIENTE:
 {solicitud.get('cliente', '')}
@@ -867,52 +502,53 @@ CLIENTE:
 DESTINO:
 {solicitud.get('destino', '')}
 
-TRANSPORTE:
-{solicitud.get('codigo_transporte', '')}
-
-USUARIO INVENTARIOS:
+USUARIO:
 {st.session_state.get('usuario', '')}
 
-FECHA CONFIRMACION:
+FECHA:
 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ==================================================
-DETALLE DE MATERIALES
+DETALLE
 ==================================================
-
 """
 
             for _, row in detalle_df.iterrows():
 
-                pdf_texto += f"""
+                documento += f"""
+
 MATERIAL: {row.get('codigo_material', '')}
 DESCRIPCION: {row.get('descripcion', '')}
 CANTIDAD: {row.get('cantidad_embarcar', 0)}
 BODEGA: {row.get('bodega', '')}
 UBICACION: {row.get('ubicacion', '')}
+
 --------------------------------------------------
 """
 
-            pdf_texto += """
+            documento += """
 
 ==================================================
-ESTATUS FINAL:
+ESTATUS FINAL
+==================================================
+
 HOJA DE CARGA CANCELADA
-ENTRADA A INVENTARIO CONFIRMADA
+ENTRADA INVENTARIO CONFIRMADA
+
 ==================================================
 """
 
             st.download_button(
                 label="📄 Descargar documento entrada",
-                data=pdf_texto,
+                data=documento,
                 file_name=f"{resultado['folio_documento']}.txt",
                 mime="text/plain"
-            ) 
-            
+            )
+
         except Exception as e:
 
             st.error(
-                "❌ Error confirmando entrada por cancelación."
+                "❌ Error confirmando entrada."
             )
 
             st.exception(e)
