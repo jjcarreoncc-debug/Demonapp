@@ -13,6 +13,15 @@ from sigem_db import get_db_path
 
 
 # =====================================================
+# CONFIGURACION PAGINA
+# =====================================================
+
+st.set_page_config(
+    layout="wide"
+)
+
+
+# =====================================================
 # OBTENER EMBARQUES ACTIVOS
 # =====================================================
 
@@ -82,6 +91,8 @@ def obtener_embarques():
             'Cargado'
         )
 
+        AND IFNULL(TRIM(e.codigo_transporte), '') <> ''
+
         ORDER BY e.fecha DESC,
                  e.folio_embarque DESC
     """
@@ -123,24 +134,8 @@ def preparar_transportes(df):
         )
 
     df["transporte_display"] = (
-
         df["codigo_transporte"]
         .replace("", "SIN TR")
-
-        + " | " +
-
-        df["transportista"]
-        .replace("", "SIN TRANSPORTISTA")
-
-        + " | " +
-
-        df["vehiculo"]
-        .replace("", "SIN VEHÍCULO")
-
-        + " | " +
-
-        df["placas"]
-        .replace("", "SIN PLACAS")
     )
 
     return df
@@ -339,11 +334,11 @@ def pintar_matriz_estatus(df_transportes):
 
             x=alt.X(
                 "transporte_display:N",
-                title="Transporte",
+                title="TR",
                 sort=None,
                 axis=alt.Axis(
-                    labelAngle=-45,
-                    labelLimit=220,
+                    labelAngle=-25,
+                    labelLimit=180,
                     grid=True,
                     tickSize=0
                 )
@@ -377,11 +372,6 @@ def pintar_matriz_estatus(df_transportes):
                 alt.Tooltip(
                     "codigo_transporte:N",
                     title="TR"
-                ),
-
-                alt.Tooltip(
-                    "transporte_display:N",
-                    title="Transporte"
                 ),
 
                 alt.Tooltip(
@@ -449,7 +439,7 @@ def pintar_matriz_estatus(df_transportes):
 
     st.altair_chart(
         chart,
-        use_container_width=False
+        use_container_width=True
     )
 
 
@@ -573,7 +563,7 @@ def dashboard_embarques_app():
         df_transportes,
         use_container_width=True,
         hide_index=True,
-        height=280
+        height=320
     )
 
     st.divider()
@@ -588,9 +578,9 @@ def dashboard_embarques_app():
 
         "folio_embarque",
 
-        "folio_hoja_carga",
+        "estatus",
 
-        "pedido",
+        "folio_hoja_carga",
 
         "fecha",
 
@@ -608,7 +598,7 @@ def dashboard_embarques_app():
 
         "ruta",
 
-        "estatus",
+        "pedido",
 
         "tipo_incidencia",
 
@@ -627,7 +617,7 @@ def dashboard_embarques_app():
         df_filtrado[columnas_detalle],
         use_container_width=True,
         hide_index=True,
-        height=420
+        height=520
     )
 
     st.divider()
