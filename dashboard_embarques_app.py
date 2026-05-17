@@ -19,7 +19,7 @@ from sigem_db import get_db_path
 
 
 # =====================================================
-# OBTENER EMBARQUES
+# OBTENER EMBARQUES / TRANSPORTES
 # =====================================================
 
 def obtener_embarques():
@@ -32,6 +32,7 @@ def obtener_embarques():
         SELECT
             e.folio_embarque,
             e.folio_hoja_carga,
+            e.codigo_transporte,
             e.folio_ruta,
             e.pedido,
             e.fecha,
@@ -90,12 +91,67 @@ def obtener_embarques():
 
 
 # =====================================================
-# EXPORTAR DASHBOARD EXCEL
+# GENERAR DATAFRAME TRANSPORTES
+# =====================================================
+
+def generar_df_transportes(df):
+
+    df = df.copy()
+
+    df["codigo_transporte"] = (
+        df["codigo_transporte"]
+        .fillna("SIN TRANSPORTE")
+        .astype(str)
+    )
+
+    df["vehiculo"] = (
+        df["vehiculo"]
+        .fillna("")
+        .astype(str)
+    )
+
+    df["transporte_display"] = (
+        df["codigo_transporte"]
+        + " - "
+        + df["vehiculo"]
+    )
+
+    resumen = (
+
+        df.groupby(
+            [
+                "transporte_display",
+                "codigo_transporte",
+                "transportista",
+                "vehiculo",
+                "placas",
+                "operador",
+                "ruta",
+                "estatus"
+            ],
+            dropna=False
+        )
+
+        .agg(
+            embarques=("folio_embarque", "nunique"),
+            clientes=("cliente", "nunique"),
+            destinos=("destino", "nunique")
+        )
+
+        .reset_index()
+    )
+
+    return resumen
+
+
+# =====================================================
+# EXPORTAR EXCEL
 # =====================================================
 
 def generar_excel_dashboard(
-    df_filtrado,
-    total,
+    df_transportes,
+    df_detalle,
+    total_transportes,
     transito,
     pendientes,
     cumplimiento
@@ -105,7 +161,7 @@ def generar_excel_dashboard(
 
     ws = wb.active
 
-    ws.title = "Dashboard"
+    ws.title = "Dashboard transportes"
 
     azul = PatternFill(
         start_color="1F4E78",
@@ -131,15 +187,15 @@ def generar_excel_dashboard(
         bold=True
     )
 
-    ws["A1"] = "SIGEM - Dashboard embarques"
+    ws["A1"] = "SIGEM - Dashboard transportes"
 
     ws["A1"].font = Font(
         bold=True,
         size=16
     )
 
-    ws["A3"] = "Total embarques"
-    ws["B3"] = total
+    ws["A3"] = "Total transportes"
+    ws["B3"] = total_transportes
 
     ws["A4"] = "En tránsito"
     ws["B4"] = transito
@@ -161,127 +217,12 @@ def generar_excel_dashboard(
         ws[celda].font = font_blanca
         ws[celda].border = borde
 
-    fila_inicio = 10
-    col_inicio = 2
-
-    orden_estatus = [
-        "Pendiente",
-        "En almacén",
-        "En patio",
-        "Ya salió",
-        "En tránsito",
-        "Entregado",
-        "Cancelado"
-    ]
-
-    mapa_colores = {
-
-        "Pendiente": "9CA3AF",
-        "En almacén": "7C3AED",
-        "En patio": "F97316",
-        "Ya salió": "EAB308",
-        "En tránsito": "2563EB",
-        "Entregado": "16A34A",
-        "Cancelado": "DC2626"
-
-    }
-
-    embarques = (
-        df_filtrado["folio_embarque"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
-
-    for idx, embarque in enumerate(embarques):
-
-        celda = ws.cell(
-            row=fila_inicio,
-            column=col_inicio + idx
-        )
-
-        celda.value = embarque
-
-        celda.fill = gris
-
-        celda.font = Font(
-            bold=True
-        )
-
-        celda.alignment = Alignment(
-            textRotation=45,
-            horizontal="center",
-            vertical="center"
-        )
-
-        celda.border = borde
-
-        ws.column_dimensions[
-            celda.column_letter
-        ].width = 14
-
-    for idx_estatus, estatus in enumerate(orden_estatus):
-
-        fila_actual = fila_inicio + 1 + idx_estatus
-
-        celda_estatus = ws.cell(
-            row=fila_actual,
-            column=1
-        )
-
-        celda_estatus.value = estatus
-
-        celda_estatus.fill = gris
-
-        celda_estatus.font = Font(
-            bold=True
-        )
-
-        celda_estatus.border = borde
-
-        for idx_embarque, embarque in enumerate(embarques):
-
-            celda = ws.cell(
-                row=fila_actual,
-                column=col_inicio + idx_embarque
-            )
-
-            existe = df_filtrado[
-                (
-                    df_filtrado["folio_embarque"]
-                    .astype(str)
-                    == embarque
-                )
-                &
-                (
-                    df_filtrado["estatus"]
-                    .astype(str)
-                    == estatus
-                )
-            ]
-
-            if not existe.empty:
-
-                color = mapa_colores.get(
-                    estatus,
-                    "D1D5DB"
-                )
-
-                celda.fill = PatternFill(
-                    start_color=color,
-                    end_color=color,
-                    fill_type="solid"
-                )
-
-            celda.border = borde
-
     ws2 = wb.create_sheet(
-        title="Detalle embarques"
+        title="Transportes"
     )
 
     for r in dataframe_to_rows(
-        df_filtrado,
+        df_transportes,
         index=False,
         header=True
     ):
@@ -291,9 +232,25 @@ def generar_excel_dashboard(
     for cell in ws2[1]:
 
         cell.fill = azul
-
         cell.font = font_blanca
+        cell.border = borde
 
+    ws3 = wb.create_sheet(
+        title="Detalle embarques"
+    )
+
+    for r in dataframe_to_rows(
+        df_detalle,
+        index=False,
+        header=True
+    ):
+
+        ws3.append(r)
+
+    for cell in ws3[1]:
+
+        cell.fill = azul
+        cell.font = font_blanca
         cell.border = borde
 
     buffer = BytesIO()
@@ -306,7 +263,7 @@ def generar_excel_dashboard(
 
 
 # =====================================================
-# GRAFICA MATRIZ
+# MATRIZ TRANSPORTES
 # =====================================================
 
 def pintar_matriz_estatus(df):
@@ -322,6 +279,7 @@ def pintar_matriz_estatus(df):
     ]
 
     mapa_colores = {
+
         "Pendiente": "#6B7280",
         "En almacén": "#7C3AED",
         "En patio": "#F97316",
@@ -329,6 +287,7 @@ def pintar_matriz_estatus(df):
         "En tránsito": "#2563EB",
         "Entregado": "#16A34A",
         "Cancelado": "#DC2626"
+
     }
 
     df_grafica = df.copy()
@@ -339,15 +298,9 @@ def pintar_matriz_estatus(df):
         .astype(str)
     )
 
-    df_grafica["embarque"] = (
-        df_grafica["folio_embarque"]
-        .fillna("")
-        .astype(str)
-    )
-
     ancho_grafica = max(
         1300,
-        len(df_grafica) * 95
+        len(df_grafica) * 120
     )
 
     chart = (
@@ -356,19 +309,19 @@ def pintar_matriz_estatus(df):
 
         .mark_rect(
             cornerRadius=5,
-            width=62,
-            height=26
+            width=75,
+            height=28
         )
 
         .encode(
 
             x=alt.X(
-                "embarque:N",
-                title="Número de embarque",
+                "transporte_display:N",
+                title="Transportes",
                 sort=None,
                 axis=alt.Axis(
                     labelAngle=-45,
-                    labelLimit=130,
+                    labelLimit=180,
                     grid=True,
                     tickSize=0
                 )
@@ -400,38 +353,33 @@ def pintar_matriz_estatus(df):
             tooltip=[
 
                 alt.Tooltip(
-                    "embarque:N",
-                    title="Número de embarque"
+                    "transporte_display:N",
+                    title="Transporte"
+                ),
+
+                alt.Tooltip(
+                    "transportista:N",
+                    title="Transportista"
+                ),
+
+                alt.Tooltip(
+                    "operador:N",
+                    title="Operador"
+                ),
+
+                alt.Tooltip(
+                    "ruta:N",
+                    title="Ruta"
+                ),
+
+                alt.Tooltip(
+                    "embarques:Q",
+                    title="Embarques"
                 ),
 
                 alt.Tooltip(
                     "estatus:N",
                     title="Estatus"
-                ),
-
-                alt.Tooltip(
-                    "tipo_incidencia:N",
-                    title="Última incidencia"
-                ),
-
-                alt.Tooltip(
-                    "prioridad_incidencia:N",
-                    title="Prioridad"
-                ),
-
-                alt.Tooltip(
-                    "estatus_incidencia:N",
-                    title="Estatus incidencia"
-                ),
-
-                alt.Tooltip(
-                    "descripcion_incidencia:N",
-                    title="Descripción"
-                ),
-
-                alt.Tooltip(
-                    "fecha_incidencia:N",
-                    title="Fecha incidencia"
                 )
             ]
 
@@ -469,7 +417,7 @@ def pintar_matriz_estatus(df):
 
 def dashboard_embarques_app():
 
-    st.title("📊 Dashboard embarques")
+    st.title("🚛 Dashboard transportes")
 
     try:
 
@@ -478,7 +426,7 @@ def dashboard_embarques_app():
     except Exception as e:
 
         st.error(
-            "❌ Error consultando embarques"
+            "❌ Error consultando transportes"
         )
 
         st.exception(e)
@@ -488,7 +436,7 @@ def dashboard_embarques_app():
     if df.empty:
 
         st.warning(
-            "No existen embarques registrados."
+            "No existen transportes registrados."
         )
 
         return
@@ -556,10 +504,16 @@ def dashboard_embarques_app():
             == filtro_estatus
         ]
 
-    total = len(df_filtrado)
+    df_transportes = generar_df_transportes(
+        df_filtrado
+    )
 
-    entregados = df_filtrado[
-        df_filtrado["estatus"]
+    total_transportes = len(
+        df_transportes
+    )
+
+    entregados = df_transportes[
+        df_transportes["estatus"]
         .astype(str)
         .str.contains(
             "Entregado",
@@ -568,8 +522,8 @@ def dashboard_embarques_app():
         )
     ].shape[0]
 
-    transito = df_filtrado[
-        df_filtrado["estatus"]
+    transito = df_transportes[
+        df_transportes["estatus"]
         .astype(str)
         .str.contains(
             "tránsito|transito",
@@ -578,8 +532,8 @@ def dashboard_embarques_app():
         )
     ].shape[0]
 
-    pendientes = df_filtrado[
-        df_filtrado["estatus"]
+    pendientes = df_transportes[
+        df_transportes["estatus"]
         .astype(str)
         .str.contains(
             "Pendiente",
@@ -590,10 +544,10 @@ def dashboard_embarques_app():
 
     cumplimiento = (
         round(
-            (entregados / total) * 100,
+            (entregados / total_transportes) * 100,
             1
         )
-        if total > 0 else 0
+        if total_transportes > 0 else 0
     )
 
     st.divider()
@@ -601,8 +555,8 @@ def dashboard_embarques_app():
     c1, c2, c3, c4 = st.columns(4)
 
     c1.metric(
-        "📦 Embarques",
-        total
+        "🚛 Transportes",
+        total_transportes
     )
 
     c2.metric(
@@ -623,18 +577,32 @@ def dashboard_embarques_app():
     st.divider()
 
     st.subheader(
-        "🚦 Distribución por estatus"
+        "🚦 Distribución por transporte"
     )
 
     pintar_matriz_estatus(
-        df_filtrado
+        df_transportes
+    )
+
+    st.divider()
+
+    st.subheader(
+        "📋 Detalle embarques por transporte"
+    )
+
+    st.dataframe(
+        df_filtrado,
+        use_container_width=True,
+        hide_index=True,
+        height=420
     )
 
     st.divider()
 
     excel_dashboard = generar_excel_dashboard(
+        df_transportes,
         df_filtrado,
-        total,
+        total_transportes,
         transito,
         pendientes,
         cumplimiento
@@ -644,7 +612,7 @@ def dashboard_embarques_app():
         label="📥 Exportar dashboard Excel",
         data=excel_dashboard,
         file_name=(
-            f"dashboard_embarques_"
+            f"dashboard_transportes_"
             f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         ),
         mime=(
@@ -653,3 +621,8 @@ def dashboard_embarques_app():
         ),
         use_container_width=True
     )
+
+
+if __name__ == "__main__":
+
+    dashboard_embarques_app()
