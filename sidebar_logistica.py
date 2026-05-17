@@ -36,8 +36,6 @@ def sidebar_logistica():
             unsafe_allow_html=True
         )
 
-        
-
         if "menu_logistica" not in st.session_state:
             st.session_state.menu_logistica = "Embarques"
 
@@ -340,6 +338,90 @@ def sidebar_logistica():
                     "Consultas y dashboard",
                     "📊 Dashboard incidencias"
                 )
+
+        # =====================================================
+        # FILTROS CENTRALIZADOS - ALTA EMBARQUE
+        # =====================================================
+
+        if st.session_state.opcion_logistica == "➕ Alta embarque":
+
+            st.divider()
+
+            with st.expander("🔎 Filtros alta embarque", expanded=True):
+
+                if "df_hojas_sidebar" in st.session_state:
+
+                    df_filtros = st.session_state.df_hojas_sidebar.copy()
+
+                    if not df_filtros.empty:
+
+                        folios = ["Todos"] + sorted(
+                            df_filtros["folio_hoja_carga"]
+                            .dropna()
+                            .astype(str)
+                            .unique()
+                            .tolist()
+                        )
+
+                        clientes = ["Todos"] + sorted(
+                            df_filtros["cliente"]
+                            .dropna()
+                            .astype(str)
+                            .unique()
+                            .tolist()
+                        )
+
+                        destinos = ["Todos"] + sorted(
+                            df_filtros["destino"]
+                            .dropna()
+                            .astype(str)
+                            .unique()
+                            .tolist()
+                        )
+
+                        estatus_lista = ["Todos"] + sorted(
+                            df_filtros["estatus"]
+                            .dropna()
+                            .astype(str)
+                            .unique()
+                            .tolist()
+                        )
+
+                        st.session_state.filtro_folio_hoja_carga = st.selectbox(
+                            "Hoja de carga",
+                            folios,
+                            key="log_filtro_folio_hoja_carga"
+                        )
+
+                        st.session_state.filtro_cliente = st.selectbox(
+                            "Cliente",
+                            clientes,
+                            key="log_filtro_cliente"
+                        )
+
+                        st.session_state.filtro_destino = st.selectbox(
+                            "Destino",
+                            destinos,
+                            key="log_filtro_destino"
+                        )
+
+                        st.session_state.filtro_estatus = st.selectbox(
+                            "Estatus",
+                            estatus_lista,
+                            key="log_filtro_estatus"
+                        )
+
+                    else:
+
+                        st.info(
+                            "No hay hojas de carga para filtrar."
+                        )
+
+                else:
+
+                    st.info(
+                        "Los filtros se cargarán al abrir Alta embarque."
+                    )
 
     return (
         st.session_state.menu_logistica,
