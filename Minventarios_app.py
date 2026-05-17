@@ -181,7 +181,7 @@ def inventarios_app():
 # CREACION DE HOJA DE CARGA
 # =========================
 
-    elif opcion_limpia == "hoja de carga":
+    elif opcion_limpia == "creación hoja de carga":
         hoja_carga_app()
 
     
