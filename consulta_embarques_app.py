@@ -444,16 +444,10 @@ def consulta_embarques_app():
         # =====================================================
         # DASHBOARD
         # =====================================================
-
         with tab1:
 
-            st.dataframe(
-                df_filtrado,
-                use_container_width=True,
-                height=500,
-                hide_index=True
-            )
-
+            st.markdown("### 📦 Selección de embarques")
+        
             opciones_embarque = (
                 df_filtrado["folio_embarque"]
                 .dropna()
@@ -461,12 +455,27 @@ def consulta_embarques_app():
                 .unique()
                 .tolist()
             )
-
+        
             embarques_seleccionados = st.multiselect(
-                "Selecciona embarques para revisar detalle",
-                opciones_embarque
+                "Selecciona uno o varios embarques",
+                opciones_embarque,
+                placeholder="Selecciona embarques..."
             )
-
+        
+            if embarques_seleccionados:
+        
+                st.success(
+                    f"Embarques seleccionados: {len(embarques_seleccionados)}"
+                )
+        
+            st.dataframe(
+                df_filtrado,
+                use_container_width=True,
+                height=500,
+                hide_index=True
+            )
+                    ########
+            
             archivo_excel = exportar_excel(
                 df_filtrado
             )
