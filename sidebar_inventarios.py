@@ -51,19 +51,19 @@ def sidebar_inventarios():
 
         ver_operacion_inventarios = ruta_central in [
             "inventarios",
-            "operacion_inventario",
-            "operacion_inventarios"
+            "operacion_inventario"
+        
         ]
 
         ver_operacion_logistica = ruta_central in [
             "inventarios",
             "operacion_logistica"
         ]
-
+    
         ver_consultas = ruta_central in [
             "inventarios",
-            "consulta_analiticos",
-            "consultas_analiticos"
+            "consulta_analiticos"
+            
         ]
 
         ver_inventario_fisico = ruta_central in [
