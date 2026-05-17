@@ -137,7 +137,7 @@ def inventarios_app():
     # MATERIALES
     # =========================
 
-    elif opcion_limpia == "consulta de clientes":
+    elif opcion_limpia == "consulta_clientes":
 
         consulta_clientes_inventarios_app()
     
