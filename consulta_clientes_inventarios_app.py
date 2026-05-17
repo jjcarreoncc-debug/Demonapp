@@ -24,7 +24,7 @@ def html_card(html, height=220):
 def get_conn_inventarios():
 
     conn = sqlite3.connect(
-        get_db_path("inventarios")
+        get_db_path("logistica")
     )
 
     conn.row_factory = sqlite3.Row
@@ -34,7 +34,7 @@ def get_conn_inventarios():
 
 def consulta_clientes_inventarios_app():
 
-    conn = get_conn_inventarios()
+    conn = get_conn_logistica()
 
     try:
 
