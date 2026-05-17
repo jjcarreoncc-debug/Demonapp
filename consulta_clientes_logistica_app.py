@@ -1,6 +1,7 @@
-    import streamlit as st
+import streamlit as st
 import pandas as pd
 import sqlite3
+import textwrap
 from sigem_db import get_db_path
 
 
@@ -22,7 +23,7 @@ st.set_page_config(
 def html_card(html):
 
     st.markdown(
-        html,
+        textwrap.dedent(html),
         unsafe_allow_html=True
     )
 
