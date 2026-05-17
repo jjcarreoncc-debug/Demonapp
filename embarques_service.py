@@ -63,14 +63,23 @@ def obtener_detalle_hoja_carga(folio_hoja_carga):
             pedido,
             codigo_material,
             descripcion,
-            cantidad_pedido,
-            cantidad_surtida,
-            bodega,
-            ubicacion,
-            peso,
-            volumen,
+
+            cantidad_reservada AS cantidad_pedido,
+
+            cantidad_reservada AS cantidad_surtida,
+
+            '' AS bodega,
+
+            '' AS ubicacion,
+
+            peso_calculado AS peso,
+
+            volumen_calculado AS volumen,
+
             observaciones
+
         FROM detalle_hoja_carga
+
         WHERE folio_hoja_carga = ?
     """
 
@@ -171,7 +180,7 @@ def procesar_confirmacion_embarque(df_seleccionadas, transporte):
     codigo_transporte = (
         f"TR-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     )
-    
+
     folios_creados = []
     registros_embarque = []
     registros_detalle = []
