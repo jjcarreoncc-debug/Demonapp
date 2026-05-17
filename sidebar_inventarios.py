@@ -122,6 +122,21 @@ def sidebar_inventarios():
             ):
 
                 with st.expander(
+                    "👥 Clientes",
+                    expanded=False
+                ):
+
+                    if st.button(
+                        "📊 Consulta de clientes"
+                    ):
+
+                        set_opcion(
+                            "Datos Maestros",
+                            "Clientes",
+                            "Consulta de clientes"
+                        )
+
+                with st.expander(
                     "📦 Productos",
                     expanded=True
                 ):
