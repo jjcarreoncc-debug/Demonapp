@@ -34,7 +34,7 @@ def get_conn_inventarios():
 
 def consulta_clientes_inventarios_app():
 
-    conn = get_conn_logistica()
+    conn = get_conn_inventarios()
 
     try:
 
