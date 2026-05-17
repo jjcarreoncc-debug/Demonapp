@@ -133,7 +133,7 @@ def sidebar_inventarios():
                         set_opcion(
                             "Datos Maestros",
                             "Clientes",
-                            "consulta _clientes"
+                            "consulta_clientes"
                         )
 
                 with st.expander(
