@@ -20,6 +20,7 @@ from consulta_pedidos_app import consulta_pedidos_app
 from crear_entrega_app import pantalla_crear_entrega
 from cancelacion_entrega_app import cancelacion_entrega_app
 from hoja_carga_app import hoja_carga_app
+from consulta_hoja_carga_app import consulta_hoja_carga_app
 
 from embarques_inventario_app import (
     embarques_inventario_app
@@ -183,6 +184,9 @@ def inventarios_app():
 
     elif opcion_limpia == "creación hoja de carga":
         hoja_carga_app()
+
+    elif ruta == "consulta_hoja_carga":
+        consulta_hoja_carga_app()
 
     
     # =========================
