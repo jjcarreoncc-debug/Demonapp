@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 from datetime import datetime
 import math
+import plotly.graph_objects as go
 
 from sigem_db import get_db_path
 
@@ -603,6 +604,182 @@ def guardar_hoja_carga(folio, df_base, df_armado, df_tarimas, condiciones, obser
         return False, str(e)
 
 
+
+# ============================================================
+# GRAFICO 3D ARMADO HOJA DE CARGA
+# ============================================================
+def agregar_caja_3d(fig, x0, y0, z0, dx, dy, dz, texto, color):
+    x1 = x0 + dx
+    y1 = y0 + dy
+    z1 = z0 + dz
+
+    vertices_x = [x0, x1, x1, x0, x0, x1, x1, x0]
+    vertices_y = [y0, y0, y1, y1, y0, y0, y1, y1]
+    vertices_z = [z0, z0, z0, z0, z1, z1, z1, z1]
+
+    caras_i = [0, 0, 0, 1, 2, 3, 4, 4, 5, 6, 7, 4]
+    caras_j = [1, 2, 3, 5, 6, 7, 5, 6, 6, 7, 4, 7]
+    caras_k = [2, 3, 0, 6, 7, 4, 6, 7, 1, 2, 0, 3]
+
+    fig.add_trace(
+        go.Mesh3d(
+            x=vertices_x,
+            y=vertices_y,
+            z=vertices_z,
+            i=caras_i,
+            j=caras_j,
+            k=caras_k,
+            opacity=0.88,
+            color=color,
+            name=texto,
+            hovertext=texto,
+            hoverinfo="text",
+            showscale=False
+        )
+    )
+
+
+def mostrar_grafico_armado_3d(df_tarimas):
+    if df_tarimas.empty:
+        st.info("No hay tarimas para graficar.")
+        return
+
+    df_plot = df_tarimas.copy()
+
+    max_tarimas = 12
+
+    if len(df_plot) > max_tarimas:
+        st.warning(
+            f"Se muestran las primeras {max_tarimas} tarimas para mantener legible la simulación."
+        )
+        df_plot = df_plot.head(max_tarimas)
+
+    fig = go.Figure()
+
+    ancho_tarima = 2.4
+    fondo_tarima = 1.2
+    alto_base = 0.12
+
+    caja_x = 0.55
+    caja_y = 0.35
+    caja_z = 0.25
+
+    separacion_tarimas = 3.0
+
+    colores = [
+        "#1F77B4",
+        "#FF7F0E",
+        "#2CA02C",
+        "#D62728",
+        "#9467BD",
+        "#8C564B",
+        "#E377C2",
+        "#7F7F7F",
+        "#BCBD22",
+        "#17BECF"
+    ]
+
+    for idx, row in df_plot.reset_index(drop=True).iterrows():
+
+        offset_x = idx * separacion_tarimas
+        numero_tarima = int(row.get("numero_tarima", idx + 1))
+        codigo_material = str(row.get("codigo_material", ""))
+        descripcion = str(row.get("descripcion", ""))[:25]
+        cantidad_cajas = int(max(1, math.ceil(float(row.get("cantidad_cajas", 1)))))
+        cantidad_piezas = float(row.get("cantidad_piezas", 0))
+        peso_estimado = float(row.get("peso_estimado", 0))
+        volumen_estimado = float(row.get("volumen_estimado", 0))
+
+        texto_base = (
+            f"Tarima {numero_tarima}<br>"
+            f"Material: {codigo_material}<br>"
+            f"{descripcion}<br>"
+            f"Piezas: {cantidad_piezas:,.2f}<br>"
+            f"Cajas: {cantidad_cajas}<br>"
+            f"Peso: {peso_estimado:,.2f} kg<br>"
+            f"Volumen: {volumen_estimado:,.2f} m³"
+        )
+
+        agregar_caja_3d(
+            fig,
+            offset_x,
+            0,
+            0,
+            ancho_tarima,
+            fondo_tarima,
+            alto_base,
+            texto_base,
+            "#8B5A2B"
+        )
+
+        cajas_por_fila = 4
+        filas_por_cama = 3
+        cajas_por_cama = cajas_por_fila * filas_por_cama
+
+        color = colores[idx % len(colores)]
+
+        for caja in range(cantidad_cajas):
+
+            cama = caja // cajas_por_cama
+            posicion_cama = caja % cajas_por_cama
+            fila = posicion_cama // cajas_por_fila
+            columna = posicion_cama % cajas_por_fila
+
+            x = offset_x + 0.08 + columna * caja_x
+            y = 0.08 + fila * caja_y
+            z = alto_base + cama * caja_z
+
+            texto_caja = (
+                f"Tarima {numero_tarima}<br>"
+                f"Caja {caja + 1}<br>"
+                f"Material: {codigo_material}<br>"
+                f"{descripcion}"
+            )
+
+            agregar_caja_3d(
+                fig,
+                x,
+                y,
+                z,
+                caja_x * 0.9,
+                caja_y * 0.9,
+                caja_z * 0.9,
+                texto_caja,
+                color
+            )
+
+        fig.add_trace(
+            go.Scatter3d(
+                x=[offset_x + ancho_tarima / 2],
+                y=[fondo_tarima + 0.25],
+                z=[1.0],
+                mode="text",
+                text=[f"TAR-{numero_tarima}"],
+                textposition="middle center",
+                showlegend=False
+            )
+        )
+
+    fig.update_layout(
+        height=560,
+        margin=dict(l=0, r=0, t=30, b=0),
+        scene=dict(
+            xaxis_title="Tarimas / posición",
+            yaxis_title="Profundidad",
+            zaxis_title="Altura",
+            aspectmode="data"
+        ),
+        title="Simulación gráfica de armado por hoja de carga",
+        showlegend=False
+    )
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True
+    )
+
+
+
 # ============================================================
 # ESTILOS
 # ============================================================
@@ -866,10 +1043,11 @@ def hoja_carga_app():
                 f"{df_armado['volumen_calculado'].sum():,.2f} m³"
             )
 
-        tab_armado, tab_tarimas, tab_validaciones = st.tabs(
+        tab_armado, tab_tarimas, tab_grafico, tab_validaciones = st.tabs(
             [
                 "📄 Detalle armado",
                 "📦 Tarimas",
+                "🧊 Vista gráfica 3D",
                 "✅ Validaciones"
             ]
         )
@@ -889,6 +1067,9 @@ def hoja_carga_app():
                 hide_index=True,
                 height=300
             )
+
+        with tab_grafico:
+            mostrar_grafico_armado_3d(df_tarimas)
 
         with tab_validaciones:
 
