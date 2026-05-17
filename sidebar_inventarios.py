@@ -39,10 +39,31 @@ def sidebar_inventarios():
             "ruta_central",
             ""
         )
-
-        solo_datos_maestros = (
-            ruta_central == "datos_maestros"
-        )
+        
+        ver_datos_maestros = ruta_central in [
+            "inventarios",
+            "datos_maestros"
+        ]
+        
+        ver_operacion_inventarios = ruta_central in [
+            "inventarios",
+            "operacion_inventario"
+        ]
+        
+        ver_operacion_logistica = ruta_central in [
+            "inventarios",
+            "operacion_logistica"
+        ]
+        
+        ver_consultas = ruta_central in [
+            "inventarios",
+            "consulta_analiticos"
+        ]
+        
+        ver_inventario_fisico = ruta_central in [
+            "inventarios",
+            "inventario_fisico"
+        ]
 
         # =================================================
         # DATOS MAESTROS
