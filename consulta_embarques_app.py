@@ -45,7 +45,7 @@ def obtener_embarques():
 
 
 # =====================================================
-# OBTENER DETALLE POR EMBARQUES SELECCIONADOS
+# OBTENER DETALLE
 # =====================================================
 
 def obtener_detalle_embarques(df_seleccionados):
@@ -71,27 +71,28 @@ def obtener_detalle_embarques(df_seleccionados):
         .tolist()
     )
 
-    folios_hoja_carga = [
-        x for x in folios_hoja_carga
-        if x and x.lower() != "none"
-    ]
-
     condiciones = []
     params = []
 
     if folios_embarque:
+
         marcas = ",".join(["?"] * len(folios_embarque))
-        condiciones.append(f"TRIM(folio_embarque) IN ({marcas})")
+
+        condiciones.append(
+            f"TRIM(folio_embarque) IN ({marcas})"
+        )
+
         params.extend(folios_embarque)
 
     if folios_hoja_carga:
-        marcas = ",".join(["?"] * len(folios_hoja_carga))
-        condiciones.append(f"TRIM(folio_hoja_carga) IN ({marcas})")
-        params.extend(folios_hoja_carga)
 
-    if not condiciones:
-        conn.close()
-        return pd.DataFrame()
+        marcas = ",".join(["?"] * len(folios_hoja_carga))
+
+        condiciones.append(
+            f"TRIM(folio_hoja_carga) IN ({marcas})"
+        )
+
+        params.extend(folios_hoja_carga)
 
     query = f"""
         SELECT
@@ -111,7 +112,6 @@ def obtener_detalle_embarques(df_seleccionados):
         WHERE {" OR ".join(condiciones)}
         ORDER BY
             folio_embarque,
-            folio_hoja_carga,
             codigo_material
     """
 
@@ -194,45 +194,14 @@ def aplicar_estilos():
             box-shadow: 0px 2px 8px rgba(0,0,0,0.04);
         }
 
-        div[data-testid="metric-container"] label{
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        div[data-testid="metric-container"] [data-testid="stMetricValue"]{
-            font-size: 34px;
-            font-weight: 700;
-            color: #111827;
-        }
-
         .stTabs [data-baseweb="tab-list"]{
             gap: 10px;
-            border-bottom: 1px solid #E5E7EB;
-        }
-
-        .stTabs [data-baseweb="tab"]{
-            height: 44px;
-            border-radius: 10px 10px 0px 0px;
-            padding-left: 18px;
-            padding-right: 18px;
-            font-weight: 600;
         }
 
         .stDataFrame{
             border-radius: 14px;
             overflow: hidden;
             border: 1px solid #E5E7EB;
-        }
-
-        .stSelectbox label{
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .stTextInput label{
-            font-weight: 600;
-            color: #374151;
         }
 
         </style>
@@ -260,14 +229,17 @@ def consulta_embarques_app():
     )
 
     try:
+
         df = obtener_embarques()
 
     except Exception as e:
+
         st.error("❌ Error consultando embarques")
         st.exception(e)
         return
 
     if df.empty:
+
         st.warning("No existen embarques registrados.")
         return
 
@@ -322,69 +294,48 @@ def consulta_embarques_app():
             unsafe_allow_html=True
         )
 
-        folios = ["Todos"] + sorted(
-            df["folio_embarque"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-
-        clientes = ["Todos"] + sorted(
-            df["cliente"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-
-        pedidos = ["Todos"] + sorted(
-            df["pedido"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-
-        estatus_lista = ["Todos"] + sorted(
-            df["estatus"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-
-        alertas = ["Todos"] + sorted(
-            df["alerta"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
-
         filtro_folio = st.selectbox(
             "Folio embarque",
-            folios
+            ["Todos"] + sorted(
+                df["folio_embarque"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
         )
 
         filtro_cliente = st.selectbox(
             "Cliente",
-            clientes
+            ["Todos"] + sorted(
+                df["cliente"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
         )
 
         filtro_pedido = st.selectbox(
             "Pedido",
-            pedidos
+            ["Todos"] + sorted(
+                df["pedido"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
         )
 
         filtro_estatus = st.selectbox(
             "Estatus",
-            estatus_lista
-        )
-
-        filtro_alerta = st.selectbox(
-            "Alerta",
-            alertas
+            ["Todos"] + sorted(
+                df["estatus"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
         )
 
         buscar = st.text_input(
@@ -398,38 +349,42 @@ def consulta_embarques_app():
     df_filtrado = df.copy()
 
     if filtro_folio != "Todos":
+
         df_filtrado = df_filtrado[
-            df_filtrado["folio_embarque"].astype(str) == filtro_folio
+            df_filtrado["folio_embarque"].astype(str)
+            == filtro_folio
         ]
 
     if filtro_cliente != "Todos":
+
         df_filtrado = df_filtrado[
-            df_filtrado["cliente"].astype(str) == filtro_cliente
+            df_filtrado["cliente"].astype(str)
+            == filtro_cliente
         ]
 
     if filtro_pedido != "Todos":
+
         df_filtrado = df_filtrado[
-            df_filtrado["pedido"].astype(str) == filtro_pedido
+            df_filtrado["pedido"].astype(str)
+            == filtro_pedido
         ]
 
     if filtro_estatus != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["estatus"].astype(str) == filtro_estatus
-        ]
 
-    if filtro_alerta != "Todos":
         df_filtrado = df_filtrado[
-            df_filtrado["alerta"].astype(str) == filtro_alerta
+            df_filtrado["estatus"].astype(str)
+            == filtro_estatus
         ]
 
     if buscar:
-        texto_buscar = buscar.lower().strip()
+
+        texto = buscar.lower().strip()
 
         df_filtrado = df_filtrado[
             df_filtrado.astype(str)
             .apply(
                 lambda fila: fila.str.lower().str.contains(
-                    texto_buscar,
+                    texto,
                     na=False
                 ).any(),
                 axis=1
@@ -453,9 +408,9 @@ def consulta_embarques_app():
 
         pendientes = total_embarques - entregados
 
-        total_pedidos = df_filtrado["pedido"].nunique()
         total_clientes = df_filtrado["cliente"].nunique()
         total_rutas = df_filtrado["folio_ruta"].nunique()
+        total_pedidos = df_filtrado["pedido"].nunique()
 
         k1, k2, k3, k4, k5, k6 = st.columns(6)
 
@@ -487,75 +442,30 @@ def consulta_embarques_app():
         )
 
         # =====================================================
-        # TAB DASHBOARD
+        # DASHBOARD
         # =====================================================
 
         with tab1:
 
-            st.info(
-                "Selecciona uno o varios embarques en la columna Sel. para revisar su detalle."
-            )
-
-            df_grid = df_filtrado.copy()
-            df_grid.insert(0, "Sel.", False)
-
-            columnas_grid = [
-                "Sel.",
-                "folio_embarque",
-                "folio_hoja_carga",
-                "folio_ruta",
-                "pedido",
-                "fecha",
-                "cliente",
-                "destino",
-                "transportista",
-                "vehiculo",
-                "placas",
-                "operador",
-                "ruta",
-                "estatus",
-                "alerta"
-            ]
-
-            columnas_grid = [
-                col for col in columnas_grid
-                if col in df_grid.columns
-            ]
-
-            df_editado = st.data_editor(
-                df_grid[columnas_grid],
+            st.dataframe(
+                df_filtrado,
                 use_container_width=True,
-                height=520,
-                hide_index=True,
-                disabled=[
-                    col for col in columnas_grid
-                    if col != "Sel."
-                ],
-                column_config={
-                    "Sel.": st.column_config.CheckboxColumn(
-                        "Sel.",
-                        help="Selecciona el embarque para consultar detalle",
-                        default=False
-                    )
-                },
-                key="grid_embarques_consulta"
+                height=500,
+                hide_index=True
             )
 
-            df_seleccionados = df_editado[
-                df_editado["Sel."] == True
-            ].copy()
+            opciones_embarque = (
+                df_filtrado["folio_embarque"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
 
-            if not df_seleccionados.empty:
-
-                st.session_state["embarques_seleccionados_consulta"] = (
-                    df_seleccionados
-                    .drop(columns=["Sel."], errors="ignore")
-                    .copy()
-                )
-
-                st.success(
-                    f"Embarques seleccionados: {len(df_seleccionados)}"
-                )
+            embarques_seleccionados = st.multiselect(
+                "Selecciona embarques para revisar detalle",
+                opciones_embarque
+            )
 
             archivo_excel = exportar_excel(
                 df_filtrado
@@ -569,24 +479,24 @@ def consulta_embarques_app():
             )
 
         # =====================================================
-        # TAB DETALLE
+        # DETALLE
         # =====================================================
 
         with tab2:
 
-            df_seleccionados = st.session_state.get(
-                "embarques_seleccionados_consulta",
-                pd.DataFrame()
-            )
-
-            if df_seleccionados.empty:
+            if not embarques_seleccionados:
 
                 st.info(
-                    "Primero selecciona uno o varios embarques en la pestaña Dashboard."
+                    "Selecciona uno o varios embarques en Dashboard."
                 )
+
                 return
 
-            st.subheader("📄 Detalle de embarques seleccionados")
+            df_seleccionados = df_filtrado[
+                df_filtrado["folio_embarque"]
+                .astype(str)
+                .isin(embarques_seleccionados)
+            ].copy()
 
             df_detalle = obtener_detalle_embarques(
                 df_seleccionados
@@ -595,8 +505,9 @@ def consulta_embarques_app():
             if df_detalle.empty:
 
                 st.warning(
-                    "No se encontró detalle para los embarques seleccionados."
+                    "No se encontró detalle."
                 )
+
                 return
 
             for col in [
@@ -605,7 +516,9 @@ def consulta_embarques_app():
                 "peso",
                 "volumen"
             ]:
+
                 if col in df_detalle.columns:
+
                     df_detalle[col] = pd.to_numeric(
                         df_detalle[col],
                         errors="coerce"
@@ -617,12 +530,10 @@ def consulta_embarques_app():
                     [
                         "folio_embarque",
                         "folio_hoja_carga"
-                    ],
-                    dropna=False
+                    ]
                 )
                 .agg(
                     lineas=("codigo_material", "count"),
-                    cantidad_pedida=("cantidad_pedida", "sum"),
                     cantidad_embarcar=("cantidad_embarcar", "sum"),
                     peso=("peso", "sum"),
                     volumen=("volumen", "sum")
@@ -630,7 +541,7 @@ def consulta_embarques_app():
                 .reset_index()
             )
 
-            st.markdown("### 📌 Resumen por embarque")
+            st.markdown("### 📌 Resumen")
 
             st.dataframe(
                 resumen,
@@ -639,100 +550,72 @@ def consulta_embarques_app():
                 height=220
             )
 
-            st.markdown("### 📦 Cortes de detalle por embarque")
+            st.markdown("### 📦 Detalle por embarque")
 
-            folios_detalle = (
-                df_detalle["folio_embarque"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-
-            for folio in folios_detalle:
+            for folio in embarques_seleccionados:
 
                 df_corte = df_detalle[
-                    df_detalle["folio_embarque"].astype(str) == folio
+                    df_detalle["folio_embarque"]
+                    .astype(str)
+                    == str(folio)
                 ].copy()
 
-                hoja = ""
+                if df_corte.empty:
+                    continue
 
-                if "folio_hoja_carga" in df_corte.columns:
-                    hoja = str(
-                        df_corte["folio_hoja_carga"]
-                        .dropna()
-                        .astype(str)
-                        .iloc[0]
-                    )
+                hoja = str(
+                    df_corte["folio_hoja_carga"]
+                    .iloc[0]
+                )
 
                 total_lineas = len(df_corte)
-                total_pedida = df_corte["cantidad_pedida"].sum()
-                total_embarcar = df_corte["cantidad_embarcar"].sum()
-                total_peso = df_corte["peso"].sum()
-                total_volumen = df_corte["volumen"].sum()
 
                 with st.expander(
-                    f"🚚 Embarque {folio} | Hoja carga {hoja} | Líneas {total_lineas}",
+                    f"🚚 {folio} | Hoja carga {hoja} | Líneas {total_lineas}",
                     expanded=True
                 ):
 
                     c1, c2, c3, c4 = st.columns(4)
 
                     with c1:
-                        st.metric("Cantidad pedida", f"{total_pedida:,.2f}")
+                        st.metric(
+                            "Cantidad embarcar",
+                            f"{df_corte['cantidad_embarcar'].sum():,.2f}"
+                        )
 
                     with c2:
-                        st.metric("Cantidad embarcar", f"{total_embarcar:,.2f}")
+                        st.metric(
+                            "Peso",
+                            f"{df_corte['peso'].sum():,.2f}"
+                        )
 
                     with c3:
-                        st.metric("Peso", f"{total_peso:,.2f}")
+                        st.metric(
+                            "Volumen",
+                            f"{df_corte['volumen'].sum():,.3f}"
+                        )
 
                     with c4:
-                        st.metric("Volumen", f"{total_volumen:,.3f}")
+                        st.metric(
+                            "Líneas",
+                            total_lineas
+                        )
 
                     st.dataframe(
                         df_corte,
                         use_container_width=True,
                         hide_index=True,
-                        height=280
+                        height=300
                     )
-
-            st.markdown("### ✅ Total general seleccionado")
-
-            tg1, tg2, tg3, tg4, tg5 = st.columns(5)
-
-            with tg1:
-                st.metric("Embarques", len(folios_detalle))
-
-            with tg2:
-                st.metric("Líneas", len(df_detalle))
-
-            with tg3:
-                st.metric(
-                    "Cantidad embarcar",
-                    f"{df_detalle['cantidad_embarcar'].sum():,.2f}"
-                )
-
-            with tg4:
-                st.metric(
-                    "Peso",
-                    f"{df_detalle['peso'].sum():,.2f}"
-                )
-
-            with tg5:
-                st.metric(
-                    "Volumen",
-                    f"{df_detalle['volumen'].sum():,.3f}"
-                )
 
             archivo_excel_detalle = exportar_excel(
                 df_detalle
             )
 
             st.download_button(
-                label="📥 Exportar detalle seleccionado Excel",
+                label="📥 Exportar detalle Excel",
                 data=archivo_excel_detalle,
-                file_name="detalle_embarques_seleccionados.xlsx",
+                file_name="detalle_embarques.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
