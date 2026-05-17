@@ -11,11 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-st.write("ANCHO TEST")
-st.dataframe(
-    pd.DataFrame({"A":[1,2,3]}),
-    use_container_width=True
-)
+
 
 def html_card(html, height=220):
 
