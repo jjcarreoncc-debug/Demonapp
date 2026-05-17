@@ -274,7 +274,7 @@ def sidebar_inventarios():
         # OPERACIÓN INVENTARIOS
         # =================================================
 
-        if not solo_datos_maestros:
+        if ver_consultas:
 
             with st.expander("⚙️ Operación Inventarios"):
 
@@ -430,7 +430,8 @@ def sidebar_inventarios():
         # OPERACIÓN LOGÍSTICA
         # =================================================
 
-        if not solo_datos_maestros:
+        
+        if ver_consultas:
 
             with st.expander("🚚 Operación Logística"):
 
@@ -514,7 +515,7 @@ def sidebar_inventarios():
         # CONSULTAS Y ANALÍTICOS
         # =================================================
 
-        if not solo_datos_maestros:
+        if ver_consultas:
 
             with st.expander("📊 Consultas y Analíticos"):
 
