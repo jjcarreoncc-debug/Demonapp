@@ -35,31 +35,37 @@ def sidebar_inventarios():
         # VALIDAR RUTA CENTRAL
         # =================================================
 
-        ruta_central = st.session_state.get(
-            "ruta_central",
-            ""
+        ruta_central = (
+            st.session_state.get(
+                "ruta_central",
+                ""
+            )
+            .strip()
+            .lower()
         )
-        
+
         ver_datos_maestros = ruta_central in [
             "inventarios",
             "datos_maestros"
         ]
-        
+
         ver_operacion_inventarios = ruta_central in [
             "inventarios",
-            "operacion_inventario"
+            "operacion_inventario",
+            "operacion_inventarios"
         ]
-        
+
         ver_operacion_logistica = ruta_central in [
             "inventarios",
             "operacion_logistica"
         ]
-        
+
         ver_consultas = ruta_central in [
             "inventarios",
-            "consulta_analiticos"
+            "consulta_analiticos",
+            "consultas_analiticos"
         ]
-        
+
         ver_inventario_fisico = ruta_central in [
             "inventarios",
             "inventario_fisico"
@@ -69,206 +75,208 @@ def sidebar_inventarios():
         # DATOS MAESTROS
         # =================================================
 
-        with st.expander(
-            "📘 Datos Maestros",
-            expanded=True
-        ):
+        if ver_datos_maestros:
 
             with st.expander(
-                "📦 Productos",
+                "📘 Datos Maestros",
                 expanded=True
             ):
 
                 with st.expander(
-                    "📋 Maestro de materiales",
+                    "📦 Productos",
                     expanded=True
                 ):
 
-                    if st.button(
-                        "➕ Alta de material"
+                    with st.expander(
+                        "📋 Maestro de materiales",
+                        expanded=True
                     ):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
-                            "Alta de material"
-                        )
+                        if st.button(
+                            "➕ Alta de material"
+                        ):
 
-                    if st.button(
-                        "❌ Baja de material"
-                    ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Alta de material"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
-                            "Baja de material"
-                        )
+                        if st.button(
+                            "❌ Baja de material"
+                        ):
 
-                    if st.button(
-                        "🔍 Consulta de material"
-                    ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Baja de material"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
-                            "Consulta de material"
-                        )
+                        if st.button(
+                            "🔍 Consulta de material"
+                        ):
 
-                with st.expander("🏷️ Clasificaciones"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Consulta de material"
+                            )
 
-                    if st.button("Categorías"):
+                    with st.expander("🏷️ Clasificaciones"):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
-                            "Categorías"
-                        )
+                        if st.button("Categorías"):
 
-                    if st.button("Familias"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Categorías"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
-                            "Familias"
-                        )
+                        if st.button("Familias"):
 
-                    if st.button("Marcas"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Familias"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
-                            "Marcas"
-                        )
+                        if st.button("Marcas"):
 
-                with st.expander("🔢 Códigos"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Marcas"
+                            )
 
-                    if st.button(
-                        "Códigos de barras"
-                    ):
+                    with st.expander("🔢 Códigos"):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
+                        if st.button(
                             "Códigos de barras"
-                        )
+                        ):
 
-                    if st.button(
-                        "SKU alternos"
-                    ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "Códigos de barras"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Productos",
+                        if st.button(
                             "SKU alternos"
-                        )
+                        ):
 
-            with st.expander("📦 Empaques"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Productos",
+                                "SKU alternos"
+                            )
 
-                with st.expander("📏 Unidades"):
+                with st.expander("📦 Empaques"):
 
-                    if st.button("Alta unidad"):
+                    with st.expander("📏 Unidades"):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Empaques",
-                            "Alta unidad"
-                        )
+                        if st.button("Alta unidad"):
 
-                    if st.button(
-                        "Consulta unidades"
-                    ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Empaques",
+                                "Alta unidad"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Empaques",
+                        if st.button(
                             "Consulta unidades"
-                        )
+                        ):
 
-                with st.expander(
-                    "📦 Tipos de empaque"
-                ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Empaques",
+                                "Consulta unidades"
+                            )
 
-                    if st.button("Alta empaque"):
-
-                        set_opcion(
-                            "Datos Maestros",
-                            "Empaques",
-                            "Alta empaque"
-                        )
-
-                    if st.button(
-                        "Consulta empaques"
+                    with st.expander(
+                        "📦 Tipos de empaque"
                     ):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Empaques",
+                        if st.button("Alta empaque"):
+
+                            set_opcion(
+                                "Datos Maestros",
+                                "Empaques",
+                                "Alta empaque"
+                            )
+
+                        if st.button(
                             "Consulta empaques"
-                        )
+                        ):
 
-            with st.expander("📍 Ubicaciones"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Empaques",
+                                "Consulta empaques"
+                            )
 
-                with st.expander("🏬 Almacenes"):
+                with st.expander("📍 Ubicaciones"):
 
-                    if st.button("Alta almacén"):
+                    with st.expander("🏬 Almacenes"):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Ubicaciones",
-                            "Alta almacén"
-                        )
+                        if st.button("Alta almacén"):
 
-                    if st.button(
-                        "Consulta almacenes"
-                    ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Ubicaciones",
+                                "Alta almacén"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Ubicaciones",
+                        if st.button(
                             "Consulta almacenes"
-                        )
+                        ):
 
-                with st.expander("🧭 Zonas"):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Ubicaciones",
+                                "Consulta almacenes"
+                            )
 
-                    if st.button("Alta zona"):
+                    with st.expander("🧭 Zonas"):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Ubicaciones",
-                            "Alta zona"
-                        )
+                        if st.button("Alta zona"):
 
-                    if st.button(
-                        "Consulta zonas"
-                    ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Ubicaciones",
+                                "Alta zona"
+                            )
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Ubicaciones",
+                        if st.button(
                             "Consulta zonas"
-                        )
+                        ):
 
-                with st.expander(
-                    "📌 Ubicaciones físicas"
-                ):
+                            set_opcion(
+                                "Datos Maestros",
+                                "Ubicaciones",
+                                "Consulta zonas"
+                            )
 
-                    if st.button("Alta ubicación"):
-
-                        set_opcion(
-                            "Datos Maestros",
-                            "Ubicaciones",
-                            "Alta ubicación"
-                        )
-
-                    if st.button(
-                        "Consulta ubicaciones"
+                    with st.expander(
+                        "📌 Ubicaciones físicas"
                     ):
 
-                        set_opcion(
-                            "Datos Maestros",
-                            "Ubicaciones",
+                        if st.button("Alta ubicación"):
+
+                            set_opcion(
+                                "Datos Maestros",
+                                "Ubicaciones",
+                                "Alta ubicación"
+                            )
+
+                        if st.button(
                             "Consulta ubicaciones"
-                        )
+                        ):
+
+                            set_opcion(
+                                "Datos Maestros",
+                                "Ubicaciones",
+                                "Consulta ubicaciones"
+                            )
 
         # =================================================
         # OPERACIÓN INVENTARIOS
@@ -430,7 +438,6 @@ def sidebar_inventarios():
         # OPERACIÓN LOGÍSTICA
         # =================================================
 
-        
         if ver_operacion_logistica:
 
             with st.expander("🚚 Operación Logística"):
