@@ -363,51 +363,61 @@ def consulta_clientes_logistica_app():
             st.markdown(f"""
             <div class='card'>
 
-                <div class='card-title'>
+                <div style='font-size:22px;
+                            font-weight:bold;
+                            margin-bottom:15px;'>
+
                 🧾 PERFIL CLIENTE
+
                 </div>
 
-                <span class='badge badge-green'>
-                {cliente['estatus']}
-                </span>
+                <div style='margin-bottom:15px;'>
 
-                <span class='badge badge-red'>
-                Cliente crítico
-                </span>
+                    <span class='badge badge-green'>
+                    {cliente['estatus']}
+                    </span>
 
-                <span class='badge badge-blue'>
-                GPS obligatorio
-                </span>
+                    <span class='badge badge-red'>
+                    Cliente crítico
+                    </span>
 
-                <hr>
+                    <span class='badge badge-blue'>
+                    GPS obligatorio
+                    </span>
+
+                </div>
+
+                <div style='line-height:2;'>
 
                 <b>Código:</b>
                 {cliente['codigo_cliente']}
 
-                <br><br>
+                <br>
 
                 <b>Cliente:</b>
                 {cliente['nombre_cliente']}
 
-                <br><br>
+                <br>
 
                 <b>Razón social:</b>
                 {cliente['razon_social']}
 
-                <br><br>
+                <br>
 
                 <b>RFC:</b>
                 {cliente['rfc']}
 
-                <br><br>
+                <br>
 
                 <b>Ciudad:</b>
                 {cliente['ciudad']}
 
-                <br><br>
+                <br>
 
                 <b>Estado:</b>
                 {cliente['estado']}
+
+                </div>
 
             </div>
             """, unsafe_allow_html=True)
@@ -421,34 +431,42 @@ def consulta_clientes_logistica_app():
             st.markdown(f"""
             <div class='card'>
 
-                <div class='card-title'>
+                <div style='font-size:22px;
+                            font-weight:bold;
+                            margin-bottom:15px;'>
+
                 🚚 OPERACIÓN LOGÍSTICA
+
                 </div>
+
+                <div style='line-height:2;'>
 
                 <b>Ruta:</b>
                 {cliente['ruta']}
 
-                <br><br>
+                <br>
 
                 <b>Horario recepción:</b>
                 {cliente['hora_inicio_recepcion']}
                 -
                 {cliente['hora_fin_recepcion']}
 
-                <br><br>
+                <br>
 
                 <b>Días entrega:</b>
                 {cliente['dias_entrega_permitidos']}
 
-                <br><br>
+                <br>
 
                 <b>Tiempo descarga:</b>
                 {cliente['tiempo_descarga_min']}
 
-                <br><br>
+                <br>
 
                 <b>Nivel servicio:</b>
                 {cliente['nivel_servicio']}
+
+                </div>
 
             </div>
             """, unsafe_allow_html=True)
@@ -462,32 +480,40 @@ def consulta_clientes_logistica_app():
             st.markdown(f"""
             <div class='card'>
 
-                <div class='card-title'>
+                <div style='font-size:22px;
+                            font-weight:bold;
+                            margin-bottom:15px;'>
+
                 ⚠️ RESTRICCIONES
+
                 </div>
+
+                <div style='line-height:2;'>
 
                 <b>Requiere cita:</b>
                 {cliente['requiere_cita']}
 
-                <br><br>
+                <br>
 
                 <b>GPS:</b>
                 {cliente['gps_obligatorio']}
 
-                <br><br>
+                <br>
 
                 <b>Unidad:</b>
                 {cliente['tipo_unidad_permitida']}
 
-                <br><br>
+                <br>
 
                 <b>Entrega parcial:</b>
                 {cliente['permite_entrega_parcial']}
 
-                <br><br>
+                <br>
 
                 <b>Tarima:</b>
                 {cliente['tipo_tarima']}
+
+                </div>
 
             </div>
             """, unsafe_allow_html=True)
@@ -543,27 +569,35 @@ def consulta_clientes_logistica_app():
             st.markdown(f"""
             <div class='card'>
 
-                <div class='card-title'>
+                <div style='font-size:22px;
+                            font-weight:bold;
+                            margin-bottom:15px;'>
+
                 📞 CONTACTO
+
                 </div>
+
+                <div style='line-height:2;'>
 
                 <b>Contacto:</b>
                 {cliente['contacto_entrega']}
 
-                <br><br>
+                <br>
 
                 <b>Teléfono:</b>
                 {cliente['telefono_contacto']}
 
-                <br><br>
+                <br>
 
                 <b>Correo:</b>
                 {cliente['correo_contacto']}
 
-                <br><br>
+                <br>
 
                 <b>Dirección:</b>
                 {cliente['direccion_entrega']}
+
+                </div>
 
             </div>
             """, unsafe_allow_html=True)
