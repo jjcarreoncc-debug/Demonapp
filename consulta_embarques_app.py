@@ -107,10 +107,10 @@ def exportar_excel(df):
 
 
 # =====================================================
-# APP
+# ESTILOS
 # =====================================================
 
-def consulta_embarques_app():
+def aplicar_estilos():
 
     st.markdown(
         """
@@ -121,33 +121,34 @@ def consulta_embarques_app():
             padding-bottom: 1rem;
             padding-left: 2rem;
             padding-right: 2rem;
+            max-width: 100%;
         }
 
         .titulo-sigem{
-            font-size: 40px;
+            font-size: 38px;
             font-weight: 800;
-            color: #1f4e79;
+            color: #1F4E79;
             margin-bottom: 0px;
         }
 
         .subtitulo-sigem{
-            font-size: 16px;
+            font-size: 15px;
             color: #5b6575;
             margin-bottom: 24px;
         }
 
-        .bloque-filtros{
+        .filtros-titulo{
             font-size: 28px;
             font-weight: 800;
             color: #1F2937;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
 
         div[data-testid="metric-container"]{
-            background: linear-gradient(135deg,#ffffff,#f8fafc);
+            background: #F8FAFC;
             border: 1px solid #DBEAFE;
             padding: 18px;
-            border-radius: 18px;
+            border-radius: 16px;
             box-shadow: 0px 2px 8px rgba(0,0,0,0.04);
         }
 
@@ -177,7 +178,7 @@ def consulta_embarques_app():
         }
 
         .stDataFrame{
-            border-radius: 16px;
+            border-radius: 14px;
             overflow: hidden;
             border: 1px solid #E5E7EB;
         }
@@ -192,14 +193,19 @@ def consulta_embarques_app():
             color: #374151;
         }
 
-        button[kind="primary"]{
-            border-radius: 10px;
-        }
-
         </style>
         """,
         unsafe_allow_html=True
     )
+
+
+# =====================================================
+# APP
+# =====================================================
+
+def consulta_embarques_app():
+
+    aplicar_estilos()
 
     st.markdown(
         """
@@ -268,12 +274,20 @@ def consulta_embarques_app():
 
     st.divider()
 
-    col_filtros, col_contenido = st.columns([1, 5.4])
+    # =====================================================
+    # LAYOUT PRINCIPAL
+    # =====================================================
+
+    col_filtros, col_contenido = st.columns([1, 5.5])
+
+    # =====================================================
+    # FILTROS
+    # =====================================================
 
     with col_filtros:
 
         st.markdown(
-            '<div class="bloque-filtros">🔎 Filtros</div>',
+            '<div class="filtros-titulo">🔎 Filtros</div>',
             unsafe_allow_html=True
         )
 
@@ -346,6 +360,10 @@ def consulta_embarques_app():
             "Buscar"
         )
 
+    # =====================================================
+    # FILTROS DATAFRAME
+    # =====================================================
+
     df_filtrado = df.copy()
 
     if filtro_folio != "Todos":
@@ -398,6 +416,10 @@ def consulta_embarques_app():
             )
         ]
 
+    # =====================================================
+    # CONTENIDO
+    # =====================================================
+
     with col_contenido:
 
         total_embarques = len(df_filtrado)
@@ -439,6 +461,10 @@ def consulta_embarques_app():
 
         st.divider()
 
+        # =====================================================
+        # TABS
+        # =====================================================
+
         tab1, tab2 = st.tabs(
             [
                 "📊 Dashboard",
@@ -446,12 +472,16 @@ def consulta_embarques_app():
             ]
         )
 
+        # =====================================================
+        # TAB DASHBOARD
+        # =====================================================
+
         with tab1:
 
             st.dataframe(
                 df_filtrado,
                 use_container_width=True,
-                height=540,
+                height=520,
                 hide_index=True
             )
 
@@ -465,6 +495,10 @@ def consulta_embarques_app():
                 file_name="consulta_embarques.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
+
+        # =====================================================
+        # TAB DETALLE
+        # =====================================================
 
         with tab2:
 
@@ -490,7 +524,7 @@ def consulta_embarques_app():
                 st.dataframe(
                     df_detalle,
                     use_container_width=True,
-                    height=450,
+                    height=430,
                     hide_index=True
                 )
 
@@ -507,8 +541,14 @@ def consulta_embarques_app():
 
             else:
 
-                st.info("No hay embarques para mostrar detalle.")
+                st.info(
+                    "No hay embarques para mostrar detalle."
+                )
 
+
+# =====================================================
+# MAIN
+# =====================================================
 
 if __name__ == "__main__":
 
