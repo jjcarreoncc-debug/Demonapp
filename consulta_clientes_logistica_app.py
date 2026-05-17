@@ -7,8 +7,8 @@ from sigem_db import get_db_path
 
 st.set_page_config(
     page_title="SIGEM",
-    page_icon="🚚",
-    layout="wide"
+    layout="centered",
+    initial_sidebar_state="expanded"
 )
 
 
