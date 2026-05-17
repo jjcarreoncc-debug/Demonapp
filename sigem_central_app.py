@@ -258,6 +258,8 @@ ruta_central = st.session_state.get(
     ""
 )
 
+st.write("RUTA CENTRAL:", ruta_central)
+
 if ruta_central == "inventarios":
 
     inventarios_app()
