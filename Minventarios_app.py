@@ -186,7 +186,7 @@ def inventarios_app():
         hoja_carga_app()
 
     elif opcion_limpia == "consulta hoja de carga":
-    consulta_hoja_carga_app()
+        consulta_hoja_carga_app()
     
     # =========================
     # KARDEX
