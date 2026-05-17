@@ -128,6 +128,13 @@ def consulta_embarques_app():
             margin-bottom: 28px;
         }
 
+        .bloque-filtros {
+            font-size: 26px;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
         div[data-testid="metric-container"] {
             background-color: #f8fafc;
             border: 1px solid #dbeafe;
@@ -144,13 +151,6 @@ def consulta_embarques_app():
         div[data-testid="metric-container"] [data-testid="stMetricValue"] {
             font-size: 30px;
             color: #111827;
-        }
-
-        .bloque-filtros {
-            font-size: 26px;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 14px;
         }
         </style>
         """,
@@ -224,95 +224,83 @@ def consulta_embarques_app():
 
     st.divider()
 
-    # =====================================================
-    # FILTROS HORIZONTALES
-    # =====================================================
+    col_filtros, col_contenido = st.columns([1.1, 5])
 
-    st.markdown(
-        '<div class="bloque-filtros">🔎 Filtros</div>',
-        unsafe_allow_html=True
-    )
+    with col_filtros:
 
-    folios = ["Todos"] + sorted(
-        df["folio_embarque"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+        st.markdown(
+            '<div class="bloque-filtros">🔎 Filtros</div>',
+            unsafe_allow_html=True
+        )
 
-    clientes = ["Todos"] + sorted(
-        df["cliente"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+        folios = ["Todos"] + sorted(
+            df["folio_embarque"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-    pedidos = ["Todos"] + sorted(
-        df["pedido"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+        clientes = ["Todos"] + sorted(
+            df["cliente"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-    estatus_lista = ["Todos"] + sorted(
-        df["estatus"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+        pedidos = ["Todos"] + sorted(
+            df["pedido"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-    alertas = ["Todos"] + sorted(
-        df["alerta"]
-        .dropna()
-        .astype(str)
-        .unique()
-        .tolist()
-    )
+        estatus_lista = ["Todos"] + sorted(
+            df["estatus"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-    f1, f2, f3, f4, f5, f6 = st.columns(6)
+        alertas = ["Todos"] + sorted(
+            df["alerta"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-    with f1:
         filtro_folio = st.selectbox(
             "Folio embarque",
             folios
         )
 
-    with f2:
         filtro_cliente = st.selectbox(
             "Cliente",
             clientes
         )
 
-    with f3:
         filtro_pedido = st.selectbox(
             "Pedido",
             pedidos
         )
 
-    with f4:
         filtro_estatus = st.selectbox(
             "Estatus",
             estatus_lista
         )
 
-    with f5:
         filtro_alerta = st.selectbox(
             "Alerta",
             alertas
         )
 
-    with f6:
         buscar = st.text_input(
             "Buscar"
         )
-
-    # =====================================================
-    # APLICAR FILTROS
-    # =====================================================
 
     df_filtrado = df.copy()
 
@@ -366,122 +354,116 @@ def consulta_embarques_app():
             )
         ]
 
-    # =====================================================
-    # MÉTRICAS HORIZONTALES
-    # =====================================================
+    with col_contenido:
 
-    total_embarques = len(df_filtrado)
+        total_embarques = len(df_filtrado)
 
-    entregados = df_filtrado[
-        df_filtrado["estatus"]
-        .astype(str)
-        .str.lower()
-        .str.contains("entregado", na=False)
-    ].shape[0]
-
-    pendientes = total_embarques - entregados
-
-    total_pedidos = df_filtrado["pedido"].nunique()
-
-    total_clientes = df_filtrado["cliente"].nunique()
-
-    total_rutas = df_filtrado["folio_ruta"].nunique()
-
-    m1, m2, m3, m4, m5, m6 = st.columns(6)
-
-    with m1:
-        st.metric("Embarques", total_embarques)
-
-    with m2:
-        st.metric("Entregados", entregados)
-
-    with m3:
-        st.metric("Pendientes", pendientes)
-
-    with m4:
-        st.metric("Pedidos", total_pedidos)
-
-    with m5:
-        st.metric("Clientes", total_clientes)
-
-    with m6:
-        st.metric("Rutas", total_rutas)
-
-    st.divider()
-
-    # =====================================================
-    # TABS
-    # =====================================================
-
-    tab1, tab2 = st.tabs(
-        [
-            "📊 Dashboard",
-            "📄 Detalle"
-        ]
-    )
-
-    with tab1:
-
-        st.dataframe(
-            df_filtrado,
-            use_container_width=True,
-            height=500,
-            hide_index=True
-        )
-
-        archivo_excel = exportar_excel(
-            df_filtrado
-        )
-
-        st.download_button(
-            label="📥 Exportar consulta Excel",
-            data=archivo_excel,
-            file_name="consulta_embarques.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-    with tab2:
-
-        lista_embarques = (
-            df_filtrado["folio_embarque"]
-            .dropna()
+        entregados = df_filtrado[
+            df_filtrado["estatus"]
             .astype(str)
-            .unique()
-            .tolist()
+            .str.lower()
+            .str.contains("entregado", na=False)
+        ].shape[0]
+
+        pendientes = total_embarques - entregados
+
+        total_pedidos = df_filtrado["pedido"].nunique()
+
+        total_clientes = df_filtrado["cliente"].nunique()
+
+        total_rutas = df_filtrado["folio_ruta"].nunique()
+
+        k1, k2, k3, k4, k5, k6 = st.columns(6)
+
+        with k1:
+            st.metric("Embarques", total_embarques)
+
+        with k2:
+            st.metric("Entregados", entregados)
+
+        with k3:
+            st.metric("Pendientes", pendientes)
+
+        with k4:
+            st.metric("Pedidos", total_pedidos)
+
+        with k5:
+            st.metric("Clientes", total_clientes)
+
+        with k6:
+            st.metric("Rutas", total_rutas)
+
+        st.divider()
+
+        tab1, tab2 = st.tabs(
+            [
+                "📊 Dashboard",
+                "📄 Detalle"
+            ]
         )
 
-        if lista_embarques:
-
-            folio_detalle = st.selectbox(
-                "Selecciona embarque",
-                lista_embarques
-            )
-
-            df_detalle = obtener_detalle_embarque(
-                folio_detalle
-            )
+        with tab1:
 
             st.dataframe(
-                df_detalle,
+                df_filtrado,
                 use_container_width=True,
-                height=400,
+                height=500,
                 hide_index=True
             )
 
             archivo_excel = exportar_excel(
-                df_detalle
+                df_filtrado
             )
 
             st.download_button(
-                label="📥 Exportar detalle Excel",
+                label="📥 Exportar consulta Excel",
                 data=archivo_excel,
-                file_name=f"detalle_{folio_detalle}.xlsx",
+                file_name="consulta_embarques.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 
-        else:
+        with tab2:
 
-            st.info("No hay embarques para mostrar detalle.")
+            lista_embarques = (
+                df_filtrado["folio_embarque"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
+
+            if lista_embarques:
+
+                folio_detalle = st.selectbox(
+                    "Selecciona embarque",
+                    lista_embarques
+                )
+
+                df_detalle = obtener_detalle_embarque(
+                    folio_detalle
+                )
+
+                st.dataframe(
+                    df_detalle,
+                    use_container_width=True,
+                    height=400,
+                    hide_index=True
+                )
+
+                archivo_excel = exportar_excel(
+                    df_detalle
+                )
+
+                st.download_button(
+                    label="📥 Exportar detalle Excel",
+                    data=archivo_excel,
+                    file_name=f"detalle_{folio_detalle}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+            else:
+
+                st.info("No hay embarques para mostrar detalle.")
 
 
 if __name__ == "__main__":
