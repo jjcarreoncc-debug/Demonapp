@@ -185,7 +185,7 @@ def inventarios_app():
     elif opcion_limpia == "creación hoja de carga":
         hoja_carga_app()
 
-    elif ruta == "consulta_hoja_carga":
+    elif ruta == "Consulta hoja de carga":
         consulta_hoja_carga_app()
 
     
