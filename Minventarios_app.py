@@ -184,6 +184,8 @@ def inventarios_app():
     elif opcion_limpia == "creación hoja de carga":
         hoja_carga_app()
 
+    elif opcion_limpia == "simulación 3d hoja de carga":
+        hoja_carga_3d_app()
     
     # =========================
     # KARDEX
