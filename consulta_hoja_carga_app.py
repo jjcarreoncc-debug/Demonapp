@@ -272,6 +272,10 @@ def obtener_hojas_carga():
 # APP
 # =====================================================
 
+# =====================================================
+# APP
+# =====================================================
+
 def consulta_hoja_carga_app():
 
     aplicar_estilos()
@@ -296,17 +300,287 @@ def consulta_hoja_carga_app():
 
         return
 
-    st.success(
-        "✅ Módulo conectado correctamente."
+    # =====================================================
+    # FORMATEOS
+    # =====================================================
+
+    df["estatus_visual"] = df["estatus_hoja"].apply(
+        formatear_estatus
     )
 
-    st.dataframe(
-        df,
-        use_container_width=True,
-        height=500
+    df["tr_visual"] = df["codigo_transporte"].apply(
+        formatear_tr
     )
 
+    # =====================================================
+    # FILTROS
+    # =====================================================
 
+    col_filtros, col_contenido = st.columns(
+        [1.2, 5]
+    )
+
+    with col_filtros:
+
+        st.markdown(
+            '<div class="filtros-titulo">🔎 Filtros</div>',
+            unsafe_allow_html=True
+        )
+
+        clientes = sorted(
+            df["cliente"]
+            .fillna("")
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        cliente_sel = st.selectbox(
+            "Cliente",
+            ["Todos"] + clientes
+        )
+
+        estatuses = sorted(
+            df["estatus_hoja"]
+            .fillna("")
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        estatus_sel = st.multiselect(
+            "Estatus hoja",
+            estatuses,
+            default=estatuses
+        )
+
+        buscar = st.text_input(
+            "Buscar hoja/TR/material"
+        )
+
+    # =====================================================
+    # FILTRAR
+    # =====================================================
+
+    df_filtrado = df.copy()
+
+    if cliente_sel != "Todos":
+
+        df_filtrado = df_filtrado[
+            df_filtrado["cliente"] == cliente_sel
+        ]
+
+    if estatus_sel:
+
+        df_filtrado = df_filtrado[
+            df_filtrado["estatus_hoja"]
+            .isin(estatus_sel)
+        ]
+
+    if buscar.strip() != "":
+
+        buscar_txt = buscar.lower()
+
+        mascara = (
+
+            df_filtrado["folio_hoja_carga"]
+            .astype(str)
+            .str.lower()
+            .str.contains(buscar_txt, na=False)
+
+            |
+
+            df_filtrado["codigo_transporte"]
+            .astype(str)
+            .str.lower()
+            .str.contains(buscar_txt, na=False)
+
+            |
+
+            df_filtrado["pedido"]
+            .astype(str)
+            .str.lower()
+            .str.contains(buscar_txt, na=False)
+        )
+
+        df_filtrado = df_filtrado[
+            mascara
+        ]
+
+    # =====================================================
+    # KPIS
+    # =====================================================
+
+    with col_contenido:
+
+        total_hojas = (
+            df_filtrado["folio_hoja_carga"]
+            .nunique()
+        )
+
+        total_pedidos = (
+            df_filtrado["pedido"]
+            .nunique()
+        )
+
+        total_materiales = int(
+            pd.to_numeric(
+                df_filtrado["total_materiales"],
+                errors="coerce"
+            ).fillna(0).sum()
+        )
+
+        total_piezas = int(
+            pd.to_numeric(
+                df_filtrado["total_piezas"],
+                errors="coerce"
+            ).fillna(0).sum()
+        )
+
+        total_tarimas = int(
+            pd.to_numeric(
+                df_filtrado["total_tarimas"],
+                errors="coerce"
+            ).fillna(0).sum()
+        )
+
+        total_peso = round(
+            pd.to_numeric(
+                df_filtrado["peso_total"],
+                errors="coerce"
+            ).fillna(0).sum(),
+            2
+        )
+
+        k1, k2, k3, k4, k5, k6 = st.columns(6)
+
+        with k1:
+            st.metric(
+                "Hojas",
+                total_hojas
+            )
+
+        with k2:
+            st.metric(
+                "Pedidos",
+                total_pedidos
+            )
+
+        with k3:
+            st.metric(
+                "Materiales",
+                total_materiales
+            )
+
+        with k4:
+            st.metric(
+                "Piezas",
+                total_piezas
+            )
+
+        with k5:
+            st.metric(
+                "Tarimas",
+                total_tarimas
+            )
+
+        with k6:
+            st.metric(
+                "Peso",
+                total_peso
+            )
+
+        st.divider()
+
+        # =====================================================
+        # GRID
+        # =====================================================
+
+        st.subheader(
+            "📋 Hojas de carga"
+        )
+
+        columnas_grid = [
+
+            "folio_hoja_carga",
+            "estatus_visual",
+            "tr_visual",
+            "cliente",
+            "destino",
+            "pedido",
+            "total_materiales",
+            "total_piezas",
+            "total_tarimas",
+            "peso_total",
+            "volumen_total",
+            "fecha_creacion"
+        ]
+
+        df_grid = df_filtrado[
+            columnas_grid
+        ].copy()
+
+        df_grid.insert(
+            0,
+            "Seleccionar",
+            False
+        )
+
+        df_editado = st.data_editor(
+
+            df_grid,
+
+            use_container_width=True,
+
+            hide_index=True,
+
+            height=450,
+
+            column_config={
+
+                "Seleccionar": st.column_config.CheckboxColumn(
+                    "Seleccionar",
+                    default=False
+                )
+
+            },
+
+            disabled=[
+                col for col in df_grid.columns
+                if col != "Seleccionar"
+            ]
+        )
+
+        # =====================================================
+        # DETALLE
+        # =====================================================
+
+        seleccionados = df_editado[
+            df_editado["Seleccionar"] == True
+        ]
+
+        if not seleccionados.empty:
+
+            st.divider()
+
+            st.subheader(
+                "📦 Hojas seleccionadas"
+            )
+
+            hojas_sel = seleccionados[
+                "folio_hoja_carga"
+            ].tolist()
+
+            df_detalle = df_filtrado[
+                df_filtrado["folio_hoja_carga"]
+                .isin(hojas_sel)
+            ]
+
+            st.dataframe(
+                df_detalle,
+                use_container_width=True,
+                height=300
+            )
 # =====================================================
 # EJECUCION
 # =====================================================
