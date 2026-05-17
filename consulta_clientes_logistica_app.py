@@ -7,13 +7,59 @@ from sigem_db import get_db_path
 
 st.set_page_config(
     page_title="SIGEM",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
 
-def html_card(html, height=220):
+st.markdown("""
+<style>
+    .block-container {
+        max-width: 1450px;
+        padding-top: 1rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        padding-bottom: 2rem;
+    }
 
+    div[data-testid="stHorizontalBlock"] {
+        gap: 1.2rem;
+    }
+
+    div[data-testid="stVerticalBlock"] {
+        gap: 0.8rem;
+    }
+
+    .filtros-box {
+        border: 1px solid #d9dee8;
+        border-radius: 10px;
+        padding: 16px 18px 18px 18px;
+        background: #ffffff;
+        margin-bottom: 18px;
+    }
+
+    .mapa-box {
+        border: 1px solid #d9dee8;
+        border-radius: 12px;
+        padding: 16px;
+        background: #ffffff;
+        min-height: 360px;
+    }
+
+    .stTextInput input {
+        background-color: #f1f4f8;
+        border-radius: 9px;
+    }
+
+    div[data-baseweb="select"] > div {
+        background-color: #f1f4f8;
+        border-radius: 9px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+def html_card(html, height=220):
     components.html(
         html,
         height=height,
@@ -22,7 +68,6 @@ def html_card(html, height=220):
 
 
 def get_conn_logistica():
-
     conn = sqlite3.connect(
         get_db_path("logistica")
     )
@@ -30,6 +75,10 @@ def get_conn_logistica():
     conn.row_factory = sqlite3.Row
 
     return conn
+
+
+def es_verdadero(valor):
+    return str(valor).strip().lower() in ["si", "sí", "1", "true", "verdadero"]
 
 
 def consulta_clientes_logistica_app():
@@ -43,47 +92,54 @@ def consulta_clientes_logistica_app():
             <div style="
                 font-family: Arial;
                 background:#f3f6fb;
-                padding:10px;
+                padding:14px 18px;
+                width:100%;
+                box-sizing:border-box;
             ">
                 <div style="
                     font-size:34px;
                     font-weight:700;
                     color:#111827;
+                    line-height:1.1;
                 ">
                     🚚 Consulta Clientes - Logística
                 </div>
                 <div style="
                     color:#6b7280;
                     font-size:14px;
+                    margin-top:4px;
                 ">
                     Dashboard ejecutivo clientes logísticos
                 </div>
             </div>
             """,
-            height=90
+            height=95
         )
 
-        with st.container(border=True):
+        st.markdown('<div class="filtros-box">', unsafe_allow_html=True)
 
-            f1, f2, f3, f4, f5 = st.columns(5)
+        f1, f2, f3, f4, f5 = st.columns(5)
 
-            with f1:
-                filtro_cliente = st.text_input("🔎 Cliente")
+        with f1:
+            filtro_cliente = st.text_input("🔎 Cliente", key="log_filtro_cliente")
 
-            with f2:
-                filtro_ciudad = st.text_input("🏙️ Ciudad")
+        with f2:
+            filtro_ciudad = st.text_input("🏙️ Ciudad", key="log_filtro_ciudad")
 
-            with f3:
-                filtro_estado = st.text_input("📍 Estado")
+        with f3:
+            filtro_estado = st.text_input("📍 Estado", key="log_filtro_estado")
 
-            with f4:
-                filtro_ruta = st.text_input("🚚 Ruta")
+        with f4:
+            filtro_ruta = st.text_input("🚚 Ruta", key="log_filtro_ruta")
 
-            with f5:
-                filtro_estatus = st.selectbox(
-                    "📊 Estatus",
-                    ["Todos", "Activo", "Inactivo"]
-                )
+        with f5:
+            filtro_estatus = st.selectbox(
+                "📊 Estatus",
+                ["Todos", "Activo", "Inactivo"],
+                key="log_filtro_estatus"
+            )
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
         query = """
         SELECT *
@@ -135,27 +191,21 @@ def consulta_clientes_logistica_app():
         total_criticos = len(
             df[
                 df["cliente_critico"]
-                .astype(str)
-                .str.lower()
-                .isin(["si", "sí", "1", "true"])
+                .apply(es_verdadero)
             ]
         )
 
         total_cita = len(
             df[
                 df["requiere_cita"]
-                .astype(str)
-                .str.lower()
-                .isin(["si", "sí", "1", "true"])
+                .apply(es_verdadero)
             ]
         )
 
         total_gps = len(
             df[
                 df["gps_obligatorio"]
-                .astype(str)
-                .str.lower()
-                .isin(["si", "sí", "1", "true"])
+                .apply(es_verdadero)
             ]
         )
 
@@ -171,6 +221,9 @@ def consulta_clientes_logistica_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #2563eb;
+                    width:100%;
+                    height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         👥 Clientes
@@ -180,7 +233,7 @@ def consulta_clientes_logistica_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         with k2:
@@ -193,6 +246,9 @@ def consulta_clientes_logistica_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #dc2626;
+                    width:100%;
+                    height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         🚨 Críticos
@@ -202,7 +258,7 @@ def consulta_clientes_logistica_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         with k3:
@@ -215,6 +271,9 @@ def consulta_clientes_logistica_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #f59e0b;
+                    width:100%;
+                    height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         📅 Requiere cita
@@ -224,7 +283,7 @@ def consulta_clientes_logistica_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         with k4:
@@ -237,6 +296,9 @@ def consulta_clientes_logistica_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #16a34a;
+                    width:100%;
+                    height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         📡 GPS obligatorio
@@ -246,19 +308,20 @@ def consulta_clientes_logistica_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         cliente_select = st.selectbox(
             "🧾 Cliente ejecutivo",
-            df["nombre_cliente"].dropna().unique()
+            df["nombre_cliente"].dropna().unique(),
+            key="log_cliente_select"
         )
 
         cliente = df[
             df["nombre_cliente"] == cliente_select
         ].iloc[0]
 
-        c1, c2, c3 = st.columns([2, 2, 1])
+        c1, c2, c3 = st.columns([2, 2, 1.35])
 
         with c1:
             html_card(
@@ -269,6 +332,9 @@ def consulta_clientes_logistica_app():
                     padding:22px;
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:300px;
+                    box-sizing:border-box;
+                    overflow:hidden;
                 ">
                     <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
                         🧾 PERFIL CLIENTE
@@ -312,7 +378,7 @@ def consulta_clientes_logistica_app():
                         GPS obligatorio
                     </span>
 
-                    <div style="margin-top:18px;line-height:1.9;font-size:15px;">
+                    <div style="margin-top:18px;line-height:1.85;font-size:15px;">
                         <b>Código:</b> {cliente['codigo_cliente']}<br>
                         <b>Cliente:</b> {cliente['nombre_cliente']}<br>
                         <b>Razón social:</b> {cliente['razon_social']}<br>
@@ -334,6 +400,9 @@ def consulta_clientes_logistica_app():
                     padding:22px;
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:300px;
+                    box-sizing:border-box;
+                    overflow:hidden;
                 ">
                     <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
                         🚚 OPERACIÓN LOGÍSTICA
@@ -361,6 +430,9 @@ def consulta_clientes_logistica_app():
                     padding:22px;
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:300px;
+                    box-sizing:border-box;
+                    overflow:hidden;
                 ">
                     <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
                         ⚠️ RESTRICCIONES
@@ -381,33 +453,36 @@ def consulta_clientes_logistica_app():
         mapa_col1, mapa_col2 = st.columns([2, 1])
 
         with mapa_col1:
-            with st.container(border=True):
-                st.subheader("🗺️ Ubicación geográfica")
+            st.markdown('<div class="mapa-box">', unsafe_allow_html=True)
 
-                df_mapa = pd.DataFrame({
-                    "lat": [
-                        pd.to_numeric(
-                            cliente["latitud"],
-                            errors="coerce"
-                        )
-                    ],
-                    "lon": [
-                        pd.to_numeric(
-                            cliente["longitud"],
-                            errors="coerce"
-                        )
-                    ]
-                }).dropna()
+            st.subheader("🗺️ Ubicación geográfica")
 
-                if not df_mapa.empty:
-                    st.map(
-                        df_mapa,
-                        latitude="lat",
-                        longitude="lon",
-                        size=250
+            df_mapa = pd.DataFrame({
+                "lat": [
+                    pd.to_numeric(
+                        cliente["latitud"],
+                        errors="coerce"
                     )
-                else:
-                    st.info("Cliente sin coordenadas.")
+                ],
+                "lon": [
+                    pd.to_numeric(
+                        cliente["longitud"],
+                        errors="coerce"
+                    )
+                ]
+            }).dropna()
+
+            if not df_mapa.empty:
+                st.map(
+                    df_mapa,
+                    latitude="lat",
+                    longitude="lon",
+                    size=250
+                )
+            else:
+                st.info("Cliente sin coordenadas.")
+
+            st.markdown('</div>', unsafe_allow_html=True)
 
         with mapa_col2:
             html_card(
@@ -418,6 +493,9 @@ def consulta_clientes_logistica_app():
                     padding:22px;
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:360px;
+                    box-sizing:border-box;
+                    overflow:hidden;
                 ">
                     <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
                         📞 CONTACTO
@@ -431,7 +509,7 @@ def consulta_clientes_logistica_app():
                     </div>
                 </div>
                 """,
-                height=360
+                height=380
             )
 
         tab1, tab2, tab3 = st.tabs([
