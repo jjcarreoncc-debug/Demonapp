@@ -94,7 +94,7 @@ def obtener_embarques():
 
 
 # =====================================================
-# PREPARAR TRANSPORTE DISPLAY
+# PREPARAR TRANSPORTES
 # =====================================================
 
 def preparar_transportes(df):
@@ -111,31 +111,43 @@ def preparar_transportes(df):
         "destino",
         "estatus"
     ]:
+
         if col not in df.columns:
             df[col] = ""
 
-        df[col] = df[col].fillna("").astype(str)
+        df[col] = (
+            df[col]
+            .fillna("")
+            .astype(str)
+        )
 
     df["transporte_display"] = (
-        df["transportista"].replace("", "SIN TRANSPORTISTA")
-        + " - "
-        + df["vehiculo"].replace("", "SIN VEHÍCULO")
-        + " - "
-        + df["placas"].replace("", "SIN PLACAS")
+
+        df["transportista"]
+        .replace("", "SIN TRANSPORTISTA")
+
+        + " - " +
+
+        df["vehiculo"]
+        .replace("", "SIN VEHÍCULO")
+
+        + " - " +
+
+        df["placas"]
+        .replace("", "SIN PLACAS")
     )
 
     return df
 
 
 # =====================================================
-# RESUMEN POR TRANSPORTE
+# RESUMEN TRANSPORTES
 # =====================================================
 
 def generar_df_transportes(df):
 
-    df = preparar_transportes(df)
-
     resumen = (
+
         df.groupby(
             [
                 "transporte_display",
@@ -148,12 +160,14 @@ def generar_df_transportes(df):
             ],
             dropna=False
         )
+
         .agg(
             embarques=("folio_embarque", "nunique"),
             hojas_carga=("folio_hoja_carga", "nunique"),
             clientes=("cliente", "nunique"),
             destinos=("destino", "nunique")
         )
+
         .reset_index()
     )
 
@@ -176,6 +190,7 @@ def generar_excel_dashboard(
     wb = Workbook()
 
     ws = wb.active
+
     ws.title = "Dashboard transportes"
 
     azul = PatternFill(
@@ -197,7 +212,11 @@ def generar_excel_dashboard(
     )
 
     ws["A1"] = "SIGEM - Dashboard transportes activos"
-    ws["A1"].font = Font(bold=True, size=16)
+
+    ws["A1"].font = Font(
+        bold=True,
+        size=16
+    )
 
     ws["A3"] = "Transportes activos"
     ws["B3"] = total_transportes
@@ -205,54 +224,70 @@ def generar_excel_dashboard(
     ws["A4"] = "Embarques activos"
     ws["B4"] = total_embarques
 
-    ws["A5"] = "Pendientes carga"
+    ws["A5"] = "Pendiente carga"
     ws["B5"] = pendientes
 
     ws["A6"] = "En tránsito"
     ws["B6"] = transito
 
-    for celda in ["A3", "A4", "A5", "A6"]:
+    for celda in [
+        "A3",
+        "A4",
+        "A5",
+        "A6"
+    ]:
+
         ws[celda].fill = azul
         ws[celda].font = font_blanca
         ws[celda].border = borde
 
-    ws2 = wb.create_sheet(title="Transportes")
+    ws2 = wb.create_sheet(
+        title="Transportes"
+    )
 
     for r in dataframe_to_rows(
         df_transportes,
         index=False,
         header=True
     ):
+
         ws2.append(r)
 
     for cell in ws2[1]:
+
         cell.fill = azul
         cell.font = font_blanca
         cell.border = borde
 
-    ws3 = wb.create_sheet(title="Detalle embarques")
+    ws3 = wb.create_sheet(
+        title="Detalle embarques"
+    )
 
     for r in dataframe_to_rows(
         df_detalle,
         index=False,
         header=True
     ):
+
         ws3.append(r)
 
     for cell in ws3[1]:
+
         cell.fill = azul
         cell.font = font_blanca
         cell.border = borde
 
     buffer = BytesIO()
+
     wb.save(buffer)
+
     buffer.seek(0)
 
     return buffer
 
 
 # =====================================================
-# MATRIZ TRANSPORTES
+# MATRIZ ESTATUS
 # =====================================================
 
 def pintar_matriz_estatus(df_transportes):
@@ -267,6 +302,7 @@ def pintar_matriz_estatus(df_transportes):
     ]
 
     mapa_colores = {
+
         "Pendiente carga": "#6B7280",
         "En almacén": "#7C3AED",
         "En patio": "#F97316",
@@ -283,13 +319,17 @@ def pintar_matriz_estatus(df_transportes):
     )
 
     chart = (
+
         alt.Chart(df_grafica)
+
         .mark_rect(
             cornerRadius=5,
             width=90,
             height=28
         )
+
         .encode(
+
             x=alt.X(
                 "transporte_display:N",
                 title="Transporte",
@@ -301,6 +341,7 @@ def pintar_matriz_estatus(df_transportes):
                     tickSize=0
                 )
             ),
+
             y=alt.Y(
                 "estatus:N",
                 sort=orden_estatus,
@@ -310,30 +351,75 @@ def pintar_matriz_estatus(df_transportes):
                     tickSize=0
                 )
             ),
+
             color=alt.Color(
                 "estatus:N",
                 scale=alt.Scale(
-                    domain=list(mapa_colores.keys()),
-                    range=list(mapa_colores.values())
+                    domain=list(
+                        mapa_colores.keys()
+                    ),
+                    range=list(
+                        mapa_colores.values()
+                    )
                 ),
                 legend=None
             ),
+
             tooltip=[
-                alt.Tooltip("transporte_display:N", title="Transporte"),
-                alt.Tooltip("transportista:N", title="Transportista"),
-                alt.Tooltip("vehiculo:N", title="Vehículo"),
-                alt.Tooltip("placas:N", title="Placas"),
-                alt.Tooltip("operador:N", title="Operador"),
-                alt.Tooltip("ruta:N", title="Ruta"),
-                alt.Tooltip("estatus:N", title="Estatus"),
-                alt.Tooltip("embarques:Q", title="Embarques"),
-                alt.Tooltip("hojas_carga:Q", title="Hojas carga")
+
+                alt.Tooltip(
+                    "transporte_display:N",
+                    title="Transporte"
+                ),
+
+                alt.Tooltip(
+                    "transportista:N",
+                    title="Transportista"
+                ),
+
+                alt.Tooltip(
+                    "vehiculo:N",
+                    title="Vehículo"
+                ),
+
+                alt.Tooltip(
+                    "placas:N",
+                    title="Placas"
+                ),
+
+                alt.Tooltip(
+                    "operador:N",
+                    title="Operador"
+                ),
+
+                alt.Tooltip(
+                    "ruta:N",
+                    title="Ruta"
+                ),
+
+                alt.Tooltip(
+                    "estatus:N",
+                    title="Estatus"
+                ),
+
+                alt.Tooltip(
+                    "embarques:Q",
+                    title="Embarques"
+                ),
+
+                alt.Tooltip(
+                    "hojas_carga:Q",
+                    title="Hojas carga"
+                )
             ]
+
         )
+
         .properties(
             width=ancho_grafica,
             height=480
         )
+
         .configure_axis(
             grid=True,
             gridColor="#D1D5DB",
@@ -342,9 +428,11 @@ def pintar_matriz_estatus(df_transportes):
             labelColor="#374151",
             titleColor="#111827"
         )
+
         .configure_view(
             stroke="#D1D5DB"
         )
+
     )
 
     st.altair_chart(
@@ -359,173 +447,55 @@ def pintar_matriz_estatus(df_transportes):
 
 def dashboard_embarques_app():
 
-    st.title("🚛 Dashboard transportes activos")
+    st.title(
+        "🚛 Dashboard transportes activos"
+    )
 
     st.caption(
-        "Trazabilidad de transportes con embarques pendientes de carga o en proceso."
+        "Trazabilidad operativa de transportes y embarques activos."
     )
 
     try:
+
         df = obtener_embarques()
 
     except Exception as e:
-        st.error("❌ Error consultando embarques activos.")
+
+        st.error(
+            "❌ Error consultando embarques activos."
+        )
+
         st.exception(e)
+
         return
 
     if df.empty:
+
         st.warning(
-            "No existen transportes con embarques pendientes o en proceso."
+            "No existen transportes con embarques activos."
         )
+
         return
 
     df = preparar_transportes(df)
 
-    # =====================================================
-    # FILTROS VISIBLES
-    # =====================================================
-
-    st.subheader("🔎 Filtros")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        filtro_transportista = st.selectbox(
-            "Transportista",
-            ["Todos"] + sorted(
-                df["transportista"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-        )
-
-    with col2:
-        filtro_vehiculo = st.selectbox(
-            "Vehículo",
-            ["Todos"] + sorted(
-                df["vehiculo"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-        )
-
-    with col3:
-        filtro_placas = st.selectbox(
-            "Placas",
-            ["Todos"] + sorted(
-                df["placas"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-        )
-
-    col4, col5, col6 = st.columns(3)
-
-    with col4:
-        filtro_ruta = st.selectbox(
-            "Ruta",
-            ["Todos"] + sorted(
-                df["ruta"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-        )
-
-    with col5:
-        filtro_estatus = st.selectbox(
-            "Estatus",
-            ["Todos"] + sorted(
-                df["estatus"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-        )
-
-    with col6:
-        filtro_cliente = st.selectbox(
-            "Cliente",
-            ["Todos"] + sorted(
-                df["cliente"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
-        )
-
-    buscar = st.text_input(
-        "Buscar folio, hoja de carga, pedido, destino u operador"
-    )
-
     df_filtrado = df.copy()
 
-    if filtro_transportista != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["transportista"].astype(str)
-            == filtro_transportista
-        ]
+    df_transportes = generar_df_transportes(
+        df_filtrado
+    )
 
-    if filtro_vehiculo != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["vehiculo"].astype(str)
-            == filtro_vehiculo
-        ]
+    total_transportes = (
+        df_filtrado[
+            "transporte_display"
+        ].nunique()
+    )
 
-    if filtro_placas != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["placas"].astype(str)
-            == filtro_placas
-        ]
-
-    if filtro_ruta != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["ruta"].astype(str)
-            == filtro_ruta
-        ]
-
-    if filtro_estatus != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["estatus"].astype(str)
-            == filtro_estatus
-        ]
-
-    if filtro_cliente != "Todos":
-        df_filtrado = df_filtrado[
-            df_filtrado["cliente"].astype(str)
-            == filtro_cliente
-        ]
-
-    if buscar.strip():
-        texto = buscar.strip().lower()
-
-        df_filtrado = df_filtrado[
-            df_filtrado["folio_embarque"].astype(str).str.lower().str.contains(texto, na=False)
-            | df_filtrado["folio_hoja_carga"].astype(str).str.lower().str.contains(texto, na=False)
-            | df_filtrado["pedido"].astype(str).str.lower().str.contains(texto, na=False)
-            | df_filtrado["destino"].astype(str).str.lower().str.contains(texto, na=False)
-            | df_filtrado["operador"].astype(str).str.lower().str.contains(texto, na=False)
-        ]
-
-    if df_filtrado.empty:
-        st.warning(
-            "No hay información con los filtros seleccionados."
-        )
-        return
-
-    df_transportes = generar_df_transportes(df_filtrado)
-
-    total_transportes = df_filtrado["transporte_display"].nunique()
-    total_embarques = df_filtrado["folio_embarque"].nunique()
+    total_embarques = (
+        df_filtrado[
+            "folio_embarque"
+        ].nunique()
+    )
 
     pendientes = df_filtrado[
         df_filtrado["estatus"]
@@ -573,13 +543,19 @@ def dashboard_embarques_app():
 
     st.divider()
 
-    st.subheader("🚦 Trazabilidad por transporte")
+    st.subheader(
+        "🚦 Trazabilidad por transporte"
+    )
 
-    pintar_matriz_estatus(df_transportes)
+    pintar_matriz_estatus(
+        df_transportes
+    )
 
     st.divider()
 
-    st.subheader("📋 Transportes activos")
+    st.subheader(
+        "🚛 Transportes activos"
+    )
 
     st.dataframe(
         df_transportes,
@@ -590,28 +566,46 @@ def dashboard_embarques_app():
 
     st.divider()
 
-    st.subheader("📦 Detalle de embarques asociados")
+    st.subheader(
+        "📦 Detalle embarques asociados"
+    )
 
     columnas_detalle = [
+
         "folio_embarque",
+
         "folio_hoja_carga",
+
         "pedido",
+
         "fecha",
+
         "cliente",
+
         "destino",
+
         "transportista",
+
         "vehiculo",
+
         "placas",
+
         "operador",
+
         "ruta",
+
         "estatus",
+
         "tipo_incidencia",
+
         "prioridad_incidencia",
+
         "estatus_incidencia"
     ]
 
     columnas_detalle = [
-        col for col in columnas_detalle
+        col
+        for col in columnas_detalle
         if col in df_filtrado.columns
     ]
 
