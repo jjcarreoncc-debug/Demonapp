@@ -12,6 +12,13 @@ from alta_incidencia_app import alta_incidencia_app
 from dashboard_incidencias_app import dashboard_incidencias_app
 
 
+try:
+    from consulta_clientes_logistica_app import consulta_clientes_logistica_app
+except Exception:
+    def consulta_clientes_logistica_app():
+        st.subheader("📋 Consulta clientes")
+        st.info("Módulo en construcción.")
+
 
 try:
     from baja_incidencia_app import baja_incidencia_app
@@ -54,17 +61,9 @@ except Exception:
 
 
 try:
-
-    from baja_embarque_app import (
-        baja_embarque_app
-    )
-
+    from baja_embarque_app import baja_embarque_app
 except Exception as e:
-
-    st.error(
-        "Error cargando baja_embarque_app"
-    )
-
+    st.error("Error cargando baja_embarque_app")
     st.exception(e)
 
 
@@ -89,24 +88,21 @@ def inicio_logistica_app():
         """,
         unsafe_allow_html=True
     )
-        
 
     st.image(
         "logologistica.jpg",
         use_container_width=True
     )
 
-    
+
 def logistica_app():
 
     if "opcion_logistica" not in st.session_state:
-
         st.session_state.opcion_logistica = "🏠 Inicio"
 
     menu_logistica, submenu_logistica, opcion_logistica = sidebar_logistica()
 
     if opcion_logistica is not None:
-
         st.session_state.opcion_logistica = opcion_logistica
 
     opcion_logistica = st.session_state.opcion_logistica
@@ -114,9 +110,7 @@ def logistica_app():
     opcion_limpia = limpiar_opcion(
         opcion_logistica
     )
-    ##############################################3
-           
-    #################################333
+
     if opcion_limpia == limpiar_opcion("🏠 Inicio"):
 
         inicio_logistica_app()
@@ -149,6 +143,10 @@ def logistica_app():
 
         st.subheader("✏️ Editar embarque")
         st.info("Módulo en construcción.")
+
+    elif opcion_limpia == limpiar_opcion("📋 Consulta clientes"):
+
+        consulta_clientes_logistica_app()
 
     elif opcion_limpia == limpiar_opcion("➕ Alta incidencia"):
 
