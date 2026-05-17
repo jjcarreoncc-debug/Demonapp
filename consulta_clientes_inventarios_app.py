@@ -5,7 +5,7 @@ import sqlite3
 from sigem_db import get_db_path
 
 
-t.set_page_config(
+st.set_page_config(
     page_title="SIGEM",
     layout="wide",
     initial_sidebar_state="expanded"
