@@ -157,7 +157,7 @@ with st.sidebar:
     )
 
     conn.close()
-
+    
     # =================================================
     # DICCIONARIO MODULOS
     # =================================================
@@ -265,9 +265,6 @@ if ruta_central == "inventarios":
 elif ruta_central == "datos_maestros":
 
     inventarios_app()
-elif ruta_central == "datos_maestros":
-
-    inventarios_app()
 
 elif ruta_central == "operacion_inventario":
 
@@ -284,22 +281,6 @@ elif ruta_central == "consulta_analiticos":
 elif ruta_central == "inventario_fisico":
 
     inventarios_app()
-
-
-
-elif ruta_central == "logistica":
-
-    logistica_app()
-
-elif ruta_central == "analitico":
-
-    analitico_app()
-
-elif ruta_central == "mantenimiento":
-
-    mantenimiento_app()
-
-else:
 
 elif ruta_central == "logistica":
 
@@ -318,3 +299,6 @@ else:
     st.info(
         "Selecciona un módulo del menú lateral para comenzar."
     )
+# =====================================================
+# ROUTER CENTRAL
+# =====================================================
