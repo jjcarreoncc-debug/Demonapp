@@ -102,6 +102,7 @@ def preparar_transportes(df):
     df = df.copy()
 
     for col in [
+        "codigo_transporte",
         "transportista",
         "vehiculo",
         "placas",
@@ -123,15 +124,20 @@ def preparar_transportes(df):
 
     df["transporte_display"] = (
 
+        df["codigo_transporte"]
+        .replace("", "SIN TR")
+
+        + " | " +
+
         df["transportista"]
         .replace("", "SIN TRANSPORTISTA")
 
-        + " - " +
+        + " | " +
 
         df["vehiculo"]
         .replace("", "SIN VEHÍCULO")
 
-        + " - " +
+        + " | " +
 
         df["placas"]
         .replace("", "SIN PLACAS")
@@ -150,6 +156,7 @@ def generar_df_transportes(df):
 
         df.groupby(
             [
+                "codigo_transporte",
                 "transporte_display",
                 "transportista",
                 "vehiculo",
@@ -368,6 +375,11 @@ def pintar_matriz_estatus(df_transportes):
             tooltip=[
 
                 alt.Tooltip(
+                    "codigo_transporte:N",
+                    title="TR"
+                ),
+
+                alt.Tooltip(
                     "transporte_display:N",
                     title="Transporte"
                 ),
@@ -487,7 +499,7 @@ def dashboard_embarques_app():
 
     total_transportes = (
         df_filtrado[
-            "transporte_display"
+            "codigo_transporte"
         ].nunique()
     )
 
@@ -571,6 +583,8 @@ def dashboard_embarques_app():
     )
 
     columnas_detalle = [
+
+        "codigo_transporte",
 
         "folio_embarque",
 
