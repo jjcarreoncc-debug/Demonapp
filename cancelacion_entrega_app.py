@@ -17,6 +17,22 @@ def get_connection_logistica():
 def get_connection_inventarios():
     return sqlite3.connect(get_db_path("inventarios"))
 
+# =====================================================
+# CONFIGURACION PAGINA
+# =====================================================
+
+st.set_page_config(
+    layout="wide"
+)
+
+# =====================================================
+# LAYOUT PRINCIPAL
+# =====================================================
+
+col_filtros, col_dashboard = st.columns(
+    [1, 5]
+)
+
 
 # ============================================================
 # UTILIDADES
