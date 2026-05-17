@@ -11,6 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
+
 st.markdown("""
 <style>
 
@@ -43,6 +44,17 @@ div[data-testid="stVerticalBlock"] {
     border-radius: 12px;
     padding: 16px;
     background: white;
+    min-height: 360px;
+}
+
+.stTextInput input {
+    background-color: #f1f4f8;
+    border-radius: 9px;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #f1f4f8;
+    border-radius: 9px;
 }
 
 </style>
@@ -217,6 +229,7 @@ def consulta_clientes_inventarios_app():
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #2563eb;
                     height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         👥 Clientes
@@ -240,6 +253,7 @@ def consulta_clientes_inventarios_app():
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #16a34a;
                     height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         ✅ Activos
@@ -263,6 +277,7 @@ def consulta_clientes_inventarios_app():
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #dc2626;
                     height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         🚨 Críticos
@@ -286,6 +301,7 @@ def consulta_clientes_inventarios_app():
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #f59e0b;
                     height:96px;
+                    box-sizing:border-box;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         ⭐ Niveles servicio
@@ -311,18 +327,135 @@ def consulta_clientes_inventarios_app():
         c1, c2, c3 = st.columns([2, 2, 1.2])
 
         with c1:
-            st.info("Perfil cliente")
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:300px;
+                    box-sizing:border-box;
+                    overflow:hidden;
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        🧾 PERFIL CLIENTE
+                    </div>
+
+                    <span style="
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        background:#dcfce7;
+                        color:#166534;
+                        font-size:12px;
+                        font-weight:bold;
+                        margin-right:6px;
+                    ">
+                        {cliente['estatus']}
+                    </span>
+
+                    <span style="
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        background:#fee2e2;
+                        color:#991b1b;
+                        font-size:12px;
+                        font-weight:bold;
+                        margin-right:6px;
+                    ">
+                        Cliente crítico
+                    </span>
+
+                    <span style="
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        background:#dbeafe;
+                        color:#1d4ed8;
+                        font-size:12px;
+                        font-weight:bold;
+                    ">
+                        Inventarios
+                    </span>
+
+                    <div style="margin-top:18px;line-height:1.9;font-size:15px;">
+                        <b>Código:</b> {cliente['codigo_cliente']}<br>
+                        <b>Cliente:</b> {cliente['nombre_cliente']}<br>
+                        <b>Razón social:</b> {cliente['razon_social']}<br>
+                        <b>RFC:</b> {cliente['rfc']}<br>
+                        <b>Tipo cliente:</b> {cliente['tipo_cliente']}<br>
+                        <b>Nivel servicio:</b> {cliente['nivel_servicio']}
+                    </div>
+                </div>
+                """,
+                height=320
+            )
 
         with c2:
-            st.info("Información inventarios")
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:300px;
+                    box-sizing:border-box;
+                    overflow:hidden;
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        📦 INFORMACIÓN INVENTARIOS
+                    </div>
+
+                    <div style="line-height:2;font-size:15px;">
+                        <b>Ciudad:</b> {cliente['ciudad']}<br>
+                        <b>Estado:</b> {cliente['estado']}<br>
+                        <b>País:</b> {cliente['pais']}<br>
+                        <b>Código postal:</b> {cliente['codigo_postal']}<br>
+                        <b>Ruta:</b> {cliente['ruta']}<br>
+                        <b>Secuencia ruta:</b> {cliente['secuencia_ruta']}
+                    </div>
+                </div>
+                """,
+                height=320
+            )
 
         with c3:
-            st.info("Alertas")
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:300px;
+                    box-sizing:border-box;
+                    overflow:hidden;
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        ⚠️ ALERTAS
+                    </div>
+
+                    <div style="line-height:2;font-size:15px;">
+                        <b>Crítico:</b> {cliente['cliente_critico']}<br>
+                        <b>Estatus:</b> {cliente['estatus']}<br>
+                        <b>Servicio:</b> {cliente['nivel_servicio']}<br>
+                        <b>Ruta:</b> {cliente['ruta']}<br>
+                        <b>Prioridad:</b> {cliente['prioridad_ruta']}
+                    </div>
+                </div>
+                """,
+                height=320
+            )
 
         mapa_col1, mapa_col2 = st.columns([2, 1])
 
         with mapa_col1:
-
             st.markdown('<div class="mapa-box">', unsafe_allow_html=True)
 
             st.subheader("🗺️ Ubicación geográfica cliente")
@@ -355,7 +488,32 @@ def consulta_clientes_inventarios_app():
             st.markdown('</div>', unsafe_allow_html=True)
 
         with mapa_col2:
-            st.info("Contacto operativo")
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    height:360px;
+                    box-sizing:border-box;
+                    overflow:hidden;
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        📞 CONTACTO OPERATIVO
+                    </div>
+
+                    <div style="line-height:2;font-size:15px;">
+                        <b>Contacto:</b> {cliente['contacto_entrega']}<br>
+                        <b>Teléfono:</b> {cliente['telefono_contacto']}<br>
+                        <b>Correo:</b> {cliente['correo_contacto']}<br>
+                        <b>Dirección:</b> {cliente['direccion_entrega']}
+                    </div>
+                </div>
+                """,
+                height=380
+            )
 
         tab1, tab2, tab3 = st.tabs([
             "📦 Inventarios",
@@ -391,7 +549,6 @@ def consulta_clientes_inventarios_app():
                 st.metric("Ruta", cliente["ruta"])
 
         with tab3:
-
             columnas = [
                 "codigo_cliente",
                 "nombre_cliente",
