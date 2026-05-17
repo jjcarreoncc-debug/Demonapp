@@ -23,6 +23,10 @@ def sidebar_inventarios():
         st.markdown("### 📦 Inventarios")
         st.markdown("---")
 
+        # =================================================
+        # INICIO DEFAULT
+        # =================================================
+
         if "menu_inv" not in st.session_state:
 
             set_opcion(
@@ -44,32 +48,67 @@ def sidebar_inventarios():
             .lower()
         )
 
-        ver_datos_maestros = ruta_central in [
-            "inventarios",
-            "datos_maestros"
-        ]
+        # =================================================
+        # VARIABLES MODULOS
+        # =================================================
 
-        ver_operacion_inventarios = ruta_central in [
-            "inventarios",
-            "operacion_inventario"
-        
-        ]
+        ver_datos_maestros = False
+        ver_operacion_inventarios = False
+        ver_operacion_logistica = False
+        ver_consultas = False
+        ver_inventario_fisico = False
 
-        ver_operacion_logistica = ruta_central in [
-            "inventarios",
-            "operacion_logistica"
-        ]
-    
-        ver_consultas = ruta_central in [
-            "inventarios",
-            "consulta_analiticos"
-            
-        ]
+        # =================================================
+        # ADMIN INVENTARIOS
+        # =================================================
 
-        ver_inventario_fisico = ruta_central in [
-            "inventarios",
-            "inventario_fisico"
-        ]
+        if ruta_central == "inventarios":
+
+            ver_datos_maestros = True
+            ver_operacion_inventarios = True
+            ver_operacion_logistica = True
+            ver_consultas = True
+            ver_inventario_fisico = True
+
+        # =================================================
+        # DATOS MAESTROS
+        # =================================================
+
+        elif ruta_central == "datos_maestros":
+
+            ver_datos_maestros = True
+
+        # =================================================
+        # OPERACION INVENTARIOS
+        # =================================================
+
+        elif ruta_central == "operacion_inventario":
+
+            ver_operacion_inventarios = True
+
+        # =================================================
+        # OPERACION LOGISTICA
+        # =================================================
+
+        elif ruta_central == "operacion_logistica":
+
+            ver_operacion_logistica = True
+
+        # =================================================
+        # CONSULTAS
+        # =================================================
+
+        elif ruta_central == "consulta_analiticos":
+
+            ver_consultas = True
+
+        # =================================================
+        # INVENTARIO FISICO
+        # =================================================
+
+        elif ruta_central == "inventario_fisico":
+
+            ver_inventario_fisico = True
 
         # =================================================
         # DATOS MAESTROS
