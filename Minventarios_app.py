@@ -58,49 +58,16 @@ st.markdown(
 # =========================
 def inicio_inventarios_app():
 
-    st.title("📦 Inventarios")
-
-    st.caption(
-        "Gestión integral de materiales, entradas, salidas, kardex e inventario físico."
-    )
-
     try:
         st.image(
             "logoinventa.jpg",
             use_container_width=True
         )
+
     except Exception:
         st.info(
-            "Imagen de inicio no encontrada. Verifica que exista el archivo logoinventa.png"
+            "Imagen de inicio no encontrada. Verifica que exista el archivo logoinventa.jpg"
         )
-
-    st.divider()
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric(
-            "Módulo",
-            "Inventarios"
-        )
-
-    with col2:
-        st.metric(
-            "Usuario",
-            st.session_state.get("usuario", "SIN_USUARIO")
-        )
-
-    with col3:
-        st.metric(
-            "Fecha",
-            datetime.now().strftime("%Y-%m-%d")
-        )
-
-    st.info(
-        "Selecciona una opción del menú lateral para comenzar."
-    )
-
-
 # =========================
 # APP INVENTARIOS
 # =========================
