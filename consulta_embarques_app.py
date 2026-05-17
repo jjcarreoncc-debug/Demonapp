@@ -13,7 +13,6 @@ from sigem_db import get_db_path
 def obtener_embarques():
 
     db_path = get_db_path("logistica")
-
     conn = sqlite3.connect(db_path)
 
     query = """
@@ -46,16 +45,55 @@ def obtener_embarques():
 
 
 # =====================================================
-# OBTENER DETALLE EMBARQUE
+# OBTENER DETALLE POR EMBARQUES SELECCIONADOS
 # =====================================================
 
-def obtener_detalle_embarque(folio_embarque):
+def obtener_detalle_embarques(df_seleccionados):
 
     db_path = get_db_path("logistica")
-
     conn = sqlite3.connect(db_path)
 
-    query = """
+    folios_embarque = (
+        df_seleccionados["folio_embarque"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    folios_hoja_carga = (
+        df_seleccionados["folio_hoja_carga"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+    folios_hoja_carga = [
+        x for x in folios_hoja_carga
+        if x and x.lower() != "none"
+    ]
+
+    condiciones = []
+    params = []
+
+    if folios_embarque:
+        marcas = ",".join(["?"] * len(folios_embarque))
+        condiciones.append(f"TRIM(folio_embarque) IN ({marcas})")
+        params.extend(folios_embarque)
+
+    if folios_hoja_carga:
+        marcas = ",".join(["?"] * len(folios_hoja_carga))
+        condiciones.append(f"TRIM(folio_hoja_carga) IN ({marcas})")
+        params.extend(folios_hoja_carga)
+
+    if not condiciones:
+        conn.close()
+        return pd.DataFrame()
+
+    query = f"""
         SELECT
             folio_embarque,
             folio_hoja_carga,
@@ -70,13 +108,17 @@ def obtener_detalle_embarque(folio_embarque):
             bodega,
             ubicacion
         FROM detalle_embarque
-        WHERE TRIM(folio_embarque) = TRIM(?)
+        WHERE {" OR ".join(condiciones)}
+        ORDER BY
+            folio_embarque,
+            folio_hoja_carga,
+            codigo_material
     """
 
     df = pd.read_sql_query(
         query,
         conn,
-        params=[folio_embarque]
+        params=params
     )
 
     conn.close()
@@ -218,17 +260,14 @@ def consulta_embarques_app():
     )
 
     try:
-
         df = obtener_embarques()
 
     except Exception as e:
-
         st.error("❌ Error consultando embarques")
         st.exception(e)
         return
 
     if df.empty:
-
         st.warning("No existen embarques registrados.")
         return
 
@@ -252,19 +291,15 @@ def consulta_embarques_app():
         ).lower()
 
         if "entregado" in estatus:
-
             return "✅ Entregado"
 
         elif dias <= 1:
-
             return "🟢 Reciente"
 
         elif dias <= 3:
-
             return "🟡 En proceso"
 
         else:
-
             return "🔴 Pendiente viejo"
 
     df["alerta"] = df.apply(
@@ -273,10 +308,6 @@ def consulta_embarques_app():
     )
 
     st.divider()
-
-    # =====================================================
-    # LAYOUT PRINCIPAL
-    # =====================================================
 
     col_filtros, col_contenido = st.columns([1, 5.5])
 
@@ -361,48 +392,37 @@ def consulta_embarques_app():
         )
 
     # =====================================================
-    # FILTROS DATAFRAME
+    # APLICAR FILTROS
     # =====================================================
 
     df_filtrado = df.copy()
 
     if filtro_folio != "Todos":
-
         df_filtrado = df_filtrado[
-            df_filtrado["folio_embarque"].astype(str)
-            == filtro_folio
+            df_filtrado["folio_embarque"].astype(str) == filtro_folio
         ]
 
     if filtro_cliente != "Todos":
-
         df_filtrado = df_filtrado[
-            df_filtrado["cliente"].astype(str)
-            == filtro_cliente
+            df_filtrado["cliente"].astype(str) == filtro_cliente
         ]
 
     if filtro_pedido != "Todos":
-
         df_filtrado = df_filtrado[
-            df_filtrado["pedido"].astype(str)
-            == filtro_pedido
+            df_filtrado["pedido"].astype(str) == filtro_pedido
         ]
 
     if filtro_estatus != "Todos":
-
         df_filtrado = df_filtrado[
-            df_filtrado["estatus"].astype(str)
-            == filtro_estatus
+            df_filtrado["estatus"].astype(str) == filtro_estatus
         ]
 
     if filtro_alerta != "Todos":
-
         df_filtrado = df_filtrado[
-            df_filtrado["alerta"].astype(str)
-            == filtro_alerta
+            df_filtrado["alerta"].astype(str) == filtro_alerta
         ]
 
     if buscar:
-
         texto_buscar = buscar.lower().strip()
 
         df_filtrado = df_filtrado[
@@ -434,9 +454,7 @@ def consulta_embarques_app():
         pendientes = total_embarques - entregados
 
         total_pedidos = df_filtrado["pedido"].nunique()
-
         total_clientes = df_filtrado["cliente"].nunique()
-
         total_rutas = df_filtrado["folio_ruta"].nunique()
 
         k1, k2, k3, k4, k5, k6 = st.columns(6)
@@ -461,10 +479,6 @@ def consulta_embarques_app():
 
         st.divider()
 
-        # =====================================================
-        # TABS
-        # =====================================================
-
         tab1, tab2 = st.tabs(
             [
                 "📊 Dashboard",
@@ -478,12 +492,70 @@ def consulta_embarques_app():
 
         with tab1:
 
-            st.dataframe(
-                df_filtrado,
+            st.info(
+                "Selecciona uno o varios embarques en la columna Sel. para revisar su detalle."
+            )
+
+            df_grid = df_filtrado.copy()
+            df_grid.insert(0, "Sel.", False)
+
+            columnas_grid = [
+                "Sel.",
+                "folio_embarque",
+                "folio_hoja_carga",
+                "folio_ruta",
+                "pedido",
+                "fecha",
+                "cliente",
+                "destino",
+                "transportista",
+                "vehiculo",
+                "placas",
+                "operador",
+                "ruta",
+                "estatus",
+                "alerta"
+            ]
+
+            columnas_grid = [
+                col for col in columnas_grid
+                if col in df_grid.columns
+            ]
+
+            df_editado = st.data_editor(
+                df_grid[columnas_grid],
                 use_container_width=True,
                 height=520,
-                hide_index=True
+                hide_index=True,
+                disabled=[
+                    col for col in columnas_grid
+                    if col != "Sel."
+                ],
+                column_config={
+                    "Sel.": st.column_config.CheckboxColumn(
+                        "Sel.",
+                        help="Selecciona el embarque para consultar detalle",
+                        default=False
+                    )
+                },
+                key="grid_embarques_consulta"
             )
+
+            df_seleccionados = df_editado[
+                df_editado["Sel."] == True
+            ].copy()
+
+            if not df_seleccionados.empty:
+
+                st.session_state["embarques_seleccionados_consulta"] = (
+                    df_seleccionados
+                    .drop(columns=["Sel."], errors="ignore")
+                    .copy()
+                )
+
+                st.success(
+                    f"Embarques seleccionados: {len(df_seleccionados)}"
+                )
 
             archivo_excel = exportar_excel(
                 df_filtrado
@@ -502,60 +574,167 @@ def consulta_embarques_app():
 
         with tab2:
 
-            lista_embarques = (
-                df_filtrado["folio_embarque"]
+            df_seleccionados = st.session_state.get(
+                "embarques_seleccionados_consulta",
+                pd.DataFrame()
+            )
+
+            if df_seleccionados.empty:
+
+                st.info(
+                    "Primero selecciona uno o varios embarques en la pestaña Dashboard."
+                )
+                return
+
+            st.subheader("📄 Detalle de embarques seleccionados")
+
+            df_detalle = obtener_detalle_embarques(
+                df_seleccionados
+            )
+
+            if df_detalle.empty:
+
+                st.warning(
+                    "No se encontró detalle para los embarques seleccionados."
+                )
+                return
+
+            for col in [
+                "cantidad_pedida",
+                "cantidad_embarcar",
+                "peso",
+                "volumen"
+            ]:
+                if col in df_detalle.columns:
+                    df_detalle[col] = pd.to_numeric(
+                        df_detalle[col],
+                        errors="coerce"
+                    ).fillna(0)
+
+            resumen = (
+                df_detalle
+                .groupby(
+                    [
+                        "folio_embarque",
+                        "folio_hoja_carga"
+                    ],
+                    dropna=False
+                )
+                .agg(
+                    lineas=("codigo_material", "count"),
+                    cantidad_pedida=("cantidad_pedida", "sum"),
+                    cantidad_embarcar=("cantidad_embarcar", "sum"),
+                    peso=("peso", "sum"),
+                    volumen=("volumen", "sum")
+                )
+                .reset_index()
+            )
+
+            st.markdown("### 📌 Resumen por embarque")
+
+            st.dataframe(
+                resumen,
+                use_container_width=True,
+                hide_index=True,
+                height=220
+            )
+
+            st.markdown("### 📦 Cortes de detalle por embarque")
+
+            folios_detalle = (
+                df_detalle["folio_embarque"]
                 .dropna()
                 .astype(str)
                 .unique()
                 .tolist()
             )
 
-            if lista_embarques:
+            for folio in folios_detalle:
 
-                folio_detalle = st.selectbox(
-                    "Selecciona embarque",
-                    lista_embarques
+                df_corte = df_detalle[
+                    df_detalle["folio_embarque"].astype(str) == folio
+                ].copy()
+
+                hoja = ""
+
+                if "folio_hoja_carga" in df_corte.columns:
+                    hoja = str(
+                        df_corte["folio_hoja_carga"]
+                        .dropna()
+                        .astype(str)
+                        .iloc[0]
+                    )
+
+                total_lineas = len(df_corte)
+                total_pedida = df_corte["cantidad_pedida"].sum()
+                total_embarcar = df_corte["cantidad_embarcar"].sum()
+                total_peso = df_corte["peso"].sum()
+                total_volumen = df_corte["volumen"].sum()
+
+                with st.expander(
+                    f"🚚 Embarque {folio} | Hoja carga {hoja} | Líneas {total_lineas}",
+                    expanded=True
+                ):
+
+                    c1, c2, c3, c4 = st.columns(4)
+
+                    with c1:
+                        st.metric("Cantidad pedida", f"{total_pedida:,.2f}")
+
+                    with c2:
+                        st.metric("Cantidad embarcar", f"{total_embarcar:,.2f}")
+
+                    with c3:
+                        st.metric("Peso", f"{total_peso:,.2f}")
+
+                    with c4:
+                        st.metric("Volumen", f"{total_volumen:,.3f}")
+
+                    st.dataframe(
+                        df_corte,
+                        use_container_width=True,
+                        hide_index=True,
+                        height=280
+                    )
+
+            st.markdown("### ✅ Total general seleccionado")
+
+            tg1, tg2, tg3, tg4, tg5 = st.columns(5)
+
+            with tg1:
+                st.metric("Embarques", len(folios_detalle))
+
+            with tg2:
+                st.metric("Líneas", len(df_detalle))
+
+            with tg3:
+                st.metric(
+                    "Cantidad embarcar",
+                    f"{df_detalle['cantidad_embarcar'].sum():,.2f}"
                 )
 
-                df_detalle = obtener_detalle_embarque(
-                    folio_detalle
+            with tg4:
+                st.metric(
+                    "Peso",
+                    f"{df_detalle['peso'].sum():,.2f}"
                 )
 
-                # =================================================
-                # FILTRAR SOLO EL FOLIO SELECCIONADO
-                # =================================================
-
-                df_detalle = df_detalle[
-                    df_detalle["folio_embarque"]
-                    .astype(str)
-                    .str.strip()
-                    ==
-                    str(folio_detalle).strip()
-                ]
-
-                st.dataframe(
-                    df_detalle,
-                    use_container_width=True,
-                    height=430,
-                    hide_index=True
+            with tg5:
+                st.metric(
+                    "Volumen",
+                    f"{df_detalle['volumen'].sum():,.3f}"
                 )
 
-                archivo_excel = exportar_excel(
-                    df_detalle
-                )
+            archivo_excel_detalle = exportar_excel(
+                df_detalle
+            )
 
-                st.download_button(
-                    label="📥 Exportar detalle Excel",
-                    data=archivo_excel,
-                    file_name=f"detalle_{folio_detalle}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-
-            else:
-
-                st.info(
-                    "No hay embarques para mostrar detalle."
-                )
+            st.download_button(
+                label="📥 Exportar detalle seleccionado Excel",
+                data=archivo_excel_detalle,
+                file_name="detalle_embarques_seleccionados.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
 
 
 # =====================================================
