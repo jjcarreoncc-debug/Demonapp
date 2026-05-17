@@ -34,28 +34,6 @@ col_filtros, col_dashboard = st.columns(
 )
 
 
-# =====================================================
-# KPIS
-# =====================================================
-k1, k2, k3, k4, k5, k6 = st.columns(6)
-
-with k1:
-    st.metric("Pedidos", total_pedidos)
-
-with k2:
-    st.metric("Líneas", total_lineas)
-
-with k3:
-    st.metric("Listas", total_listas)
-
-with k4:
-    st.metric("Parciales", total_parciales)
-
-with k5:
-    st.metric("Sin inventario", total_sin_inventario)
-
-with k6:
-    st.metric("Asignadas", total_asignadas)
 
 # =====================================================
 # ESTILOS KPI
