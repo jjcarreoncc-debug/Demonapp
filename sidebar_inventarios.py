@@ -30,14 +30,19 @@ def sidebar_inventarios():
                 "Inicio",
                 "🏠 Inicio"
             )
-        ######
-        # MAESTROS
+
+        # =================================================
+        # DATOS MAESTROS
         # =================================================
 
         with st.expander(
-            "📘 Maestros",
+            "📘 Datos Maestros",
             expanded=True
         ):
+
+            # =================================================
+            # PRODUCTOS
+            # =================================================
 
             with st.expander(
                 "📦 Productos",
@@ -54,7 +59,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Alta de material"
                         )
@@ -64,7 +69,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Baja de material"
                         )
@@ -74,7 +79,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Consulta de material"
                         )
@@ -84,7 +89,7 @@ def sidebar_inventarios():
                     if st.button("Categorías"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Categorías"
                         )
@@ -92,7 +97,7 @@ def sidebar_inventarios():
                     if st.button("Familias"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Familias"
                         )
@@ -100,7 +105,7 @@ def sidebar_inventarios():
                     if st.button("Marcas"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Marcas"
                         )
@@ -112,7 +117,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "Códigos de barras"
                         )
@@ -122,10 +127,14 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Productos",
                             "SKU alternos"
                         )
+
+            # =================================================
+            # EMPAQUES
+            # =================================================
 
             with st.expander("📦 Empaques"):
 
@@ -134,7 +143,7 @@ def sidebar_inventarios():
                     if st.button("Alta unidad"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Empaques",
                             "Alta unidad"
                         )
@@ -144,7 +153,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Empaques",
                             "Consulta unidades"
                         )
@@ -156,7 +165,7 @@ def sidebar_inventarios():
                     if st.button("Alta empaque"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Empaques",
                             "Alta empaque"
                         )
@@ -166,10 +175,14 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Empaques",
                             "Consulta empaques"
                         )
+
+            # =================================================
+            # UBICACIONES
+            # =================================================
 
             with st.expander("📍 Ubicaciones"):
 
@@ -178,7 +191,7 @@ def sidebar_inventarios():
                     if st.button("Alta almacén"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Ubicaciones",
                             "Alta almacén"
                         )
@@ -188,7 +201,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Ubicaciones",
                             "Consulta almacenes"
                         )
@@ -198,7 +211,7 @@ def sidebar_inventarios():
                     if st.button("Alta zona"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Ubicaciones",
                             "Alta zona"
                         )
@@ -208,7 +221,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Ubicaciones",
                             "Consulta zonas"
                         )
@@ -220,7 +233,7 @@ def sidebar_inventarios():
                     if st.button("Alta ubicación"):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Ubicaciones",
                             "Alta ubicación"
                         )
@@ -230,16 +243,20 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Maestros",
+                            "Datos Maestros",
                             "Ubicaciones",
                             "Consulta ubicaciones"
                         )
 
         # =================================================
-        # OPERACIONES
+        # OPERACIÓN INVENTARIOS
         # =================================================
 
-        with st.expander("🔄 Operaciones"):
+        with st.expander("⚙️ Operación Inventarios"):
+
+            # =================================================
+            # ENTRADAS
+            # =================================================
 
             with st.expander("📥 Entradas"):
 
@@ -250,7 +267,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Entradas",
                             "Registrar entrada compra"
                         )
@@ -260,7 +277,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Entradas",
                             "Consultar entradas compra"
                         )
@@ -272,7 +289,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Entradas",
                             "Registrar entrada ajuste"
                         )
@@ -282,7 +299,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Entradas",
                             "Consultar entradas ajuste"
                         )
@@ -292,10 +309,14 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Operaciones",
+                        "Operación Inventarios",
                         "Entradas",
                         "Embarque"
                     )
+
+            # =================================================
+            # SALIDAS
+            # =================================================
 
             with st.expander("📤 Salidas"):
 
@@ -306,7 +327,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Salidas",
                             "Registrar salida venta"
                         )
@@ -316,7 +337,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Salidas",
                             "Consultar salidas venta"
                         )
@@ -328,7 +349,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Salidas",
                             "Registrar merma"
                         )
@@ -338,32 +359,14 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Salidas",
                             "Consultar mermas"
                         )
 
-                with st.expander("Embarques"):
-
-                    if st.button(
-                        "Confirmar carga embarque"
-                    ):
-
-                        set_opcion(
-                            "Operaciones",
-                            "Salidas",
-                            "Embarques"
-                        )
-
-                    if st.button(
-                        "Embarques"
-                    ):
-
-                        set_opcion(
-                            "Operaciones",
-                            "Salidas",
-                            "Consultar embarques"
-                        )
+            # =================================================
+            # TRANSFERENCIAS
+            # =================================================
 
             with st.expander("🔁 Transferencias"):
 
@@ -374,7 +377,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Transferencias",
                             "Transferencia entre almacenes"
                         )
@@ -384,7 +387,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Transferencias",
                             "Consulta transferencias almacén"
                         )
@@ -396,7 +399,7 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Transferencias",
                             "Transferencia entre ubicaciones"
                         )
@@ -406,15 +409,16 @@ def sidebar_inventarios():
                     ):
 
                         set_opcion(
-                            "Operaciones",
+                            "Operación Inventarios",
                             "Transferencias",
                             "Consulta transferencias ubicación"
                         )
 
+        # =================================================
+        # OPERACIÓN LOGÍSTICA
+        # =================================================
 
-            # =================================================
-            # CREACIÓN DE ENTREGAS
-            # =================================================
+        with st.expander("🚚 Operación Logística"):
 
             with st.expander("📋 Creación de entregas"):
 
@@ -423,7 +427,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Operaciones",
+                        "Operación Logística",
                         "Creación de entregas",
                         "Consulta de pedidos"
                     )
@@ -433,7 +437,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Operaciones",
+                        "Operación Logística",
                         "Creación de entregas",
                         "Creación de entregas"
                     )
@@ -443,14 +447,10 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Operaciones",
+                        "Operación Logística",
                         "Creación de entregas",
                         "Consulta de entregas"
                     )
-
-            # =================================================
-            # HOJA DE CARGA
-            # =================================================
 
             with st.expander("🚚 Hoja de carga"):
 
@@ -459,7 +459,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Operaciones",
+                        "Operación Logística",
                         "Hoja de carga",
                         "Creación hoja de carga"
                     )
@@ -469,17 +469,38 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Operaciones",
+                        "Operación Logística",
                         "Hoja de carga",
                         "Consulta hoja de carga"
                     )
 
+            with st.expander("🚛 Embarques"):
+
+                if st.button(
+                    "Confirmar carga embarque"
+                ):
+
+                    set_opcion(
+                        "Operación Logística",
+                        "Embarques",
+                        "Embarques"
+                    )
+
+                if st.button(
+                    "Consultar embarques"
+                ):
+
+                    set_opcion(
+                        "Operación Logística",
+                        "Embarques",
+                        "Consultar embarques"
+                    )
 
         # =================================================
-        # CONSULTAS
+        # CONSULTAS Y ANALÍTICOS
         # =================================================
 
-        with st.expander("📊 Consultas"):
+        with st.expander("📊 Consultas y Analíticos"):
 
             with st.expander("📋 Kardex"):
 
@@ -539,7 +560,7 @@ def sidebar_inventarios():
         # INVENTARIO FÍSICO
         # =================================================
 
-        with st.expander("🧾 Inventario físico"):
+        with st.expander("🧾 Inventario Físico"):
 
             with st.expander(
                 "📌 Conteos cíclicos"
@@ -548,7 +569,7 @@ def sidebar_inventarios():
                 if st.button("Crear conteo"):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Conteos cíclicos",
                         "Crear conteo"
                     )
@@ -558,7 +579,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Conteos cíclicos",
                         "Capturar conteo"
                     )
@@ -568,7 +589,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Conteos cíclicos",
                         "Consultar conteos"
                     )
@@ -580,7 +601,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Ajustes",
                         "Aplicar ajuste"
                     )
@@ -590,7 +611,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Ajustes",
                         "Consultar ajustes"
                     )
@@ -602,7 +623,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Diferencias",
                         "Diferencias por conteo"
                     )
@@ -612,7 +633,7 @@ def sidebar_inventarios():
                 ):
 
                     set_opcion(
-                        "Inventario físico",
+                        "Inventario Físico",
                         "Diferencias",
                         "Diferencias valorizadas"
                     )
