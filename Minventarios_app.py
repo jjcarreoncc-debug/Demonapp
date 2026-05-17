@@ -123,6 +123,16 @@ def inventarios_app():
         inicio_inventarios_app()
 
     # =========================
+    # DATOS MAESTROS
+    # =========================
+
+    elif opcion_limpia in [
+        "datos maestros"
+    ]:
+
+        inicio_inventarios_app()
+
+    # =========================
     # MATERIALES
     # =========================
     elif opcion_limpia == "alta de material":
