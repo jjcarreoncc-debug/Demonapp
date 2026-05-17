@@ -249,12 +249,20 @@ with st.sidebar:
 # ROUTER CENTRAL
 # =====================================================
 
+# =====================================================
+# ROUTER CENTRAL
+# =====================================================
+
 ruta_central = st.session_state.get(
     "ruta_central",
     ""
 )
 
 if ruta_central == "inventarios":
+
+    inventarios_app()
+
+elif ruta_central == "datos_maestros":
 
     inventarios_app()
 
