@@ -1,4 +1,4 @@
-import streamlit as st
+    import streamlit as st
 import pandas as pd
 import sqlite3
 from sigem_db import get_db_path
@@ -13,6 +13,18 @@ st.set_page_config(
     page_icon="🚚",
     layout="wide"
 )
+
+
+# =========================================================
+# FUNCION HTML
+# =========================================================
+
+def html_card(html):
+
+    st.markdown(
+        html,
+        unsafe_allow_html=True
+    )
 
 
 # =========================================================
@@ -43,6 +55,7 @@ TITULOS
 .sub-title {
     color: #6b7280;
     font-size: 14px;
+    margin-bottom: 20px;
 }
 
 /* =========================
@@ -55,19 +68,6 @@ CARDS
     border-radius: 18px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     margin-bottom: 15px;
-}
-
-.card-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #111827;
-    margin-bottom: 10px;
-}
-
-.card-value {
-    font-size: 30px;
-    font-weight: bold;
-    color: #2563eb;
 }
 
 /* =========================
@@ -96,6 +96,17 @@ BADGES
 .badge-blue {
     background:#dbeafe;
     color:#1d4ed8;
+}
+
+.kpi-title {
+    font-size:16px;
+    color:#6b7280;
+}
+
+.kpi-value {
+    font-size:34px;
+    font-weight:bold;
+    color:#2563eb;
 }
 
 </style>
@@ -127,17 +138,19 @@ def consulta_clientes_logistica_app():
 
     try:
 
-        st.markdown("""
+        # =====================================================
+        # TITULO
+        # =====================================================
+
+        html_card("""
         <div class='main-title'>
-        🚚 Consulta Clientes - Logística
+            🚚 Consulta Clientes - Logística
         </div>
 
         <div class='sub-title'>
-        Dashboard ejecutivo clientes logísticos
+            Dashboard ejecutivo clientes logísticos
         </div>
-        """, unsafe_allow_html=True)
-
-        st.write("")
+        """)
 
         # =====================================================
         # FILTROS
@@ -269,12 +282,12 @@ def consulta_clientes_logistica_app():
 
         with k1:
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
-                <div class='card-title'>👥 Clientes</div>
-                <div class='card-value'>{len(df)}</div>
+                <div class='kpi-title'>👥 Clientes</div>
+                <div class='kpi-value'>{len(df)}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         with k2:
 
@@ -287,12 +300,12 @@ def consulta_clientes_logistica_app():
                 ]
             )
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
-                <div class='card-title'>🚨 Críticos</div>
-                <div class='card-value'>{total_criticos}</div>
+                <div class='kpi-title'>🚨 Críticos</div>
+                <div class='kpi-value'>{total_criticos}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         with k3:
 
@@ -305,12 +318,12 @@ def consulta_clientes_logistica_app():
                 ]
             )
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
-                <div class='card-title'>📅 Requiere cita</div>
-                <div class='card-value'>{total_cita}</div>
+                <div class='kpi-title'>📅 Requiere cita</div>
+                <div class='kpi-value'>{total_cita}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         with k4:
 
@@ -323,12 +336,12 @@ def consulta_clientes_logistica_app():
                 ]
             )
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
-                <div class='card-title'>📡 GPS obligatorio</div>
-                <div class='card-value'>{total_gps}</div>
+                <div class='kpi-title'>📡 GPS obligatorio</div>
+                <div class='kpi-value'>{total_gps}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # =====================================================
         # CLIENTE
@@ -355,72 +368,62 @@ def consulta_clientes_logistica_app():
         c1, c2, c3 = st.columns([2,2,1])
 
         # =====================================================
-        # PERFIL
+        # PERFIL CLIENTE
         # =====================================================
 
         with c1:
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
 
                 <div style='font-size:22px;
                             font-weight:bold;
                             margin-bottom:15px;'>
 
-                🧾 PERFIL CLIENTE
+                    🧾 PERFIL CLIENTE
 
                 </div>
 
                 <div style='margin-bottom:15px;'>
 
                     <span class='badge badge-green'>
-                    {cliente['estatus']}
+                        {cliente['estatus']}
                     </span>
 
                     <span class='badge badge-red'>
-                    Cliente crítico
+                        Cliente crítico
                     </span>
 
                     <span class='badge badge-blue'>
-                    GPS obligatorio
+                        GPS obligatorio
                     </span>
 
                 </div>
 
                 <div style='line-height:2;'>
 
-                <b>Código:</b>
-                {cliente['codigo_cliente']}
+                    <b>Código:</b>
+                    {cliente['codigo_cliente']}<br>
 
-                <br>
+                    <b>Cliente:</b>
+                    {cliente['nombre_cliente']}<br>
 
-                <b>Cliente:</b>
-                {cliente['nombre_cliente']}
+                    <b>Razón social:</b>
+                    {cliente['razon_social']}<br>
 
-                <br>
+                    <b>RFC:</b>
+                    {cliente['rfc']}<br>
 
-                <b>Razón social:</b>
-                {cliente['razon_social']}
+                    <b>Ciudad:</b>
+                    {cliente['ciudad']}<br>
 
-                <br>
-
-                <b>RFC:</b>
-                {cliente['rfc']}
-
-                <br>
-
-                <b>Ciudad:</b>
-                {cliente['ciudad']}
-
-                <br>
-
-                <b>Estado:</b>
-                {cliente['estado']}
+                    <b>Estado:</b>
+                    {cliente['estado']}
 
                 </div>
 
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # =====================================================
         # OPERACION
@@ -428,48 +431,40 @@ def consulta_clientes_logistica_app():
 
         with c2:
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
 
                 <div style='font-size:22px;
                             font-weight:bold;
                             margin-bottom:15px;'>
 
-                🚚 OPERACIÓN LOGÍSTICA
+                    🚚 OPERACIÓN LOGÍSTICA
 
                 </div>
 
                 <div style='line-height:2;'>
 
-                <b>Ruta:</b>
-                {cliente['ruta']}
+                    <b>Ruta:</b>
+                    {cliente['ruta']}<br>
 
-                <br>
+                    <b>Horario recepción:</b>
+                    {cliente['hora_inicio_recepcion']}
+                    -
+                    {cliente['hora_fin_recepcion']}<br>
 
-                <b>Horario recepción:</b>
-                {cliente['hora_inicio_recepcion']}
-                -
-                {cliente['hora_fin_recepcion']}
+                    <b>Días entrega:</b>
+                    {cliente['dias_entrega_permitidos']}<br>
 
-                <br>
+                    <b>Tiempo descarga:</b>
+                    {cliente['tiempo_descarga_min']}<br>
 
-                <b>Días entrega:</b>
-                {cliente['dias_entrega_permitidos']}
-
-                <br>
-
-                <b>Tiempo descarga:</b>
-                {cliente['tiempo_descarga_min']}
-
-                <br>
-
-                <b>Nivel servicio:</b>
-                {cliente['nivel_servicio']}
+                    <b>Nivel servicio:</b>
+                    {cliente['nivel_servicio']}
 
                 </div>
 
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # =====================================================
         # RESTRICCIONES
@@ -477,46 +472,38 @@ def consulta_clientes_logistica_app():
 
         with c3:
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
 
                 <div style='font-size:22px;
                             font-weight:bold;
                             margin-bottom:15px;'>
 
-                ⚠️ RESTRICCIONES
+                    ⚠️ RESTRICCIONES
 
                 </div>
 
                 <div style='line-height:2;'>
 
-                <b>Requiere cita:</b>
-                {cliente['requiere_cita']}
+                    <b>Requiere cita:</b>
+                    {cliente['requiere_cita']}<br>
 
-                <br>
+                    <b>GPS:</b>
+                    {cliente['gps_obligatorio']}<br>
 
-                <b>GPS:</b>
-                {cliente['gps_obligatorio']}
+                    <b>Unidad:</b>
+                    {cliente['tipo_unidad_permitida']}<br>
 
-                <br>
+                    <b>Entrega parcial:</b>
+                    {cliente['permite_entrega_parcial']}<br>
 
-                <b>Unidad:</b>
-                {cliente['tipo_unidad_permitida']}
-
-                <br>
-
-                <b>Entrega parcial:</b>
-                {cliente['permite_entrega_parcial']}
-
-                <br>
-
-                <b>Tarima:</b>
-                {cliente['tipo_tarima']}
+                    <b>Tarima:</b>
+                    {cliente['tipo_tarima']}
 
                 </div>
 
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # =====================================================
         # MAPA
@@ -566,41 +553,35 @@ def consulta_clientes_logistica_app():
 
         with mapa_col2:
 
-            st.markdown(f"""
+            html_card(f"""
             <div class='card'>
 
                 <div style='font-size:22px;
                             font-weight:bold;
                             margin-bottom:15px;'>
 
-                📞 CONTACTO
+                    📞 CONTACTO
 
                 </div>
 
                 <div style='line-height:2;'>
 
-                <b>Contacto:</b>
-                {cliente['contacto_entrega']}
+                    <b>Contacto:</b>
+                    {cliente['contacto_entrega']}<br>
 
-                <br>
+                    <b>Teléfono:</b>
+                    {cliente['telefono_contacto']}<br>
 
-                <b>Teléfono:</b>
-                {cliente['telefono_contacto']}
+                    <b>Correo:</b>
+                    {cliente['correo_contacto']}<br>
 
-                <br>
-
-                <b>Correo:</b>
-                {cliente['correo_contacto']}
-
-                <br>
-
-                <b>Dirección:</b>
-                {cliente['direccion_entrega']}
+                    <b>Dirección:</b>
+                    {cliente['direccion_entrega']}
 
                 </div>
 
             </div>
-            """, unsafe_allow_html=True)
+            """)
 
         # =====================================================
         # TABS
