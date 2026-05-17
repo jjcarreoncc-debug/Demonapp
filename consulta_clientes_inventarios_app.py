@@ -11,6 +11,42 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+<style>
+
+.block-container {
+    max-width: 1450px;
+    padding-top: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-bottom: 2rem;
+}
+
+div[data-testid="stHorizontalBlock"] {
+    gap: 1rem;
+}
+
+div[data-testid="stVerticalBlock"] {
+    gap: .7rem;
+}
+
+.filtros-box {
+    border: 1px solid #d9dee8;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+    margin-bottom: 18px;
+}
+
+.mapa-box {
+    border: 1px solid #d9dee8;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 
 def html_card(html, height=220):
@@ -64,27 +100,42 @@ def consulta_clientes_inventarios_app():
             height=90
         )
 
-        with st.container(border=True):
+        st.markdown('<div class="filtros-box">', unsafe_allow_html=True)
 
-            f1, f2, f3, f4, f5 = st.columns(5)
+        f1, f2, f3, f4, f5 = st.columns(5)
 
-            with f1:
-                filtro_cliente = st.text_input("🔎 Cliente")
+        with f1:
+            filtro_cliente = st.text_input(
+                "🔎 Cliente",
+                key="inv_filtro_cliente"
+            )
 
-            with f2:
-                filtro_ciudad = st.text_input("🏙️ Ciudad")
+        with f2:
+            filtro_ciudad = st.text_input(
+                "🏙️ Ciudad",
+                key="inv_filtro_ciudad"
+            )
 
-            with f3:
-                filtro_estado = st.text_input("📍 Estado")
+        with f3:
+            filtro_estado = st.text_input(
+                "📍 Estado",
+                key="inv_filtro_estado"
+            )
 
-            with f4:
-                filtro_tipo = st.text_input("🏷️ Tipo cliente")
+        with f4:
+            filtro_tipo = st.text_input(
+                "🏷️ Tipo cliente",
+                key="inv_filtro_tipo"
+            )
 
-            with f5:
-                filtro_estatus = st.selectbox(
-                    "📊 Estatus",
-                    ["Todos", "Activo", "Inactivo"]
-                )
+        with f5:
+            filtro_estatus = st.selectbox(
+                "📊 Estatus",
+                ["Todos", "Activo", "Inactivo"],
+                key="inv_filtro_estatus"
+            )
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
         query = """
         SELECT *
@@ -165,6 +216,7 @@ def consulta_clientes_inventarios_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #2563eb;
+                    height:96px;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         👥 Clientes
@@ -174,7 +226,7 @@ def consulta_clientes_inventarios_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         with k2:
@@ -187,6 +239,7 @@ def consulta_clientes_inventarios_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #16a34a;
+                    height:96px;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         ✅ Activos
@@ -196,7 +249,7 @@ def consulta_clientes_inventarios_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         with k3:
@@ -209,6 +262,7 @@ def consulta_clientes_inventarios_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #dc2626;
+                    height:96px;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         🚨 Críticos
@@ -218,7 +272,7 @@ def consulta_clientes_inventarios_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         with k4:
@@ -231,6 +285,7 @@ def consulta_clientes_inventarios_app():
                     border-radius:18px;
                     box-shadow:0 2px 12px rgba(0,0,0,.08);
                     border-left:6px solid #f59e0b;
+                    height:96px;
                 ">
                     <div style="font-size:16px;color:#6b7280;">
                         ⭐ Niveles servicio
@@ -240,193 +295,67 @@ def consulta_clientes_inventarios_app():
                     </div>
                 </div>
                 """,
-                height=115
+                height=120
             )
 
         cliente_select = st.selectbox(
             "🧾 Cliente ejecutivo",
-            df["nombre_cliente"].dropna().unique()
+            df["nombre_cliente"].dropna().unique(),
+            key="inv_cliente_select"
         )
 
         cliente = df[
             df["nombre_cliente"] == cliente_select
         ].iloc[0]
 
-        c1, c2, c3 = st.columns([2, 2, 1])
+        c1, c2, c3 = st.columns([2, 2, 1.2])
 
         with c1:
-            html_card(
-                f"""
-                <div style="
-                    font-family:Arial;
-                    background:white;
-                    padding:22px;
-                    border-radius:18px;
-                    box-shadow:0 2px 12px rgba(0,0,0,.08);
-                ">
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-                        🧾 PERFIL CLIENTE
-                    </div>
-
-                    <span style="
-                        display:inline-block;
-                        padding:6px 12px;
-                        border-radius:20px;
-                        background:#dcfce7;
-                        color:#166534;
-                        font-size:12px;
-                        font-weight:bold;
-                        margin-right:6px;
-                    ">
-                        {cliente['estatus']}
-                    </span>
-
-                    <span style="
-                        display:inline-block;
-                        padding:6px 12px;
-                        border-radius:20px;
-                        background:#fee2e2;
-                        color:#991b1b;
-                        font-size:12px;
-                        font-weight:bold;
-                        margin-right:6px;
-                    ">
-                        Cliente crítico
-                    </span>
-
-                    <span style="
-                        display:inline-block;
-                        padding:6px 12px;
-                        border-radius:20px;
-                        background:#dbeafe;
-                        color:#1d4ed8;
-                        font-size:12px;
-                        font-weight:bold;
-                    ">
-                        Inventarios
-                    </span>
-
-                    <div style="margin-top:18px;line-height:1.9;font-size:15px;">
-                        <b>Código:</b> {cliente['codigo_cliente']}<br>
-                        <b>Cliente:</b> {cliente['nombre_cliente']}<br>
-                        <b>Razón social:</b> {cliente['razon_social']}<br>
-                        <b>RFC:</b> {cliente['rfc']}<br>
-                        <b>Tipo cliente:</b> {cliente['tipo_cliente']}<br>
-                        <b>Nivel servicio:</b> {cliente['nivel_servicio']}
-                    </div>
-                </div>
-                """,
-                height=320
-            )
+            st.info("Perfil cliente")
 
         with c2:
-            html_card(
-                f"""
-                <div style="
-                    font-family:Arial;
-                    background:white;
-                    padding:22px;
-                    border-radius:18px;
-                    box-shadow:0 2px 12px rgba(0,0,0,.08);
-                ">
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-                        📦 INFORMACIÓN INVENTARIOS
-                    </div>
-
-                    <div style="line-height:2;font-size:15px;">
-                        <b>Ciudad:</b> {cliente['ciudad']}<br>
-                        <b>Estado:</b> {cliente['estado']}<br>
-                        <b>País:</b> {cliente['pais']}<br>
-                        <b>Código postal:</b> {cliente['codigo_postal']}<br>
-                        <b>Ruta:</b> {cliente['ruta']}<br>
-                        <b>Secuencia ruta:</b> {cliente['secuencia_ruta']}
-                    </div>
-                </div>
-                """,
-                height=320
-            )
+            st.info("Información inventarios")
 
         with c3:
-            html_card(
-                f"""
-                <div style="
-                    font-family:Arial;
-                    background:white;
-                    padding:22px;
-                    border-radius:18px;
-                    box-shadow:0 2px 12px rgba(0,0,0,.08);
-                ">
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-                        ⚠️ ALERTAS
-                    </div>
-
-                    <div style="line-height:2;font-size:15px;">
-                        <b>Crítico:</b> {cliente['cliente_critico']}<br>
-                        <b>Estatus:</b> {cliente['estatus']}<br>
-                        <b>Servicio:</b> {cliente['nivel_servicio']}<br>
-                        <b>Ruta:</b> {cliente['ruta']}<br>
-                        <b>Prioridad:</b> {cliente['prioridad_ruta']}
-                    </div>
-                </div>
-                """,
-                height=320
-            )
+            st.info("Alertas")
 
         mapa_col1, mapa_col2 = st.columns([2, 1])
 
         with mapa_col1:
-            with st.container(border=True):
-                st.subheader("🗺️ Ubicación geográfica cliente")
 
-                df_mapa = pd.DataFrame({
-                    "lat": [
-                        pd.to_numeric(
-                            cliente["latitud"],
-                            errors="coerce"
-                        )
-                    ],
-                    "lon": [
-                        pd.to_numeric(
-                            cliente["longitud"],
-                            errors="coerce"
-                        )
-                    ]
-                }).dropna()
+            st.markdown('<div class="mapa-box">', unsafe_allow_html=True)
 
-                if not df_mapa.empty:
-                    st.map(
-                        df_mapa,
-                        latitude="lat",
-                        longitude="lon",
-                        size=250
+            st.subheader("🗺️ Ubicación geográfica cliente")
+
+            df_mapa = pd.DataFrame({
+                "lat": [
+                    pd.to_numeric(
+                        cliente["latitud"],
+                        errors="coerce"
                     )
-                else:
-                    st.info("Cliente sin coordenadas.")
+                ],
+                "lon": [
+                    pd.to_numeric(
+                        cliente["longitud"],
+                        errors="coerce"
+                    )
+                ]
+            }).dropna()
+
+            if not df_mapa.empty:
+                st.map(
+                    df_mapa,
+                    latitude="lat",
+                    longitude="lon",
+                    size=250
+                )
+            else:
+                st.info("Cliente sin coordenadas.")
+
+            st.markdown('</div>', unsafe_allow_html=True)
 
         with mapa_col2:
-            html_card(
-                f"""
-                <div style="
-                    font-family:Arial;
-                    background:white;
-                    padding:22px;
-                    border-radius:18px;
-                    box-shadow:0 2px 12px rgba(0,0,0,.08);
-                ">
-                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-                        📞 CONTACTO OPERATIVO
-                    </div>
-
-                    <div style="line-height:2;font-size:15px;">
-                        <b>Contacto:</b> {cliente['contacto_entrega']}<br>
-                        <b>Teléfono:</b> {cliente['telefono_contacto']}<br>
-                        <b>Correo:</b> {cliente['correo_contacto']}<br>
-                        <b>Dirección:</b> {cliente['direccion_entrega']}
-                    </div>
-                </div>
-                """,
-                height=360
-            )
+            st.info("Contacto operativo")
 
         tab1, tab2, tab3 = st.tabs([
             "📦 Inventarios",
@@ -462,6 +391,7 @@ def consulta_clientes_inventarios_app():
                 st.metric("Ruta", cliente["ruta"])
 
         with tab3:
+
             columnas = [
                 "codigo_cliente",
                 "nombre_cliente",
