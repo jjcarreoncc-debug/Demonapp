@@ -639,12 +639,40 @@ def agregar_caja_3d(fig, x0, y0, z0, dx, dy, dz, texto, color):
     )
 
 
-def mostrar_grafico_armado_3d(df_tarimas):
+def mostrar_grafico_armado_3d(df_tarimas, condiciones, cliente_base):
     if df_tarimas.empty:
         st.info("No hay tarimas para graficar.")
         return
 
     df_plot = df_tarimas.copy()
+
+    tipo_tarima_cliente = condiciones.get(
+        "tipo_tarima",
+        "Tarima estándar"
+    )
+
+    altura_maxima = condiciones.get(
+        "altura_maxima_m",
+        ""
+    )
+
+    peso_maximo = condiciones.get(
+        "peso_maximo_kg",
+        ""
+    )
+
+    requiere_etiqueta = "Sí" if condiciones.get(
+        "requiere_etiqueta"
+    ) else "No"
+
+    requiere_emplayado = "Sí" if condiciones.get(
+        "requiere_emplayado"
+    ) else "No"
+
+    observacion_cliente = condiciones.get(
+        "observacion",
+        ""
+    )
 
     max_tarimas = 12
 
@@ -653,6 +681,12 @@ def mostrar_grafico_armado_3d(df_tarimas):
             f"Se muestran las primeras {max_tarimas} tarimas para mantener legible la simulación."
         )
         df_plot = df_plot.head(max_tarimas)
+
+    st.info(
+        f"Cliente: {cliente_base} | Tipo de tarima: {tipo_tarima_cliente} | "
+        f"Altura máxima: {altura_maxima} m | Peso máximo: {peso_maximo} kg | "
+        f"Etiqueta: {requiere_etiqueta} | Emplayado: {requiere_emplayado}"
+    )
 
     fig = go.Figure()
 
@@ -691,13 +725,22 @@ def mostrar_grafico_armado_3d(df_tarimas):
         volumen_estimado = float(row.get("volumen_estimado", 0))
 
         texto_base = (
-            f"Tarima {numero_tarima}<br>"
+            f"<b>Tarima {numero_tarima}</b><br>"
+            f"Cliente: {cliente_base}<br>"
             f"Material: {codigo_material}<br>"
-            f"{descripcion}<br>"
+            f"{descripcion}<br><br>"
+            f"<b>Armado</b><br>"
             f"Piezas: {cantidad_piezas:,.2f}<br>"
             f"Cajas: {cantidad_cajas}<br>"
-            f"Peso: {peso_estimado:,.2f} kg<br>"
-            f"Volumen: {volumen_estimado:,.2f} m³"
+            f"Peso estimado: {peso_estimado:,.2f} kg<br>"
+            f"Volumen estimado: {volumen_estimado:,.2f} m³<br><br>"
+            f"<b>Condiciones cliente</b><br>"
+            f"Tipo tarima: {tipo_tarima_cliente}<br>"
+            f"Altura máxima: {altura_maxima} m<br>"
+            f"Peso máximo: {peso_maximo} kg<br>"
+            f"Etiqueta requerida: {requiere_etiqueta}<br>"
+            f"Emplayado: {requiere_emplayado}<br>"
+            f"Observación: {observacion_cliente}"
         )
 
         agregar_caja_3d(
@@ -730,10 +773,13 @@ def mostrar_grafico_armado_3d(df_tarimas):
             z = alto_base + cama * caja_z
 
             texto_caja = (
-                f"Tarima {numero_tarima}<br>"
-                f"Caja {caja + 1}<br>"
+                f"<b>Tarima {numero_tarima} / Caja {caja + 1}</b><br>"
+                f"Cliente: {cliente_base}<br>"
                 f"Material: {codigo_material}<br>"
-                f"{descripcion}"
+                f"{descripcion}<br>"
+                f"Tipo tarima: {tipo_tarima_cliente}<br>"
+                f"Etiqueta: {requiere_etiqueta}<br>"
+                f"Emplayado: {requiere_emplayado}"
             )
 
             agregar_caja_3d(
@@ -1069,7 +1115,7 @@ def hoja_carga_app():
             )
 
         with tab_grafico:
-            mostrar_grafico_armado_3d(df_tarimas)
+            mostrar_grafico_armado_3d(df_tarimas, condiciones, cliente_base)
 
         with tab_validaciones:
 
