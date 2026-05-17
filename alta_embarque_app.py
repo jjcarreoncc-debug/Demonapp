@@ -14,7 +14,6 @@ st.set_page_config(
 )
 
 
-
 # =====================================================
 # UTILIDADES
 # =====================================================
@@ -79,12 +78,6 @@ def obtener_hojas_carga_pendientes():
         get_db_path("logistica")
     )
 
-    inventarios_db = get_db_path("inventarios")
-
-    conn.execute(
-        f"ATTACH DATABASE '{inventarios_db}' AS inv"
-    )
-
     query = """
         SELECT
 
@@ -96,17 +89,17 @@ def obtener_hojas_carga_pendientes():
 
             h.destino,
 
-            h.estatus,
+            h.estatus_hoja AS estatus,
 
             COUNT(d.codigo_material) AS materiales,
 
-            ROUND(COALESCE(SUM(d.peso), 0), 2) AS peso_total,
+            ROUND(COALESCE(SUM(d.peso_calculado), 0), 2) AS peso_total,
 
-            ROUND(COALESCE(SUM(d.volumen), 0), 2) AS volumen_total
+            ROUND(COALESCE(SUM(d.volumen_calculado), 0), 2) AS volumen_total
 
-        FROM inv.hoja_carga h
+        FROM hojas_carga h
 
-        LEFT JOIN inv.detalle_hoja_carga d
+        LEFT JOIN detalle_hoja_carga d
             ON h.folio_hoja_carga = d.folio_hoja_carga
 
         WHERE h.folio_hoja_carga NOT IN (
@@ -129,7 +122,7 @@ def obtener_hojas_carga_pendientes():
 
             h.destino,
 
-            h.estatus
+            h.estatus_hoja
 
         ORDER BY h.folio_hoja_carga DESC
     """
@@ -151,7 +144,7 @@ def obtener_hojas_carga_pendientes():
 def obtener_detalle_hoja_carga(folio_hoja_carga):
 
     conn = sqlite3.connect(
-        get_db_path("inventarios")
+        get_db_path("logistica")
     )
 
     query = """
@@ -165,17 +158,17 @@ def obtener_detalle_hoja_carga(folio_hoja_carga):
 
             descripcion,
 
-            cantidad_pedido,
+            cantidad_reservada AS cantidad_pedido,
 
-            cantidad_surtida,
+            cantidad_reservada AS cantidad_surtida,
 
-            bodega,
+            '' AS bodega,
 
-            ubicacion,
+            '' AS ubicacion,
 
-            peso,
+            peso_calculado AS peso,
 
-            volumen,
+            volumen_calculado AS volumen,
 
             observaciones
 
@@ -461,6 +454,57 @@ def crear_embarques_desde_hojas(df_seleccionadas, transporte):
 
 
 # =====================================================
+# APLICAR FILTROS SIDEBAR
+# =====================================================
+
+def aplicar_filtros_sidebar(df_hojas):
+
+    df_hojas_filtrado = df_hojas.copy()
+
+    if (
+        "filtro_folio_hoja_carga" in st.session_state
+        and st.session_state.filtro_folio_hoja_carga != "Todos"
+    ):
+
+        df_hojas_filtrado = df_hojas_filtrado[
+            df_hojas_filtrado["folio_hoja_carga"].astype(str)
+            == st.session_state.filtro_folio_hoja_carga
+        ]
+
+    if (
+        "filtro_cliente" in st.session_state
+        and st.session_state.filtro_cliente != "Todos"
+    ):
+
+        df_hojas_filtrado = df_hojas_filtrado[
+            df_hojas_filtrado["cliente"].astype(str)
+            == st.session_state.filtro_cliente
+        ]
+
+    if (
+        "filtro_destino" in st.session_state
+        and st.session_state.filtro_destino != "Todos"
+    ):
+
+        df_hojas_filtrado = df_hojas_filtrado[
+            df_hojas_filtrado["destino"].astype(str)
+            == st.session_state.filtro_destino
+        ]
+
+    if (
+        "filtro_estatus" in st.session_state
+        and st.session_state.filtro_estatus != "Todos"
+    ):
+
+        df_hojas_filtrado = df_hojas_filtrado[
+            df_hojas_filtrado["estatus"].astype(str)
+            == st.session_state.filtro_estatus
+        ]
+
+    return df_hojas_filtrado
+
+
+# =====================================================
 # APP
 # =====================================================
 
@@ -514,6 +558,20 @@ def alta_embarque_app():
 
     df_hojas["seleccionar"] = False
 
+    st.session_state.df_hojas_sidebar = df_hojas
+
+    df_hojas_filtrado = aplicar_filtros_sidebar(
+        df_hojas
+    )
+
+    if df_hojas_filtrado.empty:
+
+        st.warning(
+            "No existen hojas de carga con los filtros seleccionados."
+        )
+
+        return
+
     # =====================================================
     # TABS
     # =====================================================
@@ -561,7 +619,7 @@ def alta_embarque_app():
 
         df_editor = st.data_editor(
 
-            df_hojas[columnas_mostrar],
+            df_hojas_filtrado[columnas_mostrar],
 
             hide_index=True,
 
@@ -889,7 +947,7 @@ def alta_embarque_app():
 
             disabled=not validacion_ok
         ):
-            #######
+
             try:
 
                 resultado = procesar_confirmacion_embarque(
@@ -912,13 +970,6 @@ def alta_embarque_app():
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
-            except Exception as e:
-
-                st.error(
-                    "❌ Error creando embarques."
-                )
-
-                st.exception(e)
             except Exception as e:
 
                 st.error(
@@ -1042,7 +1093,6 @@ def alta_embarque_app():
 
             fig = go.Figure()
 
-            # Caja transporte
             fig.add_trace(
 
                 go.Mesh3d(
@@ -1076,7 +1126,6 @@ def alta_embarque_app():
                 )
             )
 
-            # Carga
             fig.add_trace(
 
                 go.Mesh3d(
