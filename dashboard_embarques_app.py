@@ -48,6 +48,7 @@ def obtener_embarques():
             e.ruta,
             e.estatus,
 
+            i.folio_incidencia,
             i.tipo_incidencia,
             i.prioridad AS prioridad_incidencia,
             i.estatus AS estatus_incidencia,
@@ -66,21 +67,21 @@ def obtener_embarques():
             INNER JOIN (
 
                 SELECT
-                    folio_embarque,
+                    codigo_transporte,
                     MAX(fecha) AS max_fecha
 
                 FROM incidencias
 
-                GROUP BY folio_embarque
+                GROUP BY codigo_transporte
 
             ) ult
 
-            ON i1.folio_embarque = ult.folio_embarque
+            ON i1.codigo_transporte = ult.codigo_transporte
             AND i1.fecha = ult.max_fecha
 
         ) i
 
-        ON e.folio_embarque = i.folio_embarque
+        ON e.codigo_transporte = i.codigo_transporte
 
         WHERE IFNULL(e.estatus, '') IN (
             'Pendiente carga',
@@ -121,7 +122,13 @@ def preparar_transportes(df):
         "ruta",
         "cliente",
         "destino",
-        "estatus"
+        "estatus",
+        "folio_incidencia",
+        "tipo_incidencia",
+        "prioridad_incidencia",
+        "estatus_incidencia",
+        "descripcion_incidencia",
+        "fecha_incidencia"
     ]:
 
         if col not in df.columns:
@@ -136,6 +143,10 @@ def preparar_transportes(df):
     df["transporte_display"] = (
         df["codigo_transporte"]
         .replace("", "SIN TR")
+    )
+
+    df["tiene_incidencia"] = df["folio_incidencia"].apply(
+        lambda x: "Sí" if str(x).strip() != "" else "No"
     )
 
     return df
@@ -158,7 +169,13 @@ def generar_df_transportes(df):
                 "placas",
                 "operador",
                 "ruta",
-                "estatus"
+                "estatus",
+                "folio_incidencia",
+                "tipo_incidencia",
+                "prioridad_incidencia",
+                "estatus_incidencia",
+                "fecha_incidencia",
+                "tiene_incidencia"
             ],
             dropna=False
         )
@@ -174,6 +191,42 @@ def generar_df_transportes(df):
     )
 
     return resumen
+
+
+# =====================================================
+# RESUMEN INCIDENCIAS
+# =====================================================
+
+def generar_resumen_incidencias(df_transportes):
+
+    df_inc = df_transportes[
+        df_transportes["tiene_incidencia"] == "Sí"
+    ].copy()
+
+    total = len(df_inc)
+
+    abiertas = df_inc[
+        df_inc["estatus_incidencia"]
+        .astype(str)
+        .str.lower()
+        .str.contains("abierta|pendiente|en proceso", na=False)
+    ].shape[0]
+
+    medias = df_inc[
+        df_inc["prioridad_incidencia"]
+        .astype(str)
+        .str.lower()
+        .str.contains("media", na=False)
+    ].shape[0]
+
+    altas = df_inc[
+        df_inc["prioridad_incidencia"]
+        .astype(str)
+        .str.lower()
+        .str.contains("alta|crítica|critica", na=False)
+    ].shape[0]
+
+    return df_inc, total, abiertas, medias, altas
 
 
 # =====================================================
@@ -412,6 +465,26 @@ def pintar_matriz_estatus(df_transportes):
                 alt.Tooltip(
                     "hojas_carga:Q",
                     title="Hojas carga"
+                ),
+
+                alt.Tooltip(
+                    "folio_incidencia:N",
+                    title="Incidencia"
+                ),
+
+                alt.Tooltip(
+                    "tipo_incidencia:N",
+                    title="Tipo incidencia"
+                ),
+
+                alt.Tooltip(
+                    "prioridad_incidencia:N",
+                    title="Prioridad"
+                ),
+
+                alt.Tooltip(
+                    "estatus_incidencia:N",
+                    title="Estatus incidencia"
                 )
             ]
 
@@ -519,6 +592,10 @@ def dashboard_embarques_app():
         )
     ].shape[0]
 
+    df_inc, total_inc, abiertas_inc, medias_inc, altas_inc = (
+        generar_resumen_incidencias(df_transportes)
+    )
+
     st.divider()
 
     c1, c2, c3, c4 = st.columns(4)
@@ -545,6 +622,64 @@ def dashboard_embarques_app():
 
     st.divider()
 
+    i1, i2, i3, i4 = st.columns(4)
+
+    i1.metric(
+        "🚨 Incidencias",
+        total_inc
+    )
+
+    i2.metric(
+        "🔴 Abiertas",
+        abiertas_inc
+    )
+
+    i3.metric(
+        "🟠 Media",
+        medias_inc
+    )
+
+    i4.metric(
+        "⚠️ Alta / crítica",
+        altas_inc
+    )
+
+    if total_inc > 0:
+
+        with st.expander(
+            "🚨 Ver resumen de incidencias",
+            expanded=False
+        ):
+
+            columnas_inc = [
+                "folio_incidencia",
+                "codigo_transporte",
+                "tipo_incidencia",
+                "prioridad_incidencia",
+                "estatus_incidencia",
+                "fecha_incidencia",
+                "transportista",
+                "vehiculo",
+                "placas",
+                "operador",
+                "ruta"
+            ]
+
+            columnas_inc = [
+                col
+                for col in columnas_inc
+                if col in df_inc.columns
+            ]
+
+            st.dataframe(
+                df_inc[columnas_inc],
+                use_container_width=True,
+                hide_index=True,
+                height=220
+            )
+
+    st.divider()
+
     st.subheader(
         "🚦 Trazabilidad por transporte"
     )
@@ -559,8 +694,33 @@ def dashboard_embarques_app():
         "🚛 Transportes activos"
     )
 
+    columnas_transportes = [
+        "codigo_transporte",
+        "estatus",
+        "transportista",
+        "vehiculo",
+        "placas",
+        "operador",
+        "ruta",
+        "embarques",
+        "hojas_carga",
+        "clientes",
+        "destinos",
+        "tiene_incidencia",
+        "folio_incidencia",
+        "tipo_incidencia",
+        "prioridad_incidencia",
+        "estatus_incidencia"
+    ]
+
+    columnas_transportes = [
+        col
+        for col in columnas_transportes
+        if col in df_transportes.columns
+    ]
+
     st.dataframe(
-        df_transportes,
+        df_transportes[columnas_transportes],
         use_container_width=True,
         hide_index=True,
         height=320
@@ -600,11 +760,15 @@ def dashboard_embarques_app():
 
         "pedido",
 
+        "folio_incidencia",
+
         "tipo_incidencia",
 
         "prioridad_incidencia",
 
-        "estatus_incidencia"
+        "estatus_incidencia",
+
+        "fecha_incidencia"
     ]
 
     columnas_detalle = [
