@@ -256,51 +256,56 @@ with st.sidebar:
 ruta_central = st.session_state.get(
     "ruta_central",
     ""
-)
+).strip().lower()
 
-st.write("RUTA CENTRAL:", ruta_central)
+# =====================================================
+# INVENTARIOS
+# =====================================================
 
-if ruta_central == "inventarios":
+if ruta_central in [
 
-    inventarios_app()
+    "inventarios",
+    "datos_maestros",
+    "operacion_inventario",
+    "operacion_logistica",
+    "consulta_analiticos",
+    "inventario_fisico",
+    "consulta_clientes"
 
-elif ruta_central == "datos_maestros":
-
-    inventarios_app()
-
-elif ruta_central == "operacion_inventario":
-
-    inventarios_app()
-
-elif ruta_central == "operacion_logistica":
-
-    inventarios_app()
-
-elif ruta_central == "consulta_analiticos":
+]:
 
     inventarios_app()
 
-elif ruta_central == "inventario_fisico":
-
-    inventarios_app()
+# =====================================================
+# LOGISTICA
+# =====================================================
 
 elif ruta_central == "logistica":
 
     logistica_app()
 
+# =====================================================
+# ANALITICO
+# =====================================================
+
 elif ruta_central == "analitico":
 
     analitico_app()
 
+# =====================================================
+# MANTENIMIENTO
+# =====================================================
+
 elif ruta_central == "mantenimiento":
 
     mantenimiento_app()
+
+# =====================================================
+# DEFAULT
+# =====================================================
 
 else:
 
     st.info(
         "Selecciona un módulo del menú lateral para comenzar."
     )
-# =====================================================
-# ROUTER CENTRAL
-# =====================================================
