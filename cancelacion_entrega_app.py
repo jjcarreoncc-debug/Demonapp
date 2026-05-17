@@ -34,6 +34,79 @@ col_filtros, col_dashboard = st.columns(
 )
 
 
+# =====================================================
+# KPIS
+# =====================================================
+k1, k2, k3, k4, k5, k6 = st.columns(6)
+
+with k1:
+    st.metric("Pedidos", total_pedidos)
+
+with k2:
+    st.metric("Líneas", total_lineas)
+
+with k3:
+    st.metric("Listas", total_listas)
+
+with k4:
+    st.metric("Parciales", total_parciales)
+
+with k5:
+    st.metric("Sin inventario", total_sin_inventario)
+
+with k6:
+    st.metric("Asignadas", total_asignadas)
+
+# =====================================================
+# ESTILOS KPI
+# =====================================================
+
+st.markdown("""
+<style>
+
+/* KPI CARDS */
+
+div[data-testid="metric-container"] {
+
+    background-color: #FFFFFF;
+
+    border: 1px solid #D1D5DB;
+
+    padding: 18px;
+
+    border-radius: 16px;
+
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+}
+
+/* TITULO KPI */
+
+div[data-testid="metric-container"] label {
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    color: #374151;
+
+}
+
+/* VALOR KPI */
+
+div[data-testid="metric-container"] div {
+
+    font-size: 34px;
+
+    font-weight: bold;
+
+    color: #111827;
+
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 # ============================================================
 # UTILIDADES
 # ============================================================
