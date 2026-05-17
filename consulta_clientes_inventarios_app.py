@@ -5,11 +5,12 @@ import sqlite3
 from sigem_db import get_db_path
 
 
-st.set_page_config(
+t.set_page_config(
     page_title="SIGEM",
-    page_icon="📦",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
 
 
 st.markdown("""
