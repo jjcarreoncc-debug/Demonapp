@@ -55,7 +55,7 @@ def generar_folio_embarque():
 
 def obtener_detalle_hoja_carga(folio_hoja_carga):
 
-    conn = sqlite3.connect(get_db_path("inventarios"))
+    conn = sqlite3.connect(get_db_path("logistica"))
 
     query = """
         SELECT
