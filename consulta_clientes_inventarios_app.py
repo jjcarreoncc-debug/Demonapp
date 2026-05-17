@@ -521,20 +521,116 @@ def consulta_clientes_inventarios_app():
             "📋 Grid clientes"
         ])
 
+
         with tab1:
-            i1, i2, i3, i4 = st.columns(4)
 
-            with i1:
-                st.metric("Cliente crítico", cliente["cliente_critico"])
+            st.markdown("### 📦 Simulación Operativa Inventarios")
 
-            with i2:
-                st.metric("Nivel servicio", cliente["nivel_servicio"])
+            sim_col1, sim_col2 = st.columns([2, 1])
 
-            with i3:
-                st.metric("Tipo cliente", cliente["tipo_cliente"])
+            with sim_col1:
 
-            with i4:
-                st.metric("Estatus", cliente["estatus"])
+                html_card(
+                    f"""
+                    <div style="
+                        background:#ffffff;
+                        border-radius:20px;
+                        padding:24px;
+                        height:420px;
+                        box-shadow:0 2px 12px rgba(0,0,0,.08);
+                        font-family:Arial;
+                        position:relative;
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            font-size:24px;
+                            font-weight:bold;
+                            margin-bottom:18px;
+                            color:#111827;
+                        ">
+                            📦 Simulación Tarima Cliente
+                        </div>
+
+                        <div style="
+                            position:absolute;
+                            left:90px;
+                            top:150px;
+                            width:240px;
+                            height:140px;
+                            background:#c08457;
+                            border-radius:8px;
+                            transform:skew(-12deg);
+                            box-shadow:0 12px 18px rgba(0,0,0,.20);
+                        "></div>
+
+                        <div style="
+                            position:absolute;
+                            left:110px;
+                            top:90px;
+                            width:200px;
+                            height:90px;
+                            background:#60a5fa;
+                            border-radius:10px;
+                            box-shadow:0 10px 20px rgba(0,0,0,.15);
+                        "></div>
+
+                        <div style="
+                            position:absolute;
+                            left:350px;
+                            top:70px;
+                            font-size:16px;
+                            color:#374151;
+                            line-height:2;
+                        ">
+                            <b>Tipo:</b> {cliente['tipo_tarima']}<br>
+                            <b>Peso máximo:</b> {cliente['peso_max_tarima']}<br>
+                            <b>Altura máxima:</b> {cliente['altura_max_tarima']}<br>
+                            <b>Servicio:</b> {cliente['nivel_servicio']}
+                        </div>
+
+                    </div>
+                    """,
+                    height=430
+                )
+
+            with sim_col2:
+
+                st.metric(
+                    "📦 Tipo tarima",
+                    cliente["tipo_tarima"]
+                )
+
+                st.metric(
+                    "⚖️ Peso máximo",
+                    cliente["peso_max_tarima"]
+                )
+
+                st.metric(
+                    "📏 Altura máxima",
+                    cliente["altura_max_tarima"]
+                )
+
+                st.metric(
+                    "📦 Emplaye",
+                    cliente["requiere_emplaye"]
+                )
+
+                st.metric(
+                    "🏷️ Etiqueta",
+                    cliente["requiere_etiqueta"]
+                )
+
+                st.metric(
+                    "📄 Factura",
+                    cliente["requiere_factura_impresa"]
+                )
+
+                st.metric(
+                    "📦 Parcial",
+                    cliente["permite_entrega_parcial"]
+                )
+
 
         with tab2:
             u1, u2, u3 = st.columns(3)
