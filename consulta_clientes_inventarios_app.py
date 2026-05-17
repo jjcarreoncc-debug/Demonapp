@@ -522,114 +522,481 @@ def consulta_clientes_inventarios_app():
         ])
 
 
+
         with tab1:
 
-            st.markdown("### 📦 Simulación Operativa Inventarios")
+            tipo_tarima = cliente.get("tipo_tarima", "")
+            peso_max_tarima = cliente.get("peso_max_tarima", "")
+            altura_max_tarima = cliente.get("altura_max_tarima", "")
+            requiere_emplaye = cliente.get("requiere_emplaye", "")
+            requiere_etiqueta = cliente.get("requiere_etiqueta", "")
+            requiere_factura = cliente.get("requiere_factura_impresa", "")
+            permite_parcial = cliente.get("permite_entrega_parcial", "")
+            nivel_servicio = cliente.get("nivel_servicio", "")
+            cliente_critico = cliente.get("cliente_critico", "")
+            estatus_cliente = cliente.get("estatus", "")
 
-            sim_col1, sim_col2 = st.columns([2, 1])
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial, sans-serif;
+                    background:#ffffff;
+                    border-radius:22px;
+                    padding:22px;
+                    box-sizing:border-box;
+                    width:100%;
+                    height:720px;
+                    overflow:hidden;
+                ">
 
-            with sim_col1:
-
-                html_card(
-                    f"""
                     <div style="
-                        background:#ffffff;
-                        border-radius:20px;
-                        padding:24px;
-                        height:420px;
-                        box-shadow:0 2px 12px rgba(0,0,0,.08);
-                        font-family:Arial;
-                        position:relative;
-                        overflow:hidden;
+                        display:flex;
+                        align-items:center;
+                        justify-content:space-between;
+                        margin-bottom:18px;
+                    ">
+                        <div>
+                            <div style="
+                                font-size:26px;
+                                font-weight:800;
+                                color:#111827;
+                                margin-bottom:4px;
+                            ">
+                                📦 Simulación 3D de restricciones de cliente
+                            </div>
+                            <div style="
+                                font-size:15px;
+                                color:#6b7280;
+                            ">
+                                Visualización de capacidades y requerimientos operativos de inventarios
+                            </div>
+                        </div>
+
+                        <div style="
+                            display:flex;
+                            gap:10px;
+                            align-items:center;
+                        ">
+                            <div style="
+                                border:1px solid #d9dee8;
+                                border-radius:12px;
+                                padding:12px 18px;
+                                font-size:14px;
+                                font-weight:700;
+                                color:#111827;
+                                background:#ffffff;
+                            ">
+                                🧊 Vista 3D
+                            </div>
+                            <div style="
+                                border:1px solid #d9dee8;
+                                border-radius:12px;
+                                padding:12px 18px;
+                                font-size:14px;
+                                font-weight:700;
+                                color:#111827;
+                                background:#ffffff;
+                            ">
+                                🔄 Valores del cliente
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="
+                        display:grid;
+                        grid-template-columns: 2.1fr 1fr;
+                        gap:18px;
+                        height:610px;
                     ">
 
                         <div style="
-                            font-size:24px;
-                            font-weight:bold;
-                            margin-bottom:18px;
-                            color:#111827;
+                            position:relative;
+                            border-radius:18px;
+                            overflow:hidden;
+                            background:
+                                linear-gradient(120deg, rgba(17,24,39,.78), rgba(55,65,81,.38)),
+                                linear-gradient(180deg, #e5e7eb 0%, #d1d5db 45%, #9ca3af 100%);
+                            box-shadow:0 2px 14px rgba(0,0,0,.12);
                         ">
-                            📦 Simulación Tarima Cliente
+
+                            <div style="
+                                position:absolute;
+                                left:0;
+                                right:0;
+                                bottom:0;
+                                height:220px;
+                                background:
+                                    linear-gradient(135deg, transparent 0 48%, rgba(255,255,255,.18) 49% 51%, transparent 52%),
+                                    linear-gradient(45deg, transparent 0 48%, rgba(255,255,255,.14) 49% 51%, transparent 52%),
+                                    #6b7280;
+                                background-size:90px 90px;
+                                clip-path:polygon(0 30%, 100% 0, 100% 100%, 0 100%);
+                                opacity:.65;
+                            "></div>
+
+                            <div style="
+                                position:absolute;
+                                left:24px;
+                                top:24px;
+                                width:285px;
+                                background:rgba(17,24,39,.82);
+                                color:white;
+                                border-radius:14px;
+                                padding:18px 20px;
+                                box-sizing:border-box;
+                                box-shadow:0 8px 22px rgba(0,0,0,.25);
+                            ">
+                                <div style="
+                                    font-size:17px;
+                                    font-weight:800;
+                                    margin-bottom:12px;
+                                ">
+                                    Especificaciones de tarima
+                                </div>
+
+                                <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,.15);padding:10px 0;font-size:14px;">
+                                    <div>Tipo tarima</div>
+                                    <div style="font-weight:800;color:#93c5fd;text-align:right;">{tipo_tarima}</div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,.15);padding:10px 0;font-size:14px;">
+                                    <div>Peso máximo</div>
+                                    <div style="font-weight:800;color:#86efac;text-align:right;">{peso_max_tarima}</div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,.15);padding:10px 0;font-size:14px;">
+                                    <div>Altura máxima</div>
+                                    <div style="font-weight:800;color:#7dd3fc;text-align:right;">{altura_max_tarima}</div>
+                                </div>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgba(255,255,255,.15);padding:10px 0 0 0;font-size:14px;">
+                                    <div>Nivel servicio</div>
+                                    <div style="font-weight:800;color:#fde68a;text-align:right;">{nivel_servicio}</div>
+                                </div>
+                            </div>
+
+                            <div style="
+                                position:absolute;
+                                left:342px;
+                                top:98px;
+                                width:380px;
+                                height:340px;
+                                transform:perspective(900px) rotateX(56deg) rotateZ(-37deg);
+                                transform-style:preserve-3d;
+                            ">
+                                <div style="
+                                    position:absolute;
+                                    width:340px;
+                                    height:260px;
+                                    background:linear-gradient(145deg,#b7793f,#d19a62);
+                                    border-radius:10px;
+                                    box-shadow:0 35px 40px rgba(0,0,0,.35);
+                                    transform:translateZ(0px);
+                                "></div>
+
+                                <div style="
+                                    position:absolute;
+                                    left:18px;
+                                    top:-125px;
+                                    width:300px;
+                                    height:230px;
+                                    background:
+                                        repeating-linear-gradient(90deg, rgba(255,255,255,.22) 0 2px, transparent 2px 42px),
+                                        repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 2px, transparent 2px 42px),
+                                        linear-gradient(145deg,#a56b38,#c48a4f);
+                                    border-radius:10px;
+                                    box-shadow:0 18px 25px rgba(0,0,0,.28);
+                                    transform:translateZ(120px);
+                                "></div>
+
+                                <div style="
+                                    position:absolute;
+                                    left:18px;
+                                    top:-125px;
+                                    width:300px;
+                                    height:230px;
+                                    background:repeating-linear-gradient(0deg, rgba(255,255,255,.26) 0 3px, transparent 3px 18px);
+                                    border-radius:10px;
+                                    opacity:.48;
+                                    transform:translateZ(122px);
+                                "></div>
+
+                                <div style="
+                                    position:absolute;
+                                    left:35px;
+                                    top:120px;
+                                    width:55px;
+                                    height:36px;
+                                    background:#8b5a2b;
+                                    border-radius:4px;
+                                    transform:translateZ(12px);
+                                "></div>
+                                <div style="
+                                    position:absolute;
+                                    left:140px;
+                                    top:142px;
+                                    width:55px;
+                                    height:36px;
+                                    background:#8b5a2b;
+                                    border-radius:4px;
+                                    transform:translateZ(12px);
+                                "></div>
+                                <div style="
+                                    position:absolute;
+                                    left:245px;
+                                    top:165px;
+                                    width:55px;
+                                    height:36px;
+                                    background:#8b5a2b;
+                                    border-radius:4px;
+                                    transform:translateZ(12px);
+                                "></div>
+                            </div>
+
+                            <div style="
+                                position:absolute;
+                                left:280px;
+                                bottom:92px;
+                                width:235px;
+                                height:5px;
+                                background:#22c55e;
+                                transform:rotate(15deg);
+                                border-radius:99px;
+                                box-shadow:0 0 10px rgba(34,197,94,.45);
+                            "></div>
+                            <div style="
+                                position:absolute;
+                                left:298px;
+                                bottom:65px;
+                                background:rgba(17,24,39,.82);
+                                color:white;
+                                border-radius:10px;
+                                padding:10px 16px;
+                                text-align:center;
+                                font-size:14px;
+                                box-shadow:0 6px 16px rgba(0,0,0,.25);
+                            ">
+                                Largo<br><b style="font-size:20px;">Tarima</b>
+                            </div>
+
+                            <div style="
+                                position:absolute;
+                                left:535px;
+                                bottom:92px;
+                                width:205px;
+                                height:5px;
+                                background:#ef4444;
+                                transform:rotate(-25deg);
+                                border-radius:99px;
+                                box-shadow:0 0 10px rgba(239,68,68,.45);
+                            "></div>
+                            <div style="
+                                position:absolute;
+                                left:640px;
+                                bottom:65px;
+                                background:rgba(17,24,39,.82);
+                                color:white;
+                                border-radius:10px;
+                                padding:10px 16px;
+                                text-align:center;
+                                font-size:14px;
+                                box-shadow:0 6px 16px rgba(0,0,0,.25);
+                            ">
+                                Ancho<br><b style="font-size:20px;">Tarima</b>
+                            </div>
+
+                            <div style="
+                                position:absolute;
+                                left:760px;
+                                top:130px;
+                                width:5px;
+                                height:260px;
+                                background:#3b82f6;
+                                border-radius:99px;
+                                box-shadow:0 0 10px rgba(59,130,246,.45);
+                            "></div>
+                            <div style="
+                                position:absolute;
+                                left:790px;
+                                top:250px;
+                                background:rgba(17,24,39,.82);
+                                color:white;
+                                border-radius:10px;
+                                padding:10px 16px;
+                                font-size:14px;
+                                box-shadow:0 6px 16px rgba(0,0,0,.25);
+                            ">
+                                Altura máx.<br><b style="font-size:20px;">{altura_max_tarima}</b>
+                            </div>
+
+                            <div style="
+                                position:absolute;
+                                left:24px;
+                                bottom:24px;
+                                width:190px;
+                                background:rgba(17,24,39,.82);
+                                color:white;
+                                border-radius:14px;
+                                padding:16px 18px;
+                                box-sizing:border-box;
+                                box-shadow:0 8px 22px rgba(0,0,0,.25);
+                            ">
+                                <div style="font-size:17px;font-weight:800;margin-bottom:14px;">Vista 3D</div>
+                                <div style="font-size:14px;line-height:2.1;">
+                                    🖱️ Arrastrar para rotar<br>
+                                    🔍 Scroll para acercar<br>
+                                    ✥ Click derecho para mover
+                                </div>
+                            </div>
+
+                            <div style="
+                                position:absolute;
+                                left:240px;
+                                right:24px;
+                                bottom:24px;
+                                display:grid;
+                                grid-template-columns:repeat(4,1fr);
+                                gap:10px;
+                            ">
+                                <div style="background:rgba(17,24,39,.78);color:white;border-radius:12px;padding:10px;text-align:center;border:2px solid #3b82f6;">📦<br>Frontal</div>
+                                <div style="background:rgba(17,24,39,.78);color:white;border-radius:12px;padding:10px;text-align:center;">📦<br>Lateral</div>
+                                <div style="background:rgba(17,24,39,.78);color:white;border-radius:12px;padding:10px;text-align:center;">▦<br>Superior</div>
+                                <div style="background:rgba(17,24,39,.78);color:white;border-radius:12px;padding:10px;text-align:center;">🧊<br>Perspectiva</div>
+                            </div>
                         </div>
 
                         <div style="
-                            position:absolute;
-                            left:90px;
-                            top:150px;
-                            width:240px;
-                            height:140px;
-                            background:#c08457;
-                            border-radius:8px;
-                            transform:skew(-12deg);
-                            box-shadow:0 12px 18px rgba(0,0,0,.20);
-                        "></div>
-
-                        <div style="
-                            position:absolute;
-                            left:110px;
-                            top:90px;
-                            width:200px;
-                            height:90px;
-                            background:#60a5fa;
-                            border-radius:10px;
-                            box-shadow:0 10px 20px rgba(0,0,0,.15);
-                        "></div>
-
-                        <div style="
-                            position:absolute;
-                            left:350px;
-                            top:70px;
-                            font-size:16px;
-                            color:#374151;
-                            line-height:2;
+                            display:grid;
+                            grid-template-rows:auto auto auto;
+                            gap:14px;
                         ">
-                            <b>Tipo:</b> {cliente['tipo_tarima']}<br>
-                            <b>Peso máximo:</b> {cliente['peso_max_tarima']}<br>
-                            <b>Altura máxima:</b> {cliente['altura_max_tarima']}<br>
-                            <b>Servicio:</b> {cliente['nivel_servicio']}
+
+                            <div style="
+                                background:#ffffff;
+                                border:1px solid #e5e7eb;
+                                border-radius:18px;
+                                padding:18px;
+                                box-shadow:0 2px 12px rgba(0,0,0,.08);
+                            ">
+                                <div style="
+                                    font-size:18px;
+                                    font-weight:800;
+                                    color:#111827;
+                                    margin-bottom:16px;
+                                ">
+                                    Resumen de capacidades
+                                </div>
+
+                                <div style="
+                                    display:grid;
+                                    grid-template-columns:1fr 1fr 1fr;
+                                    gap:10px;
+                                ">
+                                    <div style="border:1px solid #ddd6fe;border-radius:12px;padding:14px;text-align:center;">
+                                        <div style="font-size:30px;">⚖️</div>
+                                        <div style="font-size:13px;color:#1f2937;margin-top:8px;">Peso máximo</div>
+                                        <div style="font-size:21px;font-weight:800;color:#6d28d9;margin-top:6px;">{peso_max_tarima}</div>
+                                    </div>
+
+                                    <div style="border:1px solid #dbeafe;border-radius:12px;padding:14px;text-align:center;">
+                                        <div style="font-size:30px;">↕️</div>
+                                        <div style="font-size:13px;color:#1f2937;margin-top:8px;">Altura máxima</div>
+                                        <div style="font-size:21px;font-weight:800;color:#2563eb;margin-top:6px;">{altura_max_tarima}</div>
+                                    </div>
+
+                                    <div style="border:1px solid #dcfce7;border-radius:12px;padding:14px;text-align:center;">
+                                        <div style="font-size:30px;">▦</div>
+                                        <div style="font-size:13px;color:#1f2937;margin-top:8px;">Tipo tarima</div>
+                                        <div style="font-size:19px;font-weight:800;color:#15803d;margin-top:6px;">{tipo_tarima}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="
+                                background:#ffffff;
+                                border:1px solid #e5e7eb;
+                                border-radius:18px;
+                                padding:18px;
+                                box-shadow:0 2px 12px rgba(0,0,0,.08);
+                            ">
+                                <div style="
+                                    font-size:18px;
+                                    font-weight:800;
+                                    color:#111827;
+                                    margin-bottom:14px;
+                                ">
+                                    Requerimientos operativos
+                                </div>
+
+                                <div style="display:grid;gap:9px;">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding:8px 0;">
+                                        <span>🧻 Requiere emplaye</span>
+                                        <b style="background:#dcfce7;color:#166534;border-radius:10px;padding:5px 14px;">{requiere_emplaye}</b>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding:8px 0;">
+                                        <span>🏷️ Requiere etiqueta</span>
+                                        <b style="background:#dbeafe;color:#1d4ed8;border-radius:10px;padding:5px 14px;">{requiere_etiqueta}</b>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding:8px 0;">
+                                        <span>📄 Requiere factura impresa</span>
+                                        <b style="background:#ffedd5;color:#9a3412;border-radius:10px;padding:5px 14px;">{requiere_factura}</b>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+                                        <span>📦 Permite entrega parcial</span>
+                                        <b style="background:#dcfce7;color:#166534;border-radius:10px;padding:5px 14px;">{permite_parcial}</b>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="
+                                background:#ffffff;
+                                border:1px solid #e5e7eb;
+                                border-radius:18px;
+                                padding:18px;
+                                box-shadow:0 2px 12px rgba(0,0,0,.08);
+                            ">
+                                <div style="
+                                    font-size:18px;
+                                    font-weight:800;
+                                    color:#111827;
+                                    margin-bottom:12px;
+                                ">
+                                    Información adicional
+                                </div>
+
+                                <div style="display:grid;gap:10px;font-size:15px;">
+                                    <div style="display:flex;justify-content:space-between;">
+                                        <span>Nivel de servicio</span>
+                                        <b style="color:#f59e0b;">{nivel_servicio}</b>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;">
+                                        <span>Cliente crítico</span>
+                                        <b style="background:#fee2e2;color:#991b1b;border-radius:10px;padding:4px 12px;">{cliente_critico}</b>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;">
+                                        <span>Estatus</span>
+                                        <b style="background:#dcfce7;color:#166534;border-radius:10px;padding:4px 12px;">{estatus_cliente}</b>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
-                    """,
-                    height=430
-                )
 
-            with sim_col2:
+                    <div style="
+                        margin-top:14px;
+                        background:#eff6ff;
+                        border:1px solid #bfdbfe;
+                        color:#1e3a8a;
+                        border-radius:12px;
+                        padding:12px 16px;
+                        font-size:14px;
+                    ">
+                        ℹ️ Nota: la simulación toma los valores registrados del cliente seleccionado en la base de datos.
+                    </div>
 
-                st.metric(
-                    "📦 Tipo tarima",
-                    cliente["tipo_tarima"]
-                )
-
-                st.metric(
-                    "⚖️ Peso máximo",
-                    cliente["peso_max_tarima"]
-                )
-
-                st.metric(
-                    "📏 Altura máxima",
-                    cliente["altura_max_tarima"]
-                )
-
-                st.metric(
-                    "📦 Emplaye",
-                    cliente["requiere_emplaye"]
-                )
-
-                st.metric(
-                    "🏷️ Etiqueta",
-                    cliente["requiere_etiqueta"]
-                )
-
-                st.metric(
-                    "📄 Factura",
-                    cliente["requiere_factura_impresa"]
-                )
-
-                st.metric(
-                    "📦 Parcial",
-                    cliente["permite_entrega_parcial"]
-                )
+                </div>
+                """,
+                height=760
+            )
 
 
         with tab2:
