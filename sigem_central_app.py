@@ -265,6 +265,41 @@ if ruta_central == "inventarios":
 elif ruta_central == "datos_maestros":
 
     inventarios_app()
+elif ruta_central == "datos_maestros":
+
+    inventarios_app()
+
+elif ruta_central == "operacion_inventario":
+
+    inventarios_app()
+
+elif ruta_central == "operacion_logistica":
+
+    inventarios_app()
+
+elif ruta_central == "consulta_analiticos":
+
+    inventarios_app()
+
+elif ruta_central == "inventario_fisico":
+
+    inventarios_app()
+
+
+
+elif ruta_central == "logistica":
+
+    logistica_app()
+
+elif ruta_central == "analitico":
+
+    analitico_app()
+
+elif ruta_central == "mantenimiento":
+
+    mantenimiento_app()
+
+else:
 
 elif ruta_central == "logistica":
 
