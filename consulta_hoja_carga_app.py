@@ -268,4 +268,49 @@ def obtener_hojas_carga():
 
     return df
 
+# =====================================================
+# APP
+# =====================================================
 
+def consulta_hoja_carga_app():
+
+    aplicar_estilos()
+
+    st.markdown(
+        '<div class="titulo-app">📦 Centro operativo de hojas de carga</div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div class="subtitulo-app">Consulta operativa de hojas de carga, TR y detalle logístico.</div>',
+        unsafe_allow_html=True
+    )
+
+    df = obtener_hojas_carga()
+
+    if df.empty:
+
+        st.warning(
+            "No existen hojas de carga registradas."
+        )
+
+        return
+
+    st.success(
+        "✅ Módulo conectado correctamente."
+    )
+
+    st.dataframe(
+        df,
+        use_container_width=True,
+        height=500
+    )
+
+
+# =====================================================
+# EJECUCION
+# =====================================================
+
+if __name__ == "__main__":
+
+    consulta_hoja_carga_app()
