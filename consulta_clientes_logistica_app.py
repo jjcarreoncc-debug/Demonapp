@@ -1,13 +1,9 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import sqlite3
-import textwrap
 from sigem_db import get_db_path
 
-
-# =========================================================
-# CONFIG
-# =========================================================
 
 st.set_page_config(
     page_title="SIGEM",
@@ -16,107 +12,14 @@ st.set_page_config(
 )
 
 
-# =========================================================
-# FUNCION HTML
-# =========================================================
+def html_card(html, height=220):
 
-def html_card(html):
-
-    st.markdown(
-        textwrap.dedent(html),
-        unsafe_allow_html=True
+    components.html(
+        html,
+        height=height,
+        scrolling=False
     )
 
-
-# =========================================================
-# CSS
-# =========================================================
-
-st.markdown("""
-<style>
-
-/* =========================
-FONDO GENERAL
-========================= */
-
-.stApp {
-    background-color: #f3f6fb;
-}
-
-/* =========================
-TITULOS
-========================= */
-
-.main-title {
-    font-size: 34px;
-    font-weight: 700;
-    color: #111827;
-}
-
-.sub-title {
-    color: #6b7280;
-    font-size: 14px;
-    margin-bottom: 20px;
-}
-
-/* =========================
-CARDS
-========================= */
-
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    margin-bottom: 15px;
-}
-
-/* =========================
-BADGES
-========================= */
-
-.badge {
-    display:inline-block;
-    padding:6px 12px;
-    border-radius:20px;
-    font-size:12px;
-    font-weight:bold;
-    margin-right:8px;
-}
-
-.badge-green {
-    background:#dcfce7;
-    color:#166534;
-}
-
-.badge-red {
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.badge-blue {
-    background:#dbeafe;
-    color:#1d4ed8;
-}
-
-.kpi-title {
-    font-size:16px;
-    color:#6b7280;
-}
-
-.kpi-value {
-    font-size:34px;
-    font-weight:bold;
-    color:#2563eb;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# =========================================================
-# CONEXION
-# =========================================================
 
 def get_conn_logistica():
 
@@ -129,67 +32,58 @@ def get_conn_logistica():
     return conn
 
 
-# =========================================================
-# APP
-# =========================================================
-
 def consulta_clientes_logistica_app():
 
     conn = get_conn_logistica()
 
     try:
 
-        # =====================================================
-        # TITULO
-        # =====================================================
-
-        html_card("""
-        <div class='main-title'>
-            🚚 Consulta Clientes - Logística
-        </div>
-
-        <div class='sub-title'>
-            Dashboard ejecutivo clientes logísticos
-        </div>
-        """)
-
-        # =====================================================
-        # FILTROS
-        # =====================================================
+        html_card(
+            """
+            <div style="
+                font-family: Arial;
+                background:#f3f6fb;
+                padding:10px;
+            ">
+                <div style="
+                    font-size:34px;
+                    font-weight:700;
+                    color:#111827;
+                ">
+                    🚚 Consulta Clientes - Logística
+                </div>
+                <div style="
+                    color:#6b7280;
+                    font-size:14px;
+                ">
+                    Dashboard ejecutivo clientes logísticos
+                </div>
+            </div>
+            """,
+            height=90
+        )
 
         with st.container(border=True):
 
             f1, f2, f3, f4, f5 = st.columns(5)
 
             with f1:
-                filtro_cliente = st.text_input(
-                    "🔎 Cliente"
-                )
+                filtro_cliente = st.text_input("🔎 Cliente")
 
             with f2:
-                filtro_ciudad = st.text_input(
-                    "🏙️ Ciudad"
-                )
+                filtro_ciudad = st.text_input("🏙️ Ciudad")
 
             with f3:
-                filtro_estado = st.text_input(
-                    "📍 Estado"
-                )
+                filtro_estado = st.text_input("📍 Estado")
 
             with f4:
-                filtro_ruta = st.text_input(
-                    "🚚 Ruta"
-                )
+                filtro_ruta = st.text_input("🚚 Ruta")
 
             with f5:
                 filtro_estatus = st.selectbox(
                     "📊 Estatus",
                     ["Todos", "Activo", "Inactivo"]
                 )
-
-        # =====================================================
-        # QUERY
-        # =====================================================
 
         query = """
         SELECT *
@@ -200,7 +94,6 @@ def consulta_clientes_logistica_app():
         params = []
 
         if filtro_cliente:
-
             query += """
             AND (
                 nombre_cliente LIKE ?
@@ -208,58 +101,26 @@ def consulta_clientes_logistica_app():
                 OR razon_social LIKE ?
             )
             """
-
             valor = f"%{filtro_cliente}%"
-
-            params.extend([
-                valor,
-                valor,
-                valor
-            ])
+            params.extend([valor, valor, valor])
 
         if filtro_ciudad:
-
-            query += """
-            AND ciudad LIKE ?
-            """
-
-            params.append(
-                f"%{filtro_ciudad}%"
-            )
+            query += " AND ciudad LIKE ? "
+            params.append(f"%{filtro_ciudad}%")
 
         if filtro_estado:
-
-            query += """
-            AND estado LIKE ?
-            """
-
-            params.append(
-                f"%{filtro_estado}%"
-            )
+            query += " AND estado LIKE ? "
+            params.append(f"%{filtro_estado}%")
 
         if filtro_ruta:
-
-            query += """
-            AND ruta LIKE ?
-            """
-
-            params.append(
-                f"%{filtro_ruta}%"
-            )
+            query += " AND ruta LIKE ? "
+            params.append(f"%{filtro_ruta}%")
 
         if filtro_estatus != "Todos":
+            query += " AND estatus = ? "
+            params.append(filtro_estatus)
 
-            query += """
-            AND estatus = ?
-            """
-
-            params.append(
-                filtro_estatus
-            )
-
-        query += """
-        ORDER BY nombre_cliente
-        """
+        query += " ORDER BY nombre_cliente "
 
         df = pd.read_sql_query(
             query,
@@ -268,259 +129,260 @@ def consulta_clientes_logistica_app():
         )
 
         if df.empty:
-
-            st.warning(
-                "No se encontraron clientes."
-            )
-
+            st.warning("No se encontraron clientes.")
             return
 
-        # =====================================================
-        # KPIS
-        # =====================================================
+        total_criticos = len(
+            df[
+                df["cliente_critico"]
+                .astype(str)
+                .str.lower()
+                .isin(["si", "sí", "1", "true"])
+            ]
+        )
+
+        total_cita = len(
+            df[
+                df["requiere_cita"]
+                .astype(str)
+                .str.lower()
+                .isin(["si", "sí", "1", "true"])
+            ]
+        )
+
+        total_gps = len(
+            df[
+                df["gps_obligatorio"]
+                .astype(str)
+                .str.lower()
+                .isin(["si", "sí", "1", "true"])
+            ]
+        )
 
         k1, k2, k3, k4 = st.columns(4)
 
         with k1:
-
-            html_card(f"""
-            <div class='card'>
-                <div class='kpi-title'>👥 Clientes</div>
-                <div class='kpi-value'>{len(df)}</div>
-            </div>
-            """)
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:18px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    border-left:6px solid #2563eb;
+                ">
+                    <div style="font-size:16px;color:#6b7280;">
+                        👥 Clientes
+                    </div>
+                    <div style="font-size:34px;font-weight:bold;color:#2563eb;">
+                        {len(df)}
+                    </div>
+                </div>
+                """,
+                height=115
+            )
 
         with k2:
-
-            total_criticos = len(
-                df[
-                    df["cliente_critico"]
-                    .astype(str)
-                    .str.lower()
-                    .isin(["si","sí","1","true"])
-                ]
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:18px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    border-left:6px solid #dc2626;
+                ">
+                    <div style="font-size:16px;color:#6b7280;">
+                        🚨 Críticos
+                    </div>
+                    <div style="font-size:34px;font-weight:bold;color:#dc2626;">
+                        {total_criticos}
+                    </div>
+                </div>
+                """,
+                height=115
             )
-
-            html_card(f"""
-            <div class='card'>
-                <div class='kpi-title'>🚨 Críticos</div>
-                <div class='kpi-value'>{total_criticos}</div>
-            </div>
-            """)
 
         with k3:
-
-            total_cita = len(
-                df[
-                    df["requiere_cita"]
-                    .astype(str)
-                    .str.lower()
-                    .isin(["si","sí","1","true"])
-                ]
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:18px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    border-left:6px solid #f59e0b;
+                ">
+                    <div style="font-size:16px;color:#6b7280;">
+                        📅 Requiere cita
+                    </div>
+                    <div style="font-size:34px;font-weight:bold;color:#f59e0b;">
+                        {total_cita}
+                    </div>
+                </div>
+                """,
+                height=115
             )
-
-            html_card(f"""
-            <div class='card'>
-                <div class='kpi-title'>📅 Requiere cita</div>
-                <div class='kpi-value'>{total_cita}</div>
-            </div>
-            """)
 
         with k4:
-
-            total_gps = len(
-                df[
-                    df["gps_obligatorio"]
-                    .astype(str)
-                    .str.lower()
-                    .isin(["si","sí","1","true"])
-                ]
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:18px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                    border-left:6px solid #16a34a;
+                ">
+                    <div style="font-size:16px;color:#6b7280;">
+                        📡 GPS obligatorio
+                    </div>
+                    <div style="font-size:34px;font-weight:bold;color:#16a34a;">
+                        {total_gps}
+                    </div>
+                </div>
+                """,
+                height=115
             )
-
-            html_card(f"""
-            <div class='card'>
-                <div class='kpi-title'>📡 GPS obligatorio</div>
-                <div class='kpi-value'>{total_gps}</div>
-            </div>
-            """)
-
-        # =====================================================
-        # CLIENTE
-        # =====================================================
 
         cliente_select = st.selectbox(
             "🧾 Cliente ejecutivo",
-            df["nombre_cliente"]
-            .dropna()
-            .unique()
+            df["nombre_cliente"].dropna().unique()
         )
 
         cliente = df[
-            df["nombre_cliente"]
-            == cliente_select
+            df["nombre_cliente"] == cliente_select
         ].iloc[0]
 
-        st.write("")
-
-        # =====================================================
-        # CARDS PRINCIPALES
-        # =====================================================
-
-        c1, c2, c3 = st.columns([2,2,1])
-
-        # =====================================================
-        # PERFIL CLIENTE
-        # =====================================================
+        c1, c2, c3 = st.columns([2, 2, 1])
 
         with c1:
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        🧾 PERFIL CLIENTE
+                    </div>
 
-            html_card(f"""
-            <div class='card'>
-
-                <div style='font-size:22px;
-                            font-weight:bold;
-                            margin-bottom:15px;'>
-
-                    🧾 PERFIL CLIENTE
-
-                </div>
-
-                <div style='margin-bottom:15px;'>
-
-                    <span class='badge badge-green'>
+                    <span style="
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        background:#dcfce7;
+                        color:#166534;
+                        font-size:12px;
+                        font-weight:bold;
+                        margin-right:6px;
+                    ">
                         {cliente['estatus']}
                     </span>
 
-                    <span class='badge badge-red'>
+                    <span style="
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        background:#fee2e2;
+                        color:#991b1b;
+                        font-size:12px;
+                        font-weight:bold;
+                        margin-right:6px;
+                    ">
                         Cliente crítico
                     </span>
 
-                    <span class='badge badge-blue'>
+                    <span style="
+                        display:inline-block;
+                        padding:6px 12px;
+                        border-radius:20px;
+                        background:#dbeafe;
+                        color:#1d4ed8;
+                        font-size:12px;
+                        font-weight:bold;
+                    ">
                         GPS obligatorio
                     </span>
 
+                    <div style="margin-top:18px;line-height:1.9;font-size:15px;">
+                        <b>Código:</b> {cliente['codigo_cliente']}<br>
+                        <b>Cliente:</b> {cliente['nombre_cliente']}<br>
+                        <b>Razón social:</b> {cliente['razon_social']}<br>
+                        <b>RFC:</b> {cliente['rfc']}<br>
+                        <b>Ciudad:</b> {cliente['ciudad']}<br>
+                        <b>Estado:</b> {cliente['estado']}
+                    </div>
                 </div>
-
-                <div style='line-height:2;'>
-
-                    <b>Código:</b>
-                    {cliente['codigo_cliente']}<br>
-
-                    <b>Cliente:</b>
-                    {cliente['nombre_cliente']}<br>
-
-                    <b>Razón social:</b>
-                    {cliente['razon_social']}<br>
-
-                    <b>RFC:</b>
-                    {cliente['rfc']}<br>
-
-                    <b>Ciudad:</b>
-                    {cliente['ciudad']}<br>
-
-                    <b>Estado:</b>
-                    {cliente['estado']}
-
-                </div>
-
-            </div>
-            """)
-
-        # =====================================================
-        # OPERACION
-        # =====================================================
+                """,
+                height=320
+            )
 
         with c2:
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        🚚 OPERACIÓN LOGÍSTICA
+                    </div>
 
-            html_card(f"""
-            <div class='card'>
-
-                <div style='font-size:22px;
-                            font-weight:bold;
-                            margin-bottom:15px;'>
-
-                    🚚 OPERACIÓN LOGÍSTICA
-
+                    <div style="line-height:2;font-size:15px;">
+                        <b>Ruta:</b> {cliente['ruta']}<br>
+                        <b>Horario recepción:</b> {cliente['hora_inicio_recepcion']} - {cliente['hora_fin_recepcion']}<br>
+                        <b>Días entrega:</b> {cliente['dias_entrega_permitidos']}<br>
+                        <b>Tiempo descarga:</b> {cliente['tiempo_descarga_min']}<br>
+                        <b>Nivel servicio:</b> {cliente['nivel_servicio']}<br>
+                        <b>Prioridad ruta:</b> {cliente['prioridad_ruta']}
+                    </div>
                 </div>
-
-                <div style='line-height:2;'>
-
-                    <b>Ruta:</b>
-                    {cliente['ruta']}<br>
-
-                    <b>Horario recepción:</b>
-                    {cliente['hora_inicio_recepcion']}
-                    -
-                    {cliente['hora_fin_recepcion']}<br>
-
-                    <b>Días entrega:</b>
-                    {cliente['dias_entrega_permitidos']}<br>
-
-                    <b>Tiempo descarga:</b>
-                    {cliente['tiempo_descarga_min']}<br>
-
-                    <b>Nivel servicio:</b>
-                    {cliente['nivel_servicio']}
-
-                </div>
-
-            </div>
-            """)
-
-        # =====================================================
-        # RESTRICCIONES
-        # =====================================================
+                """,
+                height=320
+            )
 
         with c3:
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        ⚠️ RESTRICCIONES
+                    </div>
 
-            html_card(f"""
-            <div class='card'>
-
-                <div style='font-size:22px;
-                            font-weight:bold;
-                            margin-bottom:15px;'>
-
-                    ⚠️ RESTRICCIONES
-
+                    <div style="line-height:2;font-size:15px;">
+                        <b>Cita:</b> {cliente['requiere_cita']}<br>
+                        <b>GPS:</b> {cliente['gps_obligatorio']}<br>
+                        <b>Unidad:</b> {cliente['tipo_unidad_permitida']}<br>
+                        <b>Parcial:</b> {cliente['permite_entrega_parcial']}<br>
+                        <b>Tarima:</b> {cliente['tipo_tarima']}
+                    </div>
                 </div>
+                """,
+                height=320
+            )
 
-                <div style='line-height:2;'>
-
-                    <b>Requiere cita:</b>
-                    {cliente['requiere_cita']}<br>
-
-                    <b>GPS:</b>
-                    {cliente['gps_obligatorio']}<br>
-
-                    <b>Unidad:</b>
-                    {cliente['tipo_unidad_permitida']}<br>
-
-                    <b>Entrega parcial:</b>
-                    {cliente['permite_entrega_parcial']}<br>
-
-                    <b>Tarima:</b>
-                    {cliente['tipo_tarima']}
-
-                </div>
-
-            </div>
-            """)
-
-        # =====================================================
-        # MAPA
-        # =====================================================
-
-        st.write("")
-
-        mapa_col1, mapa_col2 = st.columns([2,1])
+        mapa_col1, mapa_col2 = st.columns([2, 1])
 
         with mapa_col1:
-
             with st.container(border=True):
-
-                st.subheader(
-                    "🗺️ Ubicación geográfica"
-                )
+                st.subheader("🗺️ Ubicación geográfica")
 
                 df_mapa = pd.DataFrame({
                     "lat": [
@@ -538,55 +400,39 @@ def consulta_clientes_logistica_app():
                 }).dropna()
 
                 if not df_mapa.empty:
-
                     st.map(
                         df_mapa,
                         latitude="lat",
                         longitude="lon",
                         size=250
                     )
-
                 else:
-
-                    st.info(
-                        "Cliente sin coordenadas."
-                    )
+                    st.info("Cliente sin coordenadas.")
 
         with mapa_col2:
+            html_card(
+                f"""
+                <div style="
+                    font-family:Arial;
+                    background:white;
+                    padding:22px;
+                    border-radius:18px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);
+                ">
+                    <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+                        📞 CONTACTO
+                    </div>
 
-            html_card(f"""
-            <div class='card'>
-
-                <div style='font-size:22px;
-                            font-weight:bold;
-                            margin-bottom:15px;'>
-
-                    📞 CONTACTO
-
+                    <div style="line-height:2;font-size:15px;">
+                        <b>Contacto:</b> {cliente['contacto_entrega']}<br>
+                        <b>Teléfono:</b> {cliente['telefono_contacto']}<br>
+                        <b>Correo:</b> {cliente['correo_contacto']}<br>
+                        <b>Dirección:</b> {cliente['direccion_entrega']}
+                    </div>
                 </div>
-
-                <div style='line-height:2;'>
-
-                    <b>Contacto:</b>
-                    {cliente['contacto_entrega']}<br>
-
-                    <b>Teléfono:</b>
-                    {cliente['telefono_contacto']}<br>
-
-                    <b>Correo:</b>
-                    {cliente['correo_contacto']}<br>
-
-                    <b>Dirección:</b>
-                    {cliente['direccion_entrega']}
-
-                </div>
-
-            </div>
-            """)
-
-        # =====================================================
-        # TABS
-        # =====================================================
+                """,
+                height=360
+            )
 
         tab1, tab2, tab3 = st.tabs([
             "📦 Entrega",
@@ -595,57 +441,33 @@ def consulta_clientes_logistica_app():
         ])
 
         with tab1:
-
             e1, e2, e3, e4 = st.columns(4)
 
             with e1:
-                st.metric(
-                    "📦 Emplaye",
-                    cliente["requiere_emplaye"]
-                )
+                st.metric("📦 Emplaye", cliente["requiere_emplaye"])
 
             with e2:
-                st.metric(
-                    "🏷️ Etiqueta",
-                    cliente["requiere_etiqueta"]
-                )
+                st.metric("🏷️ Etiqueta", cliente["requiere_etiqueta"])
 
             with e3:
-                st.metric(
-                    "📄 Factura",
-                    cliente["requiere_factura_impresa"]
-                )
+                st.metric("📄 Factura", cliente["requiere_factura_impresa"])
 
             with e4:
-                st.metric(
-                    "📷 Foto",
-                    cliente["requiere_foto_entrega"]
-                )
+                st.metric("📷 Foto", cliente["requiere_foto_entrega"])
 
         with tab2:
-
             r1, r2, r3 = st.columns(3)
 
             with r1:
-                st.metric(
-                    "⚖️ Peso máx",
-                    cliente["peso_max_tarima"]
-                )
+                st.metric("⚖️ Peso máx", cliente["peso_max_tarima"])
 
             with r2:
-                st.metric(
-                    "📏 Altura máx",
-                    cliente["altura_max_tarima"]
-                )
+                st.metric("📏 Altura máx", cliente["altura_max_tarima"])
 
             with r3:
-                st.metric(
-                    "🚚 Unidad",
-                    cliente["tipo_unidad_permitida"]
-                )
+                st.metric("🚚 Unidad", cliente["tipo_unidad_permitida"])
 
         with tab3:
-
             columnas = [
                 "codigo_cliente",
                 "nombre_cliente",
@@ -665,9 +487,7 @@ def consulta_clientes_logistica_app():
                 height=450
             )
 
-            csv = df.to_csv(
-                index=False
-            ).encode("utf-8")
+            csv = df.to_csv(index=False).encode("utf-8")
 
             st.download_button(
                 "📥 Descargar CSV",
@@ -678,9 +498,7 @@ def consulta_clientes_logistica_app():
 
     except Exception as e:
 
-        st.error(
-            f"Error: {e}"
-        )
+        st.error(f"Error: {e}")
 
     finally:
 
