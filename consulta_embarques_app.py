@@ -114,10 +114,6 @@ def consulta_embarques_app():
 
     st.title("🚚 Consulta embarques")
 
-    # =====================================================
-    # CONSULTA
-    # =====================================================
-
     try:
 
         df = obtener_embarques()
@@ -126,18 +122,12 @@ def consulta_embarques_app():
 
         st.error("❌ Error consultando embarques")
         st.exception(e)
-
         return
 
     if df.empty:
 
         st.warning("No existen embarques registrados.")
-
         return
-
-    # =====================================================
-    # FECHAS
-    # =====================================================
 
     df["fecha"] = pd.to_datetime(
         df["fecha"],
@@ -149,10 +139,6 @@ def consulta_embarques_app():
     df["dias_embarque"] = (
         hoy - df["fecha"]
     ).dt.days
-
-    # =====================================================
-    # ALERTAS
-    # =====================================================
 
     def calcular_alerta(row):
 
@@ -183,52 +169,85 @@ def consulta_embarques_app():
         axis=1
     )
 
+    st.divider()
+
+    col_filtros, col_contenido = st.columns([1.05, 5])
+
     # =====================================================
-    # FILTROS
+    # FILTROS IZQUIERDA
     # =====================================================
 
-    st.subheader("🔎 Filtros")
+    with col_filtros:
 
-    col1, col2, col3 = st.columns(3)
+        st.subheader("🔎 Filtros")
 
-    with col1:
-
-        filtro_folio = st.text_input(
-            "Folio embarque"
+        folios = ["Todos"] + sorted(
+            df["folio_embarque"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
         )
 
-        filtro_cliente = st.text_input(
-            "Cliente"
+        clientes = ["Todos"] + sorted(
+            df["cliente"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
         )
 
-    with col2:
+        pedidos = ["Todos"] + sorted(
+            df["pedido"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
 
-        filtro_pedido = st.text_input(
-            "Pedido"
+        estatus_lista = ["Todos"] + sorted(
+            df["estatus"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        alertas = ["Todos"] + sorted(
+            df["alerta"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        filtro_folio = st.selectbox(
+            "Folio embarque",
+            folios
+        )
+
+        filtro_cliente = st.selectbox(
+            "Cliente",
+            clientes
+        )
+
+        filtro_pedido = st.selectbox(
+            "Pedido",
+            pedidos
         )
 
         filtro_estatus = st.selectbox(
             "Estatus",
-            ["Todos"] + sorted(
-                df["estatus"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
+            estatus_lista
         )
-
-    with col3:
 
         filtro_alerta = st.selectbox(
             "Alerta",
-            ["Todos"] + sorted(
-                df["alerta"]
-                .dropna()
-                .astype(str)
-                .unique()
-                .tolist()
-            )
+            alertas
+        )
+
+        buscar = st.text_input(
+            "Buscar"
         )
 
     # =====================================================
@@ -237,74 +256,62 @@ def consulta_embarques_app():
 
     df_filtrado = df.copy()
 
-    if filtro_folio:
+    if filtro_folio != "Todos":
 
         df_filtrado = df_filtrado[
-            df_filtrado["folio_embarque"]
-            .astype(str)
-            .str.contains(
-                filtro_folio,
-                case=False,
-                na=False
-            )
+            df_filtrado["folio_embarque"].astype(str)
+            == filtro_folio
         ]
 
-    if filtro_cliente:
+    if filtro_cliente != "Todos":
 
         df_filtrado = df_filtrado[
-            df_filtrado["cliente"]
-            .astype(str)
-            .str.contains(
-                filtro_cliente,
-                case=False,
-                na=False
-            )
+            df_filtrado["cliente"].astype(str)
+            == filtro_cliente
         ]
 
-    if filtro_pedido:
+    if filtro_pedido != "Todos":
 
         df_filtrado = df_filtrado[
-            df_filtrado["pedido"]
-            .astype(str)
-            .str.contains(
-                filtro_pedido,
-                case=False,
-                na=False
-            )
+            df_filtrado["pedido"].astype(str)
+            == filtro_pedido
         ]
 
     if filtro_estatus != "Todos":
 
         df_filtrado = df_filtrado[
-            df_filtrado["estatus"] == filtro_estatus
+            df_filtrado["estatus"].astype(str)
+            == filtro_estatus
         ]
 
     if filtro_alerta != "Todos":
 
         df_filtrado = df_filtrado[
-            df_filtrado["alerta"] == filtro_alerta
+            df_filtrado["alerta"].astype(str)
+            == filtro_alerta
+        ]
+
+    if buscar.strip():
+
+        texto = buscar.strip().lower()
+
+        df_filtrado = df_filtrado[
+            df_filtrado["folio_embarque"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["folio_hoja_carga"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["pedido"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["cliente"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["destino"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["transportista"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["vehiculo"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["placas"].astype(str).str.lower().str.contains(texto, na=False)
+            | df_filtrado["operador"].astype(str).str.lower().str.contains(texto, na=False)
         ]
 
     # =====================================================
-    # TABS
+    # CONTENIDO DERECHA
     # =====================================================
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-
-        "Dashboard",
-        "Alertas",
-        "Pendientes",
-        "En tránsito",
-        "Entregados",
-        "Detalle"
-
-    ])
-
-    # =====================================================
-    # DASHBOARD
-    # =====================================================
-
-    with tab1:
+    with col_contenido:
 
         total_embarques = len(df_filtrado)
 
@@ -321,205 +328,253 @@ def consulta_embarques_app():
             df_filtrado["alerta"] == "🔴 Pendiente viejo"
         ].shape[0]
 
-        clientes = df_filtrado["cliente"].nunique()
+        clientes_total = df_filtrado["cliente"].nunique()
 
         rutas = df_filtrado["ruta"].nunique()
 
-        col1, col2, col3 = st.columns(3)
+        k1, k2, k3, k4, k5, k6 = st.columns(6)
 
-        with col1:
-            st.metric("📦 Embarques", total_embarques)
+        with k1:
+            st.metric("Embarques", total_embarques)
 
-        with col2:
-            st.metric("✅ Entregados", entregados)
+        with k2:
+            st.metric("Entregados", entregados)
 
-        with col3:
-            st.metric("⏳ Pendientes", pendientes)
+        with k3:
+            st.metric("Pendientes", pendientes)
 
-        col4, col5, col6 = st.columns(3)
+        with k4:
+            st.metric("Viejos", pendientes_viejos)
 
-        with col4:
-            st.metric("🔴 Pendientes viejos", pendientes_viejos)
+        with k5:
+            st.metric("Clientes", clientes_total)
 
-        with col5:
-            st.metric("👥 Clientes", clientes)
-
-        with col6:
-            st.metric("🛣️ Rutas", rutas)
+        with k6:
+            st.metric("Rutas", rutas)
 
         st.divider()
 
-        columnas_dashboard = [
-
-            "alerta",
-            "estatus",
-            "folio_embarque",
-            "folio_hoja_carga",
-            "fecha",
-            "cliente",
-            "destino",
-            "transportista"
-
-        ]
-
-        st.dataframe(
-            df_filtrado[columnas_dashboard],
-            use_container_width=True,
-            height=400,
-            hide_index=True
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+            [
+                "📊 Dashboard",
+                "🚦 Alertas",
+                "📦 Pendientes",
+                "🚚 En tránsito",
+                "✅ Entregados",
+                "📄 Detalle"
+            ]
         )
 
-    # =====================================================
-    # ALERTAS
-    # =====================================================
+        # =====================================================
+        # DASHBOARD
+        # =====================================================
 
-    with tab2:
+        with tab1:
 
-        df_alertas = df_filtrado[
-            df_filtrado["alerta"] != "✅ Entregado"
-        ]
+            columnas_dashboard = [
+                "alerta",
+                "estatus",
+                "folio_embarque",
+                "folio_hoja_carga",
+                "fecha",
+                "cliente",
+                "destino",
+                "transportista",
+                "vehiculo",
+                "placas"
+            ]
 
-        st.subheader("🚦 Embarques con alertas")
+            columnas_dashboard = [
+                col for col in columnas_dashboard
+                if col in df_filtrado.columns
+            ]
 
-        columnas_alertas = [
+            st.subheader("📦 Base general de embarques")
 
-            "alerta",
-            "estatus",
-            "folio_embarque",
-            "fecha",
-            "cliente",
-            "destino",
-            "transportista",
-            "dias_embarque"
+            st.dataframe(
+                df_filtrado[columnas_dashboard],
+                use_container_width=True,
+                height=430,
+                hide_index=True
+            )
 
-        ]
+        # =====================================================
+        # ALERTAS
+        # =====================================================
 
-        st.dataframe(
-            df_alertas[columnas_alertas],
-            use_container_width=True,
-            height=500,
-            hide_index=True
-        )
+        with tab2:
 
-    # =====================================================
-    # PENDIENTES
-    # =====================================================
+            df_alertas = df_filtrado[
+                df_filtrado["alerta"] != "✅ Entregado"
+            ]
 
-    with tab3:
+            st.subheader("🚦 Embarques con alertas")
 
-        df_pendientes = df_filtrado[
-            ~df_filtrado["estatus"]
-            .astype(str)
-            .str.lower()
-            .str.contains("entregado", na=False)
-        ]
+            columnas_alertas = [
+                "alerta",
+                "estatus",
+                "folio_embarque",
+                "fecha",
+                "cliente",
+                "destino",
+                "transportista",
+                "vehiculo",
+                "placas",
+                "dias_embarque"
+            ]
 
-        st.subheader("📦 Embarques pendientes")
+            columnas_alertas = [
+                col for col in columnas_alertas
+                if col in df_alertas.columns
+            ]
 
-        columnas_pendientes = [
+            st.dataframe(
+                df_alertas[columnas_alertas],
+                use_container_width=True,
+                height=500,
+                hide_index=True
+            )
 
-            "alerta",
-            "estatus",
-            "folio_embarque",
-            "fecha",
-            "cliente",
-            "destino",
-            "transportista"
+        # =====================================================
+        # PENDIENTES
+        # =====================================================
 
-        ]
+        with tab3:
 
-        st.dataframe(
-            df_pendientes[columnas_pendientes],
-            use_container_width=True,
-            height=500,
-            hide_index=True
-        )
+            df_pendientes = df_filtrado[
+                ~df_filtrado["estatus"]
+                .astype(str)
+                .str.lower()
+                .str.contains("entregado", na=False)
+            ]
 
-    # =====================================================
-    # EN TRANSITO
-    # =====================================================
+            st.subheader("📦 Embarques pendientes")
 
-    with tab4:
+            columnas_pendientes = [
+                "alerta",
+                "estatus",
+                "folio_embarque",
+                "fecha",
+                "cliente",
+                "destino",
+                "transportista",
+                "vehiculo",
+                "placas"
+            ]
 
-        df_transito = df_filtrado[
-            df_filtrado["estatus"]
-            .astype(str)
-            .str.lower()
-            .str.contains("transito", na=False)
-        ]
+            columnas_pendientes = [
+                col for col in columnas_pendientes
+                if col in df_pendientes.columns
+            ]
 
-        st.subheader("🚚 Embarques en tránsito")
+            st.dataframe(
+                df_pendientes[columnas_pendientes],
+                use_container_width=True,
+                height=500,
+                hide_index=True
+            )
 
-        columnas_transito = [
+        # =====================================================
+        # EN TRANSITO
+        # =====================================================
 
-            "alerta",
-            "estatus",
-            "folio_embarque",
-            "fecha",
-            "cliente",
-            "destino",
-            "transportista"
+        with tab4:
 
-        ]
+            df_transito = df_filtrado[
+                df_filtrado["estatus"]
+                .astype(str)
+                .str.lower()
+                .str.contains("transito|tránsito", na=False)
+            ]
 
-        st.dataframe(
-            df_transito[columnas_transito],
-            use_container_width=True,
-            height=500,
-            hide_index=True
-        )
+            st.subheader("🚚 Embarques en tránsito")
 
-    # =====================================================
-    # ENTREGADOS
-    # =====================================================
+            columnas_transito = [
+                "alerta",
+                "estatus",
+                "folio_embarque",
+                "fecha",
+                "cliente",
+                "destino",
+                "transportista",
+                "vehiculo",
+                "placas"
+            ]
 
-    with tab5:
+            columnas_transito = [
+                col for col in columnas_transito
+                if col in df_transito.columns
+            ]
 
-        df_entregados = df_filtrado[
-            df_filtrado["estatus"]
-            .astype(str)
-            .str.lower()
-            .str.contains("entregado", na=False)
-        ]
+            st.dataframe(
+                df_transito[columnas_transito],
+                use_container_width=True,
+                height=500,
+                hide_index=True
+            )
 
-        st.subheader("✅ Embarques entregados")
+        # =====================================================
+        # ENTREGADOS
+        # =====================================================
 
-        columnas_entregados = [
+        with tab5:
 
-            "alerta",
-            "estatus",
-            "folio_embarque",
-            "fecha",
-            "cliente",
-            "destino",
-            "transportista"
+            df_entregados = df_filtrado[
+                df_filtrado["estatus"]
+                .astype(str)
+                .str.lower()
+                .str.contains("entregado", na=False)
+            ]
 
-        ]
+            st.subheader("✅ Embarques entregados")
 
-        st.dataframe(
-            df_entregados[columnas_entregados],
-            use_container_width=True,
-            height=500,
-            hide_index=True
-        )
+            columnas_entregados = [
+                "alerta",
+                "estatus",
+                "folio_embarque",
+                "fecha",
+                "cliente",
+                "destino",
+                "transportista",
+                "vehiculo",
+                "placas"
+            ]
 
-    # =====================================================
-    # DETALLE
-    # =====================================================
+            columnas_entregados = [
+                col for col in columnas_entregados
+                if col in df_entregados.columns
+            ]
 
-    with tab6:
+            st.dataframe(
+                df_entregados[columnas_entregados],
+                use_container_width=True,
+                height=500,
+                hide_index=True
+            )
 
-        st.subheader("📄 Detalle embarque")
+        # =====================================================
+        # DETALLE
+        # =====================================================
 
-        lista_embarques = (
-            df_filtrado["folio_embarque"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
+        with tab6:
 
-        if lista_embarques:
+            st.subheader("📄 Detalle embarque")
+
+            lista_embarques = (
+                df_filtrado["folio_embarque"]
+                .dropna()
+                .astype(str)
+                .unique()
+                .tolist()
+            )
+
+            if not lista_embarques:
+
+                st.info(
+                    "No hay embarques para mostrar detalle."
+                )
+
+                return
 
             folio_detalle = st.selectbox(
                 "Selecciona embarque",
@@ -570,38 +625,4 @@ def consulta_embarques_app():
                     )
 
                     st.write(
-                        f"**Placas:** {embarque['placas']}"
-                    )
-
-                    st.write(
-                        f"**Estatus:** {embarque['estatus']}"
-                    )
-
-                st.divider()
-
-                df_detalle = obtener_detalle_embarque(
-                    folio_detalle
-                )
-
-                st.dataframe(
-                    df_detalle,
-                    use_container_width=True,
-                    height=350,
-                    hide_index=True
-                )
-
-                archivo_excel = exportar_excel(
-                    df_detalle
-                )
-
-                st.download_button(
-                    label="📥 Exportar detalle Excel",
-                    data=archivo_excel,
-                    file_name=f"detalle_{folio_detalle}.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-
-            except Exception as e:
-
-                st.error("❌ Error consultando detalle")
-                st.exception(e)
+                        f"**Placas:** {embarque['placas
