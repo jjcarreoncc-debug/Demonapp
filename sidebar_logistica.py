@@ -221,6 +221,22 @@ def sidebar_logistica():
                     "✏️ Editar operador"
                 )
 
+        # =====================================================
+        # CLIENTES
+        # =====================================================
+
+        with st.expander("👥 Clientes", expanded=False):
+
+            with st.expander("📋 Gestión de clientes", expanded=False):
+
+                boton_logistica(
+                    "📋 Consulta clientes",
+                    "log_btn_consulta_clientes",
+                    "Clientes",
+                    "Gestión de clientes",
+                    "📋 Consulta clientes"
+                )
+
         with st.expander("📍 Rutas", expanded=False):
 
             with st.expander("🗺️ Gestión de rutas", expanded=False):
