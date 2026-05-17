@@ -69,34 +69,6 @@ def aplicar_estilos():
             box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
         }
 
-        .badge {
-            padding: 5px 10px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 13px;
-            display: inline-block;
-        }
-
-        .badge-pendiente {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        .badge-cargada {
-            background: #DCFCE7;
-            color: #166534;
-        }
-
-        .badge-cancelada {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-
-        .badge-transito {
-            background: #DBEAFE;
-            color: #1E40AF;
-        }
-
         </style>
         """,
         unsafe_allow_html=True
@@ -268,9 +240,6 @@ def obtener_hojas_carga():
 
     return df
 
-# =====================================================
-# APP
-# =====================================================
 
 # =====================================================
 # APP
@@ -313,12 +282,16 @@ def consulta_hoja_carga_app():
     )
 
     # =====================================================
-    # FILTROS
+    # LAYOUT
     # =====================================================
 
     col_filtros, col_contenido = st.columns(
         [1.2, 5]
     )
+
+    # =====================================================
+    # FILTROS
+    # =====================================================
 
     with col_filtros:
 
@@ -355,7 +328,7 @@ def consulta_hoja_carga_app():
         )
 
         buscar = st.text_input(
-            "Buscar hoja/TR/material"
+            "Buscar hoja/TR/pedido"
         )
 
     # =====================================================
@@ -455,40 +428,22 @@ def consulta_hoja_carga_app():
         k1, k2, k3, k4, k5, k6 = st.columns(6)
 
         with k1:
-            st.metric(
-                "Hojas",
-                total_hojas
-            )
+            st.metric("Hojas", total_hojas)
 
         with k2:
-            st.metric(
-                "Pedidos",
-                total_pedidos
-            )
+            st.metric("Pedidos", total_pedidos)
 
         with k3:
-            st.metric(
-                "Materiales",
-                total_materiales
-            )
+            st.metric("Materiales", total_materiales)
 
         with k4:
-            st.metric(
-                "Piezas",
-                total_piezas
-            )
+            st.metric("Piezas", total_piezas)
 
         with k5:
-            st.metric(
-                "Tarimas",
-                total_tarimas
-            )
+            st.metric("Tarimas", total_tarimas)
 
         with k6:
-            st.metric(
-                "Peso",
-                total_peso
-            )
+            st.metric("Peso", total_peso)
 
         st.divider()
 
@@ -552,7 +507,7 @@ def consulta_hoja_carga_app():
         )
 
         # =====================================================
-        # DETALLE
+        # DETALLE VISUAL
         # =====================================================
 
         seleccionados = df_editado[
@@ -564,7 +519,7 @@ def consulta_hoja_carga_app():
             st.divider()
 
             st.subheader(
-                "📦 Hojas seleccionadas"
+                "📦 Detalle hojas seleccionadas"
             )
 
             hojas_sel = seleccionados[
@@ -576,11 +531,96 @@ def consulta_hoja_carga_app():
                 .isin(hojas_sel)
             ]
 
-            st.dataframe(
-                df_detalle,
-                use_container_width=True,
-                height=300
-            )
+            for _, row in df_detalle.iterrows():
+
+                with st.container(border=True):
+
+                    c1, c2, c3, c4 = st.columns(
+                        [2, 2, 2, 2]
+                    )
+
+                    with c1:
+
+                        st.markdown(
+                            f"""
+                            ### 📦 {row['folio_hoja_carga']}
+                            """
+                        )
+
+                        st.write(
+                            f"👤 Cliente: {row['cliente']}"
+                        )
+
+                        st.write(
+                            f"📍 Destino: {row['destino']}"
+                        )
+
+                    with c2:
+
+                        st.write(
+                            f"🚛 TR: {row['tr_visual']}"
+                        )
+
+                        st.write(
+                            f"📋 Pedido: {row['pedido']}"
+                        )
+
+                        st.write(
+                            f"📌 Estatus: {row['estatus_visual']}"
+                        )
+
+                    with c3:
+
+                        st.write(
+                            f"📦 Materiales: {row['total_materiales']}"
+                        )
+
+                        st.write(
+                            f"📦 Tarimas: {row['total_tarimas']}"
+                        )
+
+                        st.write(
+                            f"📦 Piezas: {row['total_piezas']}"
+                        )
+
+                    with c4:
+
+                        st.write(
+                            f"⚖️ Peso: {row['peso_total']}"
+                        )
+
+                        st.write(
+                            f"📐 Volumen: {row['volumen_total']}"
+                        )
+
+                        st.write(
+                            f"👤 Usuario: {row['usuario']}"
+                        )
+
+                    if str(row["transportista"]).strip() != "":
+
+                        st.info(
+                            f"""
+                            🚚 Transporte:
+                            {row['transportista']}
+                            | {row['vehiculo']}
+                            | {row['placas']}
+                            | Operador: {row['operador']}
+                            """
+                        )
+
+                    if str(row["observaciones"]).strip() != "":
+
+                        st.warning(
+                            f"""
+                            📝 Observaciones:
+                            {row['observaciones']}
+                            """
+                        )
+
+                    st.divider()
+
+
 # =====================================================
 # EJECUCION
 # =====================================================
