@@ -21,6 +21,7 @@ from crear_entrega_app import pantalla_crear_entrega
 from cancelacion_entrega_app import cancelacion_entrega_app
 from hoja_carga_app import hoja_carga_app
 from consulta_hoja_carga_app import consulta_hoja_carga_app
+from consulta_clientes_inventarios_app import consulta_clientes_inventarios_app
 
 from embarques_inventario_app import (
     embarques_inventario_app
@@ -135,6 +136,11 @@ def inventarios_app():
     # =========================
     # MATERIALES
     # =========================
+
+    elif opcion_limpia == "consulta de clientes":
+
+        consulta_clientes_inventarios_app()
+    
     elif opcion_limpia == "alta de material":
         alta_material_app()
 
