@@ -4,625 +4,356 @@ import sqlite3
 from sigem_db import get_db_path
 
 
-# =========================================================
-# CONFIG
-# =========================================================
-
-st.set_page_config(
-    page_title="SIGEM",
-    page_icon="🚚",
-    layout="wide"
-)
-
-
-# =========================================================
-# CSS
-# =========================================================
-
-st.markdown("""
-<style>
-
-/* ===== GENERAL ===== */
-
-.main {
-    background-color: #f5f7fb;
-}
-
-.block-container {
-    padding-top: 1rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-}
-
-/* ===== KPI ===== */
-
-.kpi-card {
-    background: white;
-    padding: 18px;
-    border-radius: 18px;
-    box-shadow: 0px 2px 10px rgba(0,0,0,0.08);
-    border-left: 6px solid #2563eb;
-}
-
-.kpi-title {
-    font-size: 15px;
-    color: gray;
-}
-
-.kpi-value {
-    font-size: 34px;
-    font-weight: bold;
-    color: #111827;
-}
-
-/* ===== CARDS ===== */
-
-.card {
-    background: white;
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0px 2px 12px rgba(0,0,0,0.08);
-    margin-bottom: 15px;
-}
-
-.card-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #111827;
-}
-
-.card-subtitle {
-    color: gray;
-    margin-bottom: 15px;
-}
-
-/* ===== BADGES ===== */
-
-.badge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    margin-right: 8px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.badge-green {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.badge-blue {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.badge-red {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-/* ===== GRID ===== */
-
-.grid-card {
-    background: white;
-    padding: 15px;
-    border-radius: 18px;
-    box-shadow: 0px 2px 12px rgba(0,0,0,0.08);
-}
-
-/* ===== TABS ===== */
-
-.stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-}
-
-.stTabs [data-baseweb="tab"] {
-    background-color: white;
-    border-radius: 12px;
-    padding: 10px 20px;
-}
-
-/* ===== METRIC ===== */
-
-[data-testid="metric-container"] {
-    background: white;
-    border-radius: 18px;
-    padding: 15px;
-    box-shadow: 0px 2px 12px rgba(0,0,0,0.08);
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# =========================================================
-# CONEXION
-# =========================================================
-
 def get_conn_logistica():
-
-    conn = sqlite3.connect(
-        get_db_path("logistica")
-    )
-
+    conn = sqlite3.connect(get_db_path("logistica"))
     conn.row_factory = sqlite3.Row
-
     return conn
 
 
-# =========================================================
-# APP
-# =========================================================
+def es_si(valor):
+    return str(valor).strip().lower() in ["si", "sí", "s", "1", "true", "x"]
+
 
 def consulta_clientes_logistica_app():
 
-    st.title(
-        "🚚 Consulta Clientes - Logística"
-    )
+    st.title("🚚 Consulta Clientes - Logística")
 
     conn = get_conn_logistica()
 
-    # =========================================================
-    # FILTROS
-    # =========================================================
-
-    with st.container(border=True):
-
-        f1, f2, f3, f4, f5 = st.columns(5)
-
-        with f1:
-            filtro_cliente = st.text_input(
-                "Buscar cliente"
-            )
-
-        with f2:
-            filtro_ciudad = st.text_input(
-                "Ciudad"
-            )
-
-        with f3:
-            filtro_estado = st.text_input(
-                "Estado"
-            )
-
-        with f4:
-            filtro_ruta = st.text_input(
-                "Ruta"
-            )
-
-        with f5:
-            filtro_estatus = st.selectbox(
-                "Estatus",
-                ["Todos", "Activo", "Inactivo"]
-            )
-
-    # =========================================================
-    # QUERY
-    # =========================================================
-
-    query = """
-        SELECT *
-        FROM clientes
-        WHERE 1=1
-    """
-
-    params = []
-
-    if filtro_cliente:
-
-        query += """
-        AND (
-            nombre_cliente LIKE ?
-            OR codigo_cliente LIKE ?
-            OR razon_social LIKE ?
-        )
-        """
-
-        valor = f"%{filtro_cliente}%"
-
-        params.extend([
-            valor,
-            valor,
-            valor
-        ])
-
-    if filtro_ciudad:
-
-        query += """
-        AND ciudad LIKE ?
-        """
-
-        params.append(
-            f"%{filtro_ciudad}%"
-        )
-
-    if filtro_estado:
-
-        query += """
-        AND estado LIKE ?
-        """
-
-        params.append(
-            f"%{filtro_estado}%"
-        )
-
-    if filtro_ruta:
-
-        query += """
-        AND ruta LIKE ?
-        """
-
-        params.append(
-            f"%{filtro_ruta}%"
-        )
-
-    if filtro_estatus != "Todos":
-
-        query += """
-        AND estatus = ?
-        """
-
-        params.append(
-            filtro_estatus
-        )
-
-    query += """
-    ORDER BY nombre_cliente
-    """
-
     try:
+        with st.container(border=True):
+            st.subheader("🔎 Filtros")
 
-        df = pd.read_sql_query(
-            query,
-            conn,
-            params=params
-        )
+            col1, col2, col3, col4, col5 = st.columns(5)
+
+            with col1:
+                filtro_cliente = st.text_input("Cliente")
+
+            with col2:
+                filtro_ciudad = st.text_input("Ciudad")
+
+            with col3:
+                filtro_estado = st.text_input("Estado")
+
+            with col4:
+                filtro_ruta = st.text_input("Ruta")
+
+            with col5:
+                filtro_estatus = st.selectbox(
+                    "Estatus",
+                    ["Todos", "Activo", "Inactivo"]
+                )
+
+        query = """
+            SELECT
+                codigo_cliente,
+                nombre_cliente,
+                razon_social,
+                rfc,
+                estatus,
+                tipo_cliente,
+                direccion_entrega,
+                colonia,
+                ciudad,
+                estado,
+                pais,
+                codigo_postal,
+                latitud,
+                longitud,
+                ruta,
+                secuencia_ruta,
+                dias_entrega_permitidos,
+                hora_inicio_recepcion,
+                hora_fin_recepcion,
+                requiere_cita,
+                permite_entrega_parcial,
+                restriccion_unidad,
+                tipo_unidad_permitida,
+                tiempo_descarga_min,
+                peso_max_tarima,
+                altura_max_tarima,
+                permite_tarima_mixta,
+                requiere_emplaye,
+                requiere_etiqueta,
+                tipo_tarima,
+                contacto_entrega,
+                telefono_contacto,
+                correo_contacto,
+                requiere_foto_entrega,
+                requiere_firma,
+                requiere_sello,
+                gps_obligatorio,
+                requiere_oc,
+                requiere_factura_impresa,
+                prioridad_ruta,
+                cliente_critico,
+                nivel_servicio,
+                observaciones_logisticas
+            FROM clientes
+            WHERE 1=1
+        """
+
+        params = []
+
+        if filtro_cliente:
+            query += """
+                AND (
+                    codigo_cliente LIKE ?
+                    OR nombre_cliente LIKE ?
+                    OR razon_social LIKE ?
+                    OR rfc LIKE ?
+                )
+            """
+            valor = f"%{filtro_cliente}%"
+            params.extend([valor, valor, valor, valor])
+
+        if filtro_ciudad:
+            query += " AND ciudad LIKE ? "
+            params.append(f"%{filtro_ciudad}%")
+
+        if filtro_estado:
+            query += " AND estado LIKE ? "
+            params.append(f"%{filtro_estado}%")
+
+        if filtro_ruta:
+            query += " AND ruta LIKE ? "
+            params.append(f"%{filtro_ruta}%")
+
+        if filtro_estatus != "Todos":
+            query += " AND estatus = ? "
+            params.append(filtro_estatus)
+
+        query += " ORDER BY nombre_cliente "
+
+        df = pd.read_sql_query(query, conn, params=params)
 
         if df.empty:
-
-            st.warning(
-                "No se encontraron clientes."
-            )
-
+            st.warning("No se encontraron clientes.")
             return
 
-        # =========================================================
-        # KPIS
-        # =========================================================
+        total_clientes = len(df)
+        total_criticos = df["cliente_critico"].apply(es_si).sum()
+        total_cita = df["requiere_cita"].apply(es_si).sum()
+        total_gps = df["gps_obligatorio"].apply(es_si).sum()
+        total_rutas = df["ruta"].fillna("").replace("", pd.NA).dropna().nunique()
+
+        st.subheader("📊 Indicadores ejecutivos")
 
         k1, k2, k3, k4, k5 = st.columns(5)
 
         with k1:
-            st.metric(
-                "👥 Clientes",
-                len(df)
-            )
+            st.metric("👥 Clientes", total_clientes)
 
         with k2:
-            st.metric(
-                "🚨 Críticos",
-                len(
-                    df[
-                        df["cliente_critico"]
-                        .astype(str)
-                        .str.lower()
-                        .isin(["si", "sí", "1", "true"])
-                    ]
-                )
-            )
+            st.metric("🚨 Críticos", int(total_criticos))
 
         with k3:
-            st.metric(
-                "📅 Requiere cita",
-                len(
-                    df[
-                        df["requiere_cita"]
-                        .astype(str)
-                        .str.lower()
-                        .isin(["si", "sí", "1", "true"])
-                    ]
-                )
-            )
+            st.metric("📅 Requieren cita", int(total_cita))
 
         with k4:
-            st.metric(
-                "📡 GPS",
-                len(
-                    df[
-                        df["gps_obligatorio"]
-                        .astype(str)
-                        .str.lower()
-                        .isin(["si", "sí", "1", "true"])
-                    ]
-                )
-            )
+            st.metric("📡 GPS obligatorio", int(total_gps))
 
         with k5:
-            st.metric(
-                "🚚 Rutas",
-                df["ruta"].nunique()
-            )
+            st.metric("🚚 Rutas", int(total_rutas))
 
         st.divider()
 
-        # =========================================================
-        # CLIENTE
-        # =========================================================
-
-        cliente_select = st.selectbox(
-            "Selecciona cliente",
-            df["nombre_cliente"]
-            .dropna()
-            .unique()
+        clientes_combo = (
+            df["codigo_cliente"].astype(str)
+            + " | "
+            + df["nombre_cliente"].astype(str)
         )
 
+        cliente_opcion = st.selectbox(
+            "🧾 Cliente para consulta ejecutiva",
+            clientes_combo.tolist()
+        )
+
+        codigo_sel = cliente_opcion.split(" | ")[0]
+
         cliente = df[
-            df["nombre_cliente"]
-            == cliente_select
+            df["codigo_cliente"].astype(str) == codigo_sel
         ].iloc[0]
 
-        left, right = st.columns([2, 1])
+        st.subheader("🧾 Consulta ejecutiva")
 
-        # =========================================================
-        # PERFIL CLIENTE
-        # =========================================================
+        encabezado1, encabezado2, encabezado3 = st.columns([2, 1, 1])
 
-        with left:
+        with encabezado1:
+            with st.container(border=True):
+                st.subheader(cliente["nombre_cliente"])
+                st.write(f"**Código:** {cliente['codigo_cliente']}")
+                st.write(f"**Razón social:** {cliente['razon_social']}")
+                st.write(f"**RFC:** {cliente['rfc']}")
+                st.write(f"**Estatus:** {cliente['estatus']}")
 
-            st.markdown(f"""
-            <div class="card">
+        with encabezado2:
+            with st.container(border=True):
+                st.subheader("🚚 Ruta")
+                st.metric("Ruta asignada", cliente["ruta"])
+                st.write(f"**Secuencia:** {cliente['secuencia_ruta']}")
+                st.write(f"**Prioridad:** {cliente['prioridad_ruta']}")
 
-                <div class="card-title">
-                    {cliente['nombre_cliente']}
-                </div>
+        with encabezado3:
+            with st.container(border=True):
+                st.subheader("⚠️ Alertas")
+                st.write(f"**Cliente crítico:** {cliente['cliente_critico']}")
+                st.write(f"**Requiere cita:** {cliente['requiere_cita']}")
+                st.write(f"**GPS obligatorio:** {cliente['gps_obligatorio']}")
+                st.write(f"**Nivel servicio:** {cliente['nivel_servicio']}")
 
-                <div class="card-subtitle">
-                    {cliente['razon_social']}
-                </div>
+        st.divider()
 
-                <span class="badge badge-green">
-                    {cliente['estatus']}
-                </span>
+        c1, c2 = st.columns([2, 1])
 
-                <span class="badge badge-red">
-                    Cliente Crítico
-                </span>
+        with c1:
+            with st.container(border=True):
+                st.subheader("📍 Resumen operativo")
 
-                <span class="badge badge-blue">
-                    GPS Obligatorio
-                </span>
+                r1, r2, r3 = st.columns(3)
 
-                <hr>
+                with r1:
+                    st.write("**Ubicación**")
+                    st.write(f"{cliente['ciudad']}, {cliente['estado']}")
+                    st.write(f"{cliente['pais']}")
+                    st.write(f"C.P. {cliente['codigo_postal']}")
 
-                <b>📍 Ciudad:</b>
-                {cliente['ciudad']}, {cliente['estado']}
+                with r2:
+                    st.write("**Recepción**")
+                    st.write(
+                        f"{cliente['hora_inicio_recepcion']} - "
+                        f"{cliente['hora_fin_recepcion']}"
+                    )
+                    st.write(f"Días: {cliente['dias_entrega_permitidos']}")
+                    st.write(f"Descarga: {cliente['tiempo_descarga_min']} min")
 
-                <br><br>
+                with r3:
+                    st.write("**Entrega**")
+                    st.write(f"Parcial: {cliente['permite_entrega_parcial']}")
+                    st.write(f"Tarima mixta: {cliente['permite_tarima_mixta']}")
+                    st.write(f"Tipo tarima: {cliente['tipo_tarima']}")
 
-                <b>🚚 Ruta:</b>
-                {cliente['ruta']}
+                st.info(
+                    f"📝 Observaciones: {cliente['observaciones_logisticas']}"
+                )
 
-                <br><br>
+        with c2:
+            with st.container(border=True):
+                st.subheader("📞 Contacto")
+                st.write(f"**Contacto:** {cliente['contacto_entrega']}")
+                st.write(f"**Teléfono:** {cliente['telefono_contacto']}")
+                st.write(f"**Correo:** {cliente['correo_contacto']}")
+                st.write("**Dirección:**")
+                st.write(cliente["direccion_entrega"])
+                st.write(f"Colonia: {cliente['colonia']}")
 
-                <b>📅 Horario recepción:</b>
-                {cliente['hora_inicio_recepcion']}
-                -
-                {cliente['hora_fin_recepcion']}
+        st.divider()
 
-                <br><br>
-
-                <b>📞 Contacto:</b>
-                {cliente['contacto_entrega']}
-
-                <br><br>
-
-                <b>☎️ Teléfono:</b>
-                {cliente['telefono_contacto']}
-
-                <br><br>
-
-                <b>📧 Correo:</b>
-                {cliente['correo_contacto']}
-
-                <br><br>
-
-                <b>📝 Observaciones:</b>
-                {cliente['observaciones_logisticas']}
-
-            </div>
-            """, unsafe_allow_html=True)
-
-        # =========================================================
-        # MAPA / KPIS
-        # =========================================================
-
-        with right:
-
-            st.markdown("""
-            <div class="card">
-
-                <div class="card-title">
-                    📊 Indicadores
-                </div>
-
-                <hr>
-
-                <b>🚚 Nivel servicio:</b>
-                Premium
-
-                <br><br>
-
-                <b>📦 Tipo tarima:</b>
-                CHEP
-
-                <br><br>
-
-                <b>📡 GPS:</b>
-                Obligatorio
-
-                <br><br>
-
-                <b>🚨 Restricción unidad:</b>
-                Rabón
-
-                <br><br>
-
-                <b>📅 Requiere cita:</b>
-                Sí
-
-            </div>
-            """, unsafe_allow_html=True)
-
-        # =========================================================
-        # TABS
-        # =========================================================
-
-        tab1, tab2, tab3, tab4 = st.tabs([
-            "📞 Contacto",
-            "🚚 Restricciones",
-            "📦 Operación",
-            "📋 Grid"
-        ])
-
-        # =========================================================
-        # CONTACTO
-        # =========================================================
+        tab1, tab2, tab3, tab4 = st.tabs(
+            [
+                "🚚 Restricciones",
+                "📦 Requisitos entrega",
+                "📍 Geografía",
+                "📋 Grid detalle"
+            ]
+        )
 
         with tab1:
-
-            c1, c2 = st.columns(2)
-
-            with c1:
-
-                st.markdown(f"""
-                <div class="card">
-
-                <h4>📞 Información contacto</h4>
-
-                <b>Contacto:</b>
-                {cliente['contacto_entrega']}
-
-                <br><br>
-
-                <b>Teléfono:</b>
-                {cliente['telefono_contacto']}
-
-                <br><br>
-
-                <b>Correo:</b>
-                {cliente['correo_contacto']}
-
-                </div>
-                """, unsafe_allow_html=True)
-
-            with c2:
-
-                st.markdown(f"""
-                <div class="card">
-
-                <h4>📍 Dirección</h4>
-
-                <b>Dirección:</b>
-                {cliente['direccion_entrega']}
-
-                <br><br>
-
-                <b>Colonia:</b>
-                {cliente['colonia']}
-
-                <br><br>
-
-                <b>Código postal:</b>
-                {cliente['codigo_postal']}
-
-                </div>
-                """, unsafe_allow_html=True)
-
-        # =========================================================
-        # RESTRICCIONES
-        # =========================================================
-
-        with tab2:
-
-            r1, r2, r3 = st.columns(3)
+            r1, r2, r3, r4 = st.columns(4)
 
             with r1:
-                st.metric(
-                    "📅 Requiere cita",
-                    cliente['requiere_cita']
-                )
+                st.metric("Requiere cita", cliente["requiere_cita"])
 
             with r2:
-                st.metric(
-                    "📡 GPS",
-                    cliente['gps_obligatorio']
-                )
+                st.metric("Unidad permitida", cliente["tipo_unidad_permitida"])
 
             with r3:
-                st.metric(
-                    "🚚 Unidad",
-                    cliente['tipo_unidad_permitida']
-                )
+                st.metric("Peso máx tarima", cliente["peso_max_tarima"])
 
-        # =========================================================
-        # OPERACION
-        # =========================================================
+            with r4:
+                st.metric("Altura máx tarima", cliente["altura_max_tarima"])
+
+            with st.container(border=True):
+                st.write(f"**Restricción unidad:** {cliente['restriccion_unidad']}")
+                st.write(f"**Tiempo descarga:** {cliente['tiempo_descarga_min']} min")
+                st.write(f"**Prioridad ruta:** {cliente['prioridad_ruta']}")
+
+        with tab2:
+            e1, e2, e3, e4, e5 = st.columns(5)
+
+            with e1:
+                st.metric("Emplaye", cliente["requiere_emplaye"])
+
+            with e2:
+                st.metric("Etiqueta", cliente["requiere_etiqueta"])
+
+            with e3:
+                st.metric("Foto entrega", cliente["requiere_foto_entrega"])
+
+            with e4:
+                st.metric("Firma", cliente["requiere_firma"])
+
+            with e5:
+                st.metric("Sello", cliente["requiere_sello"])
+
+            with st.container(border=True):
+                st.write(f"**Requiere OC:** {cliente['requiere_oc']}")
+                st.write(
+                    f"**Requiere factura impresa:** "
+                    f"{cliente['requiere_factura_impresa']}"
+                )
 
         with tab3:
+            g1, g2, g3 = st.columns(3)
 
-            o1, o2, o3 = st.columns(3)
+            with g1:
+                st.metric("Latitud", cliente["latitud"])
 
-            with o1:
+            with g2:
+                st.metric("Longitud", cliente["longitud"])
 
-                st.metric(
-                    "⏱️ Descarga",
-                    cliente['tiempo_descarga_min']
-                )
+            with g3:
+                st.metric("GPS obligatorio", cliente["gps_obligatorio"])
 
-            with o2:
-
-                st.metric(
-                    "📦 Peso Máx",
-                    cliente['peso_max_tarima']
-                )
-
-            with o3:
-
-                st.metric(
-                    "📏 Altura Máx",
-                    cliente['altura_max_tarima']
-                )
-
-        # =========================================================
-        # GRID
-        # =========================================================
+            with st.container(border=True):
+                st.write(f"**Ciudad:** {cliente['ciudad']}")
+                st.write(f"**Estado:** {cliente['estado']}")
+                st.write(f"**País:** {cliente['pais']}")
+                st.write(f"**Código postal:** {cliente['codigo_postal']}")
 
         with tab4:
+            columnas_grid = [
+                "codigo_cliente",
+                "nombre_cliente",
+                "ciudad",
+                "estado",
+                "ruta",
+                "estatus",
+                "requiere_cita",
+                "gps_obligatorio",
+                "cliente_critico",
+                "nivel_servicio",
+                "contacto_entrega",
+                "telefono_contacto"
+            ]
 
             st.dataframe(
-                df,
+                df[columnas_grid],
                 use_container_width=True,
-                height=400
+                height=420
             )
 
-            csv = df.to_csv(
-                index=False
-            ).encode("utf-8")
+            csv = df.to_csv(index=False).encode("utf-8")
 
             st.download_button(
-                label="📥 Exportar CSV",
+                label="📥 Descargar CSV",
                 data=csv,
                 file_name="clientes_logistica.csv",
                 mime="text/csv"
             )
 
     except Exception as e:
-
-        st.error(
-            f"Error: {e}"
-        )
+        st.error(f"Error al consultar clientes: {e}")
 
     finally:
-
         conn.close()
