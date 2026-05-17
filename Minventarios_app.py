@@ -71,7 +71,7 @@ def inicio_inventarios_app():
         )
     except Exception:
         st.info(
-            "Imagen de inicio no encontrada. Verifica que exista el archivo logoinventarios.png"
+            "Imagen de inicio no encontrada. Verifica que exista el archivo logoinventa.png"
         )
 
     st.divider()
