@@ -115,43 +115,87 @@ def consulta_embarques_app():
     st.markdown(
         """
         <style>
-        .titulo-sigem {
-            font-size: 34px;
+
+        .block-container{
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .titulo-sigem{
+            font-size: 40px;
             font-weight: 800;
             color: #1f4e79;
-            margin-bottom: 4px;
+            margin-bottom: 0px;
         }
 
-        .subtitulo-sigem {
-            font-size: 15px;
-            color: #555;
-            margin-bottom: 28px;
+        .subtitulo-sigem{
+            font-size: 16px;
+            color: #5b6575;
+            margin-bottom: 24px;
         }
 
-        .bloque-filtros {
-            font-size: 26px;
+        .bloque-filtros{
+            font-size: 28px;
             font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 16px;
+            color: #1F2937;
+            margin-bottom: 18px;
         }
 
-        div[data-testid="metric-container"] {
-            background-color: #f8fafc;
-            border: 1px solid #dbeafe;
+        div[data-testid="metric-container"]{
+            background: linear-gradient(135deg,#ffffff,#f8fafc);
+            border: 1px solid #DBEAFE;
             padding: 18px;
-            border-radius: 14px;
+            border-radius: 18px;
             box-shadow: 0px 2px 8px rgba(0,0,0,0.04);
         }
 
-        div[data-testid="metric-container"] label {
+        div[data-testid="metric-container"] label{
             font-size: 13px;
-            color: #1f2937;
+            font-weight: 600;
+            color: #374151;
         }
 
-        div[data-testid="metric-container"] [data-testid="stMetricValue"] {
-            font-size: 30px;
+        div[data-testid="metric-container"] [data-testid="stMetricValue"]{
+            font-size: 34px;
+            font-weight: 700;
             color: #111827;
         }
+
+        .stTabs [data-baseweb="tab-list"]{
+            gap: 10px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .stTabs [data-baseweb="tab"]{
+            height: 44px;
+            border-radius: 10px 10px 0px 0px;
+            padding-left: 18px;
+            padding-right: 18px;
+            font-weight: 600;
+        }
+
+        .stDataFrame{
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #E5E7EB;
+        }
+
+        .stSelectbox label{
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .stTextInput label{
+            font-weight: 600;
+            color: #374151;
+        }
+
+        button[kind="primary"]{
+            border-radius: 10px;
+        }
+
         </style>
         """,
         unsafe_allow_html=True
@@ -224,7 +268,7 @@ def consulta_embarques_app():
 
     st.divider()
 
-    col_filtros, col_contenido = st.columns([1.1, 5])
+    col_filtros, col_contenido = st.columns([1, 5.4])
 
     with col_filtros:
 
@@ -407,7 +451,7 @@ def consulta_embarques_app():
             st.dataframe(
                 df_filtrado,
                 use_container_width=True,
-                height=500,
+                height=540,
                 hide_index=True
             )
 
@@ -446,7 +490,7 @@ def consulta_embarques_app():
                 st.dataframe(
                     df_detalle,
                     use_container_width=True,
-                    height=400,
+                    height=450,
                     hide_index=True
                 )
 
