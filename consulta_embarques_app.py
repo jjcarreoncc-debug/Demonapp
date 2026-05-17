@@ -57,40 +57,33 @@ def obtener_detalle_embarque(folio_embarque):
 
     query = """
         SELECT
-            d.folio_embarque,
-            d.folio_hoja_carga,
-            d.folio_ruta,
-            d.pedido,
-            d.codigo_material,
-            d.descripcion,
-            d.cantidad_pedida,
-            d.cantidad_embarcar,
-            d.peso,
-            d.volumen,
-            d.bodega,
-            d.ubicacion
-        FROM detalle_embarque d
-        LEFT JOIN embarques e
-            ON TRIM(e.folio_embarque) = TRIM(?)
-        WHERE
-            TRIM(d.folio_embarque) = TRIM(?)
-            OR TRIM(d.folio_hoja_carga) = TRIM(e.folio_hoja_carga)
-            OR TRIM(d.folio_ruta) = TRIM(e.folio_ruta)
-            OR TRIM(d.pedido) = TRIM(e.pedido)
+            folio_embarque,
+            folio_hoja_carga,
+            folio_ruta,
+            pedido,
+            codigo_material,
+            descripcion,
+            cantidad_pedida,
+            cantidad_embarcar,
+            peso,
+            volumen,
+            bodega,
+            ubicacion
+        FROM detalle_embarque
+        WHERE TRIM(folio_embarque) = TRIM(?)
     """
 
     df = pd.read_sql_query(
         query,
         conn,
-        params=[
-            folio_embarque,
-            folio_embarque
-        ]
+        params=[folio_embarque]
     )
 
     conn.close()
 
     return df
+
+
 # =====================================================
 # EXPORTAR EXCEL
 # =====================================================
@@ -527,6 +520,18 @@ def consulta_embarques_app():
                 df_detalle = obtener_detalle_embarque(
                     folio_detalle
                 )
+
+                # =================================================
+                # FILTRAR SOLO EL FOLIO SELECCIONADO
+                # =================================================
+
+                df_detalle = df_detalle[
+                    df_detalle["folio_embarque"]
+                    .astype(str)
+                    .str.strip()
+                    ==
+                    str(folio_detalle).strip()
+                ]
 
                 st.dataframe(
                     df_detalle,
