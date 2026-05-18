@@ -1,85 +1,133 @@
+# crear_admin_seguridad_app.py
+
 import streamlit as st
 import sqlite3
 import pandas as pd
 import os
+from datetime import datetime
 
 
 SEGURIDAD_DB_PATH = "/mount/src/demonapp/seguridad.db"
-ERP_DB_PATH = "/mount/src/demonapp/erp.db"
 
 
-def obtener_info_base(db_path):
+def conectar_seguridad():
+    return sqlite3.connect(SEGURIDAD_DB_PATH)
 
-    existe = os.path.exists(db_path)
 
-    if not existe:
-        return False, 0, pd.DataFrame(columns=["name"])
+def mostrar_tabla(nombre_tabla):
 
-    tamaño = os.path.getsize(db_path)
+    conn = conectar_seguridad()
 
-    conn = sqlite3.connect(db_path)
+    try:
+        df = pd.read_sql_query(f"SELECT * FROM {nombre_tabla}", conn)
+        st.dataframe(df, use_container_width=True)
 
-    df_tablas = pd.read_sql_query("""
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        ORDER BY name
-    """, conn)
+    except Exception as e:
+        st.warning(f"No se pudo leer la tabla {nombre_tabla}.")
+        st.exception(e)
+
+    finally:
+        conn.close()
+
+
+def mostrar_estructura(nombre_tabla):
+
+    conn = conectar_seguridad()
+
+    df = pd.read_sql_query(
+        f"PRAGMA table_info({nombre_tabla})",
+        conn
+    )
 
     conn.close()
 
-    return True, tamaño, df_tablas
+    if df.empty:
+        st.warning(f"No se encontró estructura para la tabla {nombre_tabla}.")
+    else:
+        st.dataframe(df, use_container_width=True)
 
 
-def mostrar_base(nombre, db_path):
+def crear_usuario_admin():
 
-    st.subheader(nombre)
+    conn = conectar_seguridad()
+    cur = conn.cursor()
 
-    st.write("📂 Ruta:")
-    st.code(db_path)
+    cur.execute("""
+        INSERT OR REPLACE INTO usuarios (
+            usuario,
+            password,
+            nombre,
+            email,
+            id_rol,
+            estado,
+            modulo_inicial,
+            fecha_creacion
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        "admin",
+        "admin",
+        "Administrador",
+        "admin@sigem.com",
+        1,
+        "Activo",
+        "inicio",
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ))
 
-    try:
-        existe, tamaño, df_tablas = obtener_info_base(db_path)
-
-        if not existe:
-            st.error("❌ La base no existe")
-            return
-
-        st.success("✅ La base existe")
-        st.write(f"📦 Tamaño: {tamaño} bytes")
-
-        if df_tablas.empty:
-            st.warning("⚠️ No tiene tablas")
-        else:
-            st.success(f"✅ Tiene {len(df_tablas)} tabla(s)")
-            st.dataframe(df_tablas, use_container_width=True)
-
-    except Exception as e:
-        st.error("❌ Error leyendo la base")
-        st.exception(e)
+    conn.commit()
+    conn.close()
 
 
-def validar_bases_seguridad_app():
+def crear_admin_seguridad_app():
 
-    st.title("🔎 Comparar seguridad.db vs erp.db")
+    st.title("🔐 Crear usuario administrador")
 
-    st.warning(
-        "Este programa solo consulta las bases. No crea, no borra y no modifica."
+    st.warning("Este programa está blindado exclusivamente a seguridad.db")
+
+    st.write("📂 Base de datos usada:")
+    st.code(SEGURIDAD_DB_PATH)
+
+    if os.path.exists(SEGURIDAD_DB_PATH):
+        st.success("✅ seguridad.db existe")
+        st.write(f"📦 Tamaño: {os.path.getsize(SEGURIDAD_DB_PATH)} bytes")
+    else:
+        st.error("❌ seguridad.db NO existe")
+        st.stop()
+
+    st.divider()
+
+    st.subheader("📋 Estructura actual usuarios")
+    mostrar_estructura("usuarios")
+
+    st.subheader("👤 Datos actuales usuarios")
+    mostrar_tabla("usuarios")
+
+    st.divider()
+
+    confirmar = st.checkbox(
+        "Confirmo crear/actualizar usuario admin en seguridad.db"
     )
 
-    col1, col2 = st.columns(2)
+    if not confirmar:
+        st.info("Marca la confirmación para habilitar la actualización.")
+        st.stop()
 
-    with col1:
-        mostrar_base(
-            "🔒 seguridad.db",
-            SEGURIDAD_DB_PATH
-        )
+    if st.button("✅ Crear / actualizar usuario admin"):
 
-    with col2:
-        mostrar_base(
-            "🏢 erp.db",
-            ERP_DB_PATH
-        )
+        try:
+            crear_usuario_admin()
+            st.success("✅ Usuario admin creado/actualizado correctamente")
+
+        except Exception as e:
+            st.error("❌ Error creando usuario admin")
+            st.exception(e)
+            st.stop()
+
+        st.divider()
+
+        st.subheader("👤 Tabla usuarios después de actualizar")
+        mostrar_tabla("usuarios")
 
 
-validar_bases_seguridad_app()
+crear_admin_seguridad_app()
