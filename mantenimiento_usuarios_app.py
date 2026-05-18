@@ -211,6 +211,9 @@ def alta_usuario_app():
 
 def editar_usuario_app():
 
+    db_path = get_db_path("seguridad")
+    st.write("DB:", db_path)
+
     st.markdown("## ✏️ Editar usuario")
 
     st.caption(
