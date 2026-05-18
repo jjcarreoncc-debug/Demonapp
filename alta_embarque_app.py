@@ -11,8 +11,61 @@ from datetime import datetime
 from sigem_db import get_db_path
 
 st.set_page_config(
-    layout="wide"
+    page_title="SIGEM",
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+
+
+st.markdown("""
+<style>
+
+.block-container {
+    max-width: 1450px;
+    padding-top: 1rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-bottom: 2rem;
+}
+
+div[data-testid="stHorizontalBlock"] {
+    gap: 1rem;
+}
+
+div[data-testid="stVerticalBlock"] {
+    gap: .7rem;
+}
+
+.filtros-box {
+    border: 1px solid #d9dee8;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+    margin-bottom: 18px;
+}
+
+.mapa-box {
+    border: 1px solid #d9dee8;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+    min-height: 360px;
+}
+
+.stTextInput input {
+    background-color: #f1f4f8;
+    border-radius: 9px;
+}
+
+div[data-baseweb="select"] > div {
+    background-color: #f1f4f8;
+    border-radius: 9px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 
 # =====================================================
