@@ -1,42 +1,113 @@
 import streamlit as st
 import os
+from pathlib import Path
+import zipfile
+from datetime import datetime
+
+# Carpeta donde están las BD
+BASE_DIR = Path("/mount/src/demonapp")
+
+# Extensiones válidas
+EXTENSIONES = [".db", ".sqlite", ".sqlite3"]
 
 
-SEGURIDAD_DB_PATH = "/mount/src/demonapp/seguridad.db"
+def obtener_bases():
+
+    bases = []
+
+    for archivo in BASE_DIR.iterdir():
+
+        if archivo.is_file():
+
+            if archivo.suffix.lower() in EXTENSIONES:
+
+                bases.append(archivo)
+
+    return bases
 
 
-def descargar_seguridad_db_app():
+def crear_zip(lista_bases):
 
-    st.title("⬇️ Descargar seguridad.db")
+    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    nombre_zip = f"backup_sigem_{fecha}.zip"
+
+    ruta_zip = BASE_DIR / nombre_zip
+
+    with zipfile.ZipFile(
+        ruta_zip,
+        "w",
+        zipfile.ZIP_DEFLATED
+    ) as zipf:
+
+        for bd in lista_bases:
+
+            zipf.write(
+                bd,
+                arcname=bd.name
+            )
+
+    return ruta_zip
+
+
+def descargar_todas_bd_app():
+
+    st.title("⬇️ Respaldo Completo SIGEM")
 
     st.write("📂 Ruta configurada:")
-    st.code(SEGURIDAD_DB_PATH)
 
-    if not os.path.exists(SEGURIDAD_DB_PATH):
+    st.code(str(BASE_DIR))
 
-        st.error("❌ No existe seguridad.db")
+    if not BASE_DIR.exists():
+
+        st.error("❌ No existe la carpeta demonapp")
 
         st.stop()
 
-    tamaño = os.path.getsize(
-        SEGURIDAD_DB_PATH
-    )
+    bases = obtener_bases()
 
-    st.success("✅ seguridad.db encontrada")
+    if len(bases) == 0:
 
-    st.write(f"📦 Tamaño archivo: {tamaño} bytes")
+        st.warning("⚠️ No se encontraron bases de datos")
 
-    with open(
-        SEGURIDAD_DB_PATH,
-        "rb"
-    ) as file:
+        st.stop()
 
-        st.download_button(
-            label="⬇️ Descargar seguridad.db",
-            data=file,
-            file_name="seguridad.db",
-            mime="application/octet-stream"
+    st.success(f"✅ Se encontraron {len(bases)} BD")
+
+    st.subheader("📦 Bases encontradas")
+
+    for bd in bases:
+
+        tamaño = os.path.getsize(bd)
+
+        st.write(
+            f"✅ {bd.name} — {tamaño:,} bytes"
         )
 
+    st.divider()
 
-descargar_seguridad_db_app()
+    if st.button("📥 Generar respaldo ZIP"):
+
+        try:
+
+            ruta_zip = crear_zip(bases)
+
+            st.success("✅ ZIP generado correctamente")
+
+            with open(ruta_zip, "rb") as file:
+
+                st.download_button(
+                    label="⬇️ Descargar respaldo completo",
+                    data=file,
+                    file_name=ruta_zip.name,
+                    mime="application/zip"
+                )
+
+        except Exception as e:
+
+            st.error("❌ Error generando respaldo")
+
+            st.exception(e)
+
+
+descargar_todas_bd_app()
