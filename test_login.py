@@ -1,113 +1,107 @@
 import streamlit as st
 import os
-from pathlib import Path
 import zipfile
+from pathlib import Path
 from datetime import datetime
 
-# Carpeta donde están las BD
-BASE_DIR = Path("/mount/src/demonapp")
+st.title("💾 Backup completo SIGEM")
 
-# Extensiones válidas
-EXTENSIONES = [".db", ".sqlite", ".sqlite3"]
+st.write("📂 Ruta fija configurada:")
+st.code("/mount/src/demonapp")
 
+# Validar ruta fija directamente
+if not os.path.exists("/mount/src/demonapp"):
+    st.error("❌ La ruta /mount/src/demonapp NO existe")
+    st.stop()
 
-def obtener_bases():
+if not os.path.isdir("/mount/src/demonapp"):
+    st.error("❌ /mount/src/demonapp existe pero NO es una carpeta")
+    st.stop()
 
-    bases = []
+st.success("✅ Ruta /mount/src/demonapp encontrada correctamente")
 
-    for archivo in BASE_DIR.iterdir():
+bases = []
 
-        if archivo.is_file():
+# Buscar directo en la ruta fija
+for archivo in Path("/mount/src/demonapp").rglob("*"):
 
-            if archivo.suffix.lower() in EXTENSIONES:
+    if archivo.is_file() and archivo.suffix.lower() in [".db", ".sqlite", ".sqlite3"]:
 
-                bases.append(archivo)
+        tamaño = os.path.getsize(archivo)
 
-    return bases
+        bases.append({
+            "nombre": archivo.name,
+            "ruta": str(archivo),
+            "tamaño": tamaño
+        })
 
+if len(bases) == 0:
+    st.error("❌ No se encontraron bases de datos en /mount/src/demonapp")
+    st.stop()
 
-def crear_zip(lista_bases):
+st.success(f"✅ Se encontraron {len(bases)} archivo(s) de base de datos")
 
-    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
+st.subheader("📦 Bases encontradas")
 
-    nombre_zip = f"backup_sigem_{fecha}.zip"
+bases_validas = []
 
-    ruta_zip = BASE_DIR / nombre_zip
+for bd in bases:
 
-    with zipfile.ZipFile(
-        ruta_zip,
-        "w",
-        zipfile.ZIP_DEFLATED
-    ) as zipf:
+    st.write(f"📄 **{bd['nombre']}**")
+    st.write("📍 Ruta exacta:")
+    st.code(bd["ruta"])
+    st.write(f"📏 Tamaño: {bd['tamaño']:,} bytes")
 
-        for bd in lista_bases:
-
-            zipf.write(
-                bd,
-                arcname=bd.name
-            )
-
-    return ruta_zip
-
-
-def descargar_todas_bd_app():
-
-    st.title("⬇️ Respaldo Completo SIGEM")
-
-    st.write("📂 Ruta configurada:")
-
-    st.code(str(BASE_DIR))
-
-    if not BASE_DIR.exists():
-
-        st.error("❌ No existe la carpeta demonapp")
-
-        st.stop()
-
-    bases = obtener_bases()
-
-    if len(bases) == 0:
-
-        st.warning("⚠️ No se encontraron bases de datos")
-
-        st.stop()
-
-    st.success(f"✅ Se encontraron {len(bases)} BD")
-
-    st.subheader("📦 Bases encontradas")
-
-    for bd in bases:
-
-        tamaño = os.path.getsize(bd)
-
-        st.write(
-            f"✅ {bd.name} — {tamaño:,} bytes"
-        )
+    if bd["tamaño"] == 0:
+        st.warning("⚠️ Esta BD está vacía y NO se incluirá en el backup")
+    else:
+        st.success("✅ Esta BD sí se incluirá en el backup")
+        bases_validas.append(bd)
 
     st.divider()
 
-    if st.button("📥 Generar respaldo ZIP"):
+if len(bases_validas) == 0:
+    st.error("❌ No hay bases con datos para respaldar")
+    st.stop()
 
-        try:
+if st.button("📥 Generar Backup ZIP"):
 
-            ruta_zip = crear_zip(bases)
+    fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-            st.success("✅ ZIP generado correctamente")
+    nombre_zip = f"SIGEM_BACKUP_{fecha}.zip"
 
-            with open(ruta_zip, "rb") as file:
+    ruta_zip = f"/mount/src/demonapp/{nombre_zip}"
 
-                st.download_button(
-                    label="⬇️ Descargar respaldo completo",
-                    data=file,
-                    file_name=ruta_zip.name,
-                    mime="application/zip"
+    try:
+
+        with zipfile.ZipFile(
+            ruta_zip,
+            "w",
+            zipfile.ZIP_DEFLATED
+        ) as zipf:
+
+            for bd in bases_validas:
+
+                zipf.write(
+                    bd["ruta"],
+                    arcname=bd["nombre"]
                 )
 
-        except Exception as e:
+        st.success("✅ Backup generado correctamente")
 
-            st.error("❌ Error generando respaldo")
+        st.write("📦 Archivo ZIP creado en:")
+        st.code(ruta_zip)
 
-            st.exception(e)
+        with open(ruta_zip, "rb") as file:
 
+            st.download_button(
+                label="⬇️ Descargar Backup a mi PC",
+                data=file,
+                file_name=nombre_zip,
+                mime="application/zip"
+            )
 
-descargar_todas_bd_app()
+    except Exception as e:
+
+        st.error("❌ Error generando backup")
+        st.exception(e)
