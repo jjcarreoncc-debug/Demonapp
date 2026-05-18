@@ -1,117 +1,237 @@
 import streamlit as st
 import sqlite3
-import pandas as pd
+import shutil
+import os
+
 from sigem_db import get_db_path
 
 
-st.set_page_config(
-    page_title="Comparar Bases",
-    layout="wide"
-)
-
-
-st.title("🔎 Comparativo de Bases SQLite")
-
-
-bases = [
-    ("ERP", "erp"),
-    ("SEGURIDAD", "seguridad"),
+TABLAS_A_COPIAR = [
+    "usuarios",
+    "roles",
+    "modulos",
+    "permisos_roles",
+    "auditoria"
 ]
 
 
-for nombre_base, clave in bases:
+def tabla_existe(conn, tabla):
 
-    st.divider()
+    cur = conn.cursor()
 
-    st.header(f"📦 Base: {nombre_base}")
+    cur.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        AND name=?
+        """,
+        (tabla,)
+    )
 
-    try:
+    return cur.fetchone() is not None
 
-        db_path = get_db_path(clave)
 
-        st.success(f"Ruta detectada: {db_path}")
+def copiar_tabla(origen_db, destino_db, tabla):
 
-        conn = sqlite3.connect(db_path)
+    conn_origen = sqlite3.connect(origen_db)
+    conn_destino = sqlite3.connect(destino_db)
 
-        tablas = pd.read_sql_query(
-            """
-            SELECT
-                name
-            FROM sqlite_master
-            WHERE type='table'
-            ORDER BY name
-            """,
-            conn
+    cur_origen = conn_origen.cursor()
+    cur_destino = conn_destino.cursor()
+
+    if not tabla_existe(conn_origen, tabla):
+
+        conn_origen.close()
+        conn_destino.close()
+
+        return False, f"⚠️ Tabla no encontrada: {tabla}"
+
+    cur_origen.execute(
+        """
+        SELECT sql
+        FROM sqlite_master
+        WHERE type='table'
+        AND name=?
+        """,
+        (tabla,)
+    )
+
+    row = cur_origen.fetchone()
+
+    if row is None:
+
+        conn_origen.close()
+        conn_destino.close()
+
+        return False, f"⚠️ No se encontró CREATE TABLE de {tabla}"
+
+    sql_create = row[0]
+
+    cur_destino.execute(
+        f"DROP TABLE IF EXISTS {tabla}"
+    )
+
+    cur_destino.execute(sql_create)
+
+    cur_origen.execute(
+        f"SELECT * FROM {tabla}"
+    )
+
+    filas = cur_origen.fetchall()
+
+    columnas = [
+        col[0]
+        for col in cur_origen.description
+    ]
+
+    if filas:
+
+        columnas_sql = ", ".join(columnas)
+
+        placeholders = ", ".join(
+            ["?"] * len(columnas)
         )
 
-        if tablas.empty:
+        cur_destino.executemany(
+            f"""
+            INSERT INTO {tabla} (
+                {columnas_sql}
+            )
+            VALUES (
+                {placeholders}
+            )
+            """,
+            filas
+        )
 
-            st.warning("⚠️ No se encontraron tablas.")
+    conn_destino.commit()
 
-        else:
+    conn_origen.close()
+    conn_destino.close()
 
-            st.subheader("📋 Tablas encontradas")
+    return True, f"✅ Tabla copiada: {tabla} | Registros: {len(filas)}"
 
-            st.dataframe(
-                tablas,
-                use_container_width=True
+
+def verificar_destino(destino_db):
+
+    conn = sqlite3.connect(destino_db)
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table'
+        ORDER BY name
+        """
+    )
+
+    tablas = [
+        row[0]
+        for row in cur.fetchall()
+    ]
+
+    resultado = {}
+
+    for tabla in tablas:
+
+        cur.execute(
+            f"SELECT COUNT(*) FROM {tabla}"
+        )
+
+        resultado[tabla] = cur.fetchone()[0]
+
+    conn.close()
+
+    return resultado
+
+
+def recuperar_seguridad():
+
+    st.title("🔐 Recuperar Seguridad desde ERP")
+
+    origen_db = get_db_path("erp")
+    destino_db = get_db_path("seguridad")
+
+    st.success(f"📥 ERP: {origen_db}")
+    st.success(f"📤 SEGURIDAD: {destino_db}")
+
+    st.subheader("📋 Tablas a copiar")
+
+    st.write(TABLAS_A_COPIAR)
+
+    confirmar = st.checkbox(
+        "Confirmo reemplazar tablas en seguridad.db"
+    )
+
+    if st.button(
+        "🚀 Ejecutar recuperación",
+        use_container_width=True
+    ):
+
+        if not confirmar:
+
+            st.warning(
+                "⚠️ Debes confirmar antes de ejecutar."
             )
 
-            for tabla in tablas["name"].tolist():
+            return
 
-                st.markdown(f"### 📌 Tabla: {tabla}")
+        try:
 
-                try:
+            if os.path.exists(destino_db):
 
-                    estructura = pd.read_sql_query(
-                        f"""
-                        PRAGMA table_info({tabla})
-                        """,
-                        conn
-                    )
+                backup_path = (
+                    destino_db + ".backup"
+                )
 
-                    st.write("Estructura")
+                shutil.copy2(
+                    destino_db,
+                    backup_path
+                )
 
-                    st.dataframe(
-                        estructura,
-                        use_container_width=True
-                    )
+                st.success(
+                    f"✅ Backup creado: {backup_path}"
+                )
 
-                    try:
+            for tabla in TABLAS_A_COPIAR:
 
-                        total = pd.read_sql_query(
-                            f"""
-                            SELECT COUNT(*) AS total
-                            FROM {tabla}
-                            """,
-                            conn
-                        )
+                ok, mensaje = copiar_tabla(
+                    origen_db,
+                    destino_db,
+                    tabla
+                )
 
-                        st.write("Registros")
+                if ok:
+                    st.success(mensaje)
+                else:
+                    st.warning(mensaje)
 
-                        st.dataframe(
-                            total,
-                            use_container_width=True
-                        )
+            resumen = verificar_destino(
+                destino_db
+            )
 
-                    except Exception as e:
+            st.subheader(
+                "✅ Resultado final"
+            )
 
-                        st.error(
-                            f"Error leyendo registros: {e}"
-                        )
+            st.json(resumen)
 
-                except Exception as e:
+            st.success(
+                "✅ Recuperación terminada correctamente."
+            )
 
-                    st.error(
-                        f"Error leyendo estructura: {e}"
-                    )
+        except Exception as e:
 
-        conn.close()
+            st.error(
+                "❌ Error durante recuperación."
+            )
 
-    except Exception as e:
+            st.exception(e)
 
-        st.error(
-            f"Error abriendo base {nombre_base}"
-        )
 
-        st.exception(e)
+if __name__ == "__main__":
+
+    recuperar_seguridad()
