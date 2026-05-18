@@ -1,227 +1,42 @@
 import streamlit as st
-import sqlite3
-import pandas as pd
 import os
 
-
-from datetime import datetime
-
-
-# =====================================================
-# BASE BLINDADA
-# =====================================================
 
 SEGURIDAD_DB_PATH = "/mount/src/demonapp/seguridad.db"
 
 
-# =====================================================
-# CONEXION
-# =====================================================
+def descargar_seguridad_db_app():
 
-def conectar_seguridad():
+    st.title("⬇️ Descargar seguridad.db")
 
-    return sqlite3.connect(SEGURIDAD_DB_PATH)
-
-
-# =====================================================
-# MOSTRAR TABLA
-# =====================================================
-
-def mostrar_tabla(nombre_tabla):
-
-    conn = conectar_seguridad()
-
-    try:
-
-        df = pd.read_sql_query(
-            f"SELECT * FROM {nombre_tabla}",
-            conn
-        )
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
-
-    except Exception as e:
-
-        st.warning(
-            f"No se pudo leer la tabla {nombre_tabla}."
-        )
-
-        st.exception(e)
-
-    finally:
-
-        conn.close()
-
-
-# =====================================================
-# MOSTRAR ESTRUCTURA
-# =====================================================
-
-def mostrar_estructura(nombre_tabla):
-
-    conn = conectar_seguridad()
-
-    df = pd.read_sql_query(
-        f"PRAGMA table_info({nombre_tabla})",
-        conn
-    )
-
-    conn.close()
-
-    if df.empty:
-
-        st.warning(
-            f"No se encontró estructura para la tabla {nombre_tabla}."
-        )
-
-    else:
-
-        st.dataframe(
-            df,
-            use_container_width=True
-        )
-
-
-# =====================================================
-# CREAR / ACTUALIZAR ADMIN
-# =====================================================
-
-def crear_usuario_admin():
-
-    conn = conectar_seguridad()
-
-    cur = conn.cursor()
-
-    cur.execute("""
-        INSERT OR REPLACE INTO usuarios (
-            id_usuario,
-            usuario,
-            nombre,
-            email,
-            password_hash,
-            id_rol,
-            estado,
-            modulo_inicial
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        1,
-        "admin",
-        "Administrador",
-        "admin@sigem.com",
-        "admin",
-        1,
-        "Activo",
-        "inicio"
-    ))
-
-    conn.commit()
-
-    conn.close()
-
-
-# =====================================================
-# APP
-# =====================================================
-
-def crear_admin_seguridad_app():
-
-    st.title("🔐 Crear usuario administrador")
-
-    st.warning(
-        "Programa blindado exclusivamente a seguridad.db"
-    )
-
-    st.write("📂 Base de datos usada:")
-
+    st.write("📂 Ruta configurada:")
     st.code(SEGURIDAD_DB_PATH)
 
-    if os.path.exists(SEGURIDAD_DB_PATH):
+    if not os.path.exists(SEGURIDAD_DB_PATH):
 
-        st.success(
-            "✅ seguridad.db existe"
-        )
-
-        tamaño = os.path.getsize(
-            SEGURIDAD_DB_PATH
-        )
-
-        st.write(
-            f"📦 Tamaño archivo: {tamaño} bytes"
-        )
-
-    else:
-
-        st.error(
-            "❌ seguridad.db NO existe"
-        )
+        st.error("❌ No existe seguridad.db")
 
         st.stop()
 
-    st.divider()
-
-    st.subheader(
-        "📋 Estructura actual usuarios"
+    tamaño = os.path.getsize(
+        SEGURIDAD_DB_PATH
     )
 
-    mostrar_estructura("usuarios")
+    st.success("✅ seguridad.db encontrada")
 
-    st.subheader(
-        "👤 Datos actuales usuarios"
-    )
+    st.write(f"📦 Tamaño archivo: {tamaño} bytes")
 
-    mostrar_tabla("usuarios")
+    with open(
+        SEGURIDAD_DB_PATH,
+        "rb"
+    ) as file:
 
-    st.divider()
-
-    confirmar = st.checkbox(
-        "Confirmo crear/actualizar usuario admin en seguridad.db"
-    )
-
-    if not confirmar:
-
-        st.info(
-            "Marca la confirmación para habilitar la actualización."
+        st.download_button(
+            label="⬇️ Descargar seguridad.db",
+            data=file,
+            file_name="seguridad.db",
+            mime="application/octet-stream"
         )
 
-        st.stop()
 
-    if st.button(
-        "✅ Crear / actualizar usuario admin"
-    ):
-
-        try:
-
-            crear_usuario_admin()
-
-            st.success(
-                "✅ Usuario admin creado/actualizado correctamente"
-            )
-
-        except Exception as e:
-
-            st.error(
-                "❌ Error creando usuario admin"
-            )
-
-            st.exception(e)
-
-            st.stop()
-
-        st.divider()
-
-        st.subheader(
-            "👤 Tabla usuarios después de actualizar"
-        )
-
-        mostrar_tabla("usuarios")
-
-
-# =====================================================
-# EJECUCION
-# =====================================================
-
-crear_admin_seguridad_app()
+descargar_seguridad_db_app()
