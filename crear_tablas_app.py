@@ -15,6 +15,17 @@ from inventario_db import (
 from seguridad_db import crear_tablas_seguridad
 
 
+SEGURIDAD_DB_PATH = "/mount/src/demonapp/seguridad.db"
+
+
+def get_db_modulo_path(db_nombre):
+
+    if str(db_nombre).strip().lower() == "seguridad":
+        return SEGURIDAD_DB_PATH
+
+    return get_db_modulo_path(db_nombre)
+
+
 def mostrar_estructura_tabla(db_path, tabla):
 
     conn = sqlite3.connect(db_path)
@@ -90,7 +101,7 @@ def borrar_tabla(modulo, tabla):
     if db_nombre == "seguridad":
         db_path = "/mount/src/demonapp/seguridad.db"
     else:
-        db_path = get_db_path(db_nombre)
+        db_path = get_db_modulo_path(db_nombre)
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -109,7 +120,7 @@ def borrar_tabla(modulo, tabla):
 
 def crear_tabla_ajustes_inventario():
 
-    db_path = get_db_path("inventarios")
+    db_path = get_db_modulo_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -136,7 +147,7 @@ def crear_tabla_ajustes_inventario():
 
 def crear_tablas_hoja_carga():
 
-    db_path = get_db_path("inventarios")
+    db_path = get_db_modulo_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -189,7 +200,7 @@ def crear_tablas_hoja_carga():
 
 def alterar_tabla_hoja_carga():
 
-    db_path = get_db_path("inventarios")
+    db_path = get_db_modulo_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -234,7 +245,7 @@ def alterar_tabla_hoja_carga():
 
 def alterar_tabla_detalle_hoja_carga():
 
-    db_path = get_db_path("inventarios")
+    db_path = get_db_modulo_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -275,7 +286,7 @@ def alterar_tabla_detalle_hoja_carga():
 
 def alterar_movimientos_inventario():
 
-    db_path = get_db_path("inventarios")
+    db_path = get_db_modulo_path("inventarios")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -389,7 +400,7 @@ def crear_tabla_clientes(cur):
 
 def crear_tablas_clientes_logistica():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -407,7 +418,7 @@ def crear_tablas_clientes_logistica():
 
 def alterar_tabla_clientes():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -551,7 +562,7 @@ def crear_tabla_detalle_entrega(cur):
 
 def crear_tablas_entregas_logistica():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -573,7 +584,7 @@ def crear_tablas_entregas_logistica():
 
 def alterar_tabla_entregas():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -616,7 +627,7 @@ def alterar_tabla_entregas():
 
 def alterar_tabla_detalle_entrega():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -861,7 +872,7 @@ def crear_tabla_incidencias(cur):
 
 def crear_tablas_incidencias_logistica():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -879,7 +890,7 @@ def crear_tablas_incidencias_logistica():
 
 def crear_tablas_rutas_logistica():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -909,7 +920,7 @@ def crear_tablas_rutas_logistica():
 
 def crear_tablas_logistica():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -1006,7 +1017,7 @@ def crear_tablas_logistica():
 
 def alterar_tabla_embarques():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -1061,7 +1072,7 @@ def alterar_tabla_embarques():
 
 def alterar_tabla_detalle_embarque():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -1094,7 +1105,7 @@ def alterar_tabla_detalle_embarque():
 
 def alterar_tabla_incidencias():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -1113,7 +1124,7 @@ def alterar_tabla_incidencias():
 
 def crear_tablas_control_embarques():
 
-    db_path = get_db_path("logistica")
+    db_path = get_db_modulo_path("logistica")
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
