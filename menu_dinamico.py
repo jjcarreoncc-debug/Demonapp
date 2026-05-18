@@ -18,15 +18,10 @@ def get_conn_seguridad():
 
 def normalizar_rol(rol_usuario):
 
-    rol_usuario = str(rol_usuario).strip()
+    if rol_usuario is None:
+        return ""
 
-    if rol_usuario == "1":
-        return "Admin"
-
-    if rol_usuario == "4":
-        return "Logistica"
-
-    return rol_usuario
+    return str(rol_usuario).strip()
 
 
 def sidebar_dinamico():
@@ -50,13 +45,13 @@ def sidebar_dinamico():
                 m.nombre_modulo,
                 m.ruta,
                 m.orden_menu
-            FROM rol_permisos rp
+            FROM permisos_roles pr
             INNER JOIN roles r
-                ON rp.id_rol = r.id_rol
+                ON pr.id_rol = r.id_rol
             INNER JOIN modulos m
-                ON rp.id_modulo = m.id_modulo
-            WHERE r.nombre_rol = ?
-              AND rp.puede_ver = 1
+                ON pr.id_modulo = m.id_modulo
+            WHERE TRIM(r.nombre_rol) = TRIM(?)
+              AND pr.puede_ver = 1
               AND IFNULL(m.estado, 'Activo') = 'Activo'
             ORDER BY m.orden_menu
             """,
