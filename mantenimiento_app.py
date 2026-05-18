@@ -359,3 +359,11 @@ def mantenimiento_app():
         st.info(
             f"Pantalla en construcción: {opcion}"
         )
+
+# =====================================================
+# EJECUTAR APP
+# =====================================================
+
+if __name__ == "__main__":
+
+    mantenimiento_app()
