@@ -5,57 +5,106 @@ from sigem_db import get_db_path
 
 
 st.set_page_config(
-    page_title="Test BD Seguridad",
+    page_title="Comparativo Bases",
     layout="wide"
 )
 
+st.title("🔎 Comparativo ERP vs SEGURIDAD")
 
-st.title("🔎 Test Base de Datos Seguridad")
+bases = [
+    ("ERP", "erp"),
+    ("SEGURIDAD", "seguridad")
+]
 
-try:
-    db_path = get_db_path("seguridad")
+for nombre_base, clave in bases:
 
-    st.success("Ruta detectada:")
-    st.code(db_path)
+    st.divider()
+    st.header(f"📦 Base: {nombre_base}")
 
-    conn = sqlite3.connect(db_path)
+    try:
 
-    tablas = pd.read_sql_query(
-        """
-        SELECT name AS tabla
-        FROM sqlite_master
-        WHERE type = 'table'
-        ORDER BY name
-        """,
-        conn
-    )
+        db_path = get_db_path(clave)
 
-    st.subheader("📋 Tablas encontradas")
+        st.success(f"Ruta detectada: {db_path}")
 
-    if tablas.empty:
-        st.error("No se encontraron tablas en esta base.")
-    else:
-        st.dataframe(tablas, use_container_width=True)
+        conn = sqlite3.connect(db_path)
 
-        for tabla in tablas["tabla"].tolist():
+        tablas = pd.read_sql_query(
+            """
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
+            ORDER BY name
+            """,
+            conn
+        )
 
-            st.divider()
-            st.subheader(f"📌 Tabla: {tabla}")
+        if tablas.empty:
 
-            try:
-                df = pd.read_sql_query(
-                    f"SELECT * FROM {tabla} LIMIT 20",
-                    conn
-                )
+            st.warning("No se encontraron tablas.")
 
-                st.write(f"Registros encontrados: {len(df)}")
-                st.dataframe(df, use_container_width=True)
+        else:
 
-            except Exception as e:
-                st.error(f"No se pudo leer la tabla {tabla}: {e}")
+            st.subheader("📋 Tablas")
 
-    conn.close()
+            st.dataframe(
+                tablas,
+                use_container_width=True
+            )
 
-except Exception as e:
-    st.error("Error general revisando la base de seguridad")
-    st.exception(e)
+            for tabla in tablas["name"].tolist():
+
+                st.markdown(f"### 📌 {tabla}")
+
+                try:
+
+                    estructura = pd.read_sql_query(
+                        f"""
+                        PRAGMA table_info({tabla})
+                        """,
+                        conn
+                    )
+
+                    st.write("Estructura:")
+
+                    st.dataframe(
+                        estructura,
+                        use_container_width=True
+                    )
+
+                    try:
+
+                        datos = pd.read_sql_query(
+                            f"""
+                            SELECT *
+                            FROM {tabla}
+                            LIMIT 5
+                            """,
+                            conn
+                        )
+
+                        st.write("Datos:")
+
+                        st.dataframe(
+                            datos,
+                            use_container_width=True
+                        )
+
+                    except Exception as e:
+
+                        st.error(
+                            f"No se pudieron leer datos: {e}"
+                        )
+
+                except Exception as e:
+
+                    st.error(
+                        f"No se pudo leer estructura: {e}"
+                    )
+
+        conn.close()
+
+    except Exception as e:
+
+        st.error(f"Error abriendo base {nombre_base}")
+        st.exception(e)
