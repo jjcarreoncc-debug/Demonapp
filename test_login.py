@@ -13,6 +13,7 @@ st.set_page_config(
 
 
 def generar_hash(password):
+
     return hashlib.sha256(
         password.encode("utf-8")
     ).hexdigest()
@@ -91,7 +92,7 @@ agregar_columna(
 conn.commit()
 
 # =========================
-# VER USUARIOS
+# MOSTRAR USUARIOS
 # =========================
 
 df = pd.read_sql_query(
@@ -123,43 +124,72 @@ password = st.text_input(
 )
 
 if st.button(
-    "🚀 Actualizar admin",
+    "🚀 Crear / Actualizar Admin",
     use_container_width=True
 ):
 
-    password_hash = generar_hash(
-        password
-    )
+    try:
 
-    cur.execute(
-        """
-        UPDATE usuarios
-        SET
-            password_hash = ?,
-            estado = 'Activo',
-            id_rol = 1
-        WHERE TRIM(UPPER(usuario))
-        =
-        TRIM(UPPER(?))
-        """,
-        (
-            password_hash,
-            usuario
-        )
-    )
-
-    conn.commit()
-
-    if cur.rowcount == 0:
-
-        st.error(
-            "❌ Usuario no encontrado."
+        password_hash = generar_hash(
+            password
         )
 
-    else:
+        # =========================
+        # CREAR SI NO EXISTE
+        # =========================
+
+        cur.execute(
+            """
+            INSERT OR IGNORE INTO usuarios
+            (
+                usuario,
+                nombre,
+                password_hash,
+                estado,
+                id_rol
+            )
+            VALUES
+            (
+                ?,
+                ?,
+                ?,
+                'Activo',
+                1
+            )
+            """,
+            (
+                usuario,
+                "Administrador SIGEM",
+                password_hash
+            )
+        )
+
+        # =========================
+        # ACTUALIZAR
+        # =========================
+
+        cur.execute(
+            """
+            UPDATE usuarios
+            SET
+                password_hash = ?,
+                estado = 'Activo',
+                id_rol = 1
+            WHERE
+                TRIM(UPPER(usuario))
+                =
+                TRIM(UPPER(?))
+            """,
+            (
+                password_hash,
+                usuario
+            )
+        )
+
+        conn.commit()
 
         st.success(
-            "✅ Usuario actualizado."
+            "✅ Usuario actualizado correctamente."
         )
 
         st.code(
@@ -168,5 +198,15 @@ usuario: {usuario}
 password: {password}
             """
         )
+
+        st.rerun()
+
+    except Exception as e:
+
+        st.error(
+            "❌ Error actualizando usuario"
+        )
+
+        st.exception(e)
 
 conn.close()
