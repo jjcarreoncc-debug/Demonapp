@@ -511,221 +511,708 @@ def aplicar_filtros_sidebar(df_hojas):
 # SIMULACION DE CARGA TRANSPORTE
 # =====================================================
 
-def agregar_caja_3d(fig, x0, x1, y0, y1, z0, z1, color, opacity, nombre):
+COLORES_EMBARQUE = [
+    "#2563eb",
+    "#f97316",
+    "#16a34a",
+    "#9333ea",
+    "#dc2626",
+    "#0891b2",
+    "#ca8a04",
+    "#be123c"
+]
+
+
+def agregar_caja_3d(
+    fig,
+    x0,
+    x1,
+    y0,
+    y1,
+    z0,
+    z1,
+    color,
+    opacity,
+    nombre,
+    texto=None
+):
 
     fig.add_trace(
+
         go.Mesh3d(
-            x=[x0, x1, x1, x0, x0, x1, x1, x0],
-            y=[y0, y0, y1, y1, y0, y0, y1, y1],
-            z=[z0, z0, z0, z0, z1, z1, z1, z1],
-            i=[0, 0, 0, 1, 2, 4, 5, 6, 7, 4, 0, 3],
-            j=[1, 2, 4, 2, 3, 5, 6, 7, 4, 7, 3, 7],
-            k=[2, 3, 5, 5, 7, 6, 7, 4, 0, 3, 7, 4],
+
+            x=[
+                x0, x1, x1, x0,
+                x0, x1, x1, x0
+            ],
+
+            y=[
+                y0, y0, y1, y1,
+                y0, y0, y1, y1
+            ],
+
+            z=[
+                z0, z0, z0, z0,
+                z1, z1, z1, z1
+            ],
+
+            i=[
+                0, 0, 0, 1, 2, 4,
+                5, 6, 7, 4, 0, 3
+            ],
+
+            j=[
+                1, 2, 4, 2, 3, 5,
+                6, 7, 4, 7, 3, 7
+            ],
+
+            k=[
+                2, 3, 5, 5, 7, 6,
+                7, 4, 0, 3, 7, 4
+            ],
+
             color=color,
+
             opacity=opacity,
+
             flatshading=True,
+
             name=nombre,
+
+            text=texto,
+
+            hoverinfo="text" if texto else "name",
+
             showscale=False
         )
     )
 
 
-def agregar_linea_3d(fig, x, y, z, texto, color, nombre):
+def agregar_texto_3d(fig, x, y, z, texto, color="#111827"):
 
     fig.add_trace(
+
         go.Scatter3d(
-            x=x,
-            y=y,
-            z=z,
-            mode="lines+markers+text",
-            line=dict(color=color, width=7),
-            marker=dict(size=4, color=color),
-            text=["", texto],
-            textposition="top center",
-            name=nombre,
-            showlegend=False
+
+            x=[x],
+
+            y=[y],
+
+            z=[z],
+
+            text=[texto],
+
+            mode="text",
+
+            textfont=dict(
+                size=12,
+                color=color
+            ),
+
+            showlegend=False,
+
+            hoverinfo="none"
         )
     )
 
 
-def obtener_estado_carga(porcentaje_peso, porcentaje_volumen):
+def obtener_estado_carga(
+    porcentaje_peso,
+    porcentaje_volumen,
+    porcentaje_tarimas
+):
 
-    if porcentaje_peso > 100 or porcentaje_volumen > 100:
-        return "❌ Excede capacidad", "#dc2626"
+    maximo = max(
+        porcentaje_peso,
+        porcentaje_volumen,
+        porcentaje_tarimas
+    )
 
-    if porcentaje_peso >= 90 or porcentaje_volumen >= 90:
-        return "⚠️ Cerca del límite", "#f59e0b"
+    if maximo > 100:
+        return (
+            "❌ SOBRECÁPACIDAD",
+            "#dc2626",
+            "El vehículo excede su capacidad. Selecciona otra unidad."
+        )
 
-    return "✅ Carga válida", "#16a34a"
+    if 94 <= maximo <= 100:
+        return (
+            "✅ ÓPTIMO",
+            "#16a34a",
+            "El vehículo está dentro del rango óptimo de ocupación."
+        )
+
+    if 80 <= maximo < 94:
+        return (
+            "⚠️ ACEPTABLE",
+            "#f59e0b",
+            "Aún hay espacio disponible. Puedes agregar más carga."
+        )
+
+    return (
+        "ℹ️ BAJA OCUPACIÓN",
+        "#2563eb",
+        "El vehículo tiene mucho espacio disponible. Conviene consolidar más hojas."
+    )
 
 
-def validar_datos_simulacion(peso_total, volumen_total, capacidad_peso, capacidad_volumen):
-
-    if peso_total <= 0:
-        return False, "La hoja de carga no tiene peso calculado."
-
-    if volumen_total <= 0:
-        return False, "La hoja de carga no tiene volumen calculado."
-
-    if capacidad_peso <= 0:
-        return False, "El transporte no tiene capacidad de peso configurada."
-
-    if capacidad_volumen <= 0:
-        return False, "El transporte no tiene capacidad de volumen configurada."
-
-    return True, "OK"
-
-
-def estimar_tarimas(volumen_total):
+def estimar_tarimas_por_volumen(volumen_total):
 
     if volumen_total <= 0:
         return 0
 
-    return max(1, math.ceil(volumen_total / 3))
+    # Regla operativa de simulación:
+    # 1 tarima promedio ocupa aprox. 3 m3
+    return max(
+        1,
+        math.ceil(volumen_total / 3)
+    )
 
 
-def crear_folio_simulado_embarque(df_seleccionadas):
+def preparar_hojas_simulacion(df_seleccionadas):
 
-    fecha = datetime.now().strftime("%Y%m%d%H%M%S")
+    hojas = []
 
-    if df_seleccionadas.empty:
-        return f"EMB-SIM-{fecha}"
+    for idx, row in df_seleccionadas.reset_index(drop=True).iterrows():
 
-    primer_folio = str(df_seleccionadas.iloc[0].get("folio_hoja_carga", "HC"))
+        peso = float(
+            pd.to_numeric(
+                row.get(
+                    "peso_total",
+                    0
+                ),
+                errors="coerce"
+            )
+            or 0
+        )
 
-    return f"EMB-SIM-{fecha}-{primer_folio}"
+        volumen = float(
+            pd.to_numeric(
+                row.get(
+                    "volumen_total",
+                    0
+                ),
+                errors="coerce"
+            )
+            or 0
+        )
+
+        tarimas = estimar_tarimas_por_volumen(
+            volumen
+        )
+
+        hojas.append(
+            {
+                "numero": idx + 1,
+                "folio": row.get(
+                    "folio_hoja_carga",
+                    ""
+                ),
+                "pedido": row.get(
+                    "pedido",
+                    ""
+                ),
+                "cliente": row.get(
+                    "cliente",
+                    ""
+                ),
+                "destino": row.get(
+                    "destino",
+                    ""
+                ),
+                "peso": peso,
+                "volumen": volumen,
+                "materiales": int(
+                    row.get(
+                        "materiales",
+                        0
+                    )
+                    or 0
+                ),
+                "tarimas": tarimas,
+                "color": COLORES_EMBARQUE[
+                    idx % len(COLORES_EMBARQUE)
+                ]
+            }
+        )
+
+    return hojas
 
 
-def crear_figura_camion_cientifico(
+def crear_figura_simulacion_carga(
+    df_seleccionadas,
+    transporte,
     peso_total,
-    volumen_total,
-    capacidad_peso,
-    capacidad_volumen,
-    vehiculo,
-    folio_simulado,
-    cliente,
-    destino
+    volumen_total
 ):
 
-    porcentaje_peso = round((peso_total / capacidad_peso) * 100, 1) if capacidad_peso > 0 else 0
-    porcentaje_volumen = round((volumen_total / capacidad_volumen) * 100, 1) if capacidad_volumen > 0 else 0
-
-    tarimas = estimar_tarimas(volumen_total)
-
-    largo_unidad = 13.2
-    ancho_unidad = 2.6
-    alto_unidad = 2.8
-
-    largo_ocupado = max(
-        largo_unidad * min(porcentaje_volumen / 100, 1),
-        0.9 if volumen_total > 0 else 0
+    capacidad_peso = float(
+        transporte[
+            "capacidad_peso"
+        ]
     )
+
+    capacidad_volumen = float(
+        transporte[
+            "capacidad_volumen"
+        ]
+    )
+
+    vehiculo = str(
+        transporte.get(
+            "vehiculo",
+            ""
+        )
+    )
+
+    hojas = preparar_hojas_simulacion(
+        df_seleccionadas
+    )
+
+    tarimas_totales = sum(
+        h["tarimas"]
+        for h in hojas
+    )
+
+    capacidad_tarimas = max(
+        math.ceil(
+            capacidad_volumen / 3
+        ),
+        1
+    )
+
+    porcentaje_peso = round(
+        (peso_total / capacidad_peso) * 100,
+        1
+    ) if capacidad_peso > 0 else 0
+
+    porcentaje_volumen = round(
+        (volumen_total / capacidad_volumen) * 100,
+        1
+    ) if capacidad_volumen > 0 else 0
+
+    porcentaje_tarimas = round(
+        (tarimas_totales / capacidad_tarimas) * 100,
+        1
+    ) if capacidad_tarimas > 0 else 0
+
+    largo_unidad = 13.6
+    ancho_unidad = 2.44
+    alto_unidad = 2.60
+
+    tarima_largo = 1.15
+    tarima_ancho = 1.00
+    tarima_alto = 0.16
+    carga_alto = 0.88
+
+    carriles_y = [
+        0.22,
+        1.25
+    ]
+
+    posiciones_x = []
+    x = 0.35
+
+    while x + tarima_largo <= largo_unidad - 0.3:
+        posiciones_x.append(
+            round(
+                x,
+                2
+            )
+        )
+        x += 1.28
+
+    posiciones = []
+
+    for px in posiciones_x:
+        for py in carriles_y:
+            posiciones.append(
+                (
+                    px,
+                    py
+                )
+            )
 
     fig = go.Figure()
 
-    agregar_caja_3d(fig, 0, largo_unidad, 0, ancho_unidad, 0, 0.10, "#374151", 0.52, "Piso caja")
-    agregar_caja_3d(fig, 0, largo_unidad, 0, 0.06, 0, alto_unidad, "#93c5fd", 0.16, "Pared izquierda")
-    agregar_caja_3d(fig, 0, largo_unidad, ancho_unidad - 0.06, ancho_unidad, 0, alto_unidad, "#93c5fd", 0.16, "Pared derecha")
-    agregar_caja_3d(fig, 0, largo_unidad, 0, ancho_unidad, alto_unidad, alto_unidad + 0.04, "#bfdbfe", 0.08, "Techo")
-
-    agregar_caja_3d(fig, -2.0, -0.2, 0.25, ancho_unidad - 0.25, 0, 1.65, "#2563eb", 0.82, "Cabina")
-    agregar_caja_3d(fig, -2.8, -1.9, 0.45, ancho_unidad - 0.45, 0, 1.10, "#1d4ed8", 0.82, "Cofre")
-    agregar_caja_3d(fig, -1.85, -0.25, 0.35, ancho_unidad - 0.35, 1.05, 1.55, "#dbeafe", 0.55, "Cristal")
-
-    for x_llanta in [-2.15, -0.65, 2.4, 7.7, 11.5]:
-        agregar_caja_3d(fig, x_llanta, x_llanta + 0.34, -0.16, 0.10, -0.35, 0.30, "#111827", 0.95, "Llanta")
-        agregar_caja_3d(fig, x_llanta, x_llanta + 0.34, ancho_unidad - 0.10, ancho_unidad + 0.16, -0.35, 0.30, "#111827", 0.95, "Llanta")
-
-    if volumen_total > 0:
-        alto_ocupado = min(max(alto_unidad * (porcentaje_volumen / 100), 0.45), alto_unidad)
-        agregar_caja_3d(fig, 0.25, largo_ocupado, 0.20, ancho_unidad - 0.20, 0.12, alto_ocupado, "#f97316", 0.14, "Cubicaje ocupado")
-
-    tarima_largo = 1.18
-    tarima_ancho = 1.02
-    tarima_alto = 0.16
-    caja_alto = 0.58
-    max_tarimas_visuales = min(tarimas, 22)
-    posiciones_x = [0.40, 1.80, 3.20, 4.60, 6.00, 7.40, 8.80, 10.20, 11.60]
-    posiciones_y = [0.36, 1.36]
-
-    contador = 0
-    for x0 in posiciones_x:
-        for y0 in posiciones_y:
-            if contador >= max_tarimas_visuales:
-                break
-            contador += 1
-            x1 = x0 + tarima_largo
-            y1 = y0 + tarima_ancho
-            agregar_caja_3d(fig, x0, x1, y0, y1, 0.12, 0.12 + tarima_alto, "#92400e", 0.95, f"Tarima {contador}")
-
-            niveles = 1
-            if porcentaje_volumen >= 45:
-                niveles = 2
-            if porcentaje_volumen >= 75:
-                niveles = 3
-
-            for nivel in range(niveles):
-                z0 = 0.12 + tarima_alto + (nivel * caja_alto)
-                z1 = z0 + caja_alto - 0.04
-                agregar_caja_3d(fig, x0 + 0.05, x1 - 0.05, y0 + 0.05, y1 - 0.05, z0, z1, "#fb923c", 0.88, f"Carga {contador}-{nivel + 1}")
-        if contador >= max_tarimas_visuales:
-            break
-
-    agregar_linea_3d(fig, [0, largo_ocupado], [ancho_unidad + 0.42, ancho_unidad + 0.42], [0.08, 0.08], f"{porcentaje_volumen}% volumen", "#16a34a", "Volumen")
-    agregar_linea_3d(fig, [largo_unidad + 0.35, largo_unidad + 0.35], [0.15, 0.15], [0, alto_unidad * min(porcentaje_peso / 100, 1)], f"{porcentaje_peso}% peso", "#dc2626", "Peso")
-
-    fig.add_trace(
-        go.Scatter3d(
-            x=[-2.65],
-            y=[ancho_unidad / 2],
-            z=[1.95],
-            mode="text",
-            text=[
-                (
-                    "<b>ETIQUETA EMBARQUE</b><br>"
-                    f"{folio_simulado}<br>"
-                    f"Cliente: {cliente}<br>"
-                    f"Destino: {destino}<br>"
-                    f"Vehículo: {vehiculo}"
-                )
-            ],
-            textfont=dict(color="#111827", size=12),
-            name="Etiqueta embarque",
-            showlegend=False
-        )
+    # Caja transparente del transporte
+    agregar_caja_3d(
+        fig,
+        0,
+        largo_unidad,
+        0,
+        ancho_unidad,
+        0,
+        alto_unidad,
+        "#bfdbfe",
+        0.12,
+        "Caja del vehículo"
     )
 
-    fig.add_trace(
-        go.Scatter3d(
-            x=[largo_unidad / 2],
-            y=[-0.55],
-            z=[alto_unidad + 0.38],
-            mode="text",
-            text=[f"Tarimas estimadas: {tarimas} | Peso: {peso_total} / {capacidad_peso} | Volumen: {volumen_total} / {capacidad_volumen}"],
-            textfont=dict(color="#111827", size=13),
-            name="Resumen carga",
-            showlegend=False
+    # Piso
+    agregar_caja_3d(
+        fig,
+        0,
+        largo_unidad,
+        0,
+        ancho_unidad,
+        0,
+        0.08,
+        "#111827",
+        0.34,
+        "Piso"
+    )
+
+    # Cabina simbólica
+    agregar_caja_3d(
+        fig,
+        -1.55,
+        -0.08,
+        0.28,
+        2.15,
+        0,
+        1.55,
+        "#f8fafc",
+        0.95,
+        "Cabina"
+    )
+
+    agregar_caja_3d(
+        fig,
+        -1.45,
+        -0.15,
+        0.18,
+        2.25,
+        0,
+        0.35,
+        "#111827",
+        0.80,
+        "Chasis"
+    )
+
+    # Ruedas
+    ruedas = [
+        (-1.15, 0.12),
+        (-1.15, 2.18),
+        (3.2, 0.12),
+        (3.2, 2.18),
+        (8.8, 0.12),
+        (8.8, 2.18),
+        (10.0, 0.12),
+        (10.0, 2.18)
+    ]
+
+    for i, (rx, ry) in enumerate(ruedas):
+
+        agregar_caja_3d(
+            fig,
+            rx,
+            rx + 0.35,
+            ry,
+            ry + 0.18,
+            -0.35,
+            0.05,
+            "#020617",
+            0.92,
+            f"Rueda {i + 1}"
         )
+
+    # Carga por hoja, cada hoja con color propio
+    posicion_actual = 0
+
+    for hoja in hojas:
+
+        for t in range(
+            hoja["tarimas"]
+        ):
+
+            if posicion_actual >= len(posiciones):
+                break
+
+            x0, y0 = posiciones[
+                posicion_actual
+            ]
+
+            x1 = x0 + tarima_largo
+            y1 = y0 + tarima_ancho
+
+            z0 = 0.08
+            z1 = z0 + tarima_alto
+
+            texto_tarima = (
+                f"Hoja: {hoja['folio']}<br>"
+                f"Cliente: {hoja['cliente']}<br>"
+                f"Peso hoja: {hoja['peso']} kg<br>"
+                f"Volumen hoja: {hoja['volumen']} m3<br>"
+                f"Tarimas hoja: {hoja['tarimas']}"
+            )
+
+            agregar_caja_3d(
+                fig,
+                x0,
+                x1,
+                y0,
+                y1,
+                z0,
+                z1,
+                "#92400e",
+                0.95,
+                f"Tarima {hoja['numero']}",
+                texto_tarima
+            )
+
+            agregar_caja_3d(
+                fig,
+                x0 + 0.03,
+                x1 - 0.03,
+                y0 + 0.03,
+                y1 - 0.03,
+                z1,
+                z1 + carga_alto,
+                hoja["color"],
+                0.82,
+                f"Embarque {hoja['numero']}",
+                texto_tarima
+            )
+
+            posicion_actual += 1
+
+    # Espacio disponible como tarimas transparentes
+    for pos_libre in range(
+        posicion_actual,
+        min(
+            len(posiciones),
+            capacidad_tarimas
+        )
+    ):
+
+        x0, y0 = posiciones[
+            pos_libre
+        ]
+
+        agregar_caja_3d(
+            fig,
+            x0,
+            x0 + tarima_largo,
+            y0,
+            y0 + tarima_ancho,
+            0.08,
+            0.08 + tarima_alto + carga_alto,
+            "#d1d5db",
+            0.15,
+            "Espacio disponible"
+        )
+
+    # Etiquetas de medida
+    agregar_texto_3d(
+        fig,
+        largo_unidad / 2,
+        -0.45,
+        0.05,
+        f"Largo interno: {largo_unidad} m",
+        "#2563eb"
+    )
+
+    agregar_texto_3d(
+        fig,
+        largo_unidad + 0.45,
+        ancho_unidad / 2,
+        alto_unidad / 2,
+        f"Alto interno: {alto_unidad} m",
+        "#2563eb"
+    )
+
+    agregar_texto_3d(
+        fig,
+        -0.55,
+        ancho_unidad / 2,
+        0.05,
+        f"Ancho: {ancho_unidad} m",
+        "#2563eb"
     )
 
     fig.update_layout(
-        title=f"Simulación científica de carga - {vehiculo}",
-        height=670,
-        margin=dict(l=0, r=0, t=45, b=0),
-        paper_bgcolor="white",
-        scene=dict(
-            xaxis=dict(title="Largo unidad", backgroundcolor="white", gridcolor="#e5e7eb", zerolinecolor="#d1d5db"),
-            yaxis=dict(title="Ancho unidad", backgroundcolor="white", gridcolor="#e5e7eb", zerolinecolor="#d1d5db"),
-            zaxis=dict(title="Altura", backgroundcolor="white", gridcolor="#e5e7eb", zerolinecolor="#d1d5db"),
-            bgcolor="white",
-            aspectmode="manual",
-            aspectratio=dict(x=4.3, y=1.45, z=1.15),
-            camera=dict(eye=dict(x=1.55, y=-1.75, z=1.05))
+
+        title=(
+            f"Simulación de carga - {vehiculo}"
         ),
+
+        height=660,
+
+        margin=dict(
+            l=0,
+            r=0,
+            t=40,
+            b=0
+        ),
+
+        scene=dict(
+
+            xaxis_title="Largo",
+
+            yaxis_title="Ancho",
+
+            zaxis_title="Alto",
+
+            bgcolor="white",
+
+            aspectmode="manual",
+
+            aspectratio=dict(
+                x=4.5,
+                y=1.25,
+                z=1
+            ),
+
+            camera=dict(
+                eye=dict(
+                    x=1.65,
+                    y=-1.85,
+                    z=0.92
+                )
+            )
+        ),
+
         showlegend=False
     )
 
-    return fig, tarimas, porcentaje_peso, porcentaje_volumen
+    return (
+        fig,
+        hojas,
+        tarimas_totales,
+        capacidad_tarimas,
+        porcentaje_peso,
+        porcentaje_volumen,
+        porcentaje_tarimas
+    )
+
+
+def barra_html(valor, color):
+
+    valor_limitado = min(
+        max(
+            float(valor),
+            0
+        ),
+        100
+    )
+
+    return f"""
+    <div style="background:#e5e7eb;border-radius:999px;height:12px;overflow:hidden;">
+        <div style="width:{valor_limitado}%;background:{color};height:12px;border-radius:999px;"></div>
+    </div>
+    """
+
+
+def crear_html_etiqueta_embarque(
+    folio_embarque,
+    cliente,
+    destino,
+    transporte,
+    peso,
+    volumen,
+    hojas,
+    tarimas
+):
+
+    return f"""
+    <div style="
+        border:2px solid #111827;
+        border-radius:12px;
+        padding:14px;
+        background:white;
+        font-family:Arial;
+        color:#111827;
+    ">
+        <div style="
+            text-align:center;
+            font-size:22px;
+            font-weight:800;
+            margin-bottom:8px;
+        ">
+            {folio_embarque}
+        </div>
+
+        <div style="
+            height:44px;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    #111827 0px,
+                    #111827 3px,
+                    transparent 3px,
+                    transparent 7px
+                );
+            margin-bottom:10px;
+        "></div>
+
+        <div style="font-size:13px;line-height:1.8;">
+            <b>Cliente:</b> {cliente}<br>
+            <b>Destino:</b> {destino}<br>
+            <b>Transporte:</b> {transporte.get("codigo_transporte", "")}<br>
+            <b>Vehículo:</b> {transporte.get("vehiculo", "")}<br>
+            <b>Placas:</b> {transporte.get("placas", "")}<br>
+            <b>Hojas:</b> {hojas}<br>
+            <b>Tarimas:</b> {tarimas}<br>
+            <b>Peso:</b> {peso} kg<br>
+            <b>Volumen:</b> {volumen} m³
+        </div>
+
+        <div style="
+            margin-top:10px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            border-top:1px solid #d1d5db;
+            padding-top:8px;
+            font-size:12px;
+        ">
+            <b>SIGEM</b>
+            <span>Uso interno - No remover</span>
+        </div>
+    </div>
+    """
+
+
+def crear_card_embarque(hoja):
+
+    return f"""
+    <div style="
+        border:1px solid #dbeafe;
+        border-left:7px solid {hoja['color']};
+        border-radius:12px;
+        padding:12px;
+        background:white;
+        margin-bottom:10px;
+        box-shadow:0 1px 8px rgba(0,0,0,.04);
+        font-family:Arial;
+    ">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-weight:800;color:#111827;">
+                {hoja['numero']}. {hoja['folio']}
+            </div>
+            <div style="
+                background:{hoja['color']};
+                color:white;
+                border-radius:8px;
+                padding:4px 8px;
+                font-size:12px;
+                font-weight:700;
+            ">
+                ASIGNADO
+            </div>
+        </div>
+
+        <div style="font-size:13px;line-height:1.8;margin-top:8px;">
+            <b>Cliente:</b> {hoja['cliente']}<br>
+            <b>Destino:</b> {hoja['destino']}<br>
+            <b>Peso:</b> {hoja['peso']} kg<br>
+            <b>Volumen:</b> {hoja['volumen']} m³<br>
+            <b>Tarimas:</b> {hoja['tarimas']}
+        </div>
+    </div>
+    """
+
 
 # =====================================================
 # APP
@@ -1274,11 +1761,11 @@ def alta_embarque_app():
     with tab_grafico:
 
         st.subheader(
-            "🚛 Simulación científica de carga y cubicaje"
+            "🚛 Simulación de carga - visualización 3D"
         )
 
         st.caption(
-            "Modelo visual de transporte, tarimas, peso, volumen, cubicaje y etiqueta de embarque."
+            "Cada hoja de carga se representa como un bloque de color dentro del vehículo. El objetivo operativo es acercarse al 97% - 98% sin exceder peso, volumen ni tarimas."
         )
 
         if df_seleccionadas.empty:
@@ -1307,192 +1794,315 @@ def alta_embarque_app():
                 ]
             )
 
-            datos_validos, mensaje_validacion = validar_datos_simulacion(
+            (
+                fig,
+                hojas_simulacion,
+                tarimas_totales,
+                capacidad_tarimas,
+                porcentaje_peso,
+                porcentaje_volumen,
+                porcentaje_tarimas
+            ) = crear_figura_simulacion_carga(
+                df_seleccionadas,
+                transporte,
                 peso_seleccionado,
-                volumen_seleccionado,
-                capacidad_peso,
-                capacidad_volumen
+                volumen_seleccionado
             )
 
-            if not datos_validos:
+            (
+                estado_ocupacion,
+                color_estado,
+                mensaje_estado
+            ) = obtener_estado_carga(
+                porcentaje_peso,
+                porcentaje_volumen,
+                porcentaje_tarimas
+            )
 
-                st.warning(
-                    f"No hay datos suficientes para simular cubicaje: {mensaje_validacion}"
+            folio_simulado = generar_folio_embarque()
+
+            cliente_principal = (
+                df_seleccionadas["cliente"].iloc[0]
+                if not df_seleccionadas.empty
+                else ""
+            )
+
+            destino_principal = (
+                df_seleccionadas["destino"].iloc[0]
+                if not df_seleccionadas.empty
+                else ""
+            )
+
+            col_izq, col_centro, col_der = st.columns(
+                [1.05, 2.65, 1.15]
+            )
+
+            with col_izq:
+
+                st.markdown(
+                    "#### 📦 Embarques agregados"
+                )
+
+                st.caption(
+                    f"{len(hojas_simulacion)} hojas seleccionadas"
+                )
+
+                for hoja in hojas_simulacion:
+
+                    st.markdown(
+                        crear_card_embarque(
+                            hoja
+                        ),
+                        unsafe_allow_html=True
+                    )
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        background:white;
+                        border-radius:14px;
+                        padding:14px;
+                        box-shadow:0 2px 10px rgba(0,0,0,.07);
+                        font-family:Arial;
+                        margin-top:10px;
+                    ">
+                        <div style="font-weight:800;margin-bottom:10px;">
+                            Totales actuales
+                        </div>
+                        <div style="font-size:13px;line-height:1.9;">
+                            <b>Peso total:</b> {peso_seleccionado} kg<br>
+                            <b>Volumen total:</b> {volumen_seleccionado} m³<br>
+                            <b>Tarimas totales:</b> {tarimas_totales}<br>
+                            <b>Hojas incluidas:</b> {len(hojas_simulacion)}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            with col_centro:
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True
+                )
+
+                m1, m2, m3, m4, m5 = st.columns(5)
+
+                m1.metric(
+                    "📦 Tarimas",
+                    f"{tarimas_totales}",
+                    f"de {capacidad_tarimas}"
+                )
+
+                m2.metric(
+                    "⚖️ Peso",
+                    f"{peso_seleccionado}",
+                    f"{porcentaje_peso}%"
+                )
+
+                m3.metric(
+                    "📐 Volumen",
+                    f"{volumen_seleccionado}",
+                    f"{porcentaje_volumen}%"
+                )
+
+                m4.metric(
+                    "🟠 Cubicaje",
+                    f"{porcentaje_volumen}%"
+                )
+
+                m5.metric(
+                    "🎯 Meta",
+                    "97% - 98%"
+                )
+
+                st.markdown(
+                    "#### 🧭 Detalle por hoja"
+                )
+
+                df_detalle_sim = pd.DataFrame(
+                    hojas_simulacion
+                )
+
+                if not df_detalle_sim.empty:
+
+                    df_detalle_sim = df_detalle_sim[
+                        [
+                            "numero",
+                            "folio",
+                            "cliente",
+                            "destino",
+                            "peso",
+                            "volumen",
+                            "tarimas"
+                        ]
+                    ]
+
+                    st.dataframe(
+                        df_detalle_sim,
+                        use_container_width=True,
+                        hide_index=True,
+                        height=220
+                    )
+
+            with col_der:
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        background:white;
+                        border-radius:16px;
+                        padding:16px;
+                        box-shadow:0 2px 12px rgba(0,0,0,.08);
+                        border-left:6px solid {color_estado};
+                        font-family:Arial;
+                    ">
+                        <div style="
+                            font-size:20px;
+                            font-weight:800;
+                            color:{color_estado};
+                            margin-bottom:10px;
+                        ">
+                            {estado_ocupacion}
+                        </div>
+
+                        <div style="font-size:13px;line-height:1.8;">
+                            {mensaje_estado}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                st.write("")
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        background:white;
+                        border-radius:16px;
+                        padding:16px;
+                        box-shadow:0 2px 12px rgba(0,0,0,.08);
+                        font-family:Arial;
+                    ">
+                        <div style="font-size:17px;font-weight:800;margin-bottom:12px;">
+                            🚛 Información vehículo
+                        </div>
+                        <div style="font-size:13px;line-height:1.9;">
+                            <b>Transporte:</b> {transporte['codigo_transporte']}<br>
+                            <b>Vehículo:</b> {transporte['vehiculo']}<br>
+                            <b>Placas:</b> {transporte['placas']}<br>
+                            <b>Operador:</b> {transporte['operador']}<br>
+                            <b>Ruta:</b> {transporte['codigo_ruta']}<br>
+                            <b>Cliente:</b> {cliente_principal}<br>
+                            <b>Destino:</b> {destino_principal}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                st.write("")
+
+                color_peso = (
+                    "#dc2626"
+                    if porcentaje_peso > 100
+                    else "#16a34a"
+                )
+
+                color_volumen = (
+                    "#dc2626"
+                    if porcentaje_volumen > 100
+                    else "#f59e0b"
+                )
+
+                st.markdown(
+                    f"""
+                    <div style="
+                        background:white;
+                        border-radius:16px;
+                        padding:16px;
+                        box-shadow:0 2px 12px rgba(0,0,0,.08);
+                        font-family:Arial;
+                    ">
+                        <div style="font-size:17px;font-weight:800;margin-bottom:12px;">
+                            📊 Capacidad del vehículo
+                        </div>
+
+                        <div style="font-size:13px;margin-bottom:6px;">
+                            <b>Peso:</b> {peso_seleccionado} / {capacidad_peso} kg
+                        </div>
+                        {barra_html(porcentaje_peso, color_peso)}
+                        <div style="font-size:12px;color:{color_peso};text-align:right;margin-top:3px;">
+                            {porcentaje_peso}%
+                        </div>
+
+                        <div style="font-size:13px;margin-top:12px;margin-bottom:6px;">
+                            <b>Volumen:</b> {volumen_seleccionado} / {capacidad_volumen} m³
+                        </div>
+                        {barra_html(porcentaje_volumen, color_volumen)}
+                        <div style="font-size:12px;color:{color_volumen};text-align:right;margin-top:3px;">
+                            {porcentaje_volumen}%
+                        </div>
+
+                        <div style="font-size:13px;margin-top:12px;margin-bottom:6px;">
+                            <b>Tarimas:</b> {tarimas_totales} / {capacidad_tarimas}
+                        </div>
+                        {barra_html(porcentaje_tarimas, "#7c3aed")}
+                        <div style="font-size:12px;color:#7c3aed;text-align:right;margin-top:3px;">
+                            {porcentaje_tarimas}%
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                st.write("")
+
+                st.markdown(
+                    crear_html_etiqueta_embarque(
+                        folio_simulado,
+                        cliente_principal,
+                        destino_principal,
+                        transporte,
+                        peso_seleccionado,
+                        volumen_seleccionado,
+                        len(hojas_simulacion),
+                        tarimas_totales
+                    ),
+                    unsafe_allow_html=True
+                )
+
+            st.divider()
+
+            if (
+                porcentaje_peso > 100
+                or porcentaje_volumen > 100
+                or porcentaje_tarimas > 100
+            ):
+
+                st.error(
+                    "❌ No se puede guardar: la carga excede la capacidad del transporte. Selecciona otro transporte o reduce hojas de carga."
+                )
+
+            elif (
+                94 <= max(
+                    porcentaje_peso,
+                    porcentaje_volumen,
+                    porcentaje_tarimas
+                ) <= 100
+            ):
+
+                st.success(
+                    "✅ Ocupación óptima. La unidad está cerca de la meta de aprovechamiento."
                 )
 
             else:
 
-                vehiculo = str(
-                    transporte.get(
-                        "vehiculo",
-                        ""
-                    )
+                st.info(
+                    "ℹ️ Puedes agregar más hojas si deseas acercarte al objetivo de 97% - 98% de ocupación."
                 )
-
-                folio_simulado = crear_folio_simulado_embarque(
-                    df_seleccionadas
-                )
-
-                cliente_simulado = str(
-                    df_seleccionadas.iloc[0].get(
-                        "cliente",
-                        ""
-                    )
-                )
-
-                destino_simulado = str(
-                    df_seleccionadas.iloc[0].get(
-                        "destino",
-                        ""
-                    )
-                )
-
-                fig, tarimas_estimadas, porcentaje_peso, porcentaje_volumen = (
-                    crear_figura_camion_cientifico(
-                        peso_seleccionado,
-                        volumen_seleccionado,
-                        capacidad_peso,
-                        capacidad_volumen,
-                        vehiculo,
-                        folio_simulado,
-                        cliente_simulado,
-                        destino_simulado
-                    )
-                )
-
-                estado_carga, color_estado = obtener_estado_carga(
-                    porcentaje_peso,
-                    porcentaje_volumen
-                )
-
-                c1, c2, c3, c4 = st.columns(4)
-
-                c1.metric(
-                    "📦 Tarimas estimadas",
-                    tarimas_estimadas
-                )
-
-                c2.metric(
-                    "⚖️ Peso",
-                    f"{porcentaje_peso}%"
-                )
-
-                c3.metric(
-                    "📐 Volumen",
-                    f"{porcentaje_volumen}%"
-                )
-
-                c4.metric(
-                    "🚛 Estado",
-                    estado_carga
-                )
-
-                panel_grafico, panel_datos = st.columns(
-                    [2.4, 1]
-                )
-
-                with panel_grafico:
-
-                    st.plotly_chart(
-                        fig,
-                        use_container_width=True
-                    )
-
-                with panel_datos:
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            background:white;
-                            border-radius:18px;
-                            padding:18px;
-                            box-shadow:0 2px 12px rgba(0,0,0,.08);
-                            border-left:6px solid {color_estado};
-                            font-family:Arial;
-                            margin-bottom:14px;
-                        ">
-                            <div style="font-size:21px;font-weight:800;margin-bottom:10px;">
-                                {estado_carga}
-                            </div>
-                            <div style="line-height:1.9;font-size:14px;">
-                                <b>Folio simulado:</b><br>{folio_simulado}<br>
-                                <b>Cliente:</b> {cliente_simulado}<br>
-                                <b>Destino:</b> {destino_simulado}<br>
-                                <b>Transporte:</b> {transporte['codigo_transporte']}<br>
-                                <b>Vehículo:</b> {transporte['vehiculo']}<br>
-                                <b>Placas:</b> {transporte['placas']}<br>
-                                <b>Operador:</b> {transporte['operador']}<br>
-                                <b>Ruta:</b> {transporte['codigo_ruta']}
-                            </div>
-                        </div>
-
-                        <div style="
-                            background:white;
-                            border-radius:18px;
-                            padding:18px;
-                            box-shadow:0 2px 12px rgba(0,0,0,.08);
-                            font-family:Arial;
-                        ">
-                            <div style="font-size:19px;font-weight:800;margin-bottom:12px;">
-                                📊 Capacidad utilizada
-                            </div>
-                            <div style="line-height:1.9;font-size:14px;">
-                                <b>Peso usado:</b> {peso_seleccionado} / {capacidad_peso}<br>
-                                <b>Volumen usado:</b> {volumen_seleccionado} / {capacidad_volumen}<br>
-                                <b>Hojas:</b> {len(df_seleccionadas)}<br>
-                                <b>Materiales:</b> {materiales_seleccionados}<br>
-                                <b>Tarimas estimadas:</b> {tarimas_estimadas}
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                st.progress(
-                    min(
-                        int(porcentaje_peso),
-                        100
-                    ),
-                    text=(
-                        f"Ocupación peso: "
-                        f"{porcentaje_peso}%"
-                    )
-                )
-
-                st.progress(
-                    min(
-                        int(porcentaje_volumen),
-                        100
-                    ),
-                    text=(
-                        f"Ocupación volumen: "
-                        f"{porcentaje_volumen}%"
-                    )
-                )
-
-                if (
-                    porcentaje_peso > 100
-                    or porcentaje_volumen > 100
-                ):
-
-                    st.error(
-                        "❌ No se puede guardar: la carga excede la capacidad del transporte. Selecciona otro transporte."
-                    )
-
-                elif (
-                    porcentaje_peso >= 90
-                    or porcentaje_volumen >= 90
-                ):
-
-                    st.warning(
-                        "⚠️ Transporte cercano al límite. Se permite guardar, pero conviene revisar la operación."
-                    )
-
-                else:
-
-                    st.success(
-                        "✅ Transporte válido. La carga puede guardarse."
-                    )
 
 
 if __name__ == "__main__":
