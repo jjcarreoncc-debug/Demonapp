@@ -72,7 +72,7 @@ def obtener_db_por_modulo(modulo):
         return "logistica"
 
     if modulo_limpio == "seguridad":
-        return "erp"
+        return "seguridad"
 
     return None
 
@@ -1135,7 +1135,7 @@ def crear_tablas_seguridad_app():
 
     crear_tablas_seguridad()
 
-    db_path = get_db_path("erp")
+    db_path = get_db_path("seguridad")
 
     st.success("✅ Tablas de seguridad creadas/actualizadas")
 
