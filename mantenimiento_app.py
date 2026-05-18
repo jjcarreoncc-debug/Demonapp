@@ -4,7 +4,6 @@ from mantenimiento_auditoria_app import consultar_auditoria_app
 from crear_tablas_app import crear_tablas_app
 from revisar_estructura_db_app import revisar_estructura_db_app
 from test_copiar_seguridad_desde_erp import copiar_seguridad_desde_erp_app
-from test_login import copiar_seguridad_desde_erp_app
 
 from mantenimiento_usuarios_app import (
     alta_usuario_app,
