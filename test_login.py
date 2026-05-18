@@ -1,110 +1,80 @@
 import streamlit as st
 import sqlite3
+import hashlib
 import pandas as pd
 from sigem_db import get_db_path
 
 
 st.set_page_config(
-    page_title="Comparativo Bases",
+    page_title="Reset Usuario Seguridad",
     layout="wide"
 )
 
-st.title("🔎 Comparativo ERP vs SEGURIDAD")
 
-bases = [
-    ("ERP", "erp"),
-    ("SEGURIDAD", "seguridad")
-]
+def generar_hash(password):
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
-for nombre_base, clave in bases:
 
-    st.divider()
-    st.header(f"📦 Base: {nombre_base}")
+st.title("🔐 Reset Usuario Seguridad")
 
-    try:
+db_path = get_db_path("seguridad")
 
-        db_path = get_db_path(clave)
+st.write("Base usada:")
+st.code(db_path)
 
-        st.success(f"Ruta detectada: {db_path}")
+conn = sqlite3.connect(db_path)
+conn.row_factory = sqlite3.Row
+cur = conn.cursor()
 
-        conn = sqlite3.connect(db_path)
+st.subheader("Usuarios actuales")
 
-        tablas = pd.read_sql_query(
-            """
-            SELECT name
-            FROM sqlite_master
-            WHERE type='table'
-            ORDER BY name
-            """,
-            conn
-        )
+df = pd.read_sql_query(
+    """
+    SELECT
+        id_usuario,
+        usuario,
+        nombre,
+        password_hash,
+        id_rol,
+        estado,
+        bloqueado
+    FROM usuarios
+    """,
+    conn
+)
 
-        if tablas.empty:
+st.dataframe(df, use_container_width=True)
 
-            st.warning("No se encontraron tablas.")
+st.divider()
 
-        else:
+usuario = st.text_input("Usuario a actualizar", value="admin")
+nuevo_password = st.text_input("Nueva contraseña", value="admin123", type="password")
 
-            st.subheader("📋 Tablas")
+if st.button("Actualizar contraseña y activar usuario", use_container_width=True):
 
-            st.dataframe(
-                tablas,
-                use_container_width=True
-            )
+    password_hash = generar_hash(nuevo_password)
 
-            for tabla in tablas["name"].tolist():
+    cur.execute(
+        """
+        UPDATE usuarios
+        SET
+            password_hash = ?,
+            estado = 'Activo',
+            bloqueado = 'No',
+            intentos_login = 0,
+            fecha_bloqueo = NULL
+        WHERE usuario = ?
+        """,
+        (password_hash, usuario)
+    )
 
-                st.markdown(f"### 📌 {tabla}")
+    conn.commit()
 
-                try:
+    if cur.rowcount == 0:
+        st.error("No se encontró el usuario.")
+    else:
+        st.success("Usuario actualizado correctamente.")
+        st.write("Ya puedes entrar con:")
+        st.code(f"usuario: {usuario}\npassword: {nuevo_password}")
 
-                    estructura = pd.read_sql_query(
-                        f"""
-                        PRAGMA table_info({tabla})
-                        """,
-                        conn
-                    )
-
-                    st.write("Estructura:")
-
-                    st.dataframe(
-                        estructura,
-                        use_container_width=True
-                    )
-
-                    try:
-
-                        datos = pd.read_sql_query(
-                            f"""
-                            SELECT *
-                            FROM {tabla}
-                            LIMIT 5
-                            """,
-                            conn
-                        )
-
-                        st.write("Datos:")
-
-                        st.dataframe(
-                            datos,
-                            use_container_width=True
-                        )
-
-                    except Exception as e:
-
-                        st.error(
-                            f"No se pudieron leer datos: {e}"
-                        )
-
-                except Exception as e:
-
-                    st.error(
-                        f"No se pudo leer estructura: {e}"
-                    )
-
-        conn.close()
-
-    except Exception as e:
-
-        st.error(f"Error abriendo base {nombre_base}")
-        st.exception(e)
+conn.close()
