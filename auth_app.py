@@ -11,30 +11,70 @@ BASE_DIR = Path(__file__).resolve().parent
 
 
 def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
+
+    return hashlib.sha256(
+        password.encode()
+    ).hexdigest()
 
 
 def get_base64_image(image_path):
+
     file_path = BASE_DIR / image_path
 
     if not file_path.exists():
         return None
 
     with open(file_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
+
+        return base64.b64encode(
+            img_file.read()
+        ).decode()
 
 
 def validar_login(usuario, password):
+
     DB_PATH_LOGIN = get_db_path("seguridad")
 
-    st.write("BD usada login:")
+    st.write("📂 BD usada login:")
     st.code(str(DB_PATH_LOGIN))
 
     conn = sqlite3.connect(DB_PATH_LOGIN)
+
     conn.row_factory = sqlite3.Row
+
     cursor = conn.cursor()
 
+    # =====================================================
+    # DEBUG TABLAS
+    # =====================================================
+
     try:
+
+        tablas = cursor.execute("""
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
+            ORDER BY name
+        """).fetchall()
+
+        st.write("📋 Tablas encontradas:")
+
+        st.write([
+            x["name"] for x in tablas
+        ])
+
+    except Exception as e:
+
+        st.error("❌ Error leyendo tablas")
+
+        st.exception(e)
+
+    # =====================================================
+    # LOGIN
+    # =====================================================
+
+    try:
+
         row = cursor.execute(
             """
             SELECT
@@ -44,34 +84,86 @@ def validar_login(usuario, password):
                 estado,
                 id_rol
             FROM usuarios
-            WHERE TRIM(UPPER(usuario)) = TRIM(UPPER(?))
+            WHERE TRIM(UPPER(usuario)) =
+                  TRIM(UPPER(?))
             """,
             (usuario,)
         ).fetchone()
 
     except Exception as e:
+
         conn.close()
+
         st.error("❌ Error SQL login")
+
         st.exception(e)
+
         return None
 
     conn.close()
 
+    # =====================================================
+    # DEBUG USUARIO
+    # =====================================================
+
     if row is None:
+
         st.error("❌ Usuario no encontrado")
+
         return None
 
-    if row["estado"] != "Activo":
+    st.write("🔎 DEBUG LOGIN")
+
+    st.write(dict(row))
+
+    # =====================================================
+    # ESTATUS
+    # =====================================================
+
+    if str(row["estado"]).strip() != "Activo":
+
         st.error("❌ Usuario inactivo")
+
         return None
 
-    password_bd = str(row["password_hash"]).strip()
-    password_ingresado = str(password).strip()
-    password_hash = hash_password(password_ingresado)
+    # =====================================================
+    # PASSWORD
+    # =====================================================
 
-    if password_bd != password_ingresado and password_bd != password_hash:
+    password_bd = str(
+        row["password_hash"]
+    ).strip()
+
+    password_ingresado = str(
+        password
+    ).strip()
+
+    password_hash = hash_password(
+        password_ingresado
+    )
+
+    st.write("🔑 Password BD:")
+    st.code(password_bd)
+
+    st.write("🔑 Password ingresado:")
+    st.code(password_ingresado)
+
+    st.write("🔑 SHA256 ingresado:")
+    st.code(password_hash)
+
+    if (
+        password_bd != password_ingresado
+        and
+        password_bd != password_hash
+    ):
+
         st.error("❌ Password no coincide")
+
         return None
+
+    # =====================================================
+    # LOGIN CORRECTO
+    # =====================================================
 
     return {
         "usuario": row["usuario"],
@@ -81,11 +173,21 @@ def validar_login(usuario, password):
 
 
 def login_app():
-    bg_image = get_base64_image("logofondo.JPG")
-    sigem_logo = get_base64_image("logo1.png")
-    tids_logo = get_base64_image("LOOGO-TIDS-CONSULTING (2).jpg")
+
+    bg_image = get_base64_image(
+        "logofondo.JPG"
+    )
+
+    sigem_logo = get_base64_image(
+        "logo1.png"
+    )
+
+    tids_logo = get_base64_image(
+        "LOOGO-TIDS-CONSULTING (2).jpg"
+    )
 
     if bg_image:
+
         fondo_css = f"""
         background-image:
             linear-gradient(
@@ -98,12 +200,17 @@ def login_app():
         background-repeat: no-repeat;
         background-attachment: fixed;
         """
+
     else:
+
         fondo_css = "background-color: #0f172a;"
 
     st.markdown(f"""
     <style>
-    header, #MainMenu, footer {{
+
+    header,
+    #MainMenu,
+    footer {{
         visibility: hidden;
     }}
 
@@ -188,7 +295,11 @@ def login_app():
         width: 100%;
         height: 56px;
         border-radius: 14px;
-        background: linear-gradient(90deg, #0f3fae 0%, #2563eb 100%);
+        background: linear-gradient(
+            90deg,
+            #0f3fae 0%,
+            #2563eb 100%
+        );
         color: white !important;
         font-size: 20px;
         font-weight: 700;
@@ -197,7 +308,11 @@ def login_app():
     }}
 
     div.stButton > button:hover {{
-        background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%);
+        background: linear-gradient(
+            90deg,
+            #1d4ed8 0%,
+            #3b82f6 100%
+        );
         color: white !important;
     }}
 
@@ -207,21 +322,39 @@ def login_app():
         color: rgba(255,255,255,0.78);
         font-size: 14px;
     }}
+
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="top-logos">
+
         <div>
-            {'<img src="data:image/jpg;base64,' + tids_logo + '" width="190">' if tids_logo else ''}
+            {
+                '<img src="data:image/jpg;base64,' +
+                tids_logo +
+                '" width="190">'
+                if tids_logo else ''
+            }
         </div>
+
         <div>
-            {'<img src="data:image/png;base64,' + sigem_logo + '" width="190">' if sigem_logo else '<span style="color:white;font-size:28px;font-weight:800;">SIGEM</span>'}
+            {
+                '<img src="data:image/png;base64,' +
+                sigem_logo +
+                '" width="190">'
+                if sigem_logo else
+                '<span style="color:white;font-size:28px;font-weight:800;">SIGEM</span>'
+            }
         </div>
+
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="login-card">',
+        unsafe_allow_html=True
+    )
 
     st.markdown(
         '<div class="login-title">Inicio de sesión</div>',
@@ -233,7 +366,10 @@ def login_app():
         unsafe_allow_html=True
     )
 
-    usuario = st.text_input("Usuario", key="login_usuario")
+    usuario = st.text_input(
+        "Usuario",
+        key="login_usuario"
+    )
 
     password = st.text_input(
         "Contraseña",
@@ -241,18 +377,36 @@ def login_app():
         key="login_password"
     )
 
-    if st.button("Ingresar", key="btn_login_sigem"):
-        resultado = validar_login(usuario, password)
+    if st.button(
+        "Ingresar",
+        key="btn_login_sigem"
+    ):
+
+        resultado = validar_login(
+            usuario,
+            password
+        )
 
         if resultado is None:
-            st.error("❌ Usuario o contraseña incorrectos")
+
+            st.error(
+                "❌ Usuario o contraseña incorrectos"
+            )
+
         else:
+
             st.session_state.autenticado = True
+
             st.session_state.usuario = resultado["usuario"]
+
             st.session_state.nombre = resultado["nombre"]
+
             st.session_state.rol = resultado["rol"]
 
-            st.success("✅ Login correcto")
+            st.success(
+                "✅ Login correcto"
+            )
+
             st.rerun()
 
     st.markdown(
@@ -260,15 +414,25 @@ def login_app():
         unsafe_allow_html=True
     )
 
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(
+        '</div>',
+        unsafe_allow_html=True
+    )
 
 
 def logout_app():
-    if st.sidebar.button("🚪 Cerrar sesión", key="btn_logout_sigem_unico"):
+
+    if st.sidebar.button(
+        "🚪 Cerrar sesión",
+        key="btn_logout_sigem_unico"
+    ):
+
         st.session_state.autenticado = False
+
         st.session_state.usuario = None
+
         st.session_state.nombre = None
+
         st.session_state.rol = None
+
         st.rerun()
-
-
