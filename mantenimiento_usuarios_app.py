@@ -20,7 +20,8 @@ def alta_usuario_app():
     conn.row_factory = sqlite3.Row
 
     cursor = conn.cursor()
-
+    st.write("DB:", db_path)
+ 
     st.markdown("### 📌 Información básica")
 
     col1, col2, col3 = st.columns(3)
