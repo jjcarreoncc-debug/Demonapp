@@ -4,109 +4,82 @@ import pandas as pd
 import os
 
 
-# =====================================================
-# CONFIGURACION BLINDADA
-# =====================================================
-
 SEGURIDAD_DB_PATH = "/mount/src/demonapp/seguridad.db"
+ERP_DB_PATH = "/mount/src/demonapp/erp.db"
 
 
-# =====================================================
-# VALIDAR EXISTENCIA BASE
-# =====================================================
+def obtener_info_base(db_path):
 
-def validar_base_seguridad():
+    existe = os.path.exists(db_path)
 
-    existe = os.path.exists(SEGURIDAD_DB_PATH)
+    if not existe:
+        return False, 0, pd.DataFrame(columns=["name"])
 
-    st.write("📂 Base configurada:")
-    st.code(SEGURIDAD_DB_PATH)
+    tamaño = os.path.getsize(db_path)
 
-    if existe:
+    conn = sqlite3.connect(db_path)
 
-        st.success("✅ seguridad.db existe")
-
-        tamaño = os.path.getsize(SEGURIDAD_DB_PATH)
-
-        st.write(f"📦 Tamaño archivo: {tamaño} bytes")
-
-    else:
-
-        st.error("❌ seguridad.db NO existe")
-
-
-# =====================================================
-# OBTENER TABLAS
-# =====================================================
-
-def obtener_tablas_seguridad():
-
-    conn = sqlite3.connect(SEGURIDAD_DB_PATH)
-
-    query = """
+    df_tablas = pd.read_sql_query("""
         SELECT name
         FROM sqlite_master
         WHERE type='table'
         ORDER BY name
-    """
-
-    df = pd.read_sql_query(query, conn)
+    """, conn)
 
     conn.close()
 
-    return df
+    return True, tamaño, df_tablas
 
 
-# =====================================================
-# APP
-# =====================================================
+def mostrar_base(nombre, db_path):
 
-def validar_seguridad_db_app():
+    st.subheader(nombre)
 
-    st.title("🔒 Validación seguridad.db")
-
-    st.warning(
-        "Programa blindado exclusivamente a seguridad.db"
-    )
-
-    validar_base_seguridad()
-
-    st.divider()
-
-    st.subheader("📋 Tablas existentes")
+    st.write("📂 Ruta:")
+    st.code(db_path)
 
     try:
+        existe, tamaño, df_tablas = obtener_info_base(db_path)
 
-        df_tablas = obtener_tablas_seguridad()
+        if not existe:
+            st.error("❌ La base no existe")
+            return
+
+        st.success("✅ La base existe")
+        st.write(f"📦 Tamaño: {tamaño} bytes")
 
         if df_tablas.empty:
-
-            st.warning(
-                "⚠️ No existen tablas en seguridad.db"
-            )
-
+            st.warning("⚠️ No tiene tablas")
         else:
-
-            st.success(
-                f"✅ Se encontraron {len(df_tablas)} tabla(s)"
-            )
-
-            st.dataframe(
-                df_tablas,
-                use_container_width=True
-            )
+            st.success(f"✅ Tiene {len(df_tablas)} tabla(s)")
+            st.dataframe(df_tablas, use_container_width=True)
 
     except Exception as e:
-
-        st.error(
-            "❌ Error leyendo seguridad.db"
-        )
-
+        st.error("❌ Error leyendo la base")
         st.exception(e)
 
 
-# =====================================================
-# EJECUCION
-# =====================================================
+def validar_bases_seguridad_app():
 
-validar_seguridad_db_app()
+    st.title("🔎 Comparar seguridad.db vs erp.db")
+
+    st.warning(
+        "Este programa solo consulta las bases. No crea, no borra y no modifica."
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        mostrar_base(
+            "🔒 seguridad.db",
+            SEGURIDAD_DB_PATH
+        )
+
+    with col2:
+        mostrar_base(
+            "🏢 erp.db",
+            ERP_DB_PATH
+        )
+
+
+validar_bases_seguridad_app()
