@@ -7,7 +7,7 @@ from pathlib import Path
 from sigem_db import get_db_path
 
 
-DB_PATH_LOGIN = str(BASE_DIR / "seguridad.db")
+
 
 def validar_login(usuario, password):
 
@@ -16,8 +16,8 @@ def validar_login(usuario, password):
     st.write("📂 BD usada login:")
     st.code(str(DB_PATH_LOGIN))
     
-st.write("📁 BASE_DIR:")
-st.code(str(BASE_DIR))    
+    st.write("📁 BASE_DIR:")
+    st.code(str(BASE_DIR))    
 
 
 def hash_password(password):
