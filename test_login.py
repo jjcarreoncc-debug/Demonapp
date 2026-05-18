@@ -1,237 +1,172 @@
 import streamlit as st
 import sqlite3
-import shutil
-import os
+import hashlib
+import pandas as pd
 
 from sigem_db import get_db_path
 
 
-TABLAS_A_COPIAR = [
-    "usuarios",
-    "roles",
-    "modulos",
-    "permisos_roles",
-    "auditoria"
-]
+st.set_page_config(
+    page_title="Reset Admin",
+    layout="wide"
+)
 
 
-def tabla_existe(conn, tabla):
+def generar_hash(password):
+    return hashlib.sha256(
+        password.encode("utf-8")
+    ).hexdigest()
 
-    cur = conn.cursor()
+
+def columna_existe(cur, tabla, columna):
 
     cur.execute(
-        """
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        AND name=?
-        """,
-        (tabla,)
+        f"PRAGMA table_info({tabla})"
     )
-
-    return cur.fetchone() is not None
-
-
-def copiar_tabla(origen_db, destino_db, tabla):
-
-    conn_origen = sqlite3.connect(origen_db)
-    conn_destino = sqlite3.connect(destino_db)
-
-    cur_origen = conn_origen.cursor()
-    cur_destino = conn_destino.cursor()
-
-    if not tabla_existe(conn_origen, tabla):
-
-        conn_origen.close()
-        conn_destino.close()
-
-        return False, f"⚠️ Tabla no encontrada: {tabla}"
-
-    cur_origen.execute(
-        """
-        SELECT sql
-        FROM sqlite_master
-        WHERE type='table'
-        AND name=?
-        """,
-        (tabla,)
-    )
-
-    row = cur_origen.fetchone()
-
-    if row is None:
-
-        conn_origen.close()
-        conn_destino.close()
-
-        return False, f"⚠️ No se encontró CREATE TABLE de {tabla}"
-
-    sql_create = row[0]
-
-    cur_destino.execute(
-        f"DROP TABLE IF EXISTS {tabla}"
-    )
-
-    cur_destino.execute(sql_create)
-
-    cur_origen.execute(
-        f"SELECT * FROM {tabla}"
-    )
-
-    filas = cur_origen.fetchall()
 
     columnas = [
-        col[0]
-        for col in cur_origen.description
+        x[1]
+        for x in cur.fetchall()
     ]
 
-    if filas:
+    return columna in columnas
 
-        columnas_sql = ", ".join(columnas)
 
-        placeholders = ", ".join(
-            ["?"] * len(columnas)
-        )
+def agregar_columna(
+    cur,
+    tabla,
+    columna,
+    definicion
+):
 
-        cur_destino.executemany(
+    if not columna_existe(
+        cur,
+        tabla,
+        columna
+    ):
+
+        cur.execute(
             f"""
-            INSERT INTO {tabla} (
-                {columnas_sql}
-            )
-            VALUES (
-                {placeholders}
-            )
-            """,
-            filas
+            ALTER TABLE {tabla}
+            ADD COLUMN {columna} {definicion}
+            """
         )
 
-    conn_destino.commit()
 
-    conn_origen.close()
-    conn_destino.close()
+st.title("🔐 Reset Usuario Admin")
 
-    return True, f"✅ Tabla copiada: {tabla} | Registros: {len(filas)}"
+db_path = get_db_path("seguridad")
 
+st.success(f"BD usada: {db_path}")
 
-def verificar_destino(destino_db):
+conn = sqlite3.connect(db_path)
 
-    conn = sqlite3.connect(destino_db)
+cur = conn.cursor()
 
-    cur = conn.cursor()
+# =========================
+# ASEGURAR COLUMNAS
+# =========================
+
+agregar_columna(
+    cur,
+    "usuarios",
+    "password_hash",
+    "TEXT"
+)
+
+agregar_columna(
+    cur,
+    "usuarios",
+    "estado",
+    "TEXT DEFAULT 'Activo'"
+)
+
+agregar_columna(
+    cur,
+    "usuarios",
+    "id_rol",
+    "INTEGER DEFAULT 1"
+)
+
+conn.commit()
+
+# =========================
+# VER USUARIOS
+# =========================
+
+df = pd.read_sql_query(
+    """
+    SELECT *
+    FROM usuarios
+    """,
+    conn
+)
+
+st.subheader("👤 Usuarios actuales")
+
+st.dataframe(
+    df,
+    use_container_width=True
+)
+
+st.divider()
+
+usuario = st.text_input(
+    "Usuario",
+    value="admin"
+)
+
+password = st.text_input(
+    "Password",
+    value="admin123",
+    type="password"
+)
+
+if st.button(
+    "🚀 Actualizar admin",
+    use_container_width=True
+):
+
+    password_hash = generar_hash(
+        password
+    )
 
     cur.execute(
         """
-        SELECT name
-        FROM sqlite_master
-        WHERE type='table'
-        ORDER BY name
-        """
+        UPDATE usuarios
+        SET
+            password_hash = ?,
+            estado = 'Activo',
+            id_rol = 1
+        WHERE TRIM(UPPER(usuario))
+        =
+        TRIM(UPPER(?))
+        """,
+        (
+            password_hash,
+            usuario
+        )
     )
 
-    tablas = [
-        row[0]
-        for row in cur.fetchall()
-    ]
+    conn.commit()
 
-    resultado = {}
+    if cur.rowcount == 0:
 
-    for tabla in tablas:
-
-        cur.execute(
-            f"SELECT COUNT(*) FROM {tabla}"
+        st.error(
+            "❌ Usuario no encontrado."
         )
 
-        resultado[tabla] = cur.fetchone()[0]
+    else:
 
-    conn.close()
+        st.success(
+            "✅ Usuario actualizado."
+        )
 
-    return resultado
+        st.code(
+            f"""
+usuario: {usuario}
+password: {password}
+            """
+        )
 
-
-def recuperar_seguridad():
-
-    st.title("🔐 Recuperar Seguridad desde ERP")
-
-    origen_db = get_db_path("erp")
-    destino_db = get_db_path("seguridad")
-
-    st.success(f"📥 ERP: {origen_db}")
-    st.success(f"📤 SEGURIDAD: {destino_db}")
-
-    st.subheader("📋 Tablas a copiar")
-
-    st.write(TABLAS_A_COPIAR)
-
-    confirmar = st.checkbox(
-        "Confirmo reemplazar tablas en seguridad.db"
-    )
-
-    if st.button(
-        "🚀 Ejecutar recuperación",
-        use_container_width=True
-    ):
-
-        if not confirmar:
-
-            st.warning(
-                "⚠️ Debes confirmar antes de ejecutar."
-            )
-
-            return
-
-        try:
-
-            if os.path.exists(destino_db):
-
-                backup_path = (
-                    destino_db + ".backup"
-                )
-
-                shutil.copy2(
-                    destino_db,
-                    backup_path
-                )
-
-                st.success(
-                    f"✅ Backup creado: {backup_path}"
-                )
-
-            for tabla in TABLAS_A_COPIAR:
-
-                ok, mensaje = copiar_tabla(
-                    origen_db,
-                    destino_db,
-                    tabla
-                )
-
-                if ok:
-                    st.success(mensaje)
-                else:
-                    st.warning(mensaje)
-
-            resumen = verificar_destino(
-                destino_db
-            )
-
-            st.subheader(
-                "✅ Resultado final"
-            )
-
-            st.json(resumen)
-
-            st.success(
-                "✅ Recuperación terminada correctamente."
-            )
-
-        except Exception as e:
-
-            st.error(
-                "❌ Error durante recuperación."
-            )
-
-            st.exception(e)
-
-
-if __name__ == "__main__":
-
-    recuperar_seguridad()
+conn.close()
