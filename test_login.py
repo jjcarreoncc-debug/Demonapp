@@ -1,49 +1,61 @@
-import sqlite3
 import streamlit as st
-
+import sqlite3
+import pandas as pd
 from sigem_db import get_db_path
 
 
-def insertar_roles():
+st.set_page_config(
+    page_title="Test BD Seguridad",
+    layout="wide"
+)
 
+
+st.title("🔎 Test Base de Datos Seguridad")
+
+try:
     db_path = get_db_path("seguridad")
 
-    st.info(f"Base: {db_path}")
+    st.success("Ruta detectada:")
+    st.code(db_path)
 
     conn = sqlite3.connect(db_path)
 
-    cur = conn.cursor()
+    tablas = pd.read_sql_query(
+        """
+        SELECT name AS tabla
+        FROM sqlite_master
+        WHERE type = 'table'
+        ORDER BY name
+        """,
+        conn
+    )
 
-    roles = [
+    st.subheader("📋 Tablas encontradas")
 
-        ("Admin", "Administrador del sistema"),
-        ("Gerencia", "Gerencia general"),
-        ("Compras", "Modulo compras"),
-        ("Logistica", "Modulo logistica"),
-        ("WMS", "Modulo almacen WMS"),
-        ("Consulta", "Solo consulta")
+    if tablas.empty:
+        st.error("No se encontraron tablas en esta base.")
+    else:
+        st.dataframe(tablas, use_container_width=True)
 
-    ]
+        for tabla in tablas["tabla"].tolist():
 
-    for nombre_rol, descripcion in roles:
+            st.divider()
+            st.subheader(f"📌 Tabla: {tabla}")
 
-        cur.execute("""
-            INSERT OR IGNORE INTO roles (
-                nombre_rol,
-                descripcion
-            )
-            VALUES (?, ?)
-        """, (
-            nombre_rol,
-            descripcion
-        ))
+            try:
+                df = pd.read_sql_query(
+                    f"SELECT * FROM {tabla} LIMIT 20",
+                    conn
+                )
 
-        st.success(f"✅ Rol insertado: {nombre_rol}")
+                st.write(f"Registros encontrados: {len(df)}")
+                st.dataframe(df, use_container_width=True)
 
-    conn.commit()
+            except Exception as e:
+                st.error(f"No se pudo leer la tabla {tabla}: {e}")
+
     conn.close()
 
-    st.success("✅ Proceso terminado")
-
-
-insertar_roles()
+except Exception as e:
+    st.error("Error general revisando la base de seguridad")
+    st.exception(e)
