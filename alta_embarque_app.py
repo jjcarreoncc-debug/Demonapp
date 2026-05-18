@@ -4,6 +4,7 @@ import sqlite3
 import pandas as pd
 import plotly.graph_objects as go
 import math
+import textwrap
 from embarques_service import procesar_confirmacion_embarque
 
 from datetime import datetime
@@ -11,61 +12,8 @@ from datetime import datetime
 from sigem_db import get_db_path
 
 st.set_page_config(
-    page_title="SIGEM",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
-
-
-
-st.markdown("""
-<style>
-
-.block-container {
-    max-width: 1450px;
-    padding-top: 1rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    padding-bottom: 2rem;
-}
-
-div[data-testid="stHorizontalBlock"] {
-    gap: 1rem;
-}
-
-div[data-testid="stVerticalBlock"] {
-    gap: .7rem;
-}
-
-.filtros-box {
-    border: 1px solid #d9dee8;
-    border-radius: 12px;
-    padding: 16px;
-    background: white;
-    margin-bottom: 18px;
-}
-
-.mapa-box {
-    border: 1px solid #d9dee8;
-    border-radius: 12px;
-    padding: 16px;
-    background: white;
-    min-height: 360px;
-}
-
-.stTextInput input {
-    background-color: #f1f4f8;
-    border-radius: 9px;
-}
-
-div[data-baseweb="select"] > div {
-    background-color: #f1f4f8;
-    border-radius: 9px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
 
 
 # =====================================================
@@ -1150,11 +1098,11 @@ def barra_html(valor, color):
         100
     )
 
-    return f"""
+    return textwrap.dedent(f"""
     <div style="background:#e5e7eb;border-radius:999px;height:12px;overflow:hidden;">
         <div style="width:{valor_limitado}%;background:{color};height:12px;border-radius:999px;"></div>
     </div>
-    """
+    """).strip()
 
 
 def crear_html_etiqueta_embarque(
@@ -1168,7 +1116,7 @@ def crear_html_etiqueta_embarque(
     tarimas
 ):
 
-    return f"""
+    return textwrap.dedent(f"""
     <div style="
         border:2px solid #111827;
         border-radius:12px;
@@ -1224,12 +1172,12 @@ def crear_html_etiqueta_embarque(
             <span>Uso interno - No remover</span>
         </div>
     </div>
-    """
+    """).strip()
 
 
 def crear_card_embarque(hoja):
 
-    return f"""
+    return textwrap.dedent(f"""
     <div style="
         border:1px solid #dbeafe;
         border-left:7px solid {hoja['color']};
@@ -1264,7 +1212,7 @@ def crear_card_embarque(hoja):
             <b>Tarimas:</b> {hoja['tarimas']}
         </div>
     </div>
-    """
+    """).strip()
 
 
 # =====================================================
@@ -1910,7 +1858,7 @@ def alta_embarque_app():
                     )
 
                 st.markdown(
-                    f"""
+                    textwrap.dedent(f"""
                     <div style="
                         background:white;
                         border-radius:14px;
@@ -1929,7 +1877,7 @@ def alta_embarque_app():
                             <b>Hojas incluidas:</b> {len(hojas_simulacion)}
                         </div>
                     </div>
-                    """,
+                    """).strip(),
                     unsafe_allow_html=True
                 )
 
@@ -2002,7 +1950,7 @@ def alta_embarque_app():
             with col_der:
 
                 st.markdown(
-                    f"""
+                    textwrap.dedent(f"""
                     <div style="
                         background:white;
                         border-radius:16px;
@@ -2024,14 +1972,14 @@ def alta_embarque_app():
                             {mensaje_estado}
                         </div>
                     </div>
-                    """,
+                    """).strip(),
                     unsafe_allow_html=True
                 )
 
                 st.write("")
 
                 st.markdown(
-                    f"""
+                    textwrap.dedent(f"""
                     <div style="
                         background:white;
                         border-radius:16px;
@@ -2052,7 +2000,7 @@ def alta_embarque_app():
                             <b>Destino:</b> {destino_principal}
                         </div>
                     </div>
-                    """,
+                    """).strip(),
                     unsafe_allow_html=True
                 )
 
@@ -2071,7 +2019,7 @@ def alta_embarque_app():
                 )
 
                 st.markdown(
-                    f"""
+                    textwrap.dedent(f"""
                     <div style="
                         background:white;
                         border-radius:16px;
@@ -2107,7 +2055,7 @@ def alta_embarque_app():
                             {porcentaje_tarimas}%
                         </div>
                     </div>
-                    """,
+                    """).strip(),
                     unsafe_allow_html=True
                 )
 
