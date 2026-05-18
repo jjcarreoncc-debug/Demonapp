@@ -280,9 +280,9 @@ if ruta_central in [
 # LOGISTICA
 # =====================================================
 
-elif ruta_central == "logistica":
+elif ruta_central == "Mlogistica":
 
-    logistica_app()
+    Mlogistica_app()
 
 # =====================================================
 # ANALITICO
