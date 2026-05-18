@@ -77,6 +77,7 @@ def obtener_db_por_modulo(modulo):
     return None
 
 
+
 def borrar_tabla(modulo, tabla):
 
     db_nombre = obtener_db_por_modulo(modulo)
@@ -86,7 +87,10 @@ def borrar_tabla(modulo, tabla):
             "No se encontró base de datos para el módulo seleccionado."
         )
 
-    db_path = get_db_path(db_nombre)
+    if db_nombre == "seguridad":
+        db_path = "/mount/src/demonapp/seguridad.db"
+    else:
+        db_path = get_db_path(db_nombre)
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -99,8 +103,6 @@ def borrar_tabla(modulo, tabla):
     conn.close()
 
     return db_path
-
-
 # =====================================================
 # INVENTARIOS
 # =====================================================
@@ -1135,7 +1137,7 @@ def crear_tablas_seguridad_app():
 
     crear_tablas_seguridad()
 
-    db_path = get_db_path("seguridad")
+    db_path = "/mount/src/demonapp/seguridad.db"
 
     st.success("✅ Tablas de seguridad creadas/actualizadas")
 
